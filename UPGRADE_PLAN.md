@@ -2,64 +2,86 @@
 
 This document outlines the steps to upgrade the Wick Editor from its current stack (React 16, Electron 7, react-scripts) to a modern stack (React 18, latest Electron, Vite).
 
-Follow these phases in order. Do not skip steps.
+Follow these phases in order. Do not skip steps. The plan has been revised multiple times as we've uncovered dependency conflicts. The latest science shows that we **must** upgrade React *before* we can install a modern testing framework.
 
 ---
 
-### Phase 0: Pre-Migration Strengthening (Safety Net)
+### Phase 1: Migrate Build System to Vite & Upgrade Node.js (COMPLETE)
 
-*This is the most critical phase for a smooth transition. The goal is to build a safety net of tests and static typing that will catch regressions during the upgrade.*
+*The first step is to remove the dependency on `react-scripts`, which is preventing us from upgrading Node.js. We will switch to `Vite` and move to the latest LTS version of Node.js.*
 
-- [ ] **1. Set Up a Test Runner:**
-    - [ ] Choose and install a modern test runner. Since the goal is to move to Vite, `vitest` is a natural choice.
-    - [ ] Configure the test runner to work with the existing `react-scripts` setup for now.
+- [x] **1. Switch to a Modern Node.js Version:**
+    - [x] Before proceeding, switch your environment to the latest Node.js LTS version (e.g., `nvm use 20`). This will be the version used for the remainder of the upgrade.
+    - [x] Remove the `engines` field from `package.json` and delete the `.npmrc` file, as they enforce the old Node.js v12.
+
+- [x] **2. Remove `react-scripts`:**
+    - [x] `npm uninstall react-scripts`
+
+- [x] **3. Install Vite:**
+    - [x] `npm install --save-dev vite @vitejs/plugin-react`
+
+- [x] **4. Create `vite.config.js`:**
+    - [x] Create a `vite.config.js` file in the project root.
+    - [x] Add a basic configuration to use the React plugin and set the build directory to `build`.
+
+- [x] **5. Update `index.html`:**
+    - [x] Move `public/index.html` to the project root.
+    - [x] Update the path to your main script file. Change `<script src="%PUBLIC_URL%/..."></script>` to `<script type="module" src="/src/index.js"></script>` (or wherever your entry point is).
+    - [x] Update any other `%PUBLIC_URL%` placeholders.
+
+- [x] **6. Update `package.json` Scripts:**
+    - [x] `"start": "vite"`
+    - [x] `"build": "npm run build-engine && vite build"` (or integrate the engine build into Vite's config).
+
+- [x] **7. Validate the Dev Server:**
+    - [x] Run `npm start`. The app should launch and run in the browser (without Electron). Fix any issues until it does. This will likely involve replacing `node-sass` with `sass`.
+
+---
+
+### Phase 2: Upgrade React
+
+*The original plan to add tests first was not feasible. We must upgrade React to version 18 before modern testing libraries can be installed.*
+
+- [ ] **1. Update React Packages:**
+    - [ ] Install the latest versions of React: `npm install react@latest react-dom@latest`.
+
+- [ ] **2. Update to `createRoot` API:**
+    - [ ] In your application's entry point (`src/index.js`), find the `ReactDOM.render(...)` call.
+    - [ ] Replace it with the new `createRoot` API.
+      ```javascript
+      // Before:
+      // ReactDOM.render(<Editor />, document.getElementById('root'));
+
+      // After:
+      import { createRoot } from 'react-dom/client';
+      const container = document.getElementById('root');
+      const root = createRoot(container);
+      root.render(<Editor />);
+      ```
+
+- [ ] **3. Full Manual Regression Test:**
+    - [ ] This is now our "safety net". Since we can't rely on automated tests yet, we must do this manually.
+    - [ ] Run `npm start`.
+    - [ ] Go through every single feature in the editor. Create shapes, add frames, use the timeline, add sound, draw with the brush, use the inspector, open and save files.
+    - [ ] Document any visual glitches or runtime errors you see in the browser console. Fix them before proceeding. Pay special attention to libraries like `react-dnd` and `rc-slider` which are likely to have issues.
+
+---
+
+### Phase 3: Set Up Testing (Safety Net)
+
+*Now that React is upgraded, we can finally install a modern test runner.*
+
+- [ ] **1. Set Up Vitest:**
+    - [ ] Install the test runner: `npm install --save-dev vitest @vitest/ui jsdom @testing-library/react @testing-library/jest-dom`.
+    - [ ] Update your `vite.config.js` to configure `vitest` and remove the temporary React babel config if it's no longer needed.
+    - [ ] Add `"test": "vitest"` to your `package.json` scripts.
 
 - [ ] **2. Write Critical Unit & Integration Tests:**
-    - [ ] Identify the most critical parts of the application. Good candidates are:
-        - The Wick Engine's core rendering logic.
-        - Timeline state management.
-        - Asset import/export functionality (images, audio).
-        - Project saving and loading (`.wick` file handling).
-    - [ ] Write high-level integration tests for these features. The goal is to verify that these features still work after each major upgrade step.
-
-- [ ] **3. Introduce TypeScript:**
-    - [ ] Add TypeScript to the project (`npm install --save-dev typescript @types/node @types/react @types/react-dom @types/jest`).
-    - [ ] Create a `tsconfig.json` file. A basic one from `npx tsc --init` is a good start. Configure it to allow JS files (`"allowJs": true`).
-    - [ ] Start by converting a few non-critical utility files from `.js` to `.ts` to ensure the setup works.
-    - [ ] **Goal:** Do not block the migration on converting the entire app. Use TypeScript to your advantage for *new* code and for files you have to refactor heavily anyway (like `electron.js`).
+    - [ ] Now, build the safety net we originally wanted. Write tests for the most critical parts of the application you identified during the manual regression test.
 
 ---
 
-### Phase 1: Migrate Build System to Vite
-
-*Replace `react-scripts` with `Vite` for a much faster development experience and modern build system.*
-
-- [ ] **1. Remove `react-scripts`:**
-    - [ ] `npm uninstall react-scripts`
-
-- [ ] **2. Install Vite:**
-    - [ ] `npm install --save-dev vite @vitejs/plugin-react`
-
-- [ ] **3. Create `vite.config.js`:**
-    - [ ] Create a `vite.config.js` file in the project root.
-    - [ ] Add a basic configuration to use the React plugin and set the build directory to `build`.
-
-- [ ] **4. Update `index.html`:**
-    - [ ] Move `public/index.html` to the project root.
-    - [ ] Update the path to your main script file. Change `<script src="%PUBLIC_URL%/..."></script>` to `<script type="module" src="/src/index.js"></script>` (or wherever your entry point is).
-    - [ ] Update any other `%PUBLIC_URL%` placeholders.
-
-- [ ] **5. Update `package.json` Scripts:**
-    - [ ] `"start": "vite"`
-    - [ ] `"build": "npm run build-engine && vite build"` (or integrate the engine build into Vite's config).
-    - [ ] `"test": "vitest"`
-
-- [ ] **6. Validate the Dev Server:**
-    - [ ] Run `npm start`. The app should launch and run in the browser (without Electron). Fix any issues until it does.
-
----
-
-### Phase 2: Upgrade Electron
+### Phase 4: Upgrade Electron
 
 *Upgrade Electron to the latest version and refactor for modern security practices.*
 
@@ -67,39 +89,23 @@ Follow these phases in order. Do not skip steps.
     - [ ] `npm install --save-dev electron electron-builder`
 
 - [ ] **2. Refactor for Context Isolation:**
-    - [ ] Create a new `preload.js` script. This will be the bridge between the main process and the renderer (your React app).
-    - [ ] In your main Electron file (`public/electron.js`), find where the `BrowserWindow` is created. Add the `preload` script to the `webPreferences`:
-      ```javascript
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
-        contextIsolation: true, // This is the default and recommended
-        nodeIntegration: false // This is the default and recommended
-      }
-      ```
-    - [ ] **Important:** Move any code that uses `fs`, `path`, or other Node.js modules out of your React components.
-    - [ ] For every piece of Node functionality the renderer needs (e.g., opening a file dialog), you must:
-        1.  Create an `ipcMain.handle(...)` in your main Electron file.
-        2.  Expose that handler to the renderer via `contextBridge.exposeInMainWorld(...)` in `preload.js`.
-        3.  Call the exposed function from your React code (e.g., `window.myApi.openFile()`).
+    - [ ] Create a new `preload.js` script to act as the bridge between the main process and the renderer.
+    - [ ] Update your main Electron file to use the `preload` script and ensure `contextIsolation` is enabled.
+    - [ ] Refactor all Node.js API usage (e.g., `fs`, `path`) out of the renderer and into the main process, exposing functionality to the renderer via the `contextBridge` and IPC.
 
 - [ ] **3. Test in Electron:**
-    - [ ] Run the app with your electron start command (`npm run electron-dev-macos` or similar).
-    - [ ] Verify that the app loads and that all interactions with the backend (like saving/loading) work through the new IPC bridge.
+    - [ ] Run the app with your electron start command.
+    - [ ] Verify that the app loads and that all backend interactions work through the new IPC bridge.
 
 ---
 
-### Phase 3: Audit and Upgrade Dependencies
+### Phase 5: Audit and Upgrade Dependencies
 
 *Update the ecosystem of libraries to be compatible with modern React.*
 
 - [ ] **1. Audit `package.json`:**
     - [ ] For every dependency, especially the `react-*` ones, check if its current version is compatible with React 18.
-    - [ ] Pay special attention to:
-        - `react-dnd` (will need a major upgrade)
-        - `rc-slider`
-        - `react-hotkeys`
-        - `react-ace`
-        - `classnames` (check for updates)
+    - [ ] Pay special attention to `react-dnd`, `rc-slider`, `react-hotkeys`, `react-ace`, etc.
     - [ ] Create a list of packages that need to be updated or replaced.
 
 - [ ] **2. Upgrade Packages Incrementally:**
@@ -108,20 +114,5 @@ Follow these phases in order. Do not skip steps.
 
 ---
 
-### Phase 4: Upgrade React
-
-*The final step. Upgrade React itself.*
-
-- [ ] **1. Update React Packages:**
-    - [ ] `npm install react@latest react-dom@latest`
-
-- [ ] **2. Update to `createRoot` API:**
-    - [ ] In your application's entry point (`src/index.js` or similar), change the `ReactDOM.render` call to the new `createRoot` API.
-
-- [ ] **3. Full Regression Test:**
-    - [ ] Run your full test suite (`npm test`). Fix any failing tests.
-    - [ ] Manually perform a full test of the application. Go through every feature, button, and interaction. Pay close attention to state updates, rendering, and timeline behavior.
-    - [ ] Once all tests pass and the app is stable, merge the `upgrade` branch back into your main branch.
-
-- [ ] **4. Celebrate!**
+- [ ] **Celebrate!**
     - [ ] You have successfully modernized a complex application. 
