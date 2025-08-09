@@ -105,6 +105,9 @@
     "build-engine": "cd engine; mkdir dist/; gulp; cp -a dist/. ../public/corelibs/wick-engine/",
     "build-engine-windows": "cd engine & mkdir dist  2>nul &    gulp & xcopy /EY dist\\. ..\\public\\corelibs\\wick-engine\\",
     "test": "react-scripts test",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
     "engine-tests": "cd engine; python -m SimpleHTTPServer 9999",
     "predeploy": "npm run build",
     "editor-deploy": "npm run build; rm -r ../wick-site/public/editor; mkdir ../wick-site/public/editor; cp -r build/* ../wick-site/public/editor; cd ../wick-site/public/editor; rm CNAME; echo 'wickeditor.com/editor/' > CNAME; git add .; git commit -m 'update release build'; git push --force;",
@@ -132,6 +135,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
+    "@playwright/test": "^1.46.0",
     "dotenv": "^8.2.0",
     "electron": "^7.2.4",
     "electron-builder": "^22.4.1",
