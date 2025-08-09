@@ -38,6 +38,23 @@ npm run test:e2e
   - [ ] Output `node -v`, `npm -v`, OS in commit/PR description
   - [ ] Save failing/succeeding Playwright trace if any
 
+Two-terminal workflow (recommended):
+
+1) Terminal A (legacy server on Node 12)
+
+```bash
+nvm use 12.22.12
+npm start
+```
+
+2) Terminal B (tests, can be Node 18 or 12)
+
+```bash
+# Optionally: nvm use 18.20.3
+npm run test:e2e
+```
+
+
 ---
 
 ### Phase 1 — Introduce TypeScript (incremental)

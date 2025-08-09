@@ -19,11 +19,5 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    command: process.platform === 'win32' ? 'set BROWSER=none && npm start' : 'BROWSER=none npm start',
-    port: 3000,
-    reuseExistingServer: true,
-    timeout: 120 * 1000,
-  },
 });
 
