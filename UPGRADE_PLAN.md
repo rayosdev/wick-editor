@@ -61,11 +61,11 @@ npm run test:e2e
 
 - [ ] Install TS deps:
   - `npm i -D typescript @types/react @types/react-dom @types/classnames @types/underscore`
-- [ ] Add `tsconfig.json` (initially):
+- [x] Add `tsconfig.json` (initially):
   - `compilerOptions`: `{ target: "ES2020", module: "ESNext", jsx: "react-jsx", allowJs: true, checkJs: false, skipLibCheck: true, strict: false, noEmit: true }`
   - `include`: `["src", "tests"]`
-- [ ] Convert a small leaf component to `.tsx`
-- [ ] Ensure type-check passes; app builds
+- [x] Convert a small leaf component to `.tsx` (`MenuBarIconButton.tsx`)
+- [x] Ensure type-check passes (`npm run typecheck`)
 - [ ] E2E green: `npm run test:e2e`
 - [ ] Add ESLint + Prettier for TS
   - [ ] `npm i -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-config-prettier prettier`
