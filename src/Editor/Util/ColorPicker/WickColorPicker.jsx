@@ -4,10 +4,9 @@ import  ActionButton  from 'Editor/Util/ActionButton/ActionButton';
 
 import './_wickcolorpicker.scss';
 import { CustomPicker } from 'react-color';
+import { Saturation, Hue, Alpha, Checkboard, Swatch } from 'react-color/lib/components/common';
+import { SketchFields } from 'react-color/lib/components/sketch/SketchFields';
 import WickSwatch from 'Editor/Util/ColorPicker/WickSwatch/WickSwatch'
-
-var { Saturation, Hue, Alpha, Checkboard, Swatch } = require('react-color/lib/components/common');
-var { SketchFields } = require('react-color/lib/components/sketch/SketchFields');
 
 class WickColorPicker extends Component {
     renderSwatchColumn = (colorList, i) => {

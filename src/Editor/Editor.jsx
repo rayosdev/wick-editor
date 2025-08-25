@@ -56,9 +56,10 @@ import WickCodeEditor from './PopOuts/WickCodeEditor/WickCodeEditor';
 
 import EditorWrapper from './EditorWrapper';
 
-const { version } = require('../../package.json');
+import packageJson from '../../package.json';
+const { version } = packageJson;
 
-var classNames = require('classnames');
+import classNames from 'classnames';
 
 class Editor extends EditorCore {
   constructor () {
@@ -956,7 +957,9 @@ class Editor extends EditorCore {
             {/*App*/}
             <ReflexContainer windowResizeAware={true} orientation="vertical">
               {/* Middle Panel */}
-              <ReflexElement {...this.resizeProps}>
+              <ReflexElement 
+                onStopResize={this.resizeProps.onStopResize}
+                onResize={this.resizeProps.onResize}>
                 {/*Toolbox*/}
                 <div className={classNames("toolbox-container", {'toolbox-container-medium': renderSize === 'medium'}, {'toolbox-container-small': renderSize === 'small'})}>
                   <DockedPanel showOverlay={this.state.previewPlaying}>
@@ -989,7 +992,9 @@ class Editor extends EditorCore {
                     <ReflexElement>
                       <ReflexContainer windowResizeAware={true} orientation="vertical">
                         {/*Canvas*/}
-                        <ReflexElement {...this.resizeProps}>
+                        <ReflexElement 
+                          onStopResize={this.resizeProps.onStopResize}
+                          onResize={this.resizeProps.onResize}>
                           <DockedPanel>
                             <SizeMe>{({ size }) => {
                               this.project.view.render();
@@ -1037,7 +1042,7 @@ class Editor extends EditorCore {
                         </ReflexElement>
 
                         {/* Popout Outliner */}
-                        {renderSize === "large" && this.state.outlinerPoppedOut && <ReflexSplitter {...this.resizeProps}/>}
+                        {renderSize === "large" && this.state.outlinerPoppedOut && <ReflexSplitter />}
                         {renderSize === "large" && this.state.outlinerPoppedOut && 
                         <ReflexElement
                           size={250}
@@ -1061,8 +1066,8 @@ class Editor extends EditorCore {
                       </ReflexContainer>
                     </ReflexElement>
 
-                    {(renderSize === "small") && <ReflexSplitter {...this.resizeProps} className="mobile-reflex-splitter"/>}
-                    {!(renderSize === "small") && <ReflexSplitter {...this.resizeProps}/>}
+                    {(renderSize === "small") && <ReflexSplitter className="mobile-reflex-splitter"/>}
+                    {!(renderSize === "small") && <ReflexSplitter />}
 
                     {/*Timeline*/}
                     <ReflexElement
@@ -1137,7 +1142,7 @@ class Editor extends EditorCore {
               </ReflexElement>
 
               {/* Right Sidebar */}
-              {!(renderSize === "small") && <ReflexSplitter {...this.resizeProps}/>}
+              {!(renderSize === "small") && <ReflexSplitter />}
               {!(renderSize === "small") &&
 
                 <ReflexElement
@@ -1147,7 +1152,9 @@ class Editor extends EditorCore {
                 onStopResize={this.resizeProps.onStopInspectorResize}>
                 <ReflexContainer windowResizeAware={true} orientation="horizontal">
                   {/* Inspector */}
-                  <ReflexElement {...this.resizeProps}>
+                  <ReflexElement 
+                    onStopResize={this.resizeProps.onStopResize}
+                    onResize={this.resizeProps.onResize}>
                     <DockedPanel showOverlay={this.state.previewPlaying}>
                       <Inspector
                         getToolSetting={this.getToolSetting}
@@ -1176,7 +1183,7 @@ class Editor extends EditorCore {
 
           
                   {/* Outliner */}
-                  {renderSize === 'medium' && <ReflexSplitter {...this.resizeProps}/>}
+                  {renderSize === 'medium' && <ReflexSplitter />}
                   {renderSize === 'medium' && <ReflexElement
                     minSize={100}>
                     <DockedPanel showOverlay={this.state.previewPlaying}>
@@ -1197,7 +1204,7 @@ class Editor extends EditorCore {
 
                   
 
-                  {window.enableAssetLibrary &&  <ReflexSplitter {...this.resizeProps}/>}
+                  {window.enableAssetLibrary &&  <ReflexSplitter />}
                   {/* Asset Library */}
                   {window.enableAssetLibrary && 
                   <ReflexElement

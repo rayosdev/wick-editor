@@ -10,7 +10,7 @@
  *
  * Wick Editor is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR ANY PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -19,12 +19,9 @@
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { Provider } from 'react-redux';
-import { createStore } from 'redux';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import Editor from 'Editor';
-import rootReducer from 'Editor/reducers';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
 import initializeDefaultFileHandlers from './files/filehandler';
@@ -32,16 +29,11 @@ import initializeDefaultFileHandlers from './files/filehandler';
 // Creates file handlers in the window.
 initializeDefaultFileHandlers();
 
-const store = createStore(rootReducer);
-window.store = store;
-
 const container = document.getElementById('root');
 const root = createRoot(container);
 root.render(
   <I18nextProvider i18n={i18n}>
-    <Provider store={store}>
-      <Editor />
-    </Provider>
+    <Editor />
   </I18nextProvider>
 );
 

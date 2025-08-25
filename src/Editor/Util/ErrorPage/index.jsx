@@ -22,11 +22,9 @@ import './_index.scss';
 
 function ErrorPage() {
   return (
-    <main class="error-page">
-      <h1> Oops! Something Broke!</h1>
-      <p>
-        Don't worry, we auto-saved your project! Please try refreshing the page and loading the autosave!
-      </p>
+        <main className="error-page">
+      <h1>Oops! Something Broke!</h1>
+      <p>Don't worry, we auto-saved your project! Please try refreshing the page and loading the autosave!</p>
     </main>
   );
 }

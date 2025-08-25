@@ -23,18 +23,18 @@ import WickInput from 'Editor/Util/WickInput/WickInput';
 import { Rnd } from 'react-rnd';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import AddScriptPanel from './AddScriptPanel/AddScriptPanel';
-import { Console } from 'console-feed'
+// import { Console } from 'console-feed'
 
 // Import Ace Editor and themes.
 import AceEditor from 'react-ace';
-import 'brace/mode/javascript';
-import 'brace/ext/searchbox';
+import 'ace-builds/src-noconflict/mode-javascript';
+import 'ace-builds/src-noconflict/ext-searchbox';
 
-import 'brace/theme/monokai';
-import 'brace/theme/cobalt';
-import 'brace/theme/dracula';
-import 'brace/theme/eclipse';
-import 'brace/theme/github';
+import 'ace-builds/src-noconflict/theme-monokai';
+import 'ace-builds/src-noconflict/theme-cobalt';
+import 'ace-builds/src-noconflict/theme-dracula';
+import 'ace-builds/src-noconflict/theme-eclipse';
+import 'ace-builds/src-noconflict/theme-github';
 
 import 'Editor/styles/PopOuts/_wickcodeeditor.css';
 
@@ -63,7 +63,7 @@ const editorThemes = [
     label: 'Github',
   }]
 
-let classNames = require('classnames');
+import classNames from 'classnames';
 
 export default function WickCodeEditor(props) {
 
@@ -394,17 +394,16 @@ export default function WickCodeEditor(props) {
         </div>
         <div className="wick-code-editor-content">
           {renderCodeTabs()}
-          <ReflexContainer>
-            <ReflexElement>
+          <ReflexContainer orientation="horizontal">
+            <ReflexElement flex={1}>
               {renderCodeEditor()}
             </ReflexElement>
-
-            <ReflexSplitter></ReflexSplitter>
-
+            
+            <ReflexSplitter />
+            
             <ReflexElement
-              minSize={40}
-              size={props.codeEditorWindowProperties.consoleOpen ? props.codeEditorWindowProperties.consoleHeight : 1}
-              onStopResize={resizeConsole}>
+              size={props.codeEditorWindowProperties.consoleOpen ? props.codeEditorWindowProperties.consoleHeight || 200 : 40}
+              minSize={40}>
               <div className="wick-code-editor-console">
 
                 <div className="we-code-console-bar">
@@ -449,7 +448,7 @@ export default function WickCodeEditor(props) {
 
                 </div>
 
-                {consoleType === 'console' && <Console logs={props.consoleLogs} variant="dark"/>}
+                {consoleType === 'console' && <div>Console temporarily disabled</div>}
                 {consoleType === 'options' && renderCodeEditorOptions()}
               </div>
             </ReflexElement>

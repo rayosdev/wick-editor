@@ -24,7 +24,7 @@ import { ToastContainer } from 'react-toastify';
 import { GlobalHotKeys } from 'react-hotkeys';
 import ErrorPage from './Util/ErrorPage';
 import ModalHandler from './Modals/ModalHandler/ModalHandler';
-import { Hook, Unhook } from 'console-feed';
+// import { Hook, Unhook } from 'console-feed';
 
 /**
  * EditorWrapper
@@ -34,17 +34,14 @@ import { Hook, Unhook } from 'console-feed';
 export default function EditorWrapper(props) {
 
     // Run once, connect the console to the console object.
-    useEffect(() => {
-        Hook(window.console, log => {props.editor.setConsoleLogs([...props.editor.state.consoleLogs, log])}, false)
-        return () => Unhook(window.console)
-    }, [])
+    // useEffect(() => {
+    //     Hook(window.console, log => {props.editor.setConsoleLogs([...props.editor.state.consoleLogs, log])}, false)
+    //     return () => Unhook(window.console)
+    // }, [])
 
 
     return (
-        <ErrorBoundary
-            fallback={ErrorPage}
-            processError={(error, errorInfo) => { props.editor.autoSaveProject(() => { "Project Autosaved" }) }}
-        >
+        <React.Fragment>
             <ToastContainer
                 transition={Slide}
                 position="top-right"
@@ -113,6 +110,6 @@ export default function EditorWrapper(props) {
                 />
                 {props.children}
             </div>
-        </ErrorBoundary>
+        </React.Fragment>
     )
 }

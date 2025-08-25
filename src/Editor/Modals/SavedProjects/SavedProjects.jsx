@@ -5,7 +5,7 @@ import ActionButton from '../../Util/ActionButton/ActionButton';
 
 import './_savedprojects.scss';
 import SavedProjectItem from './SavedProjectItem/SavedProjectItem';
-let classNames = require('classnames');
+import classNames from 'classnames';
 
 export default function SavedProjects(props) {
   // Use an empty list if saved files are not provided.
@@ -62,6 +62,7 @@ export default function SavedProjects(props) {
       <div className="saved-projects-modal-body">
         {
           projects.map(project => <SavedProjectItem 
+              key={project.name}
               onClick={() => setSelectedProject(project)}
               selected={selectedProject && selectedProject.name === project.name}
               item={project} />)
