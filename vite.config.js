@@ -21,6 +21,10 @@ export default defineConfig({
     }), 
     svgr()
   ],
+  esbuild: {
+    loader: 'tsx',
+    include: /src\/.*\.[jt]sx?$/,
+  },
   // The build output directory.
   build: {
     outDir: 'build'
@@ -40,6 +44,8 @@ export default defineConfig({
     esbuildOptions: {
       loader: {
         '.js': 'jsx',
+        '.ts': 'tsx',
+        '.tsx': 'tsx',
       },
     },
   },

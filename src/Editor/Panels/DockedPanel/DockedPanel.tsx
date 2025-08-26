@@ -21,7 +21,12 @@ import React, { PureComponent } from 'react';
 import './_dockedpanel.scss';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-class DockedPanel extends PureComponent {
+interface DockedPanelProps {
+  showOverlay?: boolean;
+  children?: React.ReactNode;
+}
+
+class DockedPanel extends PureComponent<DockedPanelProps> {
   render() {
     return(
       <div className="docked-panel">

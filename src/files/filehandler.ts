@@ -102,7 +102,7 @@ export default function initializeDefaultFileHandlers() {
       input.style.display = 'none';
       args.accept && (input.accept = args.accept);
       input.onchange = onChange;
-      args.multiple && (input.multiple = "multiple");
+      args.multiple && (input.multiple = true);
       input.className = "wick-editor-hidden-file-input";
 
       function clickInput() {

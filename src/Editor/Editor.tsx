@@ -61,9 +61,82 @@ const { version } = packageJson;
 
 import classNames from 'classnames';
 
+interface EditorState {
+  project?: any;
+  previewPlaying?: boolean;
+  activeModalName?: string | null;
+  activeModalQueue?: string[];
+  codeEditorOpen?: boolean;
+  scriptToEdit?: string;
+  showCanvasActions?: boolean;
+  showBrushModes?: boolean;
+  showCodeErrors?: boolean;
+  codeError?: any;
+  popoutOutlinerSize?: number;
+  outlinerPoppedOut?: boolean;
+  inspectorSize?: number;
+  timelineSize?: number;
+  assetLibrarySize?: number;
+  consoleLogs?: any[];
+  warningModalInfo?: {
+    description: string;
+    title: string;
+    acceptText: string;
+    cancelText: string;
+    acceptAction: () => void;
+    cancelAction: () => void;
+  };
+  renderProgress?: number;
+  renderType?: string;
+  renderStatusMessage?: string;
+  customHotKeys?: any;
+  colorPickerType?: string;
+  lastColorsUsed?: string[];
+  exporting?: boolean;
+  useCustomOnionSkinningColors?: boolean;
+  customOnionSkinningColors?: {
+    backward: string;
+    forward: string;
+  };
+  onionSkinningWasOn?: boolean;
+  localSavedFiles?: any[];
+  codeEditorWindowProperties?: any;
+}
+
 class Editor extends EditorCore {
-  constructor () {
-    super();
+  // Class properties
+  project: any = null;
+  paper: any = null;
+  editorVersion: string;
+  error: any = null;
+  _lastAutosave: number = 0;
+  fontInfoInterface: any;
+  hotKeyInterface: any;
+  actionMapInterface: any;
+  scriptInfoInterface: any;
+  openProjectFileFromClient: () => void;
+  openAssetFileFromClient: () => void;
+  maxLastColors: number = 8;
+  _onEyedropperPickedColor: (color: string) => void = () => {};
+  RESIZE_THROTTLE_AMOUNT_MS: number = 100;
+  WINDOW_RESIZE_THROTTLE_AMOUNT_MS: number = 300;
+  resizeProps: any;
+  canvasComponent: any = null;
+  timelineComponent: any = null;
+  lastUsedTool: string = 'cursor';
+  builtinPreviews: any = {};
+  customHotKeysKey: string = "wickEditorcustomHotKeys";
+  colorPickerTypeKey: string = "wickEditorColorPickerType";
+  _showWaitOverlayTimeoutID: number = 0;
+  _processingAction: boolean = false;
+  resizeThrottleAmount: number;
+  windowResizeThrottleAmount: number;
+  onStopCodeEditorResize: () => void;
+
+  state: EditorState;
+
+  constructor (props: {} = {}) {
+    super(props);
     // Set path for engine dependencies
     window.Wick.resourcepath = 'corelibs/wick-engine/';
 
@@ -182,6 +255,9 @@ class Editor extends EditorCore {
     // Resizable panels
     this.RESIZE_THROTTLE_AMOUNT_MS = 100;
     this.WINDOW_RESIZE_THROTTLE_AMOUNT_MS = 300;
+    this.resizeThrottleAmount = this.RESIZE_THROTTLE_AMOUNT_MS;
+    this.windowResizeThrottleAmount = this.WINDOW_RESIZE_THROTTLE_AMOUNT_MS;
+    this.onStopCodeEditorResize = () => {}; // Initialize with empty function
     this.resizeProps = {
       onStopResize: throttle(this.onStopResize, this.resizeThrottleAmount),
       onStopPopoutOutlinerResize: throttle(this.onStopPopoutOutlinerResize, this.resizeThrottleAmount),
@@ -312,7 +388,7 @@ class Editor extends EditorCore {
     let lastTouchTime = 0
   
     function enableHover() {
-      if (new Date() - lastTouchTime < 500) return
+      if (new Date().getTime() - lastTouchTime < 500) return
       document.body.classList.add('hasHover')
     }
   
@@ -321,7 +397,7 @@ class Editor extends EditorCore {
     }
   
     function updateLastTouchTime() {
-      lastTouchTime = new Date()
+      lastTouchTime = new Date().getTime()
     }
   
     document.addEventListener('touchstart', updateLastTouchTime, true)
@@ -858,12 +934,12 @@ class Editor extends EditorCore {
     return this._processingAction;
   }
 
-  set processingAction (processingAction) {
+  set processingAction (processingAction: boolean) {
     this._processingAction = processingAction;
   }
 
   handleAssetFileImport = (e) => {
-    this.createAssets(e.target.files, []);
+    this.createAssets(e.target.files, [], {});
   }
 
   openProjectFileDialog = () => {
@@ -928,7 +1004,8 @@ class Editor extends EditorCore {
 
     return (
       <DndProvider backend={HTML5Backend}>
-      <EditorWrapper editor={this}>
+        <div>
+        <EditorWrapper editor={this}>
         {/* Menu Bar */}
 
         <div id="menu-bar-container">
@@ -1256,6 +1333,7 @@ class Editor extends EditorCore {
             />}
         </div>
       </EditorWrapper>
+        </div>
       </DndProvider>
       )
     }

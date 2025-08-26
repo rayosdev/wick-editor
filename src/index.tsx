@@ -21,7 +21,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
-import Editor from 'Editor';
+import Editor from './Editor';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
 import initializeDefaultFileHandlers from './files/filehandler';
@@ -29,7 +29,7 @@ import initializeDefaultFileHandlers from './files/filehandler';
 // Creates file handlers in the window.
 initializeDefaultFileHandlers();
 
-const container = document.getElementById('root');
+const container = document.getElementById('root')!;
 const root = createRoot(container);
 root.render(
   <I18nextProvider i18n={i18n}>

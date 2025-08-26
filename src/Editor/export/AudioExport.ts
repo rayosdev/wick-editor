@@ -11,10 +11,10 @@ class AudioExport {
             onProgress: onProgress,
         };
 
-        return new Promise (resolve => {
+        return new Promise<any>(resolve => {
             project.generateAudioTrack(audioArgs, audioBuffer => {
                 if(!audioBuffer) {
-                    resolve();
+                    resolve(undefined);
                 } else {
                     var wavBuffer = toWav(audioBuffer);
                     resolve(new Uint8Array(wavBuffer));

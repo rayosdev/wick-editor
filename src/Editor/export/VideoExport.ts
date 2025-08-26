@@ -222,9 +222,9 @@ class VideoExport {
         time = time.replace(":", "");
         if(!time) return;
         let timeNumber = Number(time);
-        timeNumber = timeNumber.toFixed(2);
+        let timeString = timeNumber.toFixed(2);
 
-        args.onProgress('Rendered: ' + timeNumber + ' seconds', 85);
+        args.onProgress('Rendered: ' + timeString + ' seconds', 85);
     }
 }
 

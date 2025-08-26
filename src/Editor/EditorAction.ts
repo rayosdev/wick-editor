@@ -18,7 +18,7 @@ class EditorAction extends Object {
       if (param in args) {
         this[param] = args[param];
       } else {
-        throw error("Missing Required Parameter: " + param + ".");
+        throw new Error("Missing Required Parameter: " + param + ".");
       }
     });
 
