@@ -26,6 +26,7 @@ import MobileInspector from './MobileInspector/MobileInspector'
 import MobileAssetLibrary from './MobileAssetLibrary/MobileAssetLibrary';
 //import AssetLibrary from '../AssetLibrary/AssetLibrary';
 import InspectorScriptWindow from '../Inspector/InspectorScriptWindow/InspectorScriptWindow'
+import { MobileContainerProps } from '../../../types/component-props';
 
 import timelineIcon from 'resources/mobile-container-icons/timeline-icon.svg';
 import timelineIconActive from 'resources/mobile-container-icons/timeline-icon-active.svg';
@@ -36,7 +37,7 @@ import codeIconActive from 'resources/mobile-container-icons/code-icon-active.sv
 import assetIcon from 'resources/mobile-container-icons/asset-icon.svg';
 import assetIconActive from 'resources/mobile-container-icons/asset-icon-active.svg';
 
-class MobileContainer extends Component {
+class MobileContainer extends Component<MobileContainerProps> {
 
     // example prop:
     // <TabbedInterface tabs={[{label: "inspector", icon: inspectorIcon, iconActive: inspectorIconActive, iconAlt: "inspector icon"}, 

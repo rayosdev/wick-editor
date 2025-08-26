@@ -20,8 +20,9 @@
 import React, { Component } from 'react';
 import './_menubarsupportbutton.scss';
 import ActionButton from '../../../Util/ActionButton/ActionButton';
+import { MenuBarSupportButtonProps } from '../../../../types/component-props';
 
-class MenuBarSupportButton extends Component {
+class MenuBarSupportButton extends Component<MenuBarSupportButtonProps> {
 
   render() {
     return(

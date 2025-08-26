@@ -24,10 +24,11 @@ import Asset from './Asset/Asset';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import WickInput from 'Editor/Util/WickInput/WickInput';
 import ToolIcon from 'Editor/Util/ToolIcon/ToolIcon';
+import { AssetLibraryProps } from '../../../types/component-props';
 
 import './_assetlibrary.scss';
 
-class AssetLibrary extends Component {
+class AssetLibrary extends Component<AssetLibraryProps> {
   constructor(props) {
     super(props);
 

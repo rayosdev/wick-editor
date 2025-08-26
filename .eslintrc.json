@@ -1,0 +1,32 @@
+{
+  "extends": [
+    "react-app",
+    "react-app/jest"
+  ],
+  "rules": {
+    // Disable problematic rules during migration
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/no-non-null-assertion": "warn",
+    "prefer-const": "warn",
+    "no-var": "warn",
+    
+    // Enable helpful rules
+    "@typescript-eslint/no-inferrable-types": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    
+    // React specific
+    "react/prop-types": "off",
+    "react/display-name": "off",
+    "react-hooks/exhaustive-deps": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    }
+  ]
+}

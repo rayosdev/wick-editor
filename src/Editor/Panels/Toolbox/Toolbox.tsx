@@ -27,10 +27,11 @@ import ToolButton from './ToolButton/ToolButton';
 import ToolSettings from './ToolSettings/ToolSettings';
 import CanvasActions from './CanvasActions/CanvasActions';
 import PopupMenu from 'Editor/Util/PopupMenu/PopupMenu';
+import { ToolboxProps } from '../../../types/component-props';
 
 import classNames from 'classnames';
 
-class Toolbox extends Component {
+class Toolbox extends Component<ToolboxProps> {
   constructor(props) {
     super(props);
 

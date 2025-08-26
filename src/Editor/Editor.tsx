@@ -38,6 +38,7 @@ import HotKeyInterface from './hotKeyMap';
 import ActionMapInterface from './actionMap';
 import ScriptInfoInterface from './scriptInfo';
 import FontInfoInterface from './fontInfo';
+import { TODO_ANY, MaybeElement, WindowProperty } from '../types/utility';
 import EditorCore from './EditorCore';
 
 import DockedPanel from './Panels/DockedPanel/DockedPanel';
@@ -105,8 +106,8 @@ interface EditorState {
 
 class Editor extends EditorCore {
   // Class properties
-  project: any = null;
-  paper: any = null;
+  project: TODO_ANY = null;
+  paper: TODO_ANY = null;
   editorVersion: string;
   error: any = null;
   _lastAutosave: number = 0;
@@ -135,7 +136,7 @@ class Editor extends EditorCore {
 
   state: EditorState;
 
-  constructor (props: {} = {}) {
+  constructor (props: TODO_ANY = {}) {
     super(props);
     // Set path for engine dependencies
     window.Wick.resourcepath = 'corelibs/wick-engine/';
@@ -220,7 +221,7 @@ class Editor extends EditorCore {
 
     // Check if we are using local saving (apps)...
     if (window.wickEditorFileSystemType === 'local') {
-      window.openWickLocalFileViewer = (files) => {
+      window.openWickLocalFileViewer = (files: TODO_ANY) => {
         console.log("Files Received", files);
         this.setState({
           localSavedFiles: files,
@@ -232,25 +233,25 @@ class Editor extends EditorCore {
        * Called if a save is attempted and a file with the same name already exists.
        * @param {Object} args - Wrapper for openWarningModal 
        */
-      window.warnBeforeSave = (args) => {this.openWarningModal(args)};
+      window.warnBeforeSave = (args: TODO_ANY) => {this.openWarningModal(args)};
     }
 
     // Wick Project File Input
-    this.openProjectFileFromClient = window.createFileInput({
+    this.openProjectFileFromClient = window.createFileInput ? window.createFileInput({
       accept: '.zip, .wick',
       onChange: this.handleWickFileLoad,
-    });
+    }) : () => {};
 
     // Wick file input
-    this.openAssetFileFromClient = window.createFileInput({
+    this.openAssetFileFromClient = window.createFileInput ? window.createFileInput({
       accept: window.Wick.FileAsset.getValidExtensions().join(', '),
       onChange: this.handleAssetFileImport,
       multiple: true,
-    });
+    }) : () => {};
 
     // Set up color picker
     this.maxLastColors = 8;
-    this._onEyedropperPickedColor = (color) => {};
+    this._onEyedropperPickedColor = (color: string) => {};
 
     // Resizable panels
     this.RESIZE_THROTTLE_AMOUNT_MS = 100;
@@ -326,9 +327,10 @@ class Editor extends EditorCore {
     });
 
     // Leave Page warning.
+    const editorInstance = this;
     window.onbeforeunload = function(event) {
       // Don't show the warning if nothing has been done to the project
-      if(this.project.numUndoStates > 1) {
+      if(editorInstance.project && editorInstance.project.numUndoStates > 1) {
           return null;
       }
 
@@ -350,11 +352,11 @@ class Editor extends EditorCore {
     this.watchForHover();
   }
 
-  componentDidUpdate = (prevProps, prevState) => {
+  componentDidUpdate = (prevProps: any, prevState: any) => {
     if(this.state.previewPlaying && !prevState.previewPlaying) {
       this.project.view.canvas.focus();
       this.project.play({
-        onError: (error) => {
+        onError: (error: any) => {
           if (error) {
             console.error(new Error(`${error.message} on line ${error.lineNumber} in script "${error.name}".`));
             this.setState({
@@ -414,29 +416,41 @@ class Editor extends EditorCore {
   hidePreloader = () => {
     let preloader = window.document.getElementById('preloader');
     setTimeout(() => {
-      preloader.style.opacity = '0';
-      this.recenterCanvas(); // Recenter the canvas after reload;
-      setTimeout(() => {
-        preloader.style.display = 'none';
-        preloader.remove();
-      }, 500);
-      this.project.view.render()
+      if (preloader) {
+        preloader.style.opacity = '0';
+        this.recenterCanvas(); // Recenter the canvas after reload;
+        setTimeout(() => {
+          if (preloader) {
+            preloader.style.display = 'none';
+            preloader.remove();
+          }
+        }, 500);
+        this.project.view.render()
+      }
     }, 2000); // Wait two seconds to allow editor to set up... TODO: Should connect this to load events.
   }
 
-  showWaitOverlay = (message) => {
-    window.clearTimeout(this._showWaitOverlayTimeoutID);
-    this._showWaitOverlayTimeoutID = window.setTimeout(() => {
-      let waitOverlay = window.document.getElementById('wait-overlay');
-      waitOverlay.innerHTML = message || "Please wait...";
-      waitOverlay.style.display = 'block';
-    }, 250);
+  showWaitOverlay = () => {
+    // Don't show wait overlay if it's already being shown
+    if(!window.wickEditor?.waitOverlay?.hidden) return;
+
+    // Don't show wait overlay on mobile unless we're exporting
+    if(window.wickEditor?.project?.isExporting && window.wickEditor?.isMobile) {
+      return;
+    }
+
+    if (window.wickEditor?.waitOverlay) {
+      window.wickEditor.waitOverlay.hidden = false;
+      window.wickEditor.waitOverlay.style.display = 'block';
+    }
   }
 
   hideWaitOverlay = () => {
     window.clearTimeout(this._showWaitOverlayTimeoutID);
     let waitOverlay = window.document.getElementById('wait-overlay');
-    waitOverlay.style.display = 'none';
+    if (waitOverlay) {
+      waitOverlay.style.display = 'none';
+    }
   }
 
   /**
@@ -450,7 +464,7 @@ class Editor extends EditorCore {
    * Updates the color picker type within the editor state.
    * @param {String} type String representing the type of the color picker, can be swatches, spectrum, or gradient (TODO).
    */
-  changeColorPickerType = (type) => {
+  changeColorPickerType = (type: TODO_ANY) => {
     localForage.setItem(this.colorPickerTypeKey, type);
     this.setState({
       colorPickerType: type,
@@ -490,8 +504,8 @@ class Editor extends EditorCore {
     );
   }
 
-  updateLastColors = (color) => {
-    let newArray = this.state.lastColorsUsed.concat([]); // make a deep copy.
+  updateLastColors = (color: TODO_ANY) => {
+    let newArray = (this.state.lastColorsUsed || []).concat([]); // make a deep copy.
 
     // Remove a color from the array. If the new color is in the array, remove it.
     let index = newArray.indexOf(color);
@@ -513,20 +527,20 @@ class Editor extends EditorCore {
     this.setState({outlinerPoppedOut: !this.state.outlinerPoppedOut});
   }
 
-  onResize = (e) => {
+  onResize = (e: TODO_ANY) => {
     this.project.view.resize();
     this.project.guiElement.draw();
   }
 
-  onStopResize = ({domElement, component}) => {
+  onStopResize = ({domElement, component}: {domElement: TODO_ANY, component: TODO_ANY}) => {
 
   }
 
-  getSizeHorizontal = (domElement) => {
+  getSizeHorizontal = (domElement: TODO_ANY) => {
     return domElement.offsetWidth;
   }
 
-  getSizeVertical = (domElement) => {
+  getSizeVertical = (domElement: TODO_ANY) => {
     return domElement.offsetHeight;
   }
 
@@ -534,7 +548,7 @@ class Editor extends EditorCore {
    * Updates the code editor properties in the state.
    * @param  {object} newProperties object with new code editor properties. Can include width, height, x, y.
    */
-  updateCodeEditorWindowProperties = (newProperties) => {
+  updateCodeEditorWindowProperties = (newProperties: TODO_ANY) => {
     let finalProperties = this.state.codeEditorWindowProperties;
     Object.keys(newProperties).forEach(key => {
       finalProperties[key] = newProperties[key];
@@ -560,7 +574,7 @@ class Editor extends EditorCore {
    * @param  {DomElement} domElement DOM element containing the outliner
    * @param  {React.Component} component  React component of the outliner.
    */
-  onStopPopoutOutlinerResize = ({domElement, component}) => {
+  onStopPopoutOutlinerResize = ({domElement, component}: {domElement: TODO_ANY, component: TODO_ANY}) => {
     if (!domElement) return
 
     this.setState({
@@ -573,7 +587,7 @@ class Editor extends EditorCore {
    * @param  {DomElement} domElement DOM element containing the inspector
    * @param  {React.Component} component  React component of the inspector.
    */
-  onStopInspectorResize = ({domElement, component}) => {
+  onStopInspectorResize = ({domElement, component}: {domElement: TODO_ANY, component: TODO_ANY}) => {
     if (!domElement) return
     this.setState({
       inspectorSize: this.getSizeHorizontal(domElement)
@@ -585,7 +599,7 @@ class Editor extends EditorCore {
    * @param  {DomElement} domElement DOM element containing the asset library
    * @param  {React.Component} component  React component of the asset library
    */
-  onStopAssetLibraryResize = ({domElement, component}) => {
+  onStopAssetLibraryResize = ({domElement, component}: {domElement: TODO_ANY, component: TODO_ANY}) => {
     if (!domElement) return
     this.setState({
       assetLibrarySize: this.getSizeVertical(domElement)
@@ -597,7 +611,7 @@ class Editor extends EditorCore {
    * @param  {DomElement} domElement DOM element containing the timeline
    * @param  {React.Component} component  React component of the timeline.
    */
-  onStopTimelineResize = ({domElement, component}) => {
+  onStopTimelineResize = ({domElement, component}: {domElement: TODO_ANY, component: TODO_ANY}) => {
     if (!domElement) return
     var size = this.getSizeVertical(domElement);
 
@@ -610,7 +624,7 @@ class Editor extends EditorCore {
    * Opens the requested modal.
    * @param  {string} name name of the modal to open.
    */
-  openModal = (name) => {
+  openModal = (name: TODO_ANY) => {
     this.setState({
       activeModalName: name,
     });
@@ -620,13 +634,13 @@ class Editor extends EditorCore {
    * Queues a modal to be opened at the next opportunity.
    * @param  {string} name [description]
    */
-  queueModal = (name) => {
+  queueModal = (name: TODO_ANY) => {
     if (this.state.activeModalName !== name) {
       // If there is another modal up, queue the modal.
-      if (this.state.activeModalName !== null && this.state.activeModalQueue.indexOf(name) === -1) {
-        this.setState(prevState => {
+      if (this.state.activeModalName !== null && (this.state.activeModalQueue || []).indexOf(name) === -1) {
+        this.setState((prevState: TODO_ANY) => {
           return {
-            activeModalQueue: [name].concat(prevState.activeModalQueue),
+            activeModalQueue: [name].concat(prevState.activeModalQueue || []),
           }
         });
       // Otherwise, just open it.
@@ -641,7 +655,7 @@ class Editor extends EditorCore {
    * if necessary.
    */
   closeActiveModal = () => {
-    let oldQueue = [].concat(this.state.activeModalQueue);
+    let oldQueue = (this.state.activeModalQueue || []).slice();
     if (oldQueue.length === 0) {
       this.openModal(null);
       return;
@@ -656,7 +670,7 @@ class Editor extends EditorCore {
    * Opens and closes the code editor depending on the state of the codeEditor.
    * @param {boolean} state - Optional. True will open the code editor, false will close.
    */
-  toggleCodeEditor = (state) => {
+  toggleCodeEditor = (state: TODO_ANY) => {
     if (state === undefined || (typeof state !== "boolean")) {
       state = !this.state.codeEditorOpen;
     }
@@ -670,7 +684,7 @@ class Editor extends EditorCore {
    * Opens and closes the canvas actions popover.
    * @param {boolean} state - Optional. True will open the canvas actions menu, false will close.
    */
-  toggleCanvasActions = (state) => {
+  toggleCanvasActions = (state: TODO_ANY) => {
     if (state === undefined || (typeof state !== "boolean")) {
       state = !this.state.showCanvasActions;
     }
@@ -684,7 +698,7 @@ class Editor extends EditorCore {
    * Opens and closes the brush modes popover.
    * @param {boolean} state - Optional. True will open the brush modes menu, false will close.
    */
-  toggleBrushModes = (state) => {
+  toggleBrushModes = (state: TODO_ANY) => {
     if (state === undefined || (typeof state !== "boolean")) {
       state = !this.state.showBrushModes;
     }
@@ -698,7 +712,7 @@ class Editor extends EditorCore {
    * Show code errors in the code editor by popping it up.
    * @param  {object[]} errors Array of error objects.
    */
-  showCodeErrors = (errors) => {
+  showCodeErrors = (errors: TODO_ANY) => {
     this.setState({
       codeEditorOpen: errors === undefined ? this.state.codeEditorOpen : true,
     });
@@ -716,13 +730,13 @@ class Editor extends EditorCore {
    * Update the onion skinning colors in the editor.
    * @param {object} colors An object with colors to be used for onion skinning. colors.backward is used for previous frames. colors.forward is used for following frames.
    */
-  changeOnionSkinningColors = (colors) => {
+  changeOnionSkinningColors = (colors: TODO_ANY) => {
     if (!colors) return; // ignore change if no colors are passed.
 
     this.setState({
       customOnionSkinningColors: {
-        backward: colors.backward || this.state.customOnionSkinningColors.backward,
-        forward: colors.forward || this.state.customOnionSkinningColors.forward,
+        backward: colors.backward || (this.state.customOnionSkinningColors || {}).backward,
+        forward: colors.forward || (this.state.customOnionSkinningColors || {}).forward,
       }
     });
   }
@@ -734,7 +748,7 @@ class Editor extends EditorCore {
    * @param {string} actionName - Name of the action committed, to save to the history stack.
    * @param {boolean} skipReactRender - If set to true, will not force react to rerender. Use sparingly.
    */
-  projectDidChange = (options) => {
+  projectDidChange = (options: TODO_ANY) => {
     if(!options) options = {};
 
     if (!options.actionName) { options.name = "Unknown Action" };
@@ -766,7 +780,7 @@ class Editor extends EditorCore {
    * @param {string} type - the type of the toast. ("info", "success", "warning", or "error". See react-toastify docs for more info)
    * @param {object} options - the options for the toast notification. For all options, see the demo for react-toastify: https://fkhadra.github.io/react-toastify/
    */
-  toast = (message, type, options) => {
+  toast = (message: TODO_ANY, type: TODO_ANY, options: TODO_ANY) => {
     if(!message) {
       console.error("toast() requires a message.");
       return;
@@ -799,7 +813,7 @@ class Editor extends EditorCore {
     // Mix default options and options param:
     let mixOptions = Object.assign(defaultOptions, options);
 
-    return toast[type](message, mixOptions);
+    return (toast as TODO_ANY)[type](message, mixOptions);
   }
 
   /**
@@ -807,7 +821,7 @@ class Editor extends EditorCore {
    * @param {string} id ID of the toast to update.
    * @param {object} options options to apply to the newly updated toast.
    */
-  updateToast = (id, options) => {
+  updateToast = (id: TODO_ANY, options: TODO_ANY) => {
     if (options.text) {
       options.render = options.text;
     }
@@ -830,7 +844,7 @@ class Editor extends EditorCore {
    * @param {Object} args can contain description {string}, acceptAction {function}, cancelAction {function},
    * acceptText {string}, cancelText {string}, title {string}.
    */
-  openWarningModal = (args) => {
+  openWarningModal = (args: TODO_ANY) => {
     let modalInfo = {
       description: args.description || "No Description",
       title: args.title || "Title",
@@ -858,7 +872,7 @@ class Editor extends EditorCore {
    **/
 
 
-  combineHotKeys = (hotkeys1, hotkeys2) => {
+  combineHotKeys = (hotkeys1: TODO_ANY, hotkeys2: TODO_ANY) => {
     // Try to combine all keys
 
     let newHotKeys = {...hotkeys1, ...hotkeys2};
@@ -879,10 +893,10 @@ class Editor extends EditorCore {
   /**
    * Converts an array of hotkeys to a custom hotkey object.
    */
-  convertHotkeyArray = (hotkeys) => {
-    let keyObj = {};
+  convertHotkeyArray = (hotkeys: TODO_ANY) => {
+    let keyObj: TODO_ANY = {};
     
-    hotkeys.forEach(key => {
+    hotkeys.forEach((key: TODO_ANY) => {
       if (keyObj[key.actionName]) {
         keyObj[key.actionName][key.index] = key.sequence;
       } else {
@@ -897,7 +911,7 @@ class Editor extends EditorCore {
   /**
    * Creates a combined key map from a key map object and key array.
    */
-  createCombinedHotKeyMap = (hotKeyMap, hotKeyArray) => {
+  createCombinedHotKeyMap = (hotKeyMap: TODO_ANY, hotKeyArray: TODO_ANY) => {
     return this.combineHotKeys(hotKeyMap, this.convertHotkeyArray(hotKeyArray));
   }
 
@@ -905,7 +919,7 @@ class Editor extends EditorCore {
    * Takes an array of hot key objects. Combines these with existing custom hot keys and syncs the editor
    * to these new hot keys.
    */
-  addCustomHotKeys = (newHotKeys) => {
+  addCustomHotKeys = (newHotKeys: TODO_ANY) => {
     let combined = this.createCombinedHotKeyMap(this.state.customHotKeys, newHotKeys);
 
     this.syncHotKeys(combined);
@@ -914,7 +928,7 @@ class Editor extends EditorCore {
   /**
    * Takes a hotkeys object and sets these as the custom hot keys.
    */
-  syncHotKeys = (hotkeys) => {
+  syncHotKeys = (hotkeys: TODO_ANY) => {
     this.hotKeyInterface.setCustomHotKeys(hotkeys);
     localForage.setItem(this.customHotKeysKey, hotkeys);
     this.setState({
@@ -938,7 +952,7 @@ class Editor extends EditorCore {
     this._processingAction = processingAction;
   }
 
-  handleAssetFileImport = (e) => {
+  handleAssetFileImport = (e: TODO_ANY) => {
     this.createAssets(e.target.files, [], {});
   }
 
@@ -955,7 +969,7 @@ class Editor extends EditorCore {
    * @param fullKeyMap {Bool} If true, returns the full keymap for the editor. Otherwise, the appropriate keymap is returned.
    * @returns {Object} Keymap listed as actionName : Object { 0 : sequence, 1 : sequence }
    */
-  getKeyMap = (fullKeyMap) => {
+  getKeyMap = (fullKeyMap?: TODO_ANY) => {
     if (this.state.previewPlaying && !fullKeyMap) {
       return this.hotKeyInterface.getEssentialKeyMap(this.state.customHotKeys)
     } else {
@@ -967,7 +981,7 @@ class Editor extends EditorCore {
    * Returns the appropriate key handlers based on the state of the editor.
    * @param fullKeyHandlers {Bool} If true, returns all key handlers for the editor. Otherwise, the appropriate keyhandlers returned.
    */
-  getKeyHandlers = (fullKeyHandlers) => {
+  getKeyHandlers = (fullKeyHandlers: TODO_ANY) => {
     if (this.state.previewPlaying && !fullKeyHandlers) {
       return this.hotKeyInterface.getEssentialKeyHandlers(this.state.customHotKeys)
     } else {
@@ -989,7 +1003,7 @@ class Editor extends EditorCore {
     }
   }
 
-  setConsoleLogs = (logs) => {
+  setConsoleLogs = (logs: TODO_ANY) => {
     this.setState({
       consoleLogs: logs,
     })
@@ -1087,7 +1101,7 @@ class Editor extends EditorCore {
                                 onEyedropperPickedColor={this.onEyedropperPickedColor}
                                 createAssets={this.createAssets} 
                                 importProjectAsWickFile={this.importProjectAsWickFile}
-                                onRef={ref => this.canvasComponent = ref}
+                                onRef={(ref: TODO_ANY) => this.canvasComponent = ref}
                               />);}}
                             </SizeMe>
                             
@@ -1163,7 +1177,7 @@ class Editor extends EditorCore {
                           getOnionSkinOptions={this.getOnionSkinOptions}
                           setFocusObject={this.setFocusObject}
                           addTweenKeyframe={this.addTweenKeyframe}
-                          onRef={ref => this.timelineComponent = ref}
+                          onRef={(ref: TODO_ANY) => this.timelineComponent = ref}
                           dragSoundOntoTimeline={this.dragSoundOntoTimeline}
 
                           getToolSetting={this.getToolSetting}
@@ -1209,7 +1223,7 @@ class Editor extends EditorCore {
                           getOnionSkinOptions={this.getOnionSkinOptions}
                           setFocusObject={this.setFocusObject}
                           addTweenKeyframe={this.addTweenKeyframe}
-                          onRef={ref => this.timelineComponent = ref}
+                          onRef={(ref: TODO_ANY) => this.timelineComponent = ref}
                           dragSoundOntoTimeline={this.dragSoundOntoTimeline}
                         />}
                       </DockedPanel>

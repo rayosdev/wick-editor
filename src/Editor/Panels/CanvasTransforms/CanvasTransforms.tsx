@@ -6,10 +6,11 @@ import ReactTooltip from 'react-tooltip';
 import HotKeyInterface from 'Editor/hotKeyMap';
 import './_canvastransforms.scss';
 import { isMobile } from 'react-device-detect';
+import { CanvasTransformsProps } from '../../../types/component-props';
 
 import classNames from 'classnames';
 
-class CanvasTransforms extends Component {
+class CanvasTransforms extends Component<CanvasTransformsProps> {
   getHotkey (action) {
     return HotKeyInterface.getHotKey(this.props.keyMap, action);
   }

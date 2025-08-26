@@ -20,8 +20,9 @@
 import React, { Component } from 'react';
 import './_menubariconbutton.scss';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
+import { MenuBarIconButtonProps } from '../../../../types/component-props';
 
-class MenuBarIconButton extends Component {
+class MenuBarIconButton extends Component<MenuBarIconButtonProps> {
   render() {
     return(
       <div className="menu-bar-icon-button">

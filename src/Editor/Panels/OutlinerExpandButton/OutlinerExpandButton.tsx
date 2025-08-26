@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
+import { OutlinerExpandButtonProps } from '../../../types/component-props';
 
 import './_outlinerexpandbutton.scss';
 
 import classNames from "classnames";
 
-class OutlinerExpandButton extends Component {
+class OutlinerExpandButton extends Component<OutlinerExpandButtonProps> {
   render () {
     
     return (

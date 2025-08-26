@@ -22,8 +22,9 @@ import './_menubar.scss';
 import MenuBarButton from './MenuBarButton/MenuBarButton';
 import MenuBarIconButton from './MenuBarIconButton/MenuBarIconButton';
 import MenuBarSupportButton from './MenuBarSupportButton/MenuBarSupportButton';
+import { MenuBarProps } from '../../../types/component-props';
 
-class MenuBar extends Component {
+class MenuBar extends Component<MenuBarProps> {
 
   renderDesktop = () => {
     return(

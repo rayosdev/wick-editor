@@ -3,12 +3,13 @@ import React, { Component } from 'react';
 import {OutlinerObject} from './OutlinerObject/OutlinerObject'
 import OutlinerTitle from './OutlinerTitle/OutlinerTitle'
 import OutlinerDisplay from './OutlinerRow/OutlinerRowTypes/OutlinerDisplay'
+import { OutlinerProps } from '../../../types/component-props';
 
 import './_outliner.scss';
 
 import classNames from 'classnames';
 
-class Outliner extends Component {
+class Outliner extends Component<OutlinerProps> {
   constructor(props) {
     super(props);
 

@@ -35,8 +35,9 @@ import InspectorImagePreview from './InspectorPreview/InspectorPreviewTypes/Insp
 import InspectorSoundPreview from './InspectorPreview/InspectorPreviewTypes/InspectorSoundPreview';
 import InspectorScriptWindow from './InspectorScriptWindow/InspectorScriptWindow';
 import InspectorCheckbox from './InspectorRow/InspectorRowTypes/InspectorCheckbox';
+import { InspectorProps } from '../../../types/component-props';
 
-class Inspector extends Component {
+class Inspector extends Component<InspectorProps> {
   constructor (props) {
     super(props);
 
