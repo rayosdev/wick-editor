@@ -65,8 +65,10 @@ export interface ToolboxProps {
   getToolSettingRestrictions: (name: TODO_ANY) => TODO_ANY;
   showCanvasActions: TODO_ANY;
   showBrushModes: TODO_ANY;
-  toggleCanvasActions: () => void;
-  toggleBrushModes: () => void;
+  // These callbacks are sometimes called with a state argument at runtime.
+  // Allow an optional parameter for gradual typing; we'll refine types later.
+  toggleCanvasActions: (state?: TODO_ANY) => void;
+  toggleBrushModes: (state?: TODO_ANY) => void;
   updateLastColors: (colors: TODO_ANY) => void;
   lastColorsUsed: TODO_ANY;
 }
