@@ -36,7 +36,10 @@ class WickModal extends Component {
   }
 
   componentDidMount() {
-    Modal.setAppElement('body');
+    // Set the app element to the app root so react-modal only hides app content
+    // from screen readers when modals are open. Avoid using 'body' which hides
+    // the entire accessibility tree and triggers browser blocking warnings.
+    Modal.setAppElement('#root');
  }
 
   render() {
