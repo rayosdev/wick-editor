@@ -17,15 +17,15 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- @import 'Editor/_wickbrand.scss';
- @import '../_outliner.scss';
- 
- $outliner-element-padding: 1%;
- $row-identifier-width: 30%;
- $input-container-margin: 4px;
+@use '../../../_wickbrand' as *;
+@import '../_outliner.scss';
 
- $outliner-row-height: 26px;
- 
+$outliner-element-padding: 1%;
+$row-identifier-width: 30%;
+$input-container-margin: 4px;
+
+$outliner-row-height: 26px;
+
 .outliner-row {
   display: flex;
   align-items: center;

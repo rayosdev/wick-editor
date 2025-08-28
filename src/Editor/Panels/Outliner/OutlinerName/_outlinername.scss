@@ -1,4 +1,4 @@
-@import 'Editor/_wickbrand.scss';
+@use '../../../_wickbrand' as *;
 
 .outliner-name {
     display: inline-block;

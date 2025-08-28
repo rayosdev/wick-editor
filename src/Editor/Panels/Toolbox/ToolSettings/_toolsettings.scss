@@ -1,4 +1,4 @@
-@import 'Editor/_wickbrand.scss';
+@use '../../../_wickbrand' as *;
 @import '../toolbox.scss';
 
 $setting-splitter-height: 2px;

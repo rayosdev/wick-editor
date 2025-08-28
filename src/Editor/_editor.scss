@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-@import './_wickbrand.scss';
+@use './_wickbrand' as *;
 
 $menu-bar-height: 40px;
 $toolbox-height: 40px;
@@ -272,7 +272,7 @@ body {
   border-top: $splitter-width solid $splitter-color !important;
   height: $splitter-width;
   cursor: row-resize;
-  margin: -$splitter-width 0;
+  margin: (-$splitter-width) 0;
   width: 100%; }
 
 .reflex-container.horizontal > .reflex-splitter.reflex-thin.active,
@@ -285,7 +285,7 @@ body {
   border-left: $splitter-width solid $splitter-color !important;
   width: $splitter-width !important;
   cursor: col-resize;
-  margin: 0 -$splitter-width;
+  margin: 0 (-$splitter-width);
   height: 100%; }
 
 .reflex-container.vertical > .reflex-splitter.reflex-thin.active,

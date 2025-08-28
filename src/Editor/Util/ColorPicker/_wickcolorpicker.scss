@@ -17,15 +17,15 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- @import 'Editor/_wickbrand.scss';
+@use '../../_wickbrand' as *;
 
- $color-picker-width: 220px;
- $color-picker-height: 300px;
- $color-picker-padding: 10px;
- $color-picker-bar-height: 25px;
- $color-picker-block-margin: 5px;
+$color-picker-width: 220px;
+$color-picker-height: 300px;
+$color-picker-padding: 10px;
+$color-picker-bar-height: 25px;
+$color-picker-block-margin: 5px;
 
- .wick-color-picker {
+.wick-color-picker {
      background-color: $editor-primary;
      width: $color-picker-width;
      height: $color-picker-height;
