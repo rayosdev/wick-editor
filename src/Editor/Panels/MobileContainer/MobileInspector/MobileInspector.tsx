@@ -57,8 +57,20 @@ import strokeIcon from 'resources/mobile-inspector-icons/strokewidth-icon.svg';
 import opacityIcon from 'resources/mobile-inspector-icons/opacity-icon.svg';
 import fillOpacityIcon from 'resources/mobile-inspector-icons/fillopacity-icon.svg';
 
-class MobileInspector extends Component {
-  constructor(props) {
+interface MobileInspectorProps {
+  getAllSelectionAttributes: () => Record<string, any>;
+  setSelectionAttribute: (attribute: string, value: any) => void;
+  colorPickerType?: any;
+  changeColorPickerType?: (...args: any[]) => any;
+  updateLastColors?: (...args: any[]) => any;
+  lastColorsUsed?: any;
+  getRenderSize?: () => string;
+  // allow other props used throughout the file without strict typing for now
+  [key: string]: any;
+}
+
+class MobileInspector extends Component<MobileInspectorProps, any> {
+  constructor(props: MobileInspectorProps) {
     super(props);
 
     /**

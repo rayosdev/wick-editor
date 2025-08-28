@@ -35,7 +35,58 @@ import SavedProjects from '../SavedProjects/SavedProjects';
 import SimpleProjectSettings from '../SimpleProjectSettings/SimpleProjectSettings';
 import SupportUs from '../SupportUs/SupportUs';
 
-class ModalHandler extends Component {
+interface ModalHandlerProps {
+  getRenderSize: () => string;
+  openModal: (name: string, ...args: any[]) => void;
+  closeActiveModal: () => void;
+  activeModalName?: string;
+  createClipFromSelection?: (...args: any[]) => any;
+  createButtonFromSelection?: (...args: any[]) => any;
+  loadAutosavedProject?: (...args: any[]) => any;
+  clearAutoSavedProject?: (...args: any[]) => any;
+  editorVersion?: string;
+  queueModal?: (...args: any[]) => any;
+  exportProjectAsGif?: (...args: any[]) => any;
+  exportProjectAsStandaloneZip?: (...args: any[]) => any;
+  exportProjectAsStandaloneHTML?: (...args: any[]) => any;
+  exportProjectAsVideo?: (...args: any[]) => any;
+  exportProjectAsImageSequence?: (...args: any[]) => any;
+  exportProjectAsAudioTrack?: (...args: any[]) => any;
+  exportProjectAsImageSVG?: (...args: any[]) => any;
+  project?: any;
+  warningModalInfo?: any;
+  renderProgress?: any;
+  renderType?: any;
+  renderStatusMessage?: any;
+  addCustomHotKeys?: (...args: any[]) => any;
+  resetCustomHotKeys?: (...args: any[]) => any;
+  keyMap?: any;
+  keyMapGroups?: any;
+  customHotKeys?: any;
+  colorPickerType?: any;
+  changeColorPickerType?: (...args: any[]) => any;
+  updateLastColors?: (...args: any[]) => any;
+  lastColorsUsed?: any;
+  toast?: any;
+  createCombinedHotKeyMap?: (...args: any[]) => any;
+  getToolSetting?: (...args: any[]) => any;
+  setToolSetting?: (...args: any[]) => any;
+  getToolSettingRestrictions?: (...args: any[]) => any;
+  importFileAsAsset?: (...args: any[]) => any;
+  builtinPreviews?: any;
+  addFileToBuiltinPreviews?: (...args: any[]) => any;
+  isAssetInLibrary?: (...args: any[]) => boolean;
+  openProjectFileDialog?: (...args: any[]) => any;
+  openNewProjectConfirmation?: (...args: any[]) => any;
+  localSavedFiles?: any;
+  loadLocalWickFile?: (...args: any[]) => any;
+  deleteLocalWickFile?: (...args: any[]) => any;
+  reloadSavedWickFiles?: (...args: any[]) => any;
+  openWarningModal?: (...args: any[]) => any;
+  updateProjectSettings?: (...args: any[]) => any;
+}
+
+class ModalHandler extends Component<ModalHandlerProps> {
   render() {
     let isMobile = this.props.getRenderSize() === "small";
     return (

@@ -3,12 +3,13 @@
  * @extends Object
  */
 class EditorAction extends Object {
-  constructor(args) {
+  [key: string]: any;
+  constructor(args: any) {
     super();
     let requiredParams = ['action', 'id'];
     let optionalParams = ['icon', 'tooltip', 'color'];
 
-    let defaults = {
+    let defaults: Record<string, any> = {
       'icon': 'action',
       'tooltip': undefined,
       'color': 'gray',
