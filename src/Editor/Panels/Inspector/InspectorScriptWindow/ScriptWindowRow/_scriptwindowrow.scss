@@ -1,5 +1,5 @@
-@import 'Editor/_wickbrand.scss';
-@import '../_inspectorscriptwindow.scss';
+@use '../../../_wickbrand' as *;
+@use '../../InspectorScriptWindow/_inspectorscriptwindow' as *;
 
 $delete-button-size: 25px;
 $delete-button-padding: 4px;

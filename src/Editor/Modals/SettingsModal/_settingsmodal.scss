@@ -17,12 +17,12 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- @import 'Editor/_wickbrand.scss';
+@use '../../_wickbrand' as *;
 
- $settings-modal-height: 375px;
- $settings-title-height: 32px;
- $modal-margin: 15px;
- $settings-body-height: $settings-modal-height - $settings-title-height - (2 * $modal-margin);
+$settings-modal-height: 375px;
+$settings-title-height: 32px;
+$modal-margin: 15px;
+$settings-body-height: $settings-modal-height - $settings-title-height - (2 * $modal-margin);
 
 .settings-modal-title {
     height: $settings-title-height;

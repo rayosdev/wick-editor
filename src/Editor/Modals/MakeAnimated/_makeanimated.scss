@@ -17,8 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-@import 'Editor/_wickbrand.scss';
-
+@use '../../_wickbrand' as *;
 
 .make-animated-modal-body {
   width: 240px;

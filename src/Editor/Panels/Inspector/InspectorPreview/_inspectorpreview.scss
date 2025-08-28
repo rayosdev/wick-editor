@@ -17,8 +17,8 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-@use '../../../../_wickbrand' as *;
-@import 'Editor/Panels/Inspector/_inspector.scss';
+@use '../../../_wickbrand' as *;
+@use '../_inspector' as *;
 
 .inspector-image-preview {
   height: 100px;

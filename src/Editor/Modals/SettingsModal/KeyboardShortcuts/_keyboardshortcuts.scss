@@ -17,10 +17,10 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- @import 'Editor/_wickbrand.scss';
+@use '../../../_wickbrand' as *;
 
- $keyboard-shortcuts-modal-height : 350px;
- $action-column-width: 45%;
+$keyboard-shortcuts-modal-height : 350px;
+$action-column-width: 45%;
 
 .keyboard-shortcuts-modal-button {
   height: 28px;
