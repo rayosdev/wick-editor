@@ -1,5 +1,5 @@
-@use '../../../_wickbrand' as *;
-@use '../../InspectorScriptWindow/_inspectorscriptwindow' as *;
+@use '../../../../_wickbrand' as *;
+@use '../_inspectorscriptwindow' as *;
 
 $delete-button-size: 25px;
 $delete-button-padding: 4px;

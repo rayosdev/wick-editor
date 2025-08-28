@@ -18,7 +18,7 @@
  */
 
 @use '../../../../_wickbrand' as *;
-@import '../toolsettings.scss'; 
+@use '../toolsettings' as *;
 
 $settings-input-size: 40px;
 
