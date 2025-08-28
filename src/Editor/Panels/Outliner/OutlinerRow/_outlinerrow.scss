@@ -18,7 +18,7 @@
  */
 
 @use '../../../_wickbrand' as *;
-@import '../_outliner.scss';
+@use '../_outliner' as *;
 
 $outliner-element-padding: 1%;
 $row-identifier-width: 30%;

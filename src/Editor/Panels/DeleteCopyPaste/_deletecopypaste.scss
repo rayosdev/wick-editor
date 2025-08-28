@@ -1,5 +1,5 @@
 @use '../../_wickbrand' as *;
-@import '../CanvasTransforms/canvastransforms';
+@use '../CanvasTransforms/canvastransforms' as *;
 
 .delete-copy-paste-widget {
     position: absolute;
