@@ -148,6 +148,7 @@
     "@types/tinycolor2": "^1.4.6",
     "@types/underscore": "^1.13.0",
     "@vitejs/plugin-react": "^4.5.2",
+    "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
     "babel-plugin-styled-components": "^2.1.4",
     "dotenv": "^8.2.0",

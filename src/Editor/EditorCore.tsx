@@ -792,11 +792,15 @@ class EditorCore extends Component<any, any> {
   /**
    * Creates an image from an asset's uuid and places it on the canvas.
    * @param {string} uuid - The UUID of the desired asset.
-   * @param {number} x - The x location of the image after creation in relation to the window.
-   * @param {number} y - The y location of the image after creation in relation to the window.
-   * @param {boolean} isCanvasSpace - If not set to true, x and y will be converted from screen space to canvas space
+   * @param {number} [x] - The x location of the image after creation in relation to the window.
+   * @param {number} [y] - The y location of the image after creation in relation to the window.
+   * @param {boolean} [isCanvasSpace] - If not set to true, x and y will be converted from screen space to canvas space
    */
-  createImageFromAsset = (uuid, x, y, isCanvasSpace) => {
+  createImageFromAsset = (uuid: any, x?: number, y?: number, isCanvasSpace?: boolean) => {
+    // make x/y safe defaults
+    x = typeof x === 'number' ? x : 0;
+    y = typeof y === 'number' ? y : 0;
+
     // convert screen position to wick project position
     let paper = this.project.view.paper;
     let dropPoint = new paper.Point();
@@ -918,7 +922,8 @@ class EditorCore extends Component<any, any> {
    * @param {object} options - optional flags. Can include "create", which if true will create an instance of the object on the canvas.
    */
   createAssets = (acceptedFiles, rejectedFiles, options) => {
-    if (!options) options = {};
+    // make sure options exists
+    options = options || {};
 
     let toastID = this.toast('Importing files...', 'info');
 
@@ -1045,11 +1050,11 @@ class EditorCore extends Component<any, any> {
       });
     }
 
-    let onError = (message) => {
+    let onError = (message?: any) => {
       console.error("Gif Render had an error with message: ", message);
     }
 
-    let onFinish = (gifBlob) => {
+    let onFinish = (gifBlob?: any) => {
 
       let success = () => {
         this.updateToast(toastID, {
@@ -1105,11 +1110,11 @@ class EditorCore extends Component<any, any> {
       });
     }
 
-    let onError = (message) => {
+    let onError = (message?: any) => {
       console.error("Image Render had an error with message: ", message);
     }
 
-    let onFinish = (sequenceBlobZip) => {
+    let onFinish = (sequenceBlobZip?: any) => {
 
       let success = () => {
         this.updateToast(toastID, {
@@ -1168,11 +1173,11 @@ class EditorCore extends Component<any, any> {
       });
     }
 
-    let onError = (message) => {
+    let onError = (message?: any) => {
       console.error("Video Render had an error with message: ", message);
     }
 
-    let onFinish = (message) => {
+    let onFinish = (message?: any) => {
       this.updateToast(toastID, {
         type: 'success',
         text: "Successfully created .mp4 file." });
@@ -1329,7 +1334,7 @@ class EditorCore extends Component<any, any> {
    * history, selection, and all other ability to retrieve your project.
    * @param {Wick.Project} project - the project to load.
    */
-  setupNewProject = (project) => {
+  setupNewProject = (project?: any, ...args: any[]) => {
     // if (!project) return;
     this.resetEditorForLoad();
     this.project = project || new window.Wick.Project();
@@ -1410,12 +1415,15 @@ class EditorCore extends Component<any, any> {
       return;
     }
 
-    var projectLink = urlParams.project;
+    var projectLinkAny = urlParams.project;
 
     // No URL param, skip the download
-    if(!projectLink) {
+    if(!projectLinkAny) {
       return false;
     }
+
+    // Normalize projectLink to a string in case query-string parsed it as an array
+    var projectLink = Array.isArray(projectLinkAny) ? projectLinkAny[0] : projectLinkAny;
 
     if (!projectLink.startsWith('http')) {
       projectLink='https://' + projectLink;
