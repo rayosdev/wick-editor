@@ -51,7 +51,7 @@ import classNames from 'classnames';
  * All remaining props will be applied directly to the input element.
  * @extends Component
  */
-class WickInput extends Component {
+class WickInput extends Component<any, any> {
   render() {
     let tooltipID = this.props.tooltipID === undefined ? 'action-button-tooltip-nyi' : this.props.tooltipID;
 

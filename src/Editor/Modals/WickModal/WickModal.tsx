@@ -26,7 +26,16 @@ import './_wickmodal.scss';
 
 import classNames from 'classnames';
 
-class WickModal extends Component {
+interface WickModalProps {
+  icon?: string;
+  open?: boolean;
+  toggle?: () => void;
+  className?: string;
+  overlayClassName?: string;
+  children?: React.ReactNode;
+}
+
+class WickModal extends Component<WickModalProps, any> {
   renderIcon () {
     return (
       <div id="modal-icon-container">

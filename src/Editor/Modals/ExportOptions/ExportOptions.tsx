@@ -28,8 +28,22 @@ import './_exportoptions.scss';
 
 import classNames from 'classnames';
 
-class ExportOptions extends Component {
-  constructor (props) {
+interface ExportOptionsProps {
+  open?: boolean;
+  toggle?: () => void;
+  projectName?: string;
+  isMobile?: boolean;
+  exportProjectAsGif?: (args: any) => void;
+  exportProjectAsVideo?: (args: any) => void;
+  exportProjectAsStandaloneZip?: (args: any) => void;
+  exportProjectAsStandaloneHTML?: (args: any) => void;
+  exportProjectAsImageSequence?: (args: any) => void;
+  exportProjectAsAudioTrack?: (args: any) => void;
+  exportProjectAsImageSVG?: (name: string) => void;
+}
+
+class ExportOptions extends Component<ExportOptionsProps, any> {
+  constructor (props: ExportOptionsProps) {
     super(props);
     this.placeholderName = 'Filename';
     this.state = {

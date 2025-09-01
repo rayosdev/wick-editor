@@ -329,7 +329,13 @@ const icons = {
 
 import classNames from 'classnames';
 
-class ToolIcon extends Component {
+interface ToolIconProps {
+  name?: string;
+  className?: string;
+  default?: React.ReactNode;
+}
+
+class ToolIcon extends Component<ToolIconProps, any> {
   getSource() {
     if (this.props.name in icons) {
       return icons[this.props.name];

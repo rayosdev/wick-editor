@@ -23,7 +23,14 @@ import WickModal from 'Editor/Modals/WickModal/WickModal';
 
 import './_autosavewarning.scss';
 
-class AutosaveWarning extends Component {
+interface AutosaveWarningProps {
+  open?: boolean;
+  toggle?: () => void;
+  loadAutosavedProject?: (cb?: () => void) => void;
+  clearAutoSavedProject?: (cb?: () => void) => void;
+}
+
+class AutosaveWarning extends Component<AutosaveWarningProps, any> {
   loadAndToggle = () => {
     this.props.loadAutosavedProject(() => {
       this.props.toggle();

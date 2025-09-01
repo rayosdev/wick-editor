@@ -29,8 +29,17 @@ import sounds from './sounds.js'
 
 import './_builtinlibrary.scss';
 
-class BuiltinLibrary extends Component {
-  constructor (props) {
+interface BuiltinLibraryProps {
+  open?: boolean;
+  toggle?: () => void;
+  builtinPreviews?: { [key: string]: any };
+  addFileToBuiltinPreviews?: (path: string, blob: any) => void;
+  importFileAsAsset?: (blob: any) => void;
+  isAssetInLibrary?: (name: string) => boolean;
+}
+
+class BuiltinLibrary extends Component<BuiltinLibraryProps, any> {
+  constructor (props: BuiltinLibraryProps) {
     super(props);
 
     this.toPlay = null;
@@ -61,7 +70,7 @@ class BuiltinLibrary extends Component {
   }
 
   //Fetch file, add to builtinPreviews
-  importForPreview = (asset, callback) => {
+  importForPreview = (asset: any, callback?: (blob: any) => void) => {
     var path = BuiltinLibrary.ROOT_ASSET_PATH + asset.file;
 
     fetch (path)
@@ -70,7 +79,7 @@ class BuiltinLibrary extends Component {
         blob.lastModifiedDate = new Date();
         blob.name = asset.file.split('/').pop();
 
-        this.props.addFileToBuiltinPreviews(asset.file, blob);
+        this.props.addFileToBuiltinPreviews && this.props.addFileToBuiltinPreviews(asset.file, blob);
 
         callback && callback(blob);
     })
@@ -81,18 +90,18 @@ class BuiltinLibrary extends Component {
   }
 
   //Fetch file to builtinPreviews if necessary, then load into Asset Library
-  createWickAsset = (asset) => {
-    if (!this.props.builtinPreviews[asset.file]) {
+  createWickAsset = (asset: any) => {
+    if (!this.props.builtinPreviews || !this.props.builtinPreviews[asset.file]) {
       this.importForPreview(asset, (blob) => {
-        this.props.importFileAsAsset(blob);
+        this.props.importFileAsAsset && this.props.importFileAsAsset(blob);
       });
     }
     else {
-      this.props.importFileAsAsset(this.props.builtinPreviews[asset.file].blob);
+      this.props.importFileAsAsset && this.props.importFileAsAsset(this.props.builtinPreviews[asset.file].blob);
     }
   }
 
-  renderBuiltinAsset = (asset) => {
+  renderBuiltinAsset = (asset: any) => {
     return (
       <div key={asset.file} className='builtin-library-asset'>
         <div className='builtin-library-asset-name'> 
@@ -108,7 +117,7 @@ class BuiltinLibrary extends Component {
             />
         </div>
 
-        {this.props.isAssetInLibrary(asset.file.split("/").pop()) ?
+        {this.props.isAssetInLibrary && this.props.isAssetInLibrary(asset.file.split("/").pop()) ?
           <ActionButton
             className="add-as-asset-button"
             action={() => {}}
@@ -128,10 +137,10 @@ class BuiltinLibrary extends Component {
     );
   }
 
-  renderSoundAsset = (asset) => {
+  renderSoundAsset = (asset: any) => {
     let src = undefined;
 
-    if (this.props.builtinPreviews[asset.file]) {
+    if (this.props.builtinPreviews && this.props.builtinPreviews[asset.file]) {
       src = this.props.builtinPreviews[asset.file].src;
     }
 
@@ -149,7 +158,7 @@ class BuiltinLibrary extends Component {
         />
         </div>
 
-        {this.props.isAssetInLibrary(asset.file.split("/").pop()) ?
+        {this.props.isAssetInLibrary && this.props.isAssetInLibrary(asset.file.split("/").pop()) ?
           <ActionButton
             className="add-as-asset-button"
             action={() => {}}
