@@ -25,7 +25,14 @@ import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import './_editorinfo.scss';
 import ToolIcon from '../../Util/ToolIcon/ToolIcon';
 
-class WelcomeModal extends Component {
+interface EditorInfoProps {
+  open?: boolean;
+  toggle?: () => void;
+  editorVersion?: string | number;
+  openModal?: (name: string) => void;
+}
+
+class WelcomeModal extends Component<EditorInfoProps, any> {
     render () {
         return (
             <WickModal
@@ -51,7 +58,7 @@ class WelcomeModal extends Component {
                         <ActionButton
                             color="gray"
                             text="Open Source Notices"
-                            action={() => {this.props.openModal("OpenSourceNotices")}} />
+                            action={() => {this.props.openModal && this.props.openModal("OpenSourceNotices")}} />
                     </div>
                 </div> 
             </WickModal>

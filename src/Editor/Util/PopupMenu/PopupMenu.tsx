@@ -23,7 +23,15 @@ import './_popupmenu.scss'
 
 import classNames from "classnames";
 
-class PopupMenu extends Component {
+interface PopupMenuProps {
+  isOpen?: boolean;
+  toggle?: () => void;
+  target?: any;
+  mobile?: boolean;
+  children?: React.ReactNode;
+}
+
+class PopupMenu extends Component<PopupMenuProps, any> {
   render() {
     return (
       <Popover

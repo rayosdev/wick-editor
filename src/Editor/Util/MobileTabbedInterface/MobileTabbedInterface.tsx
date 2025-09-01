@@ -23,7 +23,16 @@ import './_mobiletabbedinterface.scss';
 
 import classNames from 'classnames'; 
 
-class MobileTabbedInterface extends Component {
+interface MobileTabbedInterfaceProps {
+  tabs?: Array<{label: string; icon?: string; iconActive?: string; alt?: string}>;
+  children?: React.ReactNode[] | any;
+  onTabSelect?: (name: any) => void;
+  tabClassName?: string;
+  className?: string;
+  bodyClassName?: string;
+}
+
+class MobileTabbedInterface extends Component<MobileTabbedInterfaceProps, any> {
     /**
      * @param {} props Expects several props.
      * - tabs {Object[]} Contains all tab information for the interface
@@ -39,16 +48,16 @@ class MobileTabbedInterface extends Component {
     // example prop:
     // <TabbedInterface tabs={[{label: "inspector", icon: inspectorIcon, iconActive: inspectorIconActive, iconAlt: "inspector icon"}, 
     //                         {label: "timeline", icon: timelineIcon, iconActive: timelineIconActive, iconAlt: "timeline icon"}]} >
-    constructor (props) {
+    constructor (props: MobileTabbedInterfaceProps) {
         super(props);
 
         this.state = {
-          selectedTab: this.props.tabs[0].label,
+          selectedTab: this.props.tabs && this.props.tabs[0] && this.props.tabs[0].label,
         }
     }
 
     // Selects the tab of the given name.
-    selectTab = (label) => {
+    selectTab = (label: any) => {
         this.setState({
             selectedTab: label,
         });
@@ -64,7 +73,7 @@ class MobileTabbedInterface extends Component {
     renderTabs = () => {
         return (
             <div role="tablist" className="mobile-tabbed-interface-main-tab-container">
-                {this.props.tabs.map( (tab, i) => 
+                {this.props.tabs && this.props.tabs.map( (tab, i) => 
                     <button
                     key={`tab-${tab.label}-${i}`}
                     className={classNames("mobile-tabbed-interface-main-tab", 
@@ -86,7 +95,7 @@ class MobileTabbedInterface extends Component {
             <div className={classNames("mobile-tabbed-interface", this.props.className)}>
                 {this.renderTabs()}
                 <div className={classNames("mobile-tabbed-interface-body", this.props.bodyClassName)}>
-                    {this.props.children[this.props.tabs.map((tab) => tab.label).indexOf(this.state.selectedTab)]}
+                    {this.props.children && this.props.tabs ? this.props.children[this.props.tabs.map((tab) => tab.label).indexOf(this.state.selectedTab)] : null}
                 </div>
             </div>
         ); 

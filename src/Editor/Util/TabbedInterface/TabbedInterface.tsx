@@ -23,7 +23,16 @@ import './_tabbedinterface.scss';
 
 import classNames from 'classnames'; 
 
-class TabbedInterface extends Component {
+interface TabbedInterfaceProps {
+  tabNames?: string[];
+  children?: React.ReactNode[] | any;
+  onTabSelect?: (name: any) => void;
+  tabClassName?: string;
+  className?: string;
+  bodyClassName?: string;
+}
+
+class TabbedInterface extends Component<TabbedInterfaceProps, any> {
     /**
      * @param {} props Expects several props.
      * - tabs {Object[]} Contains all tab information for the interface
@@ -32,16 +41,16 @@ class TabbedInterface extends Component {
      * - name {String} String name of the tab. Will be displayed in the tab interface.
      * - body {JSX Object} Object to render
      */
-    constructor (props) {
+    constructor (props: TabbedInterfaceProps) {
         super(props);
 
         this.state = {
-          selectedTab: this.props.tabNames[0],
+          selectedTab: this.props.tabNames && this.props.tabNames[0],
         }
     }
 
     // Selects the tab of the given name.
-    selectTab = (name) => {
+    selectTab = (name: any) => {
         this.setState({
             selectedTab: name,
         });
@@ -57,7 +66,7 @@ class TabbedInterface extends Component {
     renderTabs = () => {
         return (
             <div role="tablist" className="tabbed-interface-main-tab-container">
-                {this.props.tabNames.map( (tab, i) => 
+                {this.props.tabNames && this.props.tabNames.map( (tab, i) => 
                     <button
                     key={`tab-${tab}-${i}`}
                     className={classNames("tabbed-interface-main-tab", this.props.tabClassName, {"selected": (this.state.selectedTab === tab)})}
@@ -74,7 +83,7 @@ class TabbedInterface extends Component {
             <div className={classNames("tabbed-interface", this.props.className)}>
                 {this.renderTabs()}
                 <div className={classNames("tabbed-interface-body", this.props.bodyClassName)}>
-                    {this.props.children[this.props.tabNames.indexOf(this.state.selectedTab)]}
+                    {this.props.children && this.props.tabNames ? this.props.children[this.props.tabNames.indexOf(this.state.selectedTab)] : null}
                 </div>
             </div>
         ); 
