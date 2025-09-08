@@ -28,7 +28,7 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
         super(model);
 
         this._canvas = document.createElement('canvas');
-        this._ctx = this._canvas.getContext('2d');
+        this._ctx = this._canvas.getContext('2d', { willReadFrequently: true });
 
         this._canvasContainer = document.createElement('div');
         this._canvasContainer.style.width = "100%";

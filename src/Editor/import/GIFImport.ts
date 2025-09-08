@@ -5,15 +5,15 @@ class GIFImport {
     let { gifFile, project, onFinish } = args;
 
     var a = new FileReader();
-    a.onload = (e) => {
-      var buf = e.target.result;
+    a.onload = (e: ProgressEvent<FileReader>) => {
+      const buf = e.target!.result as ArrayBuffer;
 
       var dataURLs = [];
 
       const wasmDecoder = new fastgif.Decoder();
       wasmDecoder.decode(buf).then(decoded => {
         var tempCanvas = document.createElement('canvas');
-        var tempCtx = tempCanvas.getContext('2d');
+        var tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
         decoded.forEach(frame => {
           tempCanvas.width = frame.imageData.width;
           tempCanvas.height = frame.imageData.height;

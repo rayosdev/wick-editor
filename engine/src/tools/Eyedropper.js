@@ -56,7 +56,7 @@ Wick.Tools.Eyedropper = class extends Wick.Tool {
         super.onMouseMove(e);
 
         var canvas = this.paper.view._element;
-        var ctx = canvas.getContext('2d');
+        var ctx = canvas.getContext('2d', { willReadFrequently: true });
 
         var pointPx = this.paper.view.projectToView(e.point);
         pointPx.x = Math.round(pointPx.x) * window.devicePixelRatio;
