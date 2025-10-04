@@ -17,15 +17,15 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
-import { DropTarget } from 'react-dnd';
-import DragDropTypes from 'Editor/DragDropTypes.js';
+import React, { Component } from "react";
+import { DropTarget } from "react-dnd";
+import DragDropTypes from "Editor/DragDropTypes";
 
-import './_canvas.scss';
-import styles from './_canvas.scss';
+import "./_canvas.scss";
+import styles from "./_canvas.scss";
 
 class Canvas extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props);
 
     this.canvasContainer = React.createRef();
@@ -39,40 +39,46 @@ class Canvas extends Component {
     this.props.onRef(this);
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     this.updateCanvas(this.props.project);
   }
 
   attachProjectToComponent = (project) => {
-    if(this.currentAttachedProject === project) return;
+    if (this.currentAttachedProject === project) return;
     this.currentAttachedProject = project;
 
     project.view.canvasBGColor = styles.editorCanvasBorder;
     project.view.canvasContainer = this.canvasContainer.current;
     project.view.resize();
 
-    project.view.on('canvasModified', (e, actionName) => {
-      this.props.projectDidChange({ actionName: `Canvas Modified ${actionName}` });
+    project.view.on("canvasModified", (e, actionName) => {
+      this.props.projectDidChange({
+        actionName: `Canvas Modified ${actionName}`,
+      });
     });
 
-    project.view.on('eyedropperPickedColor', (e) => {
+    project.view.on("eyedropperPickedColor", (e) => {
       this.props.onEyedropperPickedColor(e);
     });
-  }
+  };
 
   updateCanvas = (project) => {
     this.attachProjectToComponent(project);
-  }
+  };
 
   render() {
     const { connectDropTarget, isOver } = this.props;
 
-    return connectDropTarget (
-      <div id="canvas-container-wrapper" style={{width:"100%", height:"100%"}} aria-label="Canvas">
-        { isOver && <div className="drag-drop-overlay" /> }
+    return connectDropTarget(
+      <div
+        id="canvas-container-wrapper"
+        style={{ width: "100%", height: "100%" }}
+        aria-label="Canvas"
+      >
+        {isOver && <div className="drag-drop-overlay" />}
         <div id="wick-canvas-container" ref={this.canvasContainer}></div>
       </div>
-    )
+    );
   }
 }
 
@@ -81,22 +87,29 @@ const canvasTarget = {
   drop(props, monitor, component) {
     const dropLocation = monitor.getClientOffset();
     let draggedItem = monitor.getItem();
-    if(draggedItem.files && draggedItem.files.length > 0) {
+    if (draggedItem.files && draggedItem.files.length > 0) {
       // Dropped a file from native filesystem
-      if(draggedItem.files[0].name.endsWith('.wick')) {
+      if (draggedItem.files[0].name.endsWith(".wick")) {
         // Wick Project (.wick file)
         var file = draggedItem.files[0];
         props.importProjectAsWickFile(file);
       } else {
         // Assets (images, sounds, etc)
-        props.createAssets(draggedItem.files, [], {create: true, location: dropLocation});
+        props.createAssets(draggedItem.files, [], {
+          create: true,
+          location: dropLocation,
+        });
       }
     } else {
       // Dropped an asset from the asset library
-      props.createImageFromAsset(draggedItem.uuid, dropLocation.x, dropLocation.y);
+      props.createImageFromAsset(
+        draggedItem.uuid,
+        dropLocation.x,
+        dropLocation.y
+      );
     }
-  }
-}
+  },
+};
 
 function collect(connect, monitor) {
   return {
