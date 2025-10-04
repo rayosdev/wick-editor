@@ -108,6 +108,9 @@
     "build-engine": "cd engine; mkdir dist/; gulp; cp -a dist/. ../public/corelibs/wick-engine/",
     "build-engine-windows": "cd engine & mkdir dist  2>nul &    gulp & xcopy /EY dist\\. ..\\public\\corelibs\\wick-engine\\",
     "test": "echo 'Run tests with Playwright'",
+    "test:unit": "vitest",
+    "test:unit:watch": "vitest --watch",
+    "test:ci": "npm run lint && npm run typecheck && vite build && npm run test:unit",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
@@ -141,10 +144,14 @@
   ],
   "devDependencies": {
     "@playwright/test": "^1.48.2",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
     "@types/classnames": "^2.3.1",
     "@types/react": "^18.3.10",
     "@types/react-dom": "^18.3.0",
     "@types/underscore": "^1.11.15",
+    "@vitest/ui": "^3.2.4",
     "dotenv": "^16.4.5",
     "electron": "^32.0.0",
     "electron-builder": "^26.0.0",
@@ -159,7 +166,9 @@
     "gulp-header": "^2.0.9",
     "gulp-rename": "^2.0.0",
     "gulp-uglify": "^3.0.2",
+    "jsdom": "^27.0.0",
     "typescript": "^4.9.5",
-    "vite": "^5.4.8"
+    "vite": "^5.4.8",
+    "vitest": "^3.2.4"
   }
 }
