@@ -65,6 +65,37 @@
         };
       }
     </script>
+    <script>
+      // Early runtime shims applied before the engine bundle executes.
+      // 1) Ensure a minimal `process` shim exists so code that references
+      //    `process.env` during engine initialization won't throw.
+      if (typeof window.process === "undefined") {
+        window.process = { env: {} };
+      }
+
+      // 2) Prefer willReadFrequently for 2D canvas contexts to avoid warnings
+      //    and improve repeated getImageData performance. Must run before
+      //    engine code that creates canvas contexts.
+      try {
+        const origGetContext = HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.getContext = function (type, opts) {
+          if (type === "2d") {
+            const newOpts = Object.assign({}, opts);
+            if (typeof newOpts.willReadFrequently === "undefined") {
+              newOpts.willReadFrequently = true;
+            }
+            return origGetContext.call(this, type, newOpts);
+          }
+          return origGetContext.call(this, type, opts);
+        };
+      } catch (e) {
+        // Ignore in environments without DOM / canvas available.
+      }
+
+      // Expose a hint for later code to ensure react-modal is initialized
+      // with the correct app element. Index module will call ReactModal.setAppElement.
+      window.__REACT_MODAL_APP_ELEMENT = "#root";
+    </script>
     <script src="/corelibs/wick-engine/wickengine.js"></script>
     <!-- preload.js -->
     <script src="/corelibs/preload/preloadjs.min.js"></script>

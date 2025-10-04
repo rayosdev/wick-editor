@@ -1,0 +1,125 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - button [ref=e10] [cursor=pointer]:
+          - img
+        - button [ref=e12] [cursor=pointer]:
+          - generic [ref=e13] [cursor=pointer]:
+            - img
+            - generic [ref=e14] [cursor=pointer]: support us
+      - button [ref=e15] [cursor=pointer]: My Project
+      - generic [ref=e16]:
+        - button [ref=e18] [cursor=pointer]:
+          - generic [ref=e19] [cursor=pointer]: new
+        - button [ref=e21] [cursor=pointer]:
+          - generic [ref=e22] [cursor=pointer]: open
+        - button [ref=e24] [cursor=pointer]:
+          - generic [ref=e25] [cursor=pointer]: export
+        - button [ref=e27] [cursor=pointer]:
+          - generic [ref=e28] [cursor=pointer]: save
+        - button [ref=e31] [cursor=pointer]:
+          - img
+    - generic [ref=e34]:
+      - generic [ref=e35]:
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - button [ref=e44] [cursor=pointer]:
+              - img
+            - button [ref=e48] [cursor=pointer]:
+              - img
+            - button [ref=e52] [cursor=pointer]:
+              - img
+            - button [ref=e56] [cursor=pointer]:
+              - img
+            - button [ref=e60] [cursor=pointer]:
+              - img
+            - button [ref=e64] [cursor=pointer]:
+              - img
+            - button [ref=e68] [cursor=pointer]:
+              - img
+            - button [ref=e72] [cursor=pointer]:
+              - img
+            - button [ref=e76] [cursor=pointer]:
+              - img
+            - button [ref=e80] [cursor=pointer]:
+              - img
+            - button [ref=e84] [cursor=pointer]:
+              - img
+          - generic [ref=e86]:
+            - button [ref=e89] [cursor=pointer]
+            - button [ref=e92] [cursor=pointer]
+          - generic [ref=e95]:
+            - button [ref=e100] [cursor=pointer]:
+              - img
+            - button [ref=e104] [cursor=pointer]:
+              - img
+            - button [ref=e108] [cursor=pointer]:
+              - img
+            - button [ref=e112] [cursor=pointer]:
+              - img
+            - button [ref=e116] [cursor=pointer]:
+              - img
+            - button [ref=e120] [cursor=pointer]:
+              - img
+        - generic [ref=e126]:
+          - generic [ref=e130]:
+            - generic [ref=e131]:
+              - button [ref=e133] [cursor=pointer]:
+                - img
+              - button [ref=e135] [cursor=pointer]:
+                - img
+              - button [ref=e137] [cursor=pointer]:
+                - img
+              - button [ref=e140] [cursor=pointer]:
+                - img
+              - button [ref=e142] [cursor=pointer]:
+                - img
+              - button [ref=e144] [cursor=pointer]:
+                - img
+            - button [ref=e146] [cursor=pointer]
+          - button [ref=e148] [cursor=pointer]:
+            - img
+      - generic [ref=e157]:
+        - generic [ref=e163]: Inspector
+        - generic [ref=e168]:
+          - generic [ref=e169]:
+            - generic [ref=e170]: Asset Library
+            - button [ref=e173] [cursor=pointer]:
+              - img
+            - button [ref=e176] [cursor=pointer]:
+              - img
+          - generic [ref=e178]:
+            - generic [ref=e179]:
+              - img
+            - textbox [ref=e180]
+  - dialog [active] [ref=e183]:
+    - generic [ref=e184]:
+      - img [ref=e186]
+      - generic [ref=e187]:
+        - generic [ref=e188]: Welcome To The Wick Editor!
+        - link [ref=e190] [cursor=pointer]:
+          - /url: https://forum.wickeditor.com/t/help-needed-wick-editor-version-1-18-new-fill-bucket-outliner-tool-mobile-improvements/3314
+          - text: Version 1.19.3
+        - generic [ref=e191]: "Wick Editor 1.19.3 includes:"
+        - generic [ref=e192]:
+          - list [ref=e193]:
+            - listitem [ref=e194]: New Code Editor!
+            - listitem [ref=e195]: New Hit Test Options
+            - listitem [ref=e196]: And Much More!
+          - generic [ref=e197]:
+            - link [ref=e198] [cursor=pointer]:
+              - /url: https://www.patreon.com/WickEditor
+              - text: Become a Patreon Supporter!
+            - generic [ref=e199]: Guy de Bree, Dimp, Hyun's Dojo, Constance Ye, Dan Doggett, Anonymous, Gautaum Bose, Trevor, Jovanny Rodriguez, André Bray, Colin Fitz-Gerald, Golan Levin, Daniel Sun, Benjamin Briand, Joseph Hocking, Charisse Hampton, Jessie Young, Bluecake, O.K. Keyes, Sarksus, Laurens Bonnema, Anonymous, Joe, Karlin Fox, StepSwitcher, Kandy Kat, Ann Griffin, Happyships, Dixie Dorward, Albin Rodriguex
+        - generic [ref=e200]:
+          - text: Please report all bugs on our
+          - link [ref=e201] [cursor=pointer]:
+            - /url: https://forum.wickeditor.com
+            - text: forum!
+        - button [ref=e204] [cursor=pointer]:
+          - generic [ref=e205] [cursor=pointer]: Try it
+```
