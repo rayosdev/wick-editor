@@ -18,7 +18,7 @@
  */
 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import './index.css';
 import Editor from './Editor/Editor';
 import * as serviceWorker from './serviceWorker';
@@ -27,7 +27,9 @@ import initializeDefaultFileHandlers from './files/filehandler';
 // Creates file handlers in the window.
 initializeDefaultFileHandlers();
 
-ReactDOM.render(<Editor />, document.getElementById('root'));
+const container = document.getElementById('root');
+const root = createRoot(container);
+root.render(<Editor />);
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

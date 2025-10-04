@@ -22,7 +22,7 @@ import { DropTarget } from "react-dnd";
 import DragDropTypes from "Editor/DragDropTypes";
 
 import "./_canvas.scss";
-import styles from "./_canvas.scss";
+import styles from "../../_wickbrand.module.scss";
 
 class Canvas extends Component {
   constructor(props) {

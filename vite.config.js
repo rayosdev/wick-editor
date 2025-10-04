@@ -5,24 +5,13 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [
     react({
-      jsxRuntime: "classic",
+      jsxRuntime: "automatic",
     }),
   ],
   resolve: {
     alias: {
       Editor: "/src/Editor",
       resources: "/src/resources",
-    },
-  },
-  esbuild: {
-    loader: "jsx",
-    include: /src\/.*\.js$/,
-  },
-  optimizeDeps: {
-    esbuildOptions: {
-      loader: {
-        ".js": "jsx",
-      },
     },
   },
   publicDir: "public",

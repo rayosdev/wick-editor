@@ -1,3 +1,5 @@
+import { GIFEncoder, quantize, applyPalette } from 'gifenc';
+
 class GIFExport {
   /**
    * Create an animated GIF from a Wick project.
@@ -9,21 +11,19 @@ class GIFExport {
 
     const combiningProgress = 40;
     const renderingProgress = 70;
-    const finishedProgress = 99; 
+    const finishedProgress = 99;
 
     onProgress("Creating Gif", 10);
 
     let width = args.width || project.width;
     let height = args.height || project.height;
 
-    // Initialize GIF.js
-    let gif = new window.GIF({
-      workers: 2,
-      quality: 10,
-      width: width,
-      height: height,
-      workerScript: process.env.PUBLIC_URL + "/corelibs/gif/gif.worker.js",
-    });
+    // Initialize gifenc GIFEncoder
+    let gif = new GIFEncoder();
+
+    let frameDelay = 1000 / project.framerate;
+    let framesProcessed = 0;
+    let totalFrames = 0;
 
     gif.on('finished', (gif) => {
       onProgress('Saving GIF file (this may take a while)...', finishedProgress);
@@ -31,17 +31,61 @@ class GIFExport {
     });
 
     gif.on('progress', (progress) => {
-      let prog = 100*progress; 
-      onProgress(`Rendering GIF: ${prog.toFixed(2)}%`, renderingProgress + progress*(finishedProgress-renderingProgress)); 
+      let prog = 100*progress;
+      onProgress(`Rendering GIF: ${prog.toFixed(2)}%`, renderingProgress + progress*(finishedProgress-renderingProgress));
     })
 
     let combineImageSequence = images => {
-      images.forEach(image => {
-        // Add frame to gif.
-        gif.addFrame(image, {delay: 1000/project.framerate});
+      totalFrames = images.length;
+
+      images.forEach((image, index) => {
+        // Convert canvas/image to RGBA data
+        let canvas, ctx;
+        if (image instanceof HTMLCanvasElement) {
+          canvas = image;
+          ctx = canvas.getContext('2d');
+        } else {
+          // Create canvas from image
+          canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          ctx = canvas.getContext('2d');
+          ctx.drawImage(image, 0, 0, width, height);
+        }
+
+        let imageData = ctx.getImageData(0, 0, width, height);
+        let rgbaData = imageData.data;
+
+        // Quantize colors and apply palette
+        let palette = quantize(rgbaData, 256);
+        let indexedData = applyPalette(rgbaData, palette);
+
+        // Add frame to gif
+        let frameOptions = {
+          palette: palette,
+          delay: frameDelay
+        };
+
+        if (index === 0) {
+          frameOptions.first = true;
+        }
+
+        if (index === images.length - 1) {
+          // Last frame
+          gif.writeFrame(indexedData, width, height, frameOptions);
+          gif.finish();
+          let output = gif.bytes();
+          let blob = new Blob([output], {type: 'image/gif'});
+          onProgress('Saving GIF file (this may take a while)...', finishedProgress);
+          onFinish(blob);
+        } else {
+          gif.writeFrame(indexedData, width, height, frameOptions);
+        }
+
+        framesProcessed++;
+        let progress = framesProcessed / totalFrames;
+        onProgress(`Processing frame ${framesProcessed}/${totalFrames}`, combiningProgress + progress * (renderingProgress - combiningProgress));
       });
-      onProgress('Rendering GIF', renderingProgress);
-      gif.render(); // Finalize gif render.
     }
 
     let updateProgress = (completed, maxFrames) => {
@@ -51,7 +95,7 @@ class GIFExport {
       onProgress(message, percentage);
     }
 
-    // Get frame images from project, add to GIF.js
+    // Get frame images from project, add to GIF
     project.generateImageSequence({
       width: width,
       height: height,

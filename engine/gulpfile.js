@@ -1,4 +1,5 @@
 var fs = require('fs');
+var footer = require('gulp-footer');
 var gulp = require('gulp');
 var babel = require("gulp-babel");
 var concat = require('gulp-concat');
@@ -166,7 +167,8 @@ gulp.task("default", function() {
   /* Write wickengine.js */
   return mergeStream(src, libs)
     .pipe(concat('wickengine.js'))
-    .pipe(header('/*Wick Engine https://github.com/Wicklets/wick-engine*/\nvar WICK_ENGINE_BUILD_VERSION = "' + buildString + '";\n'))
+    .pipe(header('(function() {\n// Browser compatibility shims\nvar require = function(moduleName) {\n  // Handle common Node.js modules\n  if (moduleName === \'acorn\') return { parse: function() { return {}; } };\n  if (moduleName === \'jquery\') return window.jQuery || window.$ || { fn: {} };\n  if (moduleName === \'./node/self.js\') return window;\n  if (moduleName === \'./node/extend.js\') return function(obj) { return obj; };\n  if (moduleName === \'./intersect.js\') return {};\n  if (moduleName === \'./grid.js\') return {};\n  if (moduleName === \'./format.js\') return {};\n  if (moduleName === \'./convex.js\') return {};\n  if (moduleName === \'./utils\') return {};\n  if (moduleName === \'./support\') return {};\n  // JSZip related modules\n  if (moduleName === \'./external\') return {};\n  if (moduleName === \'./stream/DataWorker\') return function() {};\n  if (moduleName === \'./stream/DataLengthProbe\') return function() {};\n  if (moduleName === \'./stream/Crc32Probe\') return function() {};\n  if (moduleName === \'./stream/GenericWorker\') return function() {};\n  if (moduleName === \'./flate\') return {};\n  if (moduleName === \'lie\') return { Promise: window.Promise || function() {} };\n  if (moduleName === \'pako\') return {};\n  if (moduleName === \'../stream/GenericWorker\') return function() {};\n  if (moduleName === \'../utf8\') return {};\n  if (moduleName === \'../crc32\') return {};\n  if (moduleName === \'../signature\') return {};\n  if (moduleName === \'../compressions\') return {};\n  if (moduleName === \'./ZipFileWorker\') return function() {};\n  if (moduleName === \'./object\') return {};\n  if (moduleName === \'../utils\') return {};\n  if (moduleName === \'../stream/GenericWorker\') return function() {};\n  if (moduleName === \'../utf8\') return {};\n  // Default fallback\n  return {};\n};\nvar module = { exports: {} }; // Dummy module\nvar exports = {}; // Dummy exports\nvar global = window; // Map global to window\nvar self = window; // Map self to window\nif (typeof console === "undefined") { var console = { log: function() {}, error: function() {} }; }\nif (typeof process === "undefined") { var process = { env: {} }; }\nif (typeof Buffer === "undefined") { var Buffer = function() {}; }\nif (typeof __dirname === "undefined") { var __dirname = ""; }\nif (typeof __filename === "undefined") { var __filename = ""; }\n\n/*Wick Engine https://github.com/Wicklets/wick-engine*/\nvar WICK_ENGINE_BUILD_VERSION = "' + buildString + '";\n\n'))
+    .pipe(footer('\n\n})(); // End IIFE wrapper\n'))
     .pipe(gulp.dest('dist'))
     .on('end', () => {
       /* Generate empty HTML file ready for wick projects to be injected into */
