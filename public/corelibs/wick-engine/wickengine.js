@@ -35,7 +35,10 @@ var require = function(moduleName) {
   return {};
 };
 var module = { exports: {} }; // Dummy module
-var exports = {}; // Dummy exports
+// Make `exports` a live alias of `module.exports` so CommonJS-style
+// modules that assign to `exports` or `module.exports` both work in the
+// bundled browser build.
+var exports = module.exports;
 var global = window; // Map global to window
 var self = window; // Map self to window
 if (typeof console === "undefined") { var console = { log: function() {}, error: function() {} }; }
@@ -45,7 +48,7 @@ if (typeof __dirname === "undefined") { var __dirname = ""; }
 if (typeof __filename === "undefined") { var __filename = ""; }
 
 /*Wick Engine https://github.com/Wicklets/wick-engine*/
-var WICK_ENGINE_BUILD_VERSION = "2025.10.4.21.32.34";
+var WICK_ENGINE_BUILD_VERSION = "2025.10.4.23.31.58";
 
 /*!
  * Paper.js v0.12.4 - The Swiss Army Knife of Vector Graphics Scripting.
@@ -65922,5 +65925,28 @@ Wick.GUIElement.TweenGhost = class extends Wick.GUIElement.Ghost {
     });
   }
 };
+// If any modules exported a `platform`-like API into `module.exports` (eg platform.js),
+// expose it to the browser global so code that expects `window.platform` continues to work.
+try {
+  if (typeof window !== "undefined") {
+    if (typeof module !== "undefined" && module && module.exports) {
+      if (!window.platform && module.exports && (module.exports.name || module.exports.os)) {
+        window.platform = module.exports;
+      }
+    }
+    try {
+      if (!window.platform && exports && (exports.name || exports.os)) {
+        window.platform = exports;
+      }
+    } catch (e) {}
+
+    // Defensive: ensure platform.os exists so code reading platform.os.architecture doesn't throw
+    try {
+      if (window.platform && !window.platform.os) {
+        window.platform.os = { architecture: null, family: null, version: null };
+      }
+    } catch (e) {}
+  }
+} catch (e) {}
 
 })(); // End IIFE wrapper

@@ -1,14 +1,14 @@
-var fs = require('fs');
-var footer = require('gulp-footer');
-var gulp = require('gulp');
+var fs = require("fs");
+var footer = require("gulp-footer");
+var gulp = require("gulp");
 var babel = require("gulp-babel");
-var concat = require('gulp-concat');
-var rename = require('gulp-rename');
-var uglify = require('gulp-uglify');
-var header = require('gulp-header');
-var mergeStream = require('merge-stream');
+var concat = require("gulp-concat");
+var rename = require("gulp-rename");
+var uglify = require("gulp-uglify");
+var header = require("gulp-header");
+var mergeStream = require("merge-stream");
 
-gulp.task("default", function() {
+gulp.task("default", function () {
   /* Generate build number */
   /* Year.Month.Day[micro] */
   var date = new Date();
@@ -18,172 +18,179 @@ gulp.task("default", function() {
   var hour = date.getHours();
   var minute = date.getMinutes();
   var second = date.getSeconds();
-  var buildString = year + '.' + month + '.' + day + '.' + hour + '.' + minute + '.' + second;
+  var buildString =
+    year + "." + month + "." + day + "." + hour + "." + minute + "." + second;
 
   /* Libraries */
   var libs = gulp
     .src([
-      'lib/paper.js',
-      'lib/base64-arraybuffer.js',
-      'lib/convert-range.js',
-      'lib/croquis.js',
-      'lib/currentTransform.js',
-      'lib/esprima.js',
-      'lib/floodfill.min.js',
-      'lib/howler.js',
-      'lib/hull.js',
-      'lib/invert.min.js',
-      'lib/is-var-name.js',
-      'lib/jquery-3.3.1.min.js',
-      'lib/jquery.pressure.js',
-      'lib/jquery.mousewheel.js',
-      'lib/jszip.js',
-      'lib/lerp.js',
-      'lib/localforage.min.js',
-      'lib/platform.js',
-      'lib/potrace.js',
-      'lib/reserved-words.js',
-      'lib/roundRect.js',
-      'lib/timestamp.js',
-      'lib/soundcloud-waveform.js',
-      'lib/Tween.js',
-      'lib/uuid.js'
+      "lib/paper.js",
+      "lib/base64-arraybuffer.js",
+      "lib/convert-range.js",
+      "lib/croquis.js",
+      "lib/currentTransform.js",
+      "lib/esprima.js",
+      "lib/floodfill.min.js",
+      "lib/howler.js",
+      "lib/hull.js",
+      "lib/invert.min.js",
+      "lib/is-var-name.js",
+      "lib/jquery-3.3.1.min.js",
+      "lib/jquery.pressure.js",
+      "lib/jquery.mousewheel.js",
+      "lib/jszip.js",
+      "lib/lerp.js",
+      "lib/localforage.min.js",
+      "lib/platform.js",
+      "lib/potrace.js",
+      "lib/reserved-words.js",
+      "lib/roundRect.js",
+      "lib/timestamp.js",
+      "lib/soundcloud-waveform.js",
+      "lib/Tween.js",
+      "lib/uuid.js",
     ])
-    .pipe(concat('libs.js'));
+    .pipe(concat("libs.js"));
 
   /* Engine */
   var src = gulp
     .src([
-      'src/Wick.js',
-      'src/Clipboard.js',
-      'src/Color.js',
-      'src/FileCache.js',
-      'src/History.js',
-      'src/ObjectCache.js',
-      'src/Transformation.js',
-      'src/ToolSettings.js',
-      'src/ObjectCache.js',
-      'src/Transformation.js',
-      'src/GlobalAPI.js',
-      'src/builtinassets/BuiltinAssets.js',
-      'src/export/ExportUtils.js',
-      'src/export/audio/AudioTrack.js',
-      'src/export/autosave/AutoSave.js',
-      'src/export/wick/WickFile.js',
-      'src/export/wick/WickFile.Alpha.js',
-      'src/export/wickobj/WickObjectFile.js',
-      'src/export/html/HTMLExport.js',
-      'src/export/html/HTMLPreview.js',
-      'src/export/svg/SvgFile.js', 
-      'src/export/image/ImageSequence.js',
-      'src/export/zip/ZIPExport.js',
-      'src/base/Base.js',
-      'src/base/Layer.js',
-      'src/base/Project.js',
-      'src/base/Selection.js',
-      'src/base/Timeline.js',
-      'src/base/Tween.js',
-      'src/base/Path.js',
-      'src/base/asset/Asset.js',
-      'src/base/asset/FileAsset.js',
-      'src/base/asset/FontAsset.js',
-      'src/base/asset/ImageAsset.js',
-      'src/base/asset/ClipAsset.js',
-      'src/base/asset/GIFAsset.js',
-      'src/base/asset/SoundAsset.js',
-      'src/base/asset/SVGAsset.js',
-      'src/base/Tickable.js',
-      'src/base/Frame.js',
-      'src/base/Clip.js',
-      'src/base/Button.js',
-      'src/tools/Tool.js',
-      'src/tools/Brush.js',
-      'src/tools/Cursor.js',
-      'src/tools/Ellipse.js',
-      'src/tools/Eraser.js',
-      'src/tools/Eyedropper.js',
-      'src/tools/FillBucket.js',
-      'src/tools/Interact.js',
-      'src/tools/Line.js',
-      'src/tools/None.js',
-      'src/tools/Pan.js',
-      'src/tools/PathCursor.js',
-      'src/tools/Pencil.js',
-      'src/tools/Rectangle.js',
-      'src/tools/Text.js',
-      'src/tools/Zoom.js',
-      'src/view/paper-ext/Layer.erase.js',
+      "src/Wick.js",
+      "src/Clipboard.js",
+      "src/Color.js",
+      "src/FileCache.js",
+      "src/History.js",
+      "src/ObjectCache.js",
+      "src/Transformation.js",
+      "src/ToolSettings.js",
+      "src/ObjectCache.js",
+      "src/Transformation.js",
+      "src/GlobalAPI.js",
+      "src/builtinassets/BuiltinAssets.js",
+      "src/export/ExportUtils.js",
+      "src/export/audio/AudioTrack.js",
+      "src/export/autosave/AutoSave.js",
+      "src/export/wick/WickFile.js",
+      "src/export/wick/WickFile.Alpha.js",
+      "src/export/wickobj/WickObjectFile.js",
+      "src/export/html/HTMLExport.js",
+      "src/export/html/HTMLPreview.js",
+      "src/export/svg/SvgFile.js",
+      "src/export/image/ImageSequence.js",
+      "src/export/zip/ZIPExport.js",
+      "src/base/Base.js",
+      "src/base/Layer.js",
+      "src/base/Project.js",
+      "src/base/Selection.js",
+      "src/base/Timeline.js",
+      "src/base/Tween.js",
+      "src/base/Path.js",
+      "src/base/asset/Asset.js",
+      "src/base/asset/FileAsset.js",
+      "src/base/asset/FontAsset.js",
+      "src/base/asset/ImageAsset.js",
+      "src/base/asset/ClipAsset.js",
+      "src/base/asset/GIFAsset.js",
+      "src/base/asset/SoundAsset.js",
+      "src/base/asset/SVGAsset.js",
+      "src/base/Tickable.js",
+      "src/base/Frame.js",
+      "src/base/Clip.js",
+      "src/base/Button.js",
+      "src/tools/Tool.js",
+      "src/tools/Brush.js",
+      "src/tools/Cursor.js",
+      "src/tools/Ellipse.js",
+      "src/tools/Eraser.js",
+      "src/tools/Eyedropper.js",
+      "src/tools/FillBucket.js",
+      "src/tools/Interact.js",
+      "src/tools/Line.js",
+      "src/tools/None.js",
+      "src/tools/Pan.js",
+      "src/tools/PathCursor.js",
+      "src/tools/Pencil.js",
+      "src/tools/Rectangle.js",
+      "src/tools/Text.js",
+      "src/tools/Zoom.js",
+      "src/view/paper-ext/Layer.erase.js",
       //'src/view/paper-ext/Offsets/PaperJsExtensions.js',
-      'src/view/paper-ext/Paper.hole.js',
-      'src/view/paper-ext/Paper.OrderingUtils.js',
-      'src/view/paper-ext/Paper.SelectionWidget.js',
-      'src/view/paper-ext/Paper.SelectionBox.js',
-      'src/view/paper-ext/Path.potrace.js',
-      'src/view/paper-ext/TextItem.edit.js',
-      'src/view/paper-ext/View.pressure.js',
-      'src/view/paper-ext/View.gestures.js',
-      'src/view/paper-ext/View.scrollToZoom.js',
-      'src/view/View.js',
-      'src/view/View.Project.js',
-      'src/view/View.Selection.js',
-      'src/view/View.Clip.js',
-      'src/view/View.Button.js',
-      'src/view/View.Timeline.js',
-      'src/view/View.Layer.js',
-      'src/view/View.Frame.js',
-      'src/view/View.Path.js',
-      'src/gui/GUIElement.js',
-      'src/gui/Button.js',
-      'src/gui/Ghost.js',
-      'src/gui/Icons.js',
-      'src/gui/ActionButton.js',
-      'src/gui/ActionButtonsContainer.js',
-      'src/gui/Breadcrumbs.js',
-      'src/gui/BreadcrumbsButton.js',
-      'src/gui/Frame.js',
-      'src/gui/FrameEdgeGhost.js',
-      'src/gui/FrameGhost.js',
-      'src/gui/FramesContainer.js',
-      'src/gui/Layer.js',
-      'src/gui/LayerButton.js',
-      'src/gui/LayerCreateLabel.js',
-      'src/gui/LayersContainer.js',
-      'src/gui/NumberLine.js',
-      'src/gui/OnionSkinRange.js',
-      'src/gui/Playhead.js',
-      'src/gui/PopupMenu.js',
-      'src/gui/Project.js',
-      'src/gui/Scrollbar.js',
-      'src/gui/ScrollbarGrabber.js',
-      'src/gui/SelectionBox.js',
-      'src/gui/Timeline.js',
-      'src/gui/Tooltip.js',
-      'src/gui/Tween.js',
-      'src/gui/TweenGhost.js',
+      "src/view/paper-ext/Paper.hole.js",
+      "src/view/paper-ext/Paper.OrderingUtils.js",
+      "src/view/paper-ext/Paper.SelectionWidget.js",
+      "src/view/paper-ext/Paper.SelectionBox.js",
+      "src/view/paper-ext/Path.potrace.js",
+      "src/view/paper-ext/TextItem.edit.js",
+      "src/view/paper-ext/View.pressure.js",
+      "src/view/paper-ext/View.gestures.js",
+      "src/view/paper-ext/View.scrollToZoom.js",
+      "src/view/View.js",
+      "src/view/View.Project.js",
+      "src/view/View.Selection.js",
+      "src/view/View.Clip.js",
+      "src/view/View.Button.js",
+      "src/view/View.Timeline.js",
+      "src/view/View.Layer.js",
+      "src/view/View.Frame.js",
+      "src/view/View.Path.js",
+      "src/gui/GUIElement.js",
+      "src/gui/Button.js",
+      "src/gui/Ghost.js",
+      "src/gui/Icons.js",
+      "src/gui/ActionButton.js",
+      "src/gui/ActionButtonsContainer.js",
+      "src/gui/Breadcrumbs.js",
+      "src/gui/BreadcrumbsButton.js",
+      "src/gui/Frame.js",
+      "src/gui/FrameEdgeGhost.js",
+      "src/gui/FrameGhost.js",
+      "src/gui/FramesContainer.js",
+      "src/gui/Layer.js",
+      "src/gui/LayerButton.js",
+      "src/gui/LayerCreateLabel.js",
+      "src/gui/LayersContainer.js",
+      "src/gui/NumberLine.js",
+      "src/gui/OnionSkinRange.js",
+      "src/gui/Playhead.js",
+      "src/gui/PopupMenu.js",
+      "src/gui/Project.js",
+      "src/gui/Scrollbar.js",
+      "src/gui/ScrollbarGrabber.js",
+      "src/gui/SelectionBox.js",
+      "src/gui/Timeline.js",
+      "src/gui/Tooltip.js",
+      "src/gui/Tween.js",
+      "src/gui/TweenGhost.js",
     ])
     .pipe(babel())
-    .pipe(concat('src.js'));
+    .pipe(concat("src.js"));
 
   /* Write wickengine.js */
   return mergeStream(src, libs)
-    .pipe(concat('wickengine.js'))
-    .pipe(header('(function() {\n// Browser compatibility shims\nvar require = function(moduleName) {\n  // Handle common Node.js modules\n  if (moduleName === \'acorn\') return { parse: function() { return {}; } };\n  if (moduleName === \'jquery\') return window.jQuery || window.$ || { fn: {} };\n  if (moduleName === \'./node/self.js\') return window;\n  if (moduleName === \'./node/extend.js\') return function(obj) { return obj; };\n  if (moduleName === \'./intersect.js\') return {};\n  if (moduleName === \'./grid.js\') return {};\n  if (moduleName === \'./format.js\') return {};\n  if (moduleName === \'./convex.js\') return {};\n  if (moduleName === \'./utils\') return {};\n  if (moduleName === \'./support\') return {};\n  // JSZip related modules\n  if (moduleName === \'./external\') return {};\n  if (moduleName === \'./stream/DataWorker\') return function() {};\n  if (moduleName === \'./stream/DataLengthProbe\') return function() {};\n  if (moduleName === \'./stream/Crc32Probe\') return function() {};\n  if (moduleName === \'./stream/GenericWorker\') return function() {};\n  if (moduleName === \'./flate\') return {};\n  if (moduleName === \'lie\') return { Promise: window.Promise || function() {} };\n  if (moduleName === \'pako\') return {};\n  if (moduleName === \'../stream/GenericWorker\') return function() {};\n  if (moduleName === \'../utf8\') return {};\n  if (moduleName === \'../crc32\') return {};\n  if (moduleName === \'../signature\') return {};\n  if (moduleName === \'../compressions\') return {};\n  if (moduleName === \'./ZipFileWorker\') return function() {};\n  if (moduleName === \'./object\') return {};\n  if (moduleName === \'../utils\') return {};\n  if (moduleName === \'../stream/GenericWorker\') return function() {};\n  if (moduleName === \'../utf8\') return {};\n  // Default fallback\n  return {};\n};\nvar module = { exports: {} }; // Dummy module\nvar exports = {}; // Dummy exports\nvar global = window; // Map global to window\nvar self = window; // Map self to window\nif (typeof console === "undefined") { var console = { log: function() {}, error: function() {} }; }\nif (typeof process === "undefined") { var process = { env: {} }; }\nif (typeof Buffer === "undefined") { var Buffer = function() {}; }\nif (typeof __dirname === "undefined") { var __dirname = ""; }\nif (typeof __filename === "undefined") { var __filename = ""; }\n\n/*Wick Engine https://github.com/Wicklets/wick-engine*/\nvar WICK_ENGINE_BUILD_VERSION = "' + buildString + '";\n\n'))
-    .pipe(footer('\n\n})(); // End IIFE wrapper\n'))
-    .pipe(gulp.dest('dist'))
-    .on('end', () => {
+    .pipe(concat("wickengine.js"))
+    .pipe(
+      header(
+        "(function() {\n// Browser compatibility shims\nvar require = function(moduleName) {\n  // Handle common Node.js modules\n  if (moduleName === 'acorn') return { parse: function() { return {}; } };\n  if (moduleName === 'jquery') return window.jQuery || window.$ || { fn: {} };\n  if (moduleName === './node/self.js') return window;\n  if (moduleName === './node/extend.js') return function(obj) { return obj; };\n  if (moduleName === './intersect.js') return {};\n  if (moduleName === './grid.js') return {};\n  if (moduleName === './format.js') return {};\n  if (moduleName === './convex.js') return {};\n  if (moduleName === './utils') return {};\n  if (moduleName === './support') return {};\n  // JSZip related modules\n  if (moduleName === './external') return {};\n  if (moduleName === './stream/DataWorker') return function() {};\n  if (moduleName === './stream/DataLengthProbe') return function() {};\n  if (moduleName === './stream/Crc32Probe') return function() {};\n  if (moduleName === './stream/GenericWorker') return function() {};\n  if (moduleName === './flate') return {};\n  if (moduleName === 'lie') return { Promise: window.Promise || function() {} };\n  if (moduleName === 'pako') return {};\n  if (moduleName === '../stream/GenericWorker') return function() {};\n  if (moduleName === '../utf8') return {};\n  if (moduleName === '../crc32') return {};\n  if (moduleName === '../signature') return {};\n  if (moduleName === '../compressions') return {};\n  if (moduleName === './ZipFileWorker') return function() {};\n  if (moduleName === './object') return {};\n  if (moduleName === '../utils') return {};\n  if (moduleName === '../stream/GenericWorker') return function() {};\n  if (moduleName === '../utf8') return {};\n  // Default fallback\n  return {};\n};\nvar module = { exports: {} }; // Dummy module\n// Make `exports` a live alias of `module.exports` so CommonJS-style\n// modules that assign to `exports` or `module.exports` both work in the\n// bundled browser build.\nvar exports = module.exports;\nvar global = window; // Map global to window\nvar self = window; // Map self to window\nif (typeof console === \"undefined\") { var console = { log: function() {}, error: function() {} }; }\nif (typeof process === \"undefined\") { var process = { env: {} }; }\nif (typeof Buffer === \"undefined\") { var Buffer = function() {}; }\nif (typeof __dirname === \"undefined\") { var __dirname = \"\"; }\nif (typeof __filename === \"undefined\") { var __filename = \"\"; }\n\n/*Wick Engine https://github.com/Wicklets/wick-engine*/\nvar WICK_ENGINE_BUILD_VERSION = \"" +
+          buildString +
+          '";\n\n'
+      )
+    )
+  .pipe(footer("\n// If any modules exported a `platform`-like API into `module.exports` (eg platform.js),\n// expose it to the browser global so code that expects `window.platform` continues to work.\ntry {\n  if (typeof window !== \"undefined\") {\n    if (typeof module !== \"undefined\" && module && module.exports) {\n      if (!window.platform && module.exports && (module.exports.name || module.exports.os)) {\n        window.platform = module.exports;\n      }\n    }\n    try {\n      if (!window.platform && exports && (exports.name || exports.os)) {\n        window.platform = exports;\n      }\n    } catch (e) {}\n\n    // Defensive: ensure platform.os exists so code reading platform.os.architecture doesn't throw\n    try {\n      if (window.platform && !window.platform.os) {\n        window.platform.os = { architecture: null, family: null, version: null };\n      }\n    } catch (e) {}\n  }\n} catch (e) {}\n\n})(); // End IIFE wrapper\n"))
+    .pipe(gulp.dest("dist"))
+    .on("end", () => {
       /* Generate empty HTML file ready for wick projects to be injected into */
-      var blankHTML = fs.readFileSync('src/export/html/project.html', 'utf8');
-      var engineSRC = fs.readFileSync('dist/wickengine.js', 'utf8');
+      var blankHTML = fs.readFileSync("src/export/html/project.html", "utf8");
+      var engineSRC = fs.readFileSync("dist/wickengine.js", "utf8");
       var engineSRCSafe = engineSRC.replace(/\$/g, "$$$"); // http://forums.mozillazine.org/viewtopic.php?f=19&t=2182187
-      blankHTML = blankHTML.replace('<!--INJECT_WICKENGINE_HERE-->', engineSRCSafe);
-      fs.writeFileSync('dist/emptyproject.html', blankHTML);
+      blankHTML = blankHTML.replace("<!--INJECT_WICKENGINE_HERE-->", engineSRCSafe);
+      fs.writeFileSync("dist/emptyproject.html", blankHTML);
 
       /* Copy ZIP export resources to dist folder */
-      var zipindex = fs.readFileSync('src/export/zip/index.html', 'utf8');
-      var preloadjs = fs.readFileSync('src/export/zip/preloadjs.min.js', 'utf8');
-      var projecthtml = fs.readFileSync('src/export/html/project.html', 'utf8');
-      fs.writeFileSync('dist/index.html', zipindex);
-      fs.writeFileSync('dist/preloadjs.min.js', preloadjs);
-      fs.writeFileSync('dist/project.html', projecthtml);
+      var zipindex = fs.readFileSync("src/export/zip/index.html", "utf8");
+      var preloadjs = fs.readFileSync("src/export/zip/preloadjs.min.js", "utf8");
+      var projecthtml = fs.readFileSync("src/export/html/project.html", "utf8");
+      fs.writeFileSync("dist/index.html", zipindex);
+      fs.writeFileSync("dist/preloadjs.min.js", preloadjs);
+      fs.writeFileSync("dist/project.html", projecthtml);
     });
 });

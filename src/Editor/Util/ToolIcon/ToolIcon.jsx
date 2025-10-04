@@ -18,6 +18,7 @@
  */
 
 import React, { Component } from 'react';
+import classNames from 'classnames';
 import './_toolbutton.scss'
 
 // Tools
@@ -326,8 +327,6 @@ const icons = {
   "add-dark": iconAddDark,
   "upload-dark": iconUploadDark
 }
-
-var classNames = require('classnames');
 
 class ToolIcon extends Component {
   getSource() {

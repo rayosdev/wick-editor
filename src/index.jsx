@@ -17,17 +17,24 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import './index.css';
-import Editor from './Editor/Editor';
-import * as serviceWorker from './serviceWorker';
-import initializeDefaultFileHandlers from './files/filehandler';
+// Ensure a global `process` shim exists in the browser so libraries that
+// reference `process.env` (common in many npm packages) don't throw.
+if (typeof window !== 'undefined' && typeof window.process === 'undefined') {
+	// Minimal stub – expand if you need NODE_ENV or other keys during dev.
+	window.process = { env: {} };
+}
+
+import React from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import Editor from "./Editor/Editor";
+import * as serviceWorker from "./serviceWorker";
+import initializeDefaultFileHandlers from "./files/filehandler";
 
 // Creates file handlers in the window.
 initializeDefaultFileHandlers();
 
-const container = document.getElementById('root');
+const container = document.getElementById("root");
 const root = createRoot(container);
 root.render(<Editor />);
 

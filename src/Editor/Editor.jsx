@@ -55,10 +55,9 @@ import OutlinerExpandButton from './Panels/OutlinerExpandButton/OutlinerExpandBu
 import WickCodeEditor from './PopOuts/WickCodeEditor/WickCodeEditor';
 
 import EditorWrapper from './EditorWrapper';
-
-const { version } = require('../../package.json');
-
-var classNames = require('classnames');
+import classNames from 'classnames';
+import pkg from '../../package.json';
+const { version } = pkg;
 
 class Editor extends EditorCore {
   constructor () {

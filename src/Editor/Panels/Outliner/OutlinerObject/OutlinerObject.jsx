@@ -47,7 +47,7 @@ let images = {
   image: imageImage,
 };
 
-var classNames = require("classnames");
+import classNames from "classnames";
 
 export const OutlinerObject = ({
   clearSelection,
