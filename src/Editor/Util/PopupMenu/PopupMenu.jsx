@@ -17,9 +17,9 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
-import { Popover } from 'reactstrap';
-import './_popupmenu.scss'
+import React, { Component } from "react";
+import { Popover } from "reactstrap";
+import "./_popupmenu.scss";
 
 import classNames from "classnames";
 
@@ -31,13 +31,16 @@ class PopupMenu extends Component {
         isOpen={this.props.isOpen}
         toggle={this.props.toggle}
         target={this.props.target}
-        boundariesElement={'viewport'}
-        className={classNames("popup-menu-popover", this.props.mobile && "mobile")}
+        boundariesElement={"viewport"}
+        className={classNames(
+          "popup-menu-popover",
+          this.props.mobile && "mobile"
+        )}
       >
         {this.props.children}
       </Popover>
-    )
+    );
   }
 }
 
-export default PopupMenu
+export default PopupMenu;

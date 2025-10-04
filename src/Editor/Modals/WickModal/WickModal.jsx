@@ -17,52 +17,56 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
-import Modal from 'react-modal';
-import ToolIcon from 'Editor/Util/ToolIcon/ToolIcon';
-import ActionButton from 'Editor/Util/ActionButton/ActionButton';
+import React, { Component } from "react";
+import Modal from "react-modal";
+import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
+import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
-import './_wickmodal.scss';
+import "./_wickmodal.scss";
 
-import classNames from 'classnames';
+import classNames from "classnames";
 
 class WickModal extends Component {
-  renderIcon () {
+  renderIcon() {
     return (
       <div id="modal-icon-container">
-        <ToolIcon name={this.props.icon} /> 
-      </div> 
+        <ToolIcon name={this.props.icon} />
+      </div>
     );
   }
 
   componentDidMount() {
-    Modal.setAppElement('body');
- }
+    Modal.setAppElement("body");
+  }
 
   render() {
     return (
-      <Modal 
-      isOpen={this.props.open} 
-      toggle={() => {
-        this.props.toggle();
-      }}
-      onRequestClose={this.props.toggle}
-      className={classNames("modal-body", this.props.className)}
-      overlayClassName={classNames("modal-overlay", this.props.overlayClassName)}>
-      <div id="modal-close-icon-container">
-        <ActionButton 
-          color="tool" 
-          icon="cancel-white" 
-          action={this.props.toggle}
-        />
-      </div>
-      <div className="modal-generic-container">
-        {this.props.icon && this.renderIcon()}    
-        {this.props.children}
-      </div>
+      <Modal
+        isOpen={this.props.open}
+        toggle={() => {
+          this.props.toggle();
+        }}
+        onRequestClose={this.props.toggle}
+        className={classNames("modal-body", this.props.className)}
+        overlayClassName={classNames(
+          "modal-overlay",
+          this.props.overlayClassName
+        )}
+      >
+        <div id="modal-close-icon-container">
+          <ActionButton
+            color="tool"
+            icon="cancel-white"
+            action={this.props.toggle}
+          />
+        </div>
+        <div className="modal-generic-container">
+          {this.props.icon && this.renderIcon()}
+          {this.props.children}
+        </div>
       </Modal>
     );
   }
 }
 
-export default WickModal
+export default WickModal;

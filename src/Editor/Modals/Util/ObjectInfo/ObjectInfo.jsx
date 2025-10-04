@@ -17,40 +17,37 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
-import ToolIcon from 'Editor/Util/ToolIcon/ToolIcon';
+import React, { Component } from "react";
+import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 
-import './_objectinfo.scss';
+import "./_objectinfo.scss";
 
-import classNames from 'classnames'; 
+import classNames from "classnames";
 
 class MakeAnimated extends Component {
-
   renderRow(rowInfo, i) {
-      let text = rowInfo.text;
-      let icon = rowInfo.icon;
-      return (
-        <div key={i} className="object-info-row">
-            <div className="object-info-row-icon">
-                <ToolIcon name={icon}/>
-            </div>
-            <div className="object-info-row-text">
-                {text}
-            </div>
+    let text = rowInfo.text;
+    let icon = rowInfo.icon;
+    return (
+      <div key={i} className="object-info-row">
+        <div className="object-info-row-icon">
+          <ToolIcon name={icon} />
         </div>
-      );
+        <div className="object-info-row-text">{text}</div>
+      </div>
+    );
   }
 
   render() {
     return (
-        <div className={classNames("object-info-container", this.props.className)}>
-            <div className="object-info-title">
-                {this.props.title}
-            </div>
-            {this.props.rows.map(this.renderRow)}
-        </div>
+      <div
+        className={classNames("object-info-container", this.props.className)}
+      >
+        <div className="object-info-title">{this.props.title}</div>
+        {this.props.rows.map(this.renderRow)}
+      </div>
     );
   }
 }
 
-export default MakeAnimated
+export default MakeAnimated;

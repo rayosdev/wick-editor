@@ -175,19 +175,29 @@ gulp.task("default", function () {
           '";\n\n'
       )
     )
-  .pipe(footer("\n// If any modules exported a `platform`-like API into `module.exports` (eg platform.js),\n// expose it to the browser global so code that expects `window.platform` continues to work.\ntry {\n  if (typeof window !== \"undefined\") {\n    if (typeof module !== \"undefined\" && module && module.exports) {\n      if (!window.platform && module.exports && (module.exports.name || module.exports.os)) {\n        window.platform = module.exports;\n      }\n    }\n    try {\n      if (!window.platform && exports && (exports.name || exports.os)) {\n        window.platform = exports;\n      }\n    } catch (e) {}\n\n    // Defensive: ensure platform.os exists so code reading platform.os.architecture doesn't throw\n    try {\n      if (window.platform && !window.platform.os) {\n        window.platform.os = { architecture: null, family: null, version: null };\n      }\n    } catch (e) {}\n  }\n} catch (e) {}\n\n})(); // End IIFE wrapper\n"))
+    .pipe(
+      footer(
+        '\n// If any modules exported a `platform`-like API into `module.exports` (eg platform.js),\n// expose it to the browser global so code that expects `window.platform` continues to work.\ntry {\n  if (typeof window !== "undefined") {\n    if (typeof module !== "undefined" && module && module.exports) {\n      if (!window.platform && module.exports && (module.exports.name || module.exports.os)) {\n        window.platform = module.exports;\n      }\n    }\n    try {\n      if (!window.platform && exports && (exports.name || exports.os)) {\n        window.platform = exports;\n      }\n    } catch (e) {}\n\n    // Defensive: ensure platform.os exists so code reading platform.os.architecture doesn\'t throw\n    try {\n      if (window.platform && !window.platform.os) {\n        window.platform.os = { architecture: null, family: null, version: null };\n      }\n    } catch (e) {}\n  }\n} catch (e) {}\n\n})(); // End IIFE wrapper\n'
+      )
+    )
     .pipe(gulp.dest("dist"))
     .on("end", () => {
       /* Generate empty HTML file ready for wick projects to be injected into */
       var blankHTML = fs.readFileSync("src/export/html/project.html", "utf8");
       var engineSRC = fs.readFileSync("dist/wickengine.js", "utf8");
       var engineSRCSafe = engineSRC.replace(/\$/g, "$$$"); // http://forums.mozillazine.org/viewtopic.php?f=19&t=2182187
-      blankHTML = blankHTML.replace("<!--INJECT_WICKENGINE_HERE-->", engineSRCSafe);
+      blankHTML = blankHTML.replace(
+        "<!--INJECT_WICKENGINE_HERE-->",
+        engineSRCSafe
+      );
       fs.writeFileSync("dist/emptyproject.html", blankHTML);
 
       /* Copy ZIP export resources to dist folder */
       var zipindex = fs.readFileSync("src/export/zip/index.html", "utf8");
-      var preloadjs = fs.readFileSync("src/export/zip/preloadjs.min.js", "utf8");
+      var preloadjs = fs.readFileSync(
+        "src/export/zip/preloadjs.min.js",
+        "utf8"
+      );
       var projecthtml = fs.readFileSync("src/export/html/project.html", "utf8");
       fs.writeFileSync("dist/index.html", zipindex);
       fs.writeFileSync("dist/preloadjs.min.js", preloadjs);

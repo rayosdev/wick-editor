@@ -1,9 +1,9 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 
-import ActionButton from 'Editor/Util/ActionButton/ActionButton';
-import ToolboxBreak from '../ToolboxBreak/ToolboxBreak';
-import PopupMenu from 'Editor/Util/PopupMenu/PopupMenu';
-import './_canvasactions.scss';
+import ActionButton from "Editor/Util/ActionButton/ActionButton";
+import ToolboxBreak from "../ToolboxBreak/ToolboxBreak";
+import PopupMenu from "Editor/Util/PopupMenu/PopupMenu";
+import "./_canvasactions.scss";
 
 import classNames from "classnames";
 
@@ -17,29 +17,35 @@ class CanvasActions extends Component {
         action={action.action}
         tooltipPlace={"bottom"}
         icon={action.icon}
-        className="canvas-action-button" />
-      );
-    }
+        className="canvas-action-button"
+      />
+    );
+  }
 
   renderActions = () => {
     return (
-      <div className={classNames('actions-container', this.props.renderSize === "small" && "vertical")}>
+      <div
+        className={classNames(
+          "actions-container",
+          this.props.renderSize === "small" && "vertical"
+        )}
+      >
         {this.renderActionButton(this.props.editorActions.sendToBack)}
         {this.renderActionButton(this.props.editorActions.sendBackward)}
         {this.renderActionButton(this.props.editorActions.sendForward)}
         {this.renderActionButton(this.props.editorActions.sendToFront)}
-        <ToolboxBreak vertical={this.props.renderSize === "small"}/>
+        <ToolboxBreak vertical={this.props.renderSize === "small"} />
         {this.renderActionButton(this.props.editorActions.flipHorizontal)}
         {this.renderActionButton(this.props.editorActions.flipVertical)}
-        <ToolboxBreak vertical={this.props.renderSize === "small"}/>
+        <ToolboxBreak vertical={this.props.renderSize === "small"} />
         {this.renderActionButton(this.props.editorActions.booleanUnite)}
         {this.renderActionButton(this.props.editorActions.booleanSubtract)}
         {this.renderActionButton(this.props.editorActions.booleanIntersect)}
       </div>
     );
-  }
+  };
 
-  render () {
+  render() {
     return (
       <PopupMenu
         mobile={this.props.renderSize === "small"}
@@ -48,12 +54,17 @@ class CanvasActions extends Component {
         target="more-canvas-actions-popover-button"
         className={"more-canvas-actions-popover"}
       >
-        <div className={classNames("canvas-actions-widget", this.props.renderSize === "small" && "vertical")}>
+        <div
+          className={classNames(
+            "canvas-actions-widget",
+            this.props.renderSize === "small" && "vertical"
+          )}
+        >
           {!this.props.previewPlaying && this.renderActions()}
         </div>
       </PopupMenu>
-    )
+    );
   }
 }
 
-export default CanvasActions
+export default CanvasActions;

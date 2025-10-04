@@ -17,80 +17,108 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import React, { Component } from "react";
 
-import './_mobiletabbedinterface.scss';
+import "./_mobiletabbedinterface.scss";
 
-import classNames from 'classnames'; 
+import classNames from "classnames";
 
 class MobileTabbedInterface extends Component {
-    /**
-     * @param {} props Expects several props.
-     * - tabs {Object[]} Contains all tab information for the interface
-     * 
-     * tab {Object}
-     * - name {String} String name of the tab. Will be displayed in the tab interface.
-     * - body {JSX Object} Object to render
-     * - icon
-     * - iconActive
-     * - iconAlt
-     */
+  /**
+   * @param {} props Expects several props.
+   * - tabs {Object[]} Contains all tab information for the interface
+   *
+   * tab {Object}
+   * - name {String} String name of the tab. Will be displayed in the tab interface.
+   * - body {JSX Object} Object to render
+   * - icon
+   * - iconActive
+   * - iconAlt
+   */
 
-    // example prop:
-    // <TabbedInterface tabs={[{label: "inspector", icon: inspectorIcon, iconActive: inspectorIconActive, iconAlt: "inspector icon"}, 
-    //                         {label: "timeline", icon: timelineIcon, iconActive: timelineIconActive, iconAlt: "timeline icon"}]} >
-    constructor (props) {
-        super(props);
+  // example prop:
+  // <TabbedInterface tabs={[{label: "inspector", icon: inspectorIcon, iconActive: inspectorIconActive, iconAlt: "inspector icon"},
+  //                         {label: "timeline", icon: timelineIcon, iconActive: timelineIconActive, iconAlt: "timeline icon"}]} >
+  constructor(props) {
+    super(props);
 
-        this.state = {
-          selectedTab: this.props.tabs[0].label,
-        }
+    this.state = {
+      selectedTab: this.props.tabs[0].label,
+    };
+  }
+
+  // Selects the tab of the given name.
+  selectTab = (label) => {
+    this.setState({
+      selectedTab: label,
+    });
+
+    if (this.props.onTabSelect) {
+      this.props.onTabSelect(label);
     }
+  };
 
-    // Selects the tab of the given name.
-    selectTab = (label) => {
-        this.setState({
-            selectedTab: label,
-        });
+  /**
+   * Renders the selectable tab bar.
+   */
+  renderTabs = () => {
+    return (
+      <div
+        role="tablist"
+        className="mobile-tabbed-interface-main-tab-container"
+      >
+        {this.props.tabs.map((tab, i) => (
+          <button
+            key={`tab-${tab.label}-${i}`}
+            className={classNames(
+              "mobile-tabbed-interface-main-tab",
+              "mobile-" + tab.label + "-tab",
+              this.props.tabClassName,
+              { selected: this.state.selectedTab === tab.label }
+            )}
+            onClick={() => {
+              this.selectTab(tab.label);
+            }}
+          >
+            <img
+              className={classNames(
+                "mobile-tabbed-interface-icon",
+                "mobile-" + tab.label + "-tab-icon"
+              )}
+              src={
+                this.state.selectedTab === tab.label ? tab.iconActive : tab.icon
+              }
+              alt={tab.alt}
+            ></img>
+          </button>
+        ))}
+      </div>
+    );
+  };
 
-        if (this.props.onTabSelect) {
-            this.props.onTabSelect(label);
-        }
-    }
-
-    /**
-     * Renders the selectable tab bar.
-     */
-    renderTabs = () => {
-        return (
-            <div role="tablist" className="mobile-tabbed-interface-main-tab-container">
-                {this.props.tabs.map( (tab, i) => 
-                    <button
-                    key={`tab-${tab.label}-${i}`}
-                    className={classNames("mobile-tabbed-interface-main-tab", 
-                                          "mobile-"+tab.label+"-tab", 
-                                          this.props.tabClassName, 
-                                          {"selected": (this.state.selectedTab === tab.label)})}
-                    onClick={() => {this.selectTab(tab.label)}}>
-                        <img className={classNames("mobile-tabbed-interface-icon",
-                                        "mobile-"+tab.label+"-tab-icon")}
-                             src={this.state.selectedTab === tab.label ? tab.iconActive : tab.icon} alt={tab.alt}></img>
-                    </button> 
-                )}
-            </div>
-        );
-    }
-
-    render() {
-        return (
-            <div className={classNames("mobile-tabbed-interface", this.props.className)}>
-                {this.renderTabs()}
-                <div className={classNames("mobile-tabbed-interface-body", this.props.bodyClassName)}>
-                    {this.props.children[this.props.tabs.map((tab) => tab.label).indexOf(this.state.selectedTab)]}
-                </div>
-            </div>
-        ); 
-    }
+  render() {
+    return (
+      <div
+        className={classNames("mobile-tabbed-interface", this.props.className)}
+      >
+        {this.renderTabs()}
+        <div
+          className={classNames(
+            "mobile-tabbed-interface-body",
+            this.props.bodyClassName
+          )}
+        >
+          {
+            this.props.children[
+              this.props.tabs
+                .map((tab) => tab.label)
+                .indexOf(this.state.selectedTab)
+            ]
+          }
+        </div>
+      </div>
+    );
+  }
 }
 
-export default MobileTabbedInterface
+export default MobileTabbedInterface;

@@ -1,9 +1,9 @@
-import React, { Component } from 'react';
-import ActionButton from 'Editor/Util/ActionButton/ActionButton';
+import React, { Component } from "react";
+import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
-import '../_outliner.scss';
+import "../_outliner.scss";
 
-import classNames from 'classnames';
+import classNames from "classnames";
 
 class OutlinerLayerButtons extends Component {
   render() {
@@ -20,7 +20,11 @@ class OutlinerLayerButtons extends Component {
         tooltipPlace="left"
         buttonClassName="no-bg"
         icon={this.props.icon}
-        iconClassName={classNames(this.props.on === undefined || this.props.on ? "widget-on" : "widget-off")}
+        iconClassName={classNames(
+          this.props.on === undefined || this.props.on
+            ? "widget-on"
+            : "widget-off"
+        )}
       />
     );
   }

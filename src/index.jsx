@@ -19,9 +19,9 @@
 
 // Ensure a global `process` shim exists in the browser so libraries that
 // reference `process.env` (common in many npm packages) don't throw.
-if (typeof window !== 'undefined' && typeof window.process === 'undefined') {
-	// Minimal stub – expand if you need NODE_ENV or other keys during dev.
-	window.process = { env: {} };
+if (typeof window !== "undefined" && typeof window.process === "undefined") {
+  // Minimal stub – expand if you need NODE_ENV or other keys during dev.
+  window.process = { env: {} };
 }
 
 import React from "react";

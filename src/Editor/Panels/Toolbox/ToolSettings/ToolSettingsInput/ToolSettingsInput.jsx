@@ -17,13 +17,13 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import React, { Component } from "react";
 
-import WickInput from 'Editor/Util/WickInput/WickInput';
-import SettingsNumericSlider from './SettingsNumericSlider/SettingsNumericSlider';
-import ActionButton from 'Editor/Util/ActionButton/ActionButton';
+import WickInput from "Editor/Util/WickInput/WickInput";
+import SettingsNumericSlider from "./SettingsNumericSlider/SettingsNumericSlider";
+import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
-import './_toolsettingsinput.scss';
+import "./_toolsettingsinput.scss";
 
 import classNames from "classnames";
 
@@ -36,9 +36,10 @@ class ToolSettingsInput extends Component {
         value={this.props.value}
         inputRestrictions={this.props.inputRestrictions}
         name={this.props.name}
-        icon={this.props.icon} />
+        icon={this.props.icon}
+      />
     );
-  }
+  };
 
   renderCheckboxInput = () => {
     return (
@@ -46,15 +47,15 @@ class ToolSettingsInput extends Component {
         <ActionButton
           icon={this.props.icon}
           isActive={() => this.props.value}
-          color='checkbox'
+          color="checkbox"
           id={"settings-input-id-" + this.props.name}
           tooltip={this.props.name}
           action={() => this.props.onChange(!this.props.value)}
           iconClassName="toolbox-input-icon"
-          />
+        />
       </div>
     );
-  }
+  };
 
   renderDropdownInput = () => {
     return (
@@ -63,9 +64,9 @@ class ToolSettingsInput extends Component {
         className="settings-dropdown-input"
         onChange={this.props.onChange}
         value={this.props.value}
-        />
+      />
     );
-  }
+  };
 
   renderInput = () => {
     if (this.props.type === "numeric") {
@@ -76,17 +77,21 @@ class ToolSettingsInput extends Component {
       return this.renderDropdownInput();
     } else {
       console.error("No valid 'type' prop provided.");
-      return
+      return;
     }
-  }
+  };
 
-  render () {
+  render() {
     return (
-      <div className={classNames("setting-input-container", {mobile: this.props.renderSize === "small"})}>
+      <div
+        className={classNames("setting-input-container", {
+          mobile: this.props.renderSize === "small",
+        })}
+      >
         {this.renderInput()}
       </div>
     );
   }
 }
 
-export default ToolSettingsInput
+export default ToolSettingsInput;
