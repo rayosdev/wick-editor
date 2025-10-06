@@ -33826,6 +33826,17 @@
     ]).default;
   });
 
+  // Ensure invert-color is available as a global for later references in this bundle.
+  // Due to the faux CommonJS environment above, the UMD chose the module.exports path,
+  // so we surface that export on window to make `invert(color)` resolvable at runtime.
+  try {
+    if (typeof window !== "undefined" && typeof window.invert === "undefined") {
+      if (typeof module !== "undefined" && module && typeof module.exports === "function") {
+        window.invert = module.exports;
+      }
+    }
+  } catch (e) {}
+
   ("use strict");
 
   /**

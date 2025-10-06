@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Popover from "react-popover";
+import { Popover } from "react-tiny-popover";
 
 import WickInput from "Editor/Util/WickInput/WickInput";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
@@ -22,8 +22,8 @@ export default function SettingsNumericSlider(props) {
 
       <Popover
         isOpen={sliderOn}
-        preferPlace="below"
-        body={
+        positions={["bottom", "top", "right", "left"]}
+        content={
           <div className="settings-numeric-slider-container">
             <WickInput
               type="slider"
@@ -35,12 +35,9 @@ export default function SettingsNumericSlider(props) {
             />
           </div>
         }
-        onOuterAction={() => {
+        onClickOutside={() => {
           setSliderOn(false);
         }}
-        refreshIntervalMs={200}
-        enterExitTransitionDurationMs={100}
-        appendTarget={document.getElementById("editor")}
       >
         <WickInput
           type="numeric"
