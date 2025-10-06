@@ -14520,10 +14520,19 @@
         },
 
         getBounds: function () {
-          if (!this._bounds)
-            this._bounds = this._matrix
-              .inverted()
-              ._transformBounds(new Rectangle(new Point(), this._viewSize));
+          if (!this._bounds) {
+            // Build default rect and attempt to transform with the inverse matrix.
+            var rect = new Rectangle(new Point(), this._viewSize);
+            var inv =
+              this._matrix && typeof this._matrix.inverted === "function"
+                ? this._matrix.inverted()
+                : null;
+            // If the matrix is non-invertible or not ready yet, fall back to the untransformed rect.
+            this._bounds =
+              inv && typeof inv._transformBounds === "function"
+                ? inv._transformBounds(rect)
+                : rect;
+          }
           return this._bounds;
         },
 
@@ -14833,7 +14842,7 @@
                   event,
                   point,
                   target || obj,
-                  prevPoint ? point.subtract(prevPoint) : null
+                  point && prevPoint ? point.subtract(prevPoint) : null
                 );
               }
               if (obj.emit(type, mouseEvent)) {
@@ -14926,10 +14935,11 @@
               type = "mousedrag";
             if (!point) point = this.getEventPoint(event);
 
-            var inView = this.getBounds().contains(point),
+            var inView = point ? this.getBounds().contains(point) : false,
               hit =
                 hitItems &&
                 inView &&
+                point &&
                 view._project.hitTest(point, {
                   tolerance: 0,
                   fill: true,
@@ -14940,7 +14950,7 @@
               mouse = {};
             mouse[type.substr(5)] = true;
 
-            if (hitItems && hitItem !== overItem) {
+            if (hitItems && point && hitItem !== overItem) {
               if (overItem) {
                 emitMouseEvent(overItem, null, "mouseleave", event, point);
               }
@@ -14949,7 +14959,7 @@
               }
               overItem = hitItem;
             }
-            if (wasInView ^ inView) {
+            if (point && (wasInView ^ inView)) {
               emitMouseEvent(
                 this,
                 null,
@@ -14960,7 +14970,12 @@
               overView = inView ? this : null;
               handle = true;
             }
-            if ((inView || mouse.drag) && !point.equals(lastPoint)) {
+            // Guard against null/undefined event points during early init
+            if (
+              point &&
+              (inView || mouse.drag) &&
+              (!lastPoint || !point.equals(lastPoint))
+            ) {
               emitMouseEvents(
                 this,
                 hitItem,
@@ -14972,7 +14987,7 @@
               handle = true;
             }
             wasInView = inView;
-            if ((mouse.down && inView) || (mouse.up && downPoint)) {
+            if (point && ((mouse.down && inView) || (mouse.up && downPoint))) {
               emitMouseEvents(this, hitItem, type, event, point, downPoint);
               if (mouse.down) {
                 dblClick =
@@ -15590,10 +15605,20 @@
           var pt = point,
             toolPoint = move ? tool._point : tool._downPoint || pt;
           if (move) {
-            if (tool._moveCount >= 0 && pt.equals(toolPoint)) {
+            // Guard against null points during early init
+            if (
+              tool._moveCount >= 0 &&
+              pt &&
+              toolPoint &&
+              pt.equals(toolPoint)
+            ) {
               return false;
             }
-            if (toolPoint && (minDistance != null || maxDistance != null)) {
+            if (
+              pt &&
+              toolPoint &&
+              (minDistance != null || maxDistance != null)
+            ) {
               var vector = pt.subtract(toolPoint),
                 distance = vector.getLength();
               if (distance < (minDistance || 0)) return false;
@@ -15605,11 +15630,11 @@
             }
             tool._moveCount++;
           }
-          tool._point = pt;
-          tool._lastPoint = toolPoint || pt;
+          tool._point = pt || tool._point;
+          tool._lastPoint = toolPoint || pt || tool._lastPoint;
           if (mouse.down) {
             tool._moveCount = -1;
-            tool._downPoint = pt;
+            tool._downPoint = pt || tool._downPoint;
             tool._downCount++;
           }
           return true;
@@ -48255,7 +48280,7 @@ https://github.com/nodeca/pako/blob/master/LICENSE
                     s.match_length <= 5 &&
                     (s.strategy === Z_FILTERED ||
                       (s.match_length === MIN_MATCH &&
-                        s.strstart - s.match_start > 4096) /*TOO_FAR*/)
+                        s.strstart - s.match_start > 4096)) /*TOO_FAR*/
                   ) {
                     /* If prev_match is also MIN_MATCH, match_start is garbage
                      * but we will ignore the current match anyway.
