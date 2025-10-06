@@ -97,6 +97,48 @@
       window.__REACT_MODAL_APP_ELEMENT = "#root";
     </script>
     <script src="/corelibs/wick-engine/wickengine.js"></script>
+    <script>
+      // Defensive shim: some legacy engine code may dynamically create
+      // <script type="module" src="..."> elements with incorrect src
+      // (for example image URLs). Browsers enforce MIME types for module
+      // scripts and will reject image/png as module. This patch converts
+      // module scripts whose src extension is not a JS/wasm type to
+      // text/javascript so they don't trigger a fatal MIME error.
+      (function () {
+        try {
+          const origAppend = Element.prototype.appendChild;
+          Element.prototype.appendChild = function (node) {
+            try {
+              if (
+                node &&
+                node.tagName === "SCRIPT" &&
+                (node.type === "module" ||
+                  (node.getAttribute && node.getAttribute("type") === "module"))
+              ) {
+                const src =
+                  node.src ||
+                  (node.getAttribute && node.getAttribute("src")) ||
+                  "";
+                const ext = (src
+                  .split("?")[0]
+                  .split("#")[0]
+                  .match(/\.([^.\/\\]+)$/) || [])[1];
+                const allowed = new Set(["js", "mjs", "cjs", "wasm"]);
+                if (!ext || !allowed.has(ext.toLowerCase())) {
+                  // downgrade to classic script so browser won't reject by MIME
+                  try {
+                    node.type = "text/javascript";
+                    if (node.setAttribute)
+                      node.setAttribute("type", "text/javascript");
+                  } catch (e) {}
+                }
+              }
+            } catch (e) {}
+            return origAppend.call(this, node);
+          };
+        } catch (e) {}
+      })();
+    </script>
     <!-- preload.js -->
     <script src="/corelibs/preload/preloadjs.min.js"></script>
     <!-- Preloader animation CSS -->
