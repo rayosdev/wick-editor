@@ -104,7 +104,7 @@
     "eject": "echo 'No eject needed with Vite'",
     "dist": "electron-builder",
     "start": "vite",
-    "build": "vite build && cp CNAME_editor ./build/CNAME;",
+    "build": "vite build && mkdir -p ./build/src && cp -a src/resources ./build/src/resources && cp CNAME_editor ./build/CNAME;",
     "build-engine": "cd engine; mkdir dist/; gulp; cp -a dist/. ../public/corelibs/wick-engine/",
     "build-engine-windows": "cd engine & mkdir dist  2>nul &    gulp & xcopy /EY dist\\. ..\\public\\corelibs\\wick-engine\\",
     "test": "echo 'Run tests with Playwright'",
