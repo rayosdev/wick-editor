@@ -36,7 +36,15 @@ class WickModal extends Component {
   }
 
   componentDidMount() {
-    Modal.setAppElement("body");
+    // Use #root as the app element so react-modal doesn't try to toggle aria-hidden on <body>
+    try {
+      const root = document.getElementById("root");
+      if (root) {
+        Modal.setAppElement("#root");
+      }
+    } catch (e) {
+      // No-op in non-DOM environments
+    }
   }
 
   render() {

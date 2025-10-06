@@ -17,15 +17,16 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
-import './_index.scss';
+import React from "react";
+import "./_index.scss";
 
 function ErrorPage() {
   return (
-    <main class="error-page">
+    <main className="error-page">
       <h1> Oops! Something Broke!</h1>
       <p>
-        Don't worry, we auto-saved your project! Please try refreshing the page and loading the autosave!
+        Don't worry, we auto-saved your project! Please try refreshing the page
+        and loading the autosave!
       </p>
     </main>
   );
