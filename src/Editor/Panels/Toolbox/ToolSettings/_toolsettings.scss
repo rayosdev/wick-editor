@@ -1,5 +1,5 @@
-@import 'Editor/_wickbrand.module.scss';
-@import '../toolbox.scss';
+@use 'Editor/brand' as *;
+@use '../toolbox-shim' as *;
 
 $setting-splitter-height: 2px;
 $settings-container-width: 70px;

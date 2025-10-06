@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-@import 'Editor/_wickbrand.module.scss';
+@use 'Editor/brand' as *;
 
 #wick-canvas-container {
   width: 100%;

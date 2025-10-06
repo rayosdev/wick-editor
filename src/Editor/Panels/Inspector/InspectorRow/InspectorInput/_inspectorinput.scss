@@ -17,8 +17,9 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-@import 'Editor/_wickbrand.module.scss';
-@import '../_inspectorrow.scss';
+@use 'Editor/brand' as *;
+@use '../_inspectorrow.scss' as *;
+@use '../../inspector-shim' as *;
 
 .inspector-input-container {
   display: flex;

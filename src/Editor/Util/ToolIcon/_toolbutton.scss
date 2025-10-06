@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-@import 'Editor/_wickbrand.module.scss';
+@use 'Editor/brand' as *;
 
 .img-tool-icon {
   height: 100%;
@@ -27,6 +27,5 @@
   -khtml-user-drag: none;
   -moz-user-drag: none;
   -o-user-drag: none;
-  user-drag: none;
   pointer-events: none;
 }

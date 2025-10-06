@@ -17,8 +17,8 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-@import 'Editor/_wickbrand.module.scss';
-@import '../_inspector.scss';
+@use 'Editor/brand' as *;
+@use '../inspector-shim' as *;
 
 $inspector-element-padding: 1.5%;
 $row-identifier-width: 30%;

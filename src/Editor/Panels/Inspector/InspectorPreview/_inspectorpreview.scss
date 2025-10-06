@@ -17,8 +17,8 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-@import 'Editor/_wickbrand.module.scss';
-@import 'Editor/Panels/Inspector/_inspector.scss';
+@use 'Editor/brand' as *;
+@use '../inspector-shim' as *;
 
 .inspector-image-preview {
   height: 100px;
@@ -35,9 +35,7 @@
   margin-top: $inspector-padding;
 }
 
-.inspector-sound-preview {
-
-}
+// Removed empty ruleset to satisfy linter
 
 .inspector-sound-preview-container {
   margin: 5px;

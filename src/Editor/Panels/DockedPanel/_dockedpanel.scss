@@ -17,10 +17,11 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-@import 'Editor/_wickbrand.module.scss';
+@use 'Editor/brand' as *;
 
 .docked-panel {
   position: relative;
+  -webkit-user-select: none;
   user-select: none;
   height: 100%;
   overflow: hidden;

@@ -17,8 +17,8 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- @import 'Editor/_wickbrand.module.scss';
- @import '../_outliner.scss';
+ @use 'Editor/brand' as *;
+ @use '../outliner-shim' as *;
 
  $outliner-title-height: 36px;
  $outliner-padding: 10px;

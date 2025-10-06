@@ -1,4 +1,4 @@
-@import 'Editor/_wickbrand.module.scss';
+@use 'Editor/brand' as *;
 
 $button-height: 39px;
 

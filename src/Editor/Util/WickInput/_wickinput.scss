@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-@import 'Editor/_wickbrand.module.scss';
+@use 'Editor/brand' as *;
 
 $numeric-input-background: $editor-text-input-background;
 
@@ -173,7 +173,7 @@ $numeric-input-background: $editor-text-input-background;
 .wick-input-select__control {
   width: 100%;
   height: 100%;
-  min-height: auto !important;
+  min-height: 100% !important;
   display: flex;
   align-items: center;
   background-color: #FFFFFF;
