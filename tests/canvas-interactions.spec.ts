@@ -1,3 +1,4 @@
+// @ts-nocheck - TODO: Remove when properly typing test files
 import { test, expect } from '@playwright/test';
 
 /**

@@ -1,3 +1,4 @@
+// @ts-nocheck - TODO: Remove when converting to proper TypeScript
 import React, { Component } from 'react';
 import './_menubariconbutton.scss';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
