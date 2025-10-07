@@ -11,7 +11,19 @@ Modernized mouse and trackpad interactions by replacing legacy jQuery mousewheel
 - **Fix**: Added `typeof window === 'undefined'` check to ensure it only uses CommonJS in actual Node.js environments
 - **Impact**: Plugin now properly loads and works as fallback for older code
 
-### 2. **Native Wheel Events (Canvas View)** ✓
+### 2. **Two-Finger Pan/Scroll** ✓ NEW!
+**File**: `engine/src/view/View.Project.js` → `scrollToZoom()`
+- **Enhancement**: Intelligently detects pan vs zoom gestures
+- **Detection**: Checks for `ctrlKey` or `metaKey` to differentiate:
+  - **Pan Mode**: Two-finger scroll without modifier keys → moves canvas in all directions
+  - **Zoom Mode**: Pinch gesture or Ctrl/Cmd + scroll → zooms toward cursor
+- **Benefits**:
+  - Natural two-finger panning (up/down/left/right)
+  - Matches behavior of modern design tools (Figma, Sketch, etc.)
+  - Smooth, requestAnimationFrame-based performance
+  - Scaled by zoom level for natural feel
+
+### 3. **Native Wheel Events (Canvas View)** ✓
 **File**: `engine/src/view/View.Project.js`
 - **Replaced**: jQuery `mousewheel` event with native `wheel` event
 - **Benefits**:
@@ -20,7 +32,7 @@ Modernized mouse and trackpad interactions by replacing legacy jQuery mousewheel
   - More reliable and standardized
   - Properly handles different `deltaMode` values (pixel, line, page)
 
-### 3. **Zoom-to-Point Functionality** ✓
+### 4. **Zoom-to-Point Functionality** ✓
 **File**: `engine/src/view/View.Project.js` → `scrollToZoom()`
 - **Enhancement**: Zoom now centers on cursor position instead of canvas center
 - **Algorithm**: 
@@ -35,16 +47,22 @@ Modernized mouse and trackpad interactions by replacing legacy jQuery mousewheel
   - Easier to focus on specific areas
   - Better UX for detailed work
 
-### 4. **Pinch-to-Zoom Support** ✓
+### 5. **Enhanced Pinch-to-Zoom Support** ✓ IMPROVED!
 **File**: `engine/src/view/View.Project.js` → `_setupTools()`
 - **Added**: Native gesture event listeners for trackpad pinch gestures
 - **Events**: `gesturestart`, `gesturechange`, `gestureend`
+- **Improvements**:
+  - **1.5x increased responsiveness** via scale factor adjustment
+  - **Zoom-to-point for gestures**: Pinch zooms toward gesture center point
+  - Stores gesture start state for smooth transformations
+  - Proper clamping to min/max zoom limits
 - **Benefits**:
-  - Native MacBook trackpad pinch-to-zoom support
+  - Much more responsive pinch-to-zoom on MacBook trackpads
   - Touch device compatibility
   - More natural zooming on modern devices
+  - Zooms toward your fingers, not the center
 
-### 5. **Native Wheel Events (Timeline)** ✓
+### 6. **Native Wheel Events (Timeline)** ✓
 **File**: `engine/src/gui/Project.js`
 - **Replaced**: jQuery `mousewheel` event with native `wheel` event
 - **Enhanced**: Better cross-browser compatibility with `deltaMode` handling
