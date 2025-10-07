@@ -410,10 +410,11 @@ class SelectionWidget {
         if(!args.fillColor) console.error('_createHandle: args.fillColor is required');
         if(!args.strokeColor) console.error('_createHandle: args.strokeColor is required');
 
+        const zoom = (paper && paper.view && Number.isFinite(paper.view.zoom)) ? paper.view.zoom : 1;
         var circle = new paper.Path.Circle({
             center: args.center,
-            radius: SelectionWidget.HANDLE_RADIUS / paper.view.zoom,
-            strokeWidth: SelectionWidget.HANDLE_STROKE_WIDTH / paper.view.zoom,
+            radius: SelectionWidget.HANDLE_RADIUS / zoom,
+            strokeWidth: SelectionWidget.HANDLE_STROKE_WIDTH / zoom,
             strokeColor: args.strokeColor,
             fillColor: args.fillColor,
             insert: false,
@@ -436,7 +437,8 @@ class SelectionWidget {
         //    +------+
         //       |
 
-        var r = SelectionWidget.ROTATION_HOTSPOT_RADIUS / paper.view.zoom;
+    const zoom2 = (paper && paper.view && Number.isFinite(paper.view.zoom)) ? paper.view.zoom : 1;
+    var r = SelectionWidget.ROTATION_HOTSPOT_RADIUS / zoom2;
         var hotspot = new paper.Path([
             new paper.Point(0,0),
             new paper.Point(0, r),

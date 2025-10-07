@@ -34,6 +34,7 @@ gulp.task("default", function () {
       "lib/howler.js",
       "lib/hull.js",
       "lib/invert.min.js",
+  "lib/invert-shim.js",
       "lib/is-var-name.js",
       "lib/jquery-3.3.1.min.js",
       "lib/jquery.pressure.js",

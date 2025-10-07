@@ -135,6 +135,10 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
 
             // Scroll events
             $(this._canvas).on('mousewheel', this._onMouseWheel.bind(this));
+            // Initialize wheel throttling
+            this._wheelPendingDX = 0;
+            this._wheelPendingDY = 0;
+            this._wheelRAF = null;
 
             // Touch events
             this.createCanvasEvent('touchstart', e => {
@@ -478,13 +482,38 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
      * @param {*} e 
      */
     _onMouseWheel (e) {
+        if (this.model.isPublished) return;
+
+        // Only handle scroll events if the mouse is actually over the timeline canvas
+        // Check if the event target is the timeline canvas element
+        if (e.target !== this._canvas) {
+            // Event is not on the timeline canvas, don't handle it
+            // This allows the view canvas to handle zoom events
+            return;
+        }
+
+        // Only preventDefault and handle scrolling when over the timeline
         e.preventDefault();
-        if (!this.model.isPublished) {
-            var dx = e.deltaX * e.deltaFactor * 0.5;
-            var dy = e.deltaY * e.deltaFactor * 0.5;
-            this.scrollX += dx;
-            this.scrollY -= dy;
-            this.draw();
+
+        const df = (Number.isFinite(e.deltaFactor) && e.deltaFactor !== 0) ? e.deltaFactor : 1;
+        const dx = (Number.isFinite(e.deltaX) ? e.deltaX : 0) * df * 0.5;
+        const dy = (Number.isFinite(e.deltaY) ? e.deltaY : 0) * df * 0.5;
+
+        this._wheelPendingDX += dx;
+        this._wheelPendingDY += dy;
+
+        if (!this._wheelRAF) {
+            this._wheelRAF = window.requestAnimationFrame(() => {
+                try {
+                    this.scrollX += this._wheelPendingDX;
+                    this.scrollY -= this._wheelPendingDY;
+                    this.draw();
+                } finally {
+                    this._wheelPendingDX = 0;
+                    this._wheelPendingDY = 0;
+                    this._wheelRAF = null;
+                }
+            });
         }
     }
 

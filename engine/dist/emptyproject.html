@@ -63,7 +63,7 @@ if (typeof __dirname === "undefined") { var __dirname = ""; }
 if (typeof __filename === "undefined") { var __filename = ""; }
 
 /*Wick Engine https://github.com/Wicklets/wick-engine*/
-var WICK_ENGINE_BUILD_VERSION = "2025.10.4.23.31.58";
+var WICK_ENGINE_BUILD_VERSION = "2025.10.7.12.59.26";
 
 /*!
  * Paper.js v0.12.4 - The Swiss Army Knife of Vector Graphics Scripting.
@@ -29650,6 +29650,52 @@ module.exports = intersect;
 /*! @license MIT. https://github.com/onury/invert-color */
 !function(e,t){"object"==typeof exports&&"object"==typeof module?module.exports=t():"function"==typeof define&&define.amd?define("invert",[],t):"object"==typeof exports?exports.invert=t():e.invert=t()}(this,function(){return function(e){var t={};function r(n){if(t[n])return t[n].exports;var o=t[n]={i:n,l:!1,exports:{}};return e[n].call(o.exports,o,o.exports,r),o.l=!0,o.exports}return r.m=e,r.c=t,r.d=function(e,t,n){r.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:n})},r.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},r.t=function(e,t){if(1&t&&(e=r(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var n=Object.create(null);if(r.r(n),Object.defineProperty(n,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)r.d(n,o,function(t){return e[t]}.bind(null,o));return n},r.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return r.d(t,"a",t),t},r.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},r.p="lib/",r(r.s=0)}([function(e,t,r){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var n=Math.sqrt(1.05*.05)-.05,o=/^(?:[0-9a-f]{3}){1,2}$/i,i={black:"#000000",white:"#ffffff"};function u(e){if("#"===e.slice(0,1)&&(e=e.slice(1)),!o.test(e))throw new Error('Invalid HEX color: "'+e+'"');return 3===e.length&&(e=e[0]+e[0]+e[1]+e[1]+e[2]+e[2]),[parseInt(e.slice(0,2),16),parseInt(e.slice(2,4),16),parseInt(e.slice(4,6),16)]}function f(e){if(!e)throw new Error("Invalid color value");return Array.isArray(e)?e:"string"==typeof e?u(e):[e.r,e.g,e.b]}function c(e,t,r){var o=!0===t?i:Object.assign({},i,t);return function(e){var t,r,n=[];for(t=0;t<e.length;t++)r=e[t]/255,n[t]=r<=.03928?r/12.92:Math.pow((r+.055)/1.055,2.4);return.2126*n[0]+.7152*n[1]+.0722*n[2]}(e)>n?r?u(o.black):o.black:r?u(o.white):o.white}function a(e,t){return void 0===t&&(t=!1),e=f(e),t?c(e,t):"#"+e.map(function(e){return t=(255-e).toString(16),void 0===r&&(r=2),(new Array(r).join("0")+t).slice(-r);var t,r}).join("")}t.invert=a,function(e){function t(e,t){void 0===t&&(t=!1),e=f(e);var r,n=t?c(e,t,!0):e.map(function(e){return 255-e});return{r:(r=n)[0],g:r[1],b:r[2]}}e.asRGB=t,e.asRgbArray=function(e,t){return void 0===t&&(t=!1),e=f(e),t?c(e,t,!0):e.map(function(e){return 255-e})},e.asRgbObject=t}(a||(a={})),t.invert=a,t.default=a}]).default});
 
+// Ensure a global invert function exists, even if module resolution changes.
+// Prefer the bundled UMD from invert.min.js, but fall back to a simple light/dark heuristic.
+(function(){
+  try {
+    if (typeof window !== 'undefined') {
+      // Try to capture the UMD module export set by invert.min.js, which may have assigned to module.exports
+      var inv = null;
+      if (typeof module !== 'undefined' && module && typeof module.exports === 'function') {
+        inv = module.exports;
+      } else if (typeof invert === 'function') {
+        inv = invert;
+      }
+      if (inv && typeof window.invert !== 'function') {
+        window.invert = inv;
+      }
+      if (typeof window.invert !== 'function') {
+        // Lightweight fallback: choose black/white contrast for stroke
+        window.invert = function(color) {
+          try {
+            // Expect hex like #rrggbb or rgb/rgba strings.
+            var r=0,g=0,b=0;
+            if (typeof color === 'string') {
+              var m = color.match(/^#?([0-9a-f]{6})$/i);
+              if (m) {
+                var v = m[1];
+                r = parseInt(v.substring(0,2),16);
+                g = parseInt(v.substring(2,4),16);
+                b = parseInt(v.substring(4,6),16);
+              } else {
+                var m2 = color.match(/rgba?\((\d+),(\d+),(\d+)/i);
+                if (m2) { r = +m2[1]; g = +m2[2]; b = +m2[3]; }
+              }
+            } else if (color && typeof color === 'object') {
+              r = color.r|0; g = color.g|0; b = color.b|0;
+            }
+            var luminance = (0.2126*(r/255)) + (0.7152*(g/255)) + (0.0722*(b/255));
+            return luminance > 0.5 ? '#000000' : '#ffffff';
+          } catch (e) {
+            return '#000000';
+          }
+        };
+      }
+    }
+  } catch (e) {}
+})();
+
 'use strict';
 
 /**
@@ -57569,7 +57615,10 @@ Wick.Tool = class {
   }) {
     if (!e) e = {};
     if (!e.layers) {
-      e.layers = [this.paper.project.activeLayer];
+      // Guard against cases where paper or project is not initialized yet
+      const ps = this.paper;
+      const activeLayer = ps && ps.project && ps.project.activeLayer ? ps.project.activeLayer : null;
+      e.layers = activeLayer ? [activeLayer] : [];
     }
     var fn = this._eventCallbacks[eventName];
     fn && fn(e, actionName);
@@ -57589,9 +57638,12 @@ Wick.Tool = class {
     var context = canvas.getContext('2d');
     var centerX = canvas.width / 2;
     var centerY = canvas.height / 2;
+
+    // Prefer globally exposed invert function, but fall back to a safe default
+    const inv = typeof invert === 'function' ? invert : typeof window !== 'undefined' && typeof window.invert === 'function' ? window.invert : null;
     context.beginPath();
     context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-    context.strokeStyle = transparent ? 'black' : invert(color);
+    context.strokeStyle = transparent ? 'black' : inv ? inv(color) : 'black';
     context.stroke();
     if (transparent) {
       context.beginPath();
@@ -60607,10 +60659,11 @@ class SelectionWidget {
     if (!args.center) console.error('_createHandle: args.center is required');
     if (!args.fillColor) console.error('_createHandle: args.fillColor is required');
     if (!args.strokeColor) console.error('_createHandle: args.strokeColor is required');
+    const zoom = paper && paper.view && Number.isFinite(paper.view.zoom) ? paper.view.zoom : 1;
     var circle = new paper.Path.Circle({
       center: args.center,
-      radius: SelectionWidget.HANDLE_RADIUS / paper.view.zoom,
-      strokeWidth: SelectionWidget.HANDLE_STROKE_WIDTH / paper.view.zoom,
+      radius: SelectionWidget.HANDLE_RADIUS / zoom,
+      strokeWidth: SelectionWidget.HANDLE_STROKE_WIDTH / zoom,
       strokeColor: args.strokeColor,
       fillColor: args.fillColor,
       insert: false
@@ -60632,7 +60685,8 @@ class SelectionWidget {
     //    +------+
     //       |
 
-    var r = SelectionWidget.ROTATION_HOTSPOT_RADIUS / paper.view.zoom;
+    const zoom2 = paper && paper.view && Number.isFinite(paper.view.zoom) ? paper.view.zoom : 1;
+    var r = SelectionWidget.ROTATION_HOTSPOT_RADIUS / zoom2;
     var hotspot = new paper.Path([new paper.Point(0, 0), new paper.Point(0, r), new paper.Point(r, r), new paper.Point(r, -r), new paper.Point(-r, -r), new paper.Point(-r, 0)]);
     hotspot.fillColor = SelectionWidget.ROTATION_HOTSPOT_FILLCOLOR;
     hotspot.position.x = this.boundingBox[cornerName].x;
@@ -61251,6 +61305,10 @@ Wick.View.Project = class extends Wick.View {
       y: 0
     };
     this._zoom = 1;
+
+    // Throttle scroll-to-zoom to animation frames to avoid event storms
+    this._pendingZoomDelta = 0;
+    this._zoomRAF = null;
   }
 
   /*
@@ -61409,10 +61467,30 @@ Wick.View.Project = class extends Wick.View {
    * @param {*} event - jquery mousewheel event.
    */
   scrollToZoom(event) {
-    if (!this.model.isPublished) {
-      var d = event.deltaY * event.deltaFactor * 0.001;
-      this.paper.view.zoom = Math.max(0.1, this.paper.view.zoom + d);
-      this._applyZoomAndPanChangesFromPaper();
+    if (this.model.isPublished) return;
+
+    // Some browsers/plugins may not provide deltaFactor; default to 1
+    let df = 1;
+    if (event && Number.isFinite(event.deltaFactor) && event.deltaFactor !== 0) {
+      df = event.deltaFactor;
+    }
+    const dy = event && Number.isFinite(event.deltaY) ? event.deltaY : 0;
+    const d = dy * df * 0.001;
+
+    // Accumulate deltas and apply at next animation frame
+    this._pendingZoomDelta += d;
+    if (!this._zoomRAF) {
+      this._zoomRAF = window.requestAnimationFrame(() => {
+        try {
+          const next = (Number.isFinite(this.paper.view.zoom) ? this.paper.view.zoom : 1) + this._pendingZoomDelta;
+          // Clamp to safe bounds
+          this.paper.view.zoom = Math.max(Wick.View.Project.ZOOM_MIN, Math.min(Wick.View.Project.ZOOM_MAX, next));
+          this._applyZoomAndPanChangesFromPaper();
+        } finally {
+          this._pendingZoomDelta = 0;
+          this._zoomRAF = null;
+        }
+      });
     }
   }
   _setupTools() {
@@ -61660,11 +61738,17 @@ Wick.View.Project = class extends Wick.View {
     return clipBorders;
   }
   _applyZoomAndPanChangesFromPaper() {
+    // sanitize zoom first
+    if (!Number.isFinite(this.paper.view.zoom) || this.paper.view.zoom <= 0) {
+      this.paper.view.zoom = 1;
+    }
     // limit zoom to min and max
     this.paper.view.zoom = Math.min(Wick.View.Project.ZOOM_MAX, this.paper.view.zoom);
     this.paper.view.zoom = Math.max(Wick.View.Project.ZOOM_MIN, this.paper.view.zoom);
 
     // limit pan
+    if (!Number.isFinite(this.pan.x)) this.pan.x = 0;
+    if (!Number.isFinite(this.pan.y)) this.pan.y = 0;
     this.pan.x = Math.min(Wick.View.Project.PAN_LIMIT, this.pan.x);
     this.pan.x = Math.max(-Wick.View.Project.PAN_LIMIT, this.pan.x);
     this.pan.y = Math.min(Wick.View.Project.PAN_LIMIT, this.pan.y);
@@ -64887,6 +64971,10 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
 
       // Scroll events
       $(this._canvas).on('mousewheel', this._onMouseWheel.bind(this));
+      // Initialize wheel throttling
+      this._wheelPendingDX = 0;
+      this._wheelPendingDY = 0;
+      this._wheelRAF = null;
 
       // Touch events
       this.createCanvasEvent('touchstart', e => {
@@ -65214,13 +65302,35 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
    * @param {*} e 
    */
   _onMouseWheel(e) {
+    if (this.model.isPublished) return;
+
+    // Only handle scroll events if the mouse is actually over the timeline canvas
+    // Check if the event target is the timeline canvas element
+    if (e.target !== this._canvas) {
+      // Event is not on the timeline canvas, don't handle it
+      // This allows the view canvas to handle zoom events
+      return;
+    }
+
+    // Only preventDefault and handle scrolling when over the timeline
     e.preventDefault();
-    if (!this.model.isPublished) {
-      var dx = e.deltaX * e.deltaFactor * 0.5;
-      var dy = e.deltaY * e.deltaFactor * 0.5;
-      this.scrollX += dx;
-      this.scrollY -= dy;
-      this.draw();
+    const df = Number.isFinite(e.deltaFactor) && e.deltaFactor !== 0 ? e.deltaFactor : 1;
+    const dx = (Number.isFinite(e.deltaX) ? e.deltaX : 0) * df * 0.5;
+    const dy = (Number.isFinite(e.deltaY) ? e.deltaY : 0) * df * 0.5;
+    this._wheelPendingDX += dx;
+    this._wheelPendingDY += dy;
+    if (!this._wheelRAF) {
+      this._wheelRAF = window.requestAnimationFrame(() => {
+        try {
+          this.scrollX += this._wheelPendingDX;
+          this.scrollY -= this._wheelPendingDY;
+          this.draw();
+        } finally {
+          this._wheelPendingDX = 0;
+          this._wheelPendingDY = 0;
+          this._wheelRAF = null;
+        }
+      });
     }
   }
   _getTopMouseTarget() {

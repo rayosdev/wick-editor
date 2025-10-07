@@ -73,6 +73,10 @@ Wick.View.Project = class extends Wick.View {
 
         this._pan = { x: 0, y: 0 };
         this._zoom = 1;
+
+        // Throttle scroll-to-zoom to animation frames to avoid event storms
+        this._pendingZoomDelta = 0;
+        this._zoomRAF = null;
     }
 
     /*
@@ -244,10 +248,30 @@ Wick.View.Project = class extends Wick.View {
      * @param {*} event - jquery mousewheel event.
      */
     scrollToZoom (event) {
-        if (!this.model.isPublished) {
-            var d = event.deltaY * event.deltaFactor * 0.001;
-            this.paper.view.zoom = Math.max(0.1, this.paper.view.zoom + d);
-            this._applyZoomAndPanChangesFromPaper();
+        if (this.model.isPublished) return;
+
+        // Some browsers/plugins may not provide deltaFactor; default to 1
+        let df = 1;
+        if (event && Number.isFinite(event.deltaFactor) && event.deltaFactor !== 0) {
+            df = event.deltaFactor;
+        }
+        const dy = event && Number.isFinite(event.deltaY) ? event.deltaY : 0;
+        const d = dy * df * 0.001;
+
+        // Accumulate deltas and apply at next animation frame
+        this._pendingZoomDelta += d;
+        if (!this._zoomRAF) {
+            this._zoomRAF = window.requestAnimationFrame(() => {
+                try {
+                    const next = (Number.isFinite(this.paper.view.zoom) ? this.paper.view.zoom : 1) + this._pendingZoomDelta;
+                    // Clamp to safe bounds
+                    this.paper.view.zoom = Math.max(Wick.View.Project.ZOOM_MIN, Math.min(Wick.View.Project.ZOOM_MAX, next));
+                    this._applyZoomAndPanChangesFromPaper();
+                } finally {
+                    this._pendingZoomDelta = 0;
+                    this._zoomRAF = null;
+                }
+            });
         }
     }
 
@@ -536,15 +560,21 @@ Wick.View.Project = class extends Wick.View {
     }
 
     _applyZoomAndPanChangesFromPaper() {
+        // sanitize zoom first
+        if (!Number.isFinite(this.paper.view.zoom) || this.paper.view.zoom <= 0) {
+            this.paper.view.zoom = 1;
+        }
         // limit zoom to min and max
         this.paper.view.zoom = Math.min(Wick.View.Project.ZOOM_MAX, this.paper.view.zoom);
         this.paper.view.zoom = Math.max(Wick.View.Project.ZOOM_MIN, this.paper.view.zoom);
 
         // limit pan
-        this.pan.x = Math.min(Wick.View.Project.PAN_LIMIT, this.pan.x);
-        this.pan.x = Math.max(-Wick.View.Project.PAN_LIMIT, this.pan.x);
-        this.pan.y = Math.min(Wick.View.Project.PAN_LIMIT, this.pan.y);
-        this.pan.y = Math.max(-Wick.View.Project.PAN_LIMIT, this.pan.y);
+    if (!Number.isFinite(this.pan.x)) this.pan.x = 0;
+    if (!Number.isFinite(this.pan.y)) this.pan.y = 0;
+    this.pan.x = Math.min(Wick.View.Project.PAN_LIMIT, this.pan.x);
+    this.pan.x = Math.max(-Wick.View.Project.PAN_LIMIT, this.pan.x);
+    this.pan.y = Math.min(Wick.View.Project.PAN_LIMIT, this.pan.y);
+    this.pan.y = Math.max(-Wick.View.Project.PAN_LIMIT, this.pan.y);
 
         this.model.pan = {
             x: this.pan.x,

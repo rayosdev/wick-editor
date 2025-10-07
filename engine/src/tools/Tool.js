@@ -201,7 +201,10 @@ Wick.Tool = class {
     fireEvent ({eventName, e, actionName}) {
         if(!e) e = {};
         if(!e.layers) {
-            e.layers = [this.paper.project.activeLayer];
+            // Guard against cases where paper or project is not initialized yet
+            const ps = this.paper;
+            const activeLayer = ps && ps.project && ps.project.activeLayer ? ps.project.activeLayer : null;
+            e.layers = activeLayer ? [activeLayer] : [];
         }
         var fn = this._eventCallbacks[eventName];
         fn && fn(e, actionName);
@@ -224,9 +227,16 @@ Wick.Tool = class {
         var centerX = canvas.width / 2;
         var centerY = canvas.height / 2;
 
+        // Prefer globally exposed invert function, but fall back to a safe default
+        const inv = (typeof invert === 'function')
+            ? invert
+            : (typeof window !== 'undefined' && typeof window.invert === 'function')
+                ? window.invert
+                : null;
+
         context.beginPath();
         context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-        context.strokeStyle = transparent ? 'black' : invert(color);
+        context.strokeStyle = transparent ? 'black' : (inv ? inv(color) : 'black');
         context.stroke();
 
         if(transparent) {
