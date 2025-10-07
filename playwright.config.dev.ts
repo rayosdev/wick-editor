@@ -1,14 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * Main Playwright config - delegates to dev or CI config
+ * Playwright config for local development
+ * Assumes dev server is already running on port 3002
  * 
- * Development: Uses playwright.config.dev.ts (requires manual server)
- * CI/CD: Use playwright.config.ci.ts (auto-starts server)
- * 
- * For most cases, use the specific configs directly:
- *   npm run test:e2e       (dev config)
- *   npm run test:e2e:ci    (ci config)
+ * Usage:
+ *   Terminal 1: npm start
+ *   Terminal 2: npm run test:e2e
  */
 export default defineConfig({
   testDir: "./tests",
@@ -18,15 +16,13 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: "list",
   
-  // No webServer - requires manual start for fast development
-  // Start with: npm start
-  
   use: {
     baseURL: process.env.PW_BASE_URL || "http://localhost:3002",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },
+  
   projects: [
     {
       name: "chromium",
