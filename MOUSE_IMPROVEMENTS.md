@@ -62,7 +62,27 @@ Modernized mouse and trackpad interactions by replacing legacy jQuery mousewheel
   - More natural zooming on modern devices
   - Zooms toward your fingers, not the center
 
-### 6. **Native Wheel Events (Timeline)** ✓
+### 6. **Mobile Touch Support** ✓ NEW!
+**File**: `engine/src/view/View.Project.js` → `_setupTools()`
+- **Added**: Standard touch event listeners for cross-platform mobile support
+- **Events**: `touchstart`, `touchmove`, `touchend`
+- **Gesture Mapping**:
+  - **ONE FINGER**: Tool interaction (selecting, drawing, etc.) - passed through to Paper.js tools
+  - **TWO FINGERS**: Pan the canvas in any direction
+  - **TWO FINGERS + PINCH**: Zoom while panning (distance threshold: 5px)
+- **Features**:
+  - **Smart gesture detection**: Distinguishes between pure pan vs pan+zoom
+  - **Zoom-to-point**: Pinch zooms toward the center of your fingers
+  - **1.5x responsive scaling**: Enhanced responsiveness for zoom
+  - **Simultaneous pan & zoom**: Can pan and zoom at the same time naturally
+- **Benefits**:
+  - Works on Android, iOS (all browsers), tablets
+  - Natural mobile interactions matching design tool conventions
+  - One finger free for drawing/selecting (like Procreate, Figma mobile)
+  - Smooth performance with proper touch tracking
+  - No jQuery or library dependencies
+
+### 7. **Native Wheel Events (Timeline)** ✓
 **File**: `engine/src/gui/Project.js`
 - **Replaced**: jQuery `mousewheel` event with native `wheel` event
 - **Enhanced**: Better cross-browser compatibility with `deltaMode` handling

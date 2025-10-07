@@ -396,6 +396,121 @@ Wick.View.Project = class extends Wick.View {
             this._applyZoomAndPanChangesFromPaper();
         }, { passive: false });
 
+        // Add standard touch events for mobile support (Android, iOS, etc.)
+        // These work on all touch devices, not just Safari
+        // ONE FINGER = tool interaction (select, draw, etc.)
+        // TWO FINGERS = pan and zoom
+        this._touchStartDistance = null;
+        this._touchStartZoom = null;
+        this._touchStartCenter = null;
+        this._touchStartPoint = null;
+        this._lastTwoFingerCenter = null;
+        this._isPanning = false;
+
+        this._svgCanvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                // Two-finger touch detected - prepare for pan/zoom
+                e.preventDefault();
+                
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                
+                // Calculate initial distance between touches
+                const dx = touch2.clientX - touch1.clientX;
+                const dy = touch2.clientY - touch1.clientY;
+                this._touchStartDistance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Store zoom and center for transformation
+                this._touchStartZoom = this.paper.view.zoom;
+                this._touchStartCenter = this.paper.view.center.clone();
+                
+                // Calculate center point between fingers
+                const rect = this._svgCanvas.getBoundingClientRect();
+                const centerX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
+                const centerY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
+                const point = new this.paper.Point(centerX, centerY);
+                this._touchStartPoint = this.paper.view.viewToProject(point);
+                this._lastTwoFingerCenter = { x: centerX, y: centerY };
+                
+                this._isPanning = true;
+            }
+            // ONE FINGER: Let Paper.js tools handle it (no preventDefault, no tracking)
+        }, { passive: false });
+
+        this._svgCanvas.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2 && this._touchStartDistance && this._isPanning) {
+                // Two-finger pan and pinch zoom
+                e.preventDefault();
+                
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                const rect = this._svgCanvas.getBoundingClientRect();
+                
+                // Calculate current center point
+                const currentCenterX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
+                const currentCenterY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
+                
+                // Calculate current distance between touches
+                const dx = touch2.clientX - touch1.clientX;
+                const dy = touch2.clientY - touch1.clientY;
+                const currentDistance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Determine if this is primarily a pan or a zoom gesture
+                const distanceChange = Math.abs(currentDistance - this._touchStartDistance);
+                const panDeltaX = currentCenterX - this._lastTwoFingerCenter.x;
+                const panDeltaY = currentCenterY - this._lastTwoFingerCenter.y;
+                const panDistance = Math.sqrt(panDeltaX * panDeltaX + panDeltaY * panDeltaY);
+                
+                // Apply pan (always pan when two fingers move)
+                if (panDistance > 1) {
+                    const panOffset = new this.paper.Point(
+                        -panDeltaX / this.paper.view.zoom,
+                        -panDeltaY / this.paper.view.zoom
+                    );
+                    this.paper.view.center = this.paper.view.center.add(panOffset);
+                    this._lastTwoFingerCenter = { x: currentCenterX, y: currentCenterY };
+                }
+                
+                // Apply zoom only if distance changed significantly (pinch gesture)
+                if (distanceChange > 5) {
+                    const scaleFactor = 1.5;
+                    const scale = currentDistance / this._touchStartDistance;
+                    const adjustedScale = 1 + (scale - 1) * scaleFactor;
+                    const newZoom = this._touchStartZoom * adjustedScale;
+                    const clampedZoom = Math.max(
+                        Wick.View.Project.ZOOM_MIN, 
+                        Math.min(Wick.View.Project.ZOOM_MAX, newZoom)
+                    );
+                    
+                    // Apply zoom-to-point (zoom toward center of pinch)
+                    if (this._touchStartPoint && Math.abs(clampedZoom - this._touchStartZoom) > 0.001) {
+                        const beta = this._touchStartZoom / clampedZoom;
+                        const mousePosition = this._touchStartPoint.subtract(this._touchStartCenter);
+                        const offset = mousePosition.multiply(beta).subtract(mousePosition);
+                        
+                        this.paper.view.zoom = clampedZoom;
+                        this.paper.view.center = this._touchStartCenter.add(offset);
+                    }
+                }
+            }
+            // ONE FINGER: Let Paper.js tools handle it naturally
+        }, { passive: false });
+
+        this._svgCanvas.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) {
+                // Reset two-finger tracking when fingers lift
+                if (this._isPanning) {
+                    this._applyZoomAndPanChangesFromPaper();
+                }
+                this._touchStartDistance = null;
+                this._touchStartZoom = null;
+                this._touchStartCenter = null;
+                this._touchStartPoint = null;
+                this._lastTwoFingerCenter = null;
+                this._isPanning = false;
+            }
+        }, { passive: false });
+
         // Connect all Wick Tools into the paper.js project
         for (var toolName in this.model.tools) {
             var tool = this.model.tools[toolName];
