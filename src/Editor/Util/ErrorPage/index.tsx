@@ -17,10 +17,13 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React from "react";
 import "./_index.scss";
 
-function ErrorPage() {
+/**
+ * Error page component displayed when the application encounters an error
+ * Informs the user that their project has been auto-saved
+ */
+function ErrorPage(): JSX.Element {
   return (
     <main className="error-page">
       <h1> Oops! Something Broke!</h1>
