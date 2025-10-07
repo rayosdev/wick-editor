@@ -1,26 +1,34 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, InputHTMLAttributes } from "react";
 
 import classNames from "classnames";
 
+interface WickTextInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
+  value: string | number;
+  onChange?: (val: string) => void;
+  isValid?: (val: string) => boolean;
+  isValidRegex?: RegExp;
+  cleanUp?: (val: string) => string;
+}
+
 /**
- * A delayed text input object that will not the provided on change unless the value is valid, and
+ * A delayed text input object that will not fire the provided onChange unless the value is valid, and
  * passes a provided isValid function.
  *
- * @param {Object} props
- * * @param {function} isValid - returns true if the value provided is acceptable, false otherwise. If no isValid function is provided,
- * * @param {RegExp} isValidRegex - a regular expression to check against for validity.
- * * @param {function} cleanUp - Valid values will be passed to this function prior to being displayed, and sent to the onChange function.
+ * @param props - Component props
+ * @param props.isValid - Returns true if the value provided is acceptable, false otherwise
+ * @param props.isValidRegex - A regular expression to check against for validity
+ * @param props.cleanUp - Valid values will be passed to this function prior to being displayed, and sent to the onChange function
+ * @returns JSX.Element
  */
-
-export default function WickTextInput(props) {
-  const [displayValue, setDisplayValue] = useState(props.value);
-  const [valueIsValid, setValueIsValid] = useState(true);
+export default function WickTextInput(props: WickTextInputProps): JSX.Element {
+  const [displayValue, setDisplayValue] = useState<string | number>(props.value);
+  const [valueIsValid, setValueIsValid] = useState<boolean>(true);
 
   let { isValid, cleanUp, isValidRegex, ...rest } = props;
 
   // Update the display value if it's updated elsewhere.
   useEffect(() => {
-    let val = props.value;
+    let val = props.value.toString();
     if (fullIsValid(val)) {
       val = internalCleanup(val);
     }
@@ -28,11 +36,11 @@ export default function WickTextInput(props) {
     setDisplayValue(val);
   }, [props.value]);
 
-  function wrappedOnChange(val) {
+  function wrappedOnChange(val: string): void {
     props.onChange && props.onChange(val);
   }
 
-  function internalCleanup(val) {
+  function internalCleanup(val: string): string {
     if (cleanUp) {
       return cleanUp(val);
     }
@@ -43,7 +51,7 @@ export default function WickTextInput(props) {
    * Returns true if all conditions for validity of this input are met.
    * If no validity methods have been passed to this object, returns true;
    */
-  function fullIsValid(val) {
+  function fullIsValid(val: string): boolean {
     // Default to true;
     let valid = true;
 
@@ -52,7 +60,7 @@ export default function WickTextInput(props) {
     }
 
     if (isValidRegex) {
-      valid = valid && val.matches(isValidRegex);
+      valid = valid && isValidRegex.test(val);
     }
 
     return valid;
@@ -61,9 +69,8 @@ export default function WickTextInput(props) {
   /**
    * Updates the displayed and internal value of the input. Will fire on change if all
    * requirements for validity are satisfied, otherwise, does not.
-   * @param {*} e
    */
-  function internalOnChange(e) {
+  function internalOnChange(e: React.ChangeEvent<HTMLInputElement>): void {
     const val = e.target.value;
 
     let cleanVal = internalCleanup(val);

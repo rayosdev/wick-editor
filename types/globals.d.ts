@@ -30,3 +30,8 @@ declare module '*.svg' {
 
 declare module 'tinycolor2';
 declare module 'react-color/lib/components/common';
+
+// Wick Engine global
+interface Window {
+  Wick: any;
+}

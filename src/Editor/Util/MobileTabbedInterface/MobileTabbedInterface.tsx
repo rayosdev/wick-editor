@@ -17,38 +17,51 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from "react";
+import { Component, ReactNode } from "react";
 
 import "./_mobiletabbedinterface.scss";
 
 import classNames from "classnames";
 
-class MobileTabbedInterface extends Component {
-  /**
-   * @param {} props Expects several props.
-   * - tabs {Object[]} Contains all tab information for the interface
-   *
-   * tab {Object}
-   * - name {String} String name of the tab. Will be displayed in the tab interface.
-   * - body {JSX Object} Object to render
-   * - icon
-   * - iconActive
-   * - iconAlt
-   */
+interface MobileTab {
+  label: string;
+  icon: string;
+  iconActive: string;
+  alt: string;
+}
 
-  // example prop:
-  // <TabbedInterface tabs={[{label: "inspector", icon: inspectorIcon, iconActive: inspectorIconActive, iconAlt: "inspector icon"},
-  //                         {label: "timeline", icon: timelineIcon, iconActive: timelineIconActive, iconAlt: "timeline icon"}]} >
-  constructor(props) {
+interface MobileTabbedInterfaceProps {
+  tabs: MobileTab[];
+  children: ReactNode[];
+  className?: string;
+  tabClassName?: string;
+  bodyClassName?: string;
+  onTabSelect?: (label: string) => void;
+}
+
+interface MobileTabbedInterfaceState {
+  selectedTab: string;
+}
+
+/**
+ * MobileTabbedInterface - A mobile-optimized tabbed interface with icons.
+ * @param props - Component props
+ * @param props.tabs - Array of tab objects with label, icon, iconActive, and alt
+ * @param props.children - Array of React nodes to render for each tab body
+ * @param props.onTabSelect - Optional callback when a tab is selected
+ * @returns JSX.Element
+ */
+class MobileTabbedInterface extends Component<MobileTabbedInterfaceProps, MobileTabbedInterfaceState> {
+  constructor(props: MobileTabbedInterfaceProps) {
     super(props);
 
     this.state = {
-      selectedTab: this.props.tabs[0].label,
+      selectedTab: this.props.tabs[0]?.label || '',
     };
   }
 
-  // Selects the tab of the given name.
-  selectTab = (label) => {
+  // Selects the tab of the given label.
+  selectTab = (label: string): void => {
     this.setState({
       selectedTab: label,
     });
@@ -61,7 +74,7 @@ class MobileTabbedInterface extends Component {
   /**
    * Renders the selectable tab bar.
    */
-  renderTabs = () => {
+  renderTabs = (): JSX.Element => {
     return (
       <div
         role="tablist"
@@ -96,7 +109,7 @@ class MobileTabbedInterface extends Component {
     );
   };
 
-  render() {
+  render(): JSX.Element {
     return (
       <div
         className={classNames("mobile-tabbed-interface", this.props.className)}

@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 import WickInput from 'Editor/Util/WickInput/WickInput';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
@@ -26,18 +26,30 @@ import ClipLoader from "react-spinners/ClipLoader";
 
 import './_audioplayer.scss';
 
-export const AudioPlayer = ({src, loadSrc}) => {
-    const [currentT, setCurrentT] = useState(0);
-    const [paused, setPaused] = useState(true);
+interface AudioPlayerProps {
+  src?: string;
+  loadSrc: () => void;
+}
 
-    const [canPlay, setCanPlay] = useState(false);
+/**
+ * AudioPlayer - A component that plays audio files with playback controls.
+ * @param props - Component props
+ * @param props.src - Optional audio source URL
+ * @param props.loadSrc - Function to load the audio source
+ * @returns JSX.Element
+ */
+export const AudioPlayer = ({src, loadSrc}: AudioPlayerProps): JSX.Element => {
+    const [currentT, setCurrentT] = useState<number>(0);
+    const [paused, setPaused] = useState<boolean>(true);
 
-    const [loading, setLoading] = useState(!!src);
+    const [canPlay, setCanPlay] = useState<boolean>(false);
 
-    const audioRef = useRef(null);
+    const [loading, setLoading] = useState<boolean>(!!src);
 
-    function togglePlaying() {
-        if (canPlay) {
+    const audioRef = useRef<HTMLAudioElement>(null);
+
+    function togglePlaying(): void {
+        if (canPlay && audioRef.current) {
             if (paused) {
                 audioRef.current.currentTime = currentT * audioRef.current.duration;
                 audioRef.current.play();
@@ -59,26 +71,30 @@ export const AudioPlayer = ({src, loadSrc}) => {
     // Update currentTime while playing
     useEffect(
         () => {
-            let interval = null;
-            if (!paused && canPlay) {
+            let interval: NodeJS.Timeout | null = null;
+            if (!paused && canPlay && audioRef.current) {
                 interval = setInterval(() => {
-                    setCurrentT(audioRef.current.currentTime / audioRef.current.duration);
+                    if (audioRef.current) {
+                        setCurrentT(audioRef.current.currentTime / audioRef.current.duration);
+                    }
                 }, 100);
             }
-            return () => clearInterval(interval);
+            return () => {
+                if (interval) clearInterval(interval);
+            };
         }
     );
 
-    function seconds_to_string(t) {
+    function seconds_to_string(t: number): string {
         let d = Math.trunc((t % 1) * 10);
         let s = Math.trunc(t) % 60;
         let m = Math.floor(t / 60);
         return m + ":" + ('0' + s).slice(-2) + "." + d;
     }
 
-    function get_time_string() {
-        let t = seconds_to_string(canPlay ? audioRef.current.currentTime : 0);
-        let d = seconds_to_string(canPlay ? audioRef.current.duration : 0);
+    function get_time_string(): string {
+        let t = seconds_to_string(canPlay && audioRef.current ? audioRef.current.currentTime : 0);
+        let d = seconds_to_string(canPlay && audioRef.current ? audioRef.current.duration : 0);
         return t + " / " + d;
     }
 
@@ -91,7 +107,7 @@ export const AudioPlayer = ({src, loadSrc}) => {
                 onCanPlay={() => {
                     setCanPlay(true);
                     setLoading(false);
-                    if (!paused) {
+                    if (!paused && audioRef.current) {
                         audioRef.current.play();
                     }
                 }}
@@ -123,9 +139,9 @@ export const AudioPlayer = ({src, loadSrc}) => {
                     containerclassname="time-slider-container"
                     className="time-slider"
                     aria-label="audio control slider"
-                    onChange={(t) => {
+                    onChange={(t: number) => {
                         setCurrentT(t);
-                        if (canPlay) {
+                        if (canPlay && audioRef.current) {
                             audioRef.current.currentTime = t * audioRef.current.duration;
                         }
                     }}

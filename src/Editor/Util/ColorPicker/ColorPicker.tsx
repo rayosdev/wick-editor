@@ -17,20 +17,37 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Popover } from 'reactstrap';
 import WickColorPicker  from 'Editor/Util/ColorPicker/WickColorPicker';
 
 import './_colorpicker.scss';
 
-export default function ColorPicker (props) {
-  const [open, setOpen] = useState(false);
+interface ColorPickerProps {
+  id: string;
+  color?: any;
+  stroke?: boolean;
+  placement?: 'auto' | 'auto-start' | 'auto-end' | 'top' | 'top-start' | 'top-end' | 'right' | 'right-start' | 'right-end' | 'bottom' | 'bottom-start' | 'bottom-end' | 'left' | 'left-start' | 'left-end';
+  colorPickerType?: string;
+  changeColorPickerType?: (type: string) => void;
+  disableAlpha?: boolean;
+  onChangeComplete?: (color: any) => void;
+  lastColorsUsed?: any[];
+}
+
+/**
+ * ColorPicker - A button component that opens a Popover containing a color picker.
+ * @param props - Component props
+ * @returns JSX.Element
+ */
+export default function ColorPicker (props: ColorPickerProps): JSX.Element {
+  const [open, setOpen] = useState<boolean>(false);
 
   let color = props.color ? props.color : new window.Wick.Color("#FFFFFF")
   let itemID = props.id;
   let popoverID = itemID+'-popover';
 
-  function toggle () {
+  function toggle (): void {
     if (!open) {
       setTimeout(selectPopover, 200);
     }
@@ -38,7 +55,7 @@ export default function ColorPicker (props) {
     setOpen(!open)
   }
 
-  function selectPopover () {
+  function selectPopover (): void {
     let ele = document.getElementById(popoverID);
     if (ele) {
       ele.focus();
@@ -60,7 +77,7 @@ export default function ColorPicker (props) {
             isOpen={open}
             toggle={toggle}
             target={itemID}
-            boundariesElement={'viewport'}>
+            boundariesElement={'viewport' as any}>
             <WickColorPicker
               toggle={toggle}
               colorPickerType={props.colorPickerType}

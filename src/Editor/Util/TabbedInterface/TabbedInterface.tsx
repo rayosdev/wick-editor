@@ -17,31 +17,44 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from "react";
+import { Component, ReactNode } from "react";
 
 import "./_tabbedinterface.scss";
 
 import classNames from "classnames";
 
-class TabbedInterface extends Component {
-  /**
-   * @param {} props Expects several props.
-   * - tabs {Object[]} Contains all tab information for the interface
-   *
-   * tab {Object}
-   * - name {String} String name of the tab. Will be displayed in the tab interface.
-   * - body {JSX Object} Object to render
-   */
-  constructor(props) {
+interface TabbedInterfaceProps {
+  tabNames: string[];
+  children: ReactNode[];
+  className?: string;
+  tabClassName?: string;
+  bodyClassName?: string;
+  onTabSelect?: (name: string) => void;
+}
+
+interface TabbedInterfaceState {
+  selectedTab: string;
+}
+
+/**
+ * TabbedInterface - A component that renders a tabbed interface with selectable tabs.
+ * @param props - Component props
+ * @param props.tabNames - Array of tab names to display
+ * @param props.children - Array of React nodes to render for each tab body
+ * @param props.onTabSelect - Optional callback when a tab is selected
+ * @returns JSX.Element
+ */
+class TabbedInterface extends Component<TabbedInterfaceProps, TabbedInterfaceState> {
+  constructor(props: TabbedInterfaceProps) {
     super(props);
 
     this.state = {
-      selectedTab: this.props.tabNames[0],
+      selectedTab: this.props.tabNames[0] || '',
     };
   }
 
   // Selects the tab of the given name.
-  selectTab = (name) => {
+  selectTab = (name: string): void => {
     this.setState({
       selectedTab: name,
     });
@@ -54,7 +67,7 @@ class TabbedInterface extends Component {
   /**
    * Renders the selectable tab bar.
    */
-  renderTabs = () => {
+  renderTabs = (): JSX.Element => {
     return (
       <div role="tablist" className="tabbed-interface-main-tab-container">
         {this.props.tabNames.map((tab, i) => (
@@ -76,7 +89,7 @@ class TabbedInterface extends Component {
     );
   };
 
-  render() {
+  render(): JSX.Element {
     return (
       <div className={classNames("tabbed-interface", this.props.className)}>
         {this.renderTabs()}
