@@ -133,8 +133,8 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
                 }
             }, false);
 
-            // Scroll events
-            $(this._canvas).on('mousewheel', this._onMouseWheel.bind(this));
+            // Scroll events - using native wheel event
+            this._canvas.addEventListener('wheel', this._onMouseWheel.bind(this), { passive: false });
             // Initialize wheel throttling
             this._wheelPendingDX = 0;
             this._wheelPendingDY = 0;
@@ -478,8 +478,8 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
     }
 
     /**
-     * Refers to mousewheel events on the timeline.
-     * @param {*} e 
+     * Handles wheel events on the timeline with native wheel API
+     * @param {WheelEvent} e - Native wheel event
      */
     _onMouseWheel (e) {
         if (this.model.isPublished) return;
@@ -495,9 +495,16 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
         // Only preventDefault and handle scrolling when over the timeline
         e.preventDefault();
 
-        const df = (Number.isFinite(e.deltaFactor) && e.deltaFactor !== 0) ? e.deltaFactor : 1;
-        const dx = (Number.isFinite(e.deltaX) ? e.deltaX : 0) * df * 0.5;
-        const dy = (Number.isFinite(e.deltaY) ? e.deltaY : 0) * df * 0.5;
+        // Handle different deltaMode values for cross-browser compatibility
+        let multiplier = 1;
+        if (e.deltaMode === 1) { // DOM_DELTA_LINE
+            multiplier = 15;
+        } else if (e.deltaMode === 2) { // DOM_DELTA_PAGE
+            multiplier = 100;
+        }
+
+        const dx = (Number.isFinite(e.deltaX) ? e.deltaX : 0) * multiplier * 0.5;
+        const dy = (Number.isFinite(e.deltaY) ? e.deltaY : 0) * multiplier * 0.5;
 
         this._wheelPendingDX += dx;
         this._wheelPendingDY += dy;

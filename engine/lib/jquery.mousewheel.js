@@ -10,11 +10,11 @@
     if ( typeof define === 'function' && define.amd ) {
         // AMD. Register as an anonymous module.
         define(['jquery'], factory);
-    } else if (typeof exports === 'object') {
-        // Node/CommonJS style for Browserify
+    } else if (typeof exports === 'object' && typeof window === 'undefined') {
+        // Node/CommonJS style for Browserify (but not in browser)
         module.exports = factory;
     } else {
-        // Browser globals
+        // Browser globals (including bundled browser code)
         factory(jQuery);
     }
 }(function ($) {

@@ -243,44 +243,97 @@ Wick.View.Project = class extends Wick.View {
 
 
     /**
-     *  This is a hacky way to create scroll-to-zoom functionality
-     *  (Using https://github.com/jquery/jquery-mousewheel for cross-browser mousewheel event)
-     * @param {*} event - jquery mousewheel event.
+     * Modern scroll-to-zoom functionality using native wheel events
+     * Zooms toward cursor position for better UX
+     * @param {WheelEvent} event - Native wheel event
      */
     scrollToZoom (event) {
         if (this.model.isPublished) return;
 
-        // Some browsers/plugins may not provide deltaFactor; default to 1
-        let df = 1;
-        if (event && Number.isFinite(event.deltaFactor) && event.deltaFactor !== 0) {
-            df = event.deltaFactor;
-        }
-        const dy = event && Number.isFinite(event.deltaY) ? event.deltaY : 0;
-        const d = dy * df * 0.001;
+        // Get mouse position in view coordinates for zoom-to-point
+        const rect = this._svgCanvas.getBoundingClientRect();
+        const point = new this.paper.Point(
+            event.clientX - rect.left,
+            event.clientY - rect.top
+        );
+        const viewPoint = this.paper.view.viewToProject(point);
 
+        // Handle different deltaMode values for cross-browser compatibility
+        const deltaY = event.deltaY || 0;
+        let multiplier = 1;
+        if (event.deltaMode === 1) { // DOM_DELTA_LINE
+            multiplier = 15;
+        } else if (event.deltaMode === 2) { // DOM_DELTA_PAGE
+            multiplier = 100;
+        }
+        
+        const d = deltaY * multiplier * 0.001;
+
+        // Store zoom point for animation frame
+        this._zoomPoint = viewPoint;
+        
         // Accumulate deltas and apply at next animation frame
-        this._pendingZoomDelta += d;
+        this._pendingZoomDelta = (this._pendingZoomDelta || 0) + d;
         if (!this._zoomRAF) {
             this._zoomRAF = window.requestAnimationFrame(() => {
                 try {
-                    const next = (Number.isFinite(this.paper.view.zoom) ? this.paper.view.zoom : 1) + this._pendingZoomDelta;
-                    // Clamp to safe bounds
-                    this.paper.view.zoom = Math.max(Wick.View.Project.ZOOM_MIN, Math.min(Wick.View.Project.ZOOM_MAX, next));
+                    const oldZoom = Number.isFinite(this.paper.view.zoom) ? this.paper.view.zoom : 1;
+                    const newZoom = Math.max(
+                        Wick.View.Project.ZOOM_MIN, 
+                        Math.min(Wick.View.Project.ZOOM_MAX, oldZoom + this._pendingZoomDelta)
+                    );
+                    
+                    // Zoom toward cursor position (zoom-to-point)
+                    if (this._zoomPoint && Math.abs(newZoom - oldZoom) > 0.001) {
+                        const beta = oldZoom / newZoom;
+                        const mousePosition = this._zoomPoint.subtract(this.paper.view.center);
+                        const offset = mousePosition.multiply(beta).subtract(mousePosition);
+                        
+                        this.paper.view.zoom = newZoom;
+                        this.paper.view.center = this.paper.view.center.add(offset);
+                    } else {
+                        this.paper.view.zoom = newZoom;
+                    }
+                    
                     this._applyZoomAndPanChangesFromPaper();
                 } finally {
                     this._pendingZoomDelta = 0;
                     this._zoomRAF = null;
+                    this._zoomPoint = null;
                 }
             });
         }
     }
 
     _setupTools () {
-        // Attach scroll to zoom event.
-        $(this._svgCanvas).on('mousewheel', e => {
+        // Attach scroll to zoom event using native wheel event
+        this._svgCanvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             this.scrollToZoom(e);
-        });
+        }, { passive: false });
+
+        // Add pinch-to-zoom support for trackpads and touch devices
+        this._svgCanvas.addEventListener('gesturestart', (e) => {
+            e.preventDefault();
+            this._gestureStartZoom = this.paper.view.zoom;
+        }, { passive: false });
+
+        this._svgCanvas.addEventListener('gesturechange', (e) => {
+            e.preventDefault();
+            if (this._gestureStartZoom) {
+                const newZoom = this._gestureStartZoom * e.scale;
+                this.paper.view.zoom = Math.max(
+                    Wick.View.Project.ZOOM_MIN, 
+                    Math.min(Wick.View.Project.ZOOM_MAX, newZoom)
+                );
+            }
+        }, { passive: false });
+
+        this._svgCanvas.addEventListener('gestureend', (e) => {
+            e.preventDefault();
+            this._gestureStartZoom = null;
+            this._applyZoomAndPanChangesFromPaper();
+        }, { passive: false });
 
         // Connect all Wick Tools into the paper.js project
         for (var toolName in this.model.tools) {
