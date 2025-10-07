@@ -18,29 +18,32 @@
  */
 
 (function () {
-    var editElem = $('<textarea style="resize: none;">');
-    editElem.css('position', 'absolute');
-    editElem.css('overflow', 'hidden');
-    editElem.css('width', '100px');
-    editElem.css('height', '100px');
-    editElem.css('left', '0px');
-    editElem.css('top', '0px');
-    editElem.css('resize', 'none');
-    editElem.css('line-height', '1.2');
-    editElem.css('background-color', '#ffffff');
-    editElem.css('box-sizing', 'content-box');
-    editElem.css('-moz-box-sizing', 'content-box');
-    editElem.css('-webkit-box-sizing', 'content-box');
-    editElem.css('border', 'none');
+    // Create textarea element with native DOM API (no jQuery)
+    var editElem = document.createElement('textarea');
+    Object.assign(editElem.style, {
+        position: 'absolute',
+        overflow: 'hidden',
+        width: '100px',
+        height: '100px',
+        left: '0px',
+        top: '0px',
+        resize: 'none',
+        lineHeight: '1.2',
+        backgroundColor: '#ffffff',
+        boxSizing: 'content-box',
+        MozBoxSizing: 'content-box',
+        WebkitBoxSizing: 'content-box',
+        border: 'none'
+    });
 
     paper.TextItem.inject({
         attachTextArea: function (paper) {
             // Just in case the textbox is still on screen somehow...
-            if(editElem) {
-                editElem.remove();
+            if(editElem && editElem.parentNode) {
+                editElem.parentNode.removeChild(editElem);
             }
 
-            $(paper.view.element.offsetParent).append(editElem);
+            paper.view.element.offsetParent.appendChild(editElem);
             editElem.focus();
 
             var clone = this.clone();
@@ -52,11 +55,11 @@
 
             var width = (clone.bounds.width * paper.view.zoom) + extraPadding;
             var height = (clone.bounds.height * paper.view.zoom) + extraPadding;
-            editElem.css('width', width+'px');
-            editElem.css('height', height+'px');
+            editElem.style.width = width + 'px';
+            editElem.style.height = height + 'px';
 
             var outlineWidth = 1;
-            editElem.css('outline', (outlineWidth*paper.view.zoom)+'px dashed black');
+            editElem.style.outline = (outlineWidth * paper.view.zoom) + 'px dashed black';
 
             var position = paper.view.projectToView(clone.bounds.topLeft.x, clone.bounds.topLeft.y);
             position.x -= extraPadding/2 + outlineWidth;
@@ -67,26 +70,28 @@
             var fontSize = this.fontSize * paper.view.zoom;
             var fontFamily = this.fontFamily;
             var content = this.content;
-            editElem.css('font-family', fontFamily);
-            editElem.css('font-size', fontSize);
-            editElem.val(content);
+            editElem.style.fontFamily = fontFamily;
+            editElem.style.fontSize = fontSize + 'px';
+            editElem.value = content;
 
             var transformString = '';
             transformString += 'translate('+position.x+'px,'+position.y+'px) ';
             transformString += 'rotate('+rotation+'deg) ';
             transformString += 'scale('+scale.x+','+scale.y+') ';
-            editElem.css('transform', transformString);
+            editElem.style.transform = transformString;
         },
         edit: function(paper) {
             this.attachTextArea(paper);
             var self = this;
-            editElem[0].oninput = function () {
-                self.content = editElem[0].value;
+            editElem.oninput = function () {
+                self.content = editElem.value;
                 self.attachTextArea(paper);
             }
         },
         finishEditing: function() {
-            editElem.remove();
+            if (editElem.parentNode) {
+                editElem.parentNode.removeChild(editElem);
+            }
         },
     });
 
