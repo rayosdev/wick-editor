@@ -59,6 +59,10 @@ import classNames from "classnames";
 import pkg from "../../package.json";
 const { version } = pkg;
 
+// Check if we're in development mode
+const isDevelopment = import.meta.env.DEV || 
+                      (window.location && window.location.hostname === 'localhost');
+
 class Editor extends EditorCore {
   constructor() {
     super();
@@ -74,7 +78,8 @@ class Editor extends EditorCore {
     this.state = {
       project: null,
       previewPlaying: false,
-      activeModalName: window.localStorage.skipWelcomeMessage
+      // Skip welcome message in development or if user has dismissed it before
+      activeModalName: (window.localStorage.skipWelcomeMessage || isDevelopment)
         ? null
         : "WelcomeMessage",
       activeModalQueue: [],
