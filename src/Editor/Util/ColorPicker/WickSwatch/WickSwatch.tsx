@@ -1,9 +1,24 @@
-import React, { Component } from "react";
+import { Component } from "react";
 import tinycolor from "tinycolor2";
 import { Swatch } from "react-color/lib/components/common";
 
-class WickSwatch extends Component {
-  constructor(props) {
+interface WickSwatchProps {
+  color: string;
+  selectedColor: string;
+  onChangeComplete: (color: any) => void;
+}
+
+interface WickSwatchState {
+  hovered: boolean;
+  focused: boolean;
+}
+
+/**
+ * WickSwatch component - single color swatch in the color picker
+ * Handles hover, focus, and selection states
+ */
+class WickSwatch extends Component<WickSwatchProps, WickSwatchState> {
+  constructor(props: WickSwatchProps) {
     super(props);
     this.state = {
       hovered: false,
@@ -11,13 +26,13 @@ class WickSwatch extends Component {
     };
   }
 
-  setHovered = (hoverState) => {
+  setHovered = (hoverState: boolean): void => {
     this.setState({
       hovered: hoverState,
     });
   };
 
-  render() {
+  render(): JSX.Element {
     let colorInfo = tinycolor(this.props.color);
     let selectedColorInfo = tinycolor(this.props.selectedColor);
     let contrastColor = "#CCCCCC";
@@ -28,11 +43,11 @@ class WickSwatch extends Component {
       contrastColor = "#333333";
     }
 
-    let selectedStyle = {
+    let selectedStyle: React.CSSProperties = {
       border: "3px solid" + contrastColor,
     };
 
-    let style = {};
+    let style: React.CSSProperties = {};
     if (this.state.hovered || this.state.focused) {
       style.border = "2px solid " + contrastColor;
     }
@@ -55,7 +70,7 @@ class WickSwatch extends Component {
       >
         <Swatch
           color={this.props.color}
-          onClick={(color) => {
+          onClick={(color: any) => {
             this.props.onChangeComplete(color);
           }}
         />

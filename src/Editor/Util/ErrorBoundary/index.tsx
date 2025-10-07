@@ -17,31 +17,45 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
+import { Component, ReactNode, ErrorInfo } from 'react';
 
-class ErrorBoundary extends React.Component {
-  state = {
+interface ErrorBoundaryProps {
+  children?: ReactNode;
+  fallback?: () => JSX.Element;
+  processError?: (error: Error, errorInfo: ErrorInfo) => void;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+/**
+ * ErrorBoundary component - catches JavaScript errors in child components
+ * Displays a fallback UI instead of crashing the entire component tree
+ */
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  state: ErrorBoundaryState = {
     hasError: false
   }
 
   static defaultProps = {
-    fallback: () => null
+    fallback: () => null as any
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(_error: Error): ErrorBoundaryState {
     return { hasError: true }
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     if(this.props.processError) {
       this.props.processError(error, errorInfo)
     }
   }
 
-  render() {
+  render(): ReactNode {
     if(this.state.hasError) {
       console.log("error234", this.state.hasError);
-      const ErrorComponent = this.props.fallback;
+      const ErrorComponent = this.props.fallback!;
 
       return <ErrorComponent />;
     }

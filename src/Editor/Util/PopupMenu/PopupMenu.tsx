@@ -17,21 +17,33 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from "react";
+import { Component, ReactNode } from "react";
 import { Popover } from "reactstrap";
 import "./_popupmenu.scss";
 
 import classNames from "classnames";
 
-class PopupMenu extends Component {
-  render() {
+interface PopupMenuProps {
+  isOpen: boolean;
+  toggle: () => void;
+  target: string;
+  mobile?: boolean;
+  children?: ReactNode;
+}
+
+/**
+ * PopupMenu component - wrapper for Reactstrap Popover
+ * Displays a popup menu below the target element
+ */
+class PopupMenu extends Component<PopupMenuProps> {
+  render(): JSX.Element {
     return (
       <Popover
         placement="bottom"
         isOpen={this.props.isOpen}
         toggle={this.props.toggle}
         target={this.props.target}
-        boundariesElement={"viewport"}
+        boundariesElement={"viewport" as any}
         className={classNames(
           "popup-menu-popover",
           this.props.mobile && "mobile"

@@ -28,3 +28,5 @@ declare module '*.svg' {
   export default src;
 }
 
+declare module 'tinycolor2';
+declare module 'react-color/lib/components/common';

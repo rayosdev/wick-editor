@@ -40,6 +40,6 @@
       "resources/*": ["src/resources/*"]
     }
   },
-  "include": ["src", "tests"],
+  "include": ["src", "tests", "types"],
   "exclude": ["node_modules", "build", "public", "engine"]
 }
