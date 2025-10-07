@@ -102,6 +102,7 @@ export default defineConfig({
   ],
   publicDir: "public",
   server: {
+    host: '0.0.0.0', // Expose to local network
     port: 3002,
     fs: {
       allow: ["."],
