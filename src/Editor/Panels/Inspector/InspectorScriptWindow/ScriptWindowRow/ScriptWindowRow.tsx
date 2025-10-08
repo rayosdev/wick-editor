@@ -17,25 +17,37 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import './_scriptwindowrow.scss';
 
 // https://flaviocopes.com/how-to-uppercase-first-letter-javascript/
-const capitalize = (s) => {
+const capitalize = (s: string): string => {
   if (typeof s !== 'string') return ''
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
+interface ScriptInfoInterface {
+  scriptsByType: Record<string, string[]>;
+  scriptTypeColors: Record<string, string>;
+}
 
-class ScriptWindowRow extends Component {
-  getColorBar = () => {
-    let scriptsByType = this.props.scriptInfoInterface.scriptsByType;
+interface ScriptWindowRowProps {
+  name: string;
+  scriptInfoInterface: ScriptInfoInterface;
+  editScript: (e?: React.MouseEvent) => void;
+  deleteScript: (e?: React.MouseEvent) => void;
+}
+
+class ScriptWindowRow extends Component<ScriptWindowRowProps> {
+  getColorBar = (): string => {
+    const scriptsByType = this.props.scriptInfoInterface.scriptsByType;
 
     let color = 'blue-bar'; 
 
     Object.keys(scriptsByType).forEach(type => {
-        if (scriptsByType[type].indexOf(this.props.name) > -1) {
+        const scripts = scriptsByType[type];
+        if (scripts && scripts.indexOf(this.props.name) > -1) {
             color = this.props.scriptInfoInterface.scriptTypeColors[type] + "-bar";
         }
     }); 
@@ -43,8 +55,8 @@ class ScriptWindowRow extends Component {
     return color;
   }
 
-  render() {
-    let scriptName = capitalize(this.props.name);
+  render(): JSX.Element {
+    const scriptName = capitalize(this.props.name);
     return(
       <div className="inspector-script-window-row-container">
         <div className="script-row-item inspector-script-window-row-name">
