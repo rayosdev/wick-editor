@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from "react";
+import { Component, ReactNode } from "react";
 import classNames from "classnames";
 import "./_toolbutton.scss";
 
@@ -185,7 +185,7 @@ import iconCodeBack from "resources/code-icons/back.svg";
 // Support Us
 import iconRedHeart from "resources/support-us-icons/red-heart.svg";
 
-const icons = {
+const icons: Record<string, string> = {
   brush: iconBrush,
   cursor: iconCursor,
   ellipse: iconEllipse,
@@ -328,21 +328,34 @@ const icons = {
   "upload-dark": iconUploadDark,
 };
 
-class ToolIcon extends Component {
-  getSource() {
-    if (this.props.name in icons) {
-      return icons[this.props.name];
+interface ToolIconProps {
+  name?: string;
+  className?: string;
+  default?: ReactNode;
+}
+
+/**
+ * ToolIcon - A component that displays icons for tools, actions, and UI elements.
+ * @param props - Component props
+ * @param props.name - The name of the icon to display
+ * @param props.default - Optional default content to display if icon is not found
+ * @returns JSX.Element
+ */
+class ToolIcon extends Component<ToolIconProps> {
+  getSource(): string {
+    if (this.props.name && this.props.name in icons) {
+      return icons[this.props.name]!;
     } else {
       return iconUnknown;
     }
   }
 
-  render() {
-    if (this.props.name in icons || this.props.default === undefined) {
+  render(): JSX.Element | ReactNode {
+    if ((this.props.name && this.props.name in icons) || this.props.default === undefined) {
       return (
         <img
           className={classNames("img-tool-icon", this.props.className)}
-          alt={this.props.name + " icon"}
+          alt={(this.props.name || "unknown") + " icon"}
           src={this.getSource()}
         ></img>
       );
