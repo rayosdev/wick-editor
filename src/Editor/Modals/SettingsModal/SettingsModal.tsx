@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from "react";
+import { Component } from "react";
 import WickModal from "Editor/Modals/WickModal/WickModal";
 import TabbedInterface from "Editor/Util/TabbedInterface/TabbedInterface";
 import ProjectSettings from "./ProjectSettings/ProjectSettings";
@@ -28,8 +28,34 @@ import "./_settingsmodal.scss";
 
 import classNames from "classnames";
 
-class SettingsModal extends Component {
-  renderProjectSettings = () => {
+interface SettingsModalProps {
+  open: boolean;
+  toggle: () => void;
+  isMobile?: boolean;
+  project: any;
+  updateProjectSettings: (settings: any) => void;
+  colorPickerType: any;
+  changeColorPickerType: (type: any) => void;
+  updateLastColors: (color: string) => void;
+  lastColorsUsed: string[];
+  addCustomHotKeys: (keys: any) => void;
+  resetCustomHotKeys: () => void;
+  customHotKeys: any;
+  keyMap: any;
+  keyMapGroups?: any;
+  toast?: (message: string) => void;
+  createCombinedHotKeyMap?: () => any;
+  getToolSetting: (setting: string) => any;
+  setToolSetting: (setting: string, value: any) => void;
+  getToolSettingRestrictions: (setting: string) => any;
+}
+
+/**
+ * SettingsModal component provides access to project, editor, and keyboard settings.
+ * Renders different layouts for desktop (3 tabs) vs mobile (2 tabs).
+ */
+class SettingsModal extends Component<SettingsModalProps> {
+  renderProjectSettings = (): JSX.Element => {
     return (
       <ProjectSettings
         project={this.props.project}
@@ -38,7 +64,7 @@ class SettingsModal extends Component {
     );
   };
 
-  renderShortcuts = () => {
+  renderShortcuts = (): JSX.Element => {
     return (
       <KeyboardShortcuts
         addCustomHotKeys={this.props.addCustomHotKeys}
@@ -49,7 +75,7 @@ class SettingsModal extends Component {
     );
   };
 
-  renderDesktop = () => {
+  renderDesktop = (): JSX.Element => {
     return (
       <WickModal
         open={this.props.open}
@@ -86,7 +112,6 @@ class SettingsModal extends Component {
               lastColorsUsed={this.props.lastColorsUsed}
               getToolSetting={this.props.getToolSetting}
               setToolSetting={this.props.setToolSetting}
-              toggle={this.props.toggle}
               getToolSettingRestrictions={this.props.getToolSettingRestrictions}
             />
           </TabbedInterface>
@@ -95,7 +120,7 @@ class SettingsModal extends Component {
     );
   };
 
-  renderMobile = () => {
+  renderMobile = (): JSX.Element => {
     return (
       <WickModal
         open={this.props.open}
@@ -119,7 +144,6 @@ class SettingsModal extends Component {
               lastColorsUsed={this.props.lastColorsUsed}
             />
             <EditorSettings
-              isMobile={true}
               colorPickerType={this.props.colorPickerType}
               changeColorPickerType={this.props.changeColorPickerType}
               updateLastColors={this.props.updateLastColors}
@@ -134,7 +158,7 @@ class SettingsModal extends Component {
     );
   };
 
-  render() {
+  render(): JSX.Element {
     if (this.props.isMobile) {
       return this.renderMobile();
     } else {
