@@ -34,17 +34,17 @@ interface InspectorTextInputProps {
 class InspectorTextInput extends Component<InspectorTextInputProps> {
   render(): JSX.Element {
     const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
-    return(
+    return (
       <div className="inspector-row">
-        {/* Identifier */} 
+        {/* Identifier */}
         <label htmlFor={idLabel + "-input"} className="inspector-row-identifier">
           {this.props.tooltip}
         </label>
 
         {/* Input */}
         <div className="inspector-large-input-container">
-          <InspectorInput 
-            inputProps={{id: idLabel + "-input"}}
+          <InspectorInput
+            inputProps={{ id: idLabel + "-input" }}
             input={
               {
                 type: "text",

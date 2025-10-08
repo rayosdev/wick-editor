@@ -28,17 +28,17 @@ interface InspectorSoundPreviewProps {
 
 class InspectorSoundPreview extends Component<InspectorSoundPreviewProps> {
   render(): JSX.Element {
-    return(
-        <InspectorPreview
-          icon={this.props.icon}
-          preview={true}
-          info={
-            {
-              type: "sound",
-              src: this.props.src
-            }
+    return (
+      <InspectorPreview
+        icon={this.props.icon}
+        preview={true}
+        info={
+          {
+            type: "sound",
+            src: this.props.src
           }
-        />
+        }
+      />
     )
   }
 }

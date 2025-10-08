@@ -43,43 +43,43 @@ class ScriptWindowRow extends Component<ScriptWindowRowProps> {
   getColorBar = (): string => {
     const scriptsByType = this.props.scriptInfoInterface.scriptsByType;
 
-    let color = 'blue-bar'; 
+    let color = 'blue-bar';
 
     Object.keys(scriptsByType).forEach(type => {
-        const scripts = scriptsByType[type];
-        if (scripts && scripts.indexOf(this.props.name) > -1) {
-            color = this.props.scriptInfoInterface.scriptTypeColors[type] + "-bar";
-        }
-    }); 
+      const scripts = scriptsByType[type];
+      if (scripts && scripts.indexOf(this.props.name) > -1) {
+        color = this.props.scriptInfoInterface.scriptTypeColors[type] + "-bar";
+      }
+    });
 
     return color;
   }
 
   render(): JSX.Element {
     const scriptName = capitalize(this.props.name);
-    return(
+    return (
       <div className="inspector-script-window-row-container">
         <div className="script-row-item inspector-script-window-row-name">
-          <div className={"inspector-script-window-row-color-bar " + this.getColorBar()}/>
-          <ActionButton 
-                id={"inspector-script-window-row-edit" + this.props.name}
-                text={capitalize(this.props.name)}
-                tooltip={"Edit " + scriptName}
-                tooltipPlace="left"
-                action={this.props.editScript}
-                color="script-name"
-                className="action-button-script-name"
-                />
+          <div className={"inspector-script-window-row-color-bar " + this.getColorBar()} />
+          <ActionButton
+            id={"inspector-script-window-row-edit" + this.props.name}
+            text={capitalize(this.props.name)}
+            tooltip={"Edit " + scriptName}
+            tooltipPlace="left"
+            action={this.props.editScript}
+            color="script-name"
+            className="action-button-script-name"
+          />
         </div>
         <div className="script-row-item inspector-script-window-row-delete">
-            <ActionButton 
-                id={"inspector-script-window-row-delete" + this.props.name}
-                icon="delete-black"
-                tooltip="Delete"
-                tooltipPlace="left"
-                color="red"
-                action={this.props.deleteScript}
-                />
+          <ActionButton
+            id={"inspector-script-window-row-delete" + this.props.name}
+            icon="delete-black"
+            tooltip="Delete"
+            tooltipPlace="left"
+            color="red"
+            action={this.props.deleteScript}
+          />
         </div>
       </div>
     );

@@ -18,10 +18,10 @@
  */
 
 import { Component } from 'react';
-import ActionButton from 'Editor/Util/ActionButton/ActionButton'; 
-import WickModal from 'Editor/Modals/WickModal/WickModal'; 
+import ActionButton from 'Editor/Util/ActionButton/ActionButton';
+import WickModal from 'Editor/Modals/WickModal/WickModal';
 import WickInput from 'Editor/Util/WickInput/WickInput';
-import ObjectInfo from '../Util/ObjectInfo/ObjectInfo'; 
+import ObjectInfo from '../Util/ObjectInfo/ObjectInfo';
 
 import './_makeinteractive.scss';
 
@@ -60,7 +60,7 @@ class MakeInteractive extends Component<MakeInteractiveProps, MakeInteractiveSta
    * @param {string} type Either 'Button' or 'Clip'
    */
   createAndToggle = (type: 'Clip' | 'Button'): void => {
-    const name = this.state.name !== "" ? this.state.name : type; 
+    const name = this.state.name !== "" ? this.state.name : type;
     if (type === 'Clip') {
       this.props.createClipFromSelection(name)
     } else if (type === 'Button') {
@@ -74,23 +74,23 @@ class MakeInteractive extends Component<MakeInteractiveProps, MakeInteractiveSta
   updateClipName = (newName: string): void => {
     this.setState({
       name: newName,
-    }); 
+    });
   }
 
   // Updates state value responsible for creating asset.
   updateAssetCheckbox = (val: boolean): void => {
     this.setState({
       makeAsset: val,
-    }); 
+    });
   }
 
   render(): JSX.Element {
     return (
-      <WickModal 
-      open={this.props.open} 
-      toggle={this.props.toggle} 
-      className="make-interactive-modal-body"
-      overlayClassName="make-interactive-modal-overlay">
+      <WickModal
+        open={this.props.open}
+        toggle={this.props.toggle}
+        className="make-interactive-modal-body"
+        overlayClassName="make-interactive-modal-overlay">
         <div id="make-interactive-modal-interior-content">
           <div id="make-interactive-modal-title">Make Interactive</div>
           <div id="make-interactive-modal-name-input">
@@ -101,56 +101,56 @@ class MakeInteractive extends Component<MakeInteractiveProps, MakeInteractiveSta
               placeholder={this.placeholderName} />
           </div>
           <div className="make-interactive-object-info-container">
-            <ObjectInfo 
-              title="CLIP" 
+            <ObjectInfo
+              title="CLIP"
               rows={[
-              {
-                text: "Can add any code",
-                icon: "check"
-              },
-              {
-                text: "Has its own timeline",
-                icon: "check"
-              }, 
-              {
-                text: "Can control timeline with code",
-                icon: "check", 
-              }
-            ]}/>
-            <ObjectInfo 
-              title="BUTTON" 
+                {
+                  text: "Can add any code",
+                  icon: "check"
+                },
+                {
+                  text: "Has its own timeline",
+                  icon: "check"
+                },
+                {
+                  text: "Can control timeline with code",
+                  icon: "check",
+                }
+              ]} />
+            <ObjectInfo
+              title="BUTTON"
               rows={[
-              {
-                text: "Can add any code",
-                icon: "check"
-              },
-              {
-                text: "Only has 3 frames",
-                icon: "check"
-              }, 
-              {
-                text: "Frames controlled by mouse interactions",
-                icon: "check", 
-              }
-            ]}/>
+                {
+                  text: "Can add any code",
+                  icon: "check"
+                },
+                {
+                  text: "Only has 3 frames",
+                  icon: "check"
+                },
+                {
+                  text: "Frames controlled by mouse interactions",
+                  icon: "check",
+                }
+              ]} />
           </div>
         </div>
         <div id="make-interactive-modal-footer">
-          <ActionButton 
+          <ActionButton
             className="make-interactive-modal-button"
             color='gray-green'
             action={() => { this.createAndToggle("Clip") }}
             text="Convert to Clip"
-            />
-          <ActionButton 
+          />
+          <ActionButton
             className="make-interactive-modal-button"
             color='gray-green'
             action={() => { this.createAndToggle("Button") }}
             text="Convert to Button"
-            />
+          />
         </div>
         <div id="make-interactive-asset-checkbox-container">
-            {/* <WickInput
+          {/* <WickInput
               type="checkbox"
               containerclassname="make-interactive-asset-checkbox-input-container"
               className="make-interactive-asset-checkbox-input"
@@ -160,7 +160,7 @@ class MakeInteractive extends Component<MakeInteractiveProps, MakeInteractiveSta
             <div id="make-interactive-asset-checkbox-message">
               Add to asset library
             </div> */}
-          </div>
+        </div>
       </WickModal>
     );
   }

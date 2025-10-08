@@ -28,17 +28,17 @@ interface InspectorImagePreviewProps {
 
 class InspectorImagePreview extends Component<InspectorImagePreviewProps> {
   render(): JSX.Element {
-    return(
-        <InspectorPreview
-          icon={this.props.icon}
-          preview={true}
-          info={
-            {
-              type: "image",
-              src: this.props.src
-            }
+    return (
+      <InspectorPreview
+        icon={this.props.icon}
+        preview={true}
+        info={
+          {
+            type: "image",
+            src: this.props.src
           }
-        />
+        }
+      />
     )
   }
 }

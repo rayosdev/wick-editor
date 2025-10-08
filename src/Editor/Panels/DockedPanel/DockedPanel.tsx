@@ -28,7 +28,7 @@ interface DockedPanelProps {
 
 class DockedPanel extends PureComponent<DockedPanelProps> {
   render(): JSX.Element {
-    return(
+    return (
       <div className="docked-panel">
         {this.props.showOverlay && <div className="docked-panel-overlay" />}
         {this.props.children}

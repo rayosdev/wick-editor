@@ -32,21 +32,23 @@ interface InspectorNumericInputProps {
 class InspectorNumericInput extends Component<InspectorNumericInputProps> {
   render(): JSX.Element {
     const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
-    return(
+    return (
       <div className="inspector-row">
-        {/* Identifier */} 
+        {/* Identifier */}
         <label htmlFor={idLabel + "-input"} className="inspector-row-identifier">
           {this.props.tooltip}
         </label>
 
         {/* Input */}
         <div className="inspector-large-input-container">
-          <InspectorInput 
-            inputProps={{id: idLabel + "-input"}}
+          <InspectorInput
+            inputProps={{ id: idLabel + "-input" }}
             input={
-              {type: "numeric",
-              value: this.props.val,
-              onChange: this.props.onChange}
+              {
+                type: "numeric",
+                value: this.props.val,
+                onChange: this.props.onChange
+              }
             } />
         </div>
       </div>

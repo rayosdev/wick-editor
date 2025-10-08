@@ -93,21 +93,21 @@ class ModalHandler extends Component<ModalHandlerProps> {
     return (
       <div>
         <MakeAnimated
-            toggle={this.props.closeActiveModal}
-            open={this.props.activeModalName === 'MakeAnimated'}
-            createClipFromSelection={this.props.createClipFromSelection}
-          />
+          toggle={this.props.closeActiveModal}
+          open={this.props.activeModalName === 'MakeAnimated'}
+          createClipFromSelection={this.props.createClipFromSelection}
+        />
         <MakeInteractive
-            toggle={this.props.closeActiveModal}
-            open={this.props.activeModalName === 'MakeInteractive'}
-            createClipFromSelection={this.props.createClipFromSelection}
-            createButtonFromSelection={this.props.createButtonFromSelection}
-          />
+          toggle={this.props.closeActiveModal}
+          open={this.props.activeModalName === 'MakeInteractive'}
+          createClipFromSelection={this.props.createClipFromSelection}
+          createButtonFromSelection={this.props.createButtonFromSelection}
+        />
         <AutosaveWarning
-            toggle={this.props.closeActiveModal}
-            open={this.props.activeModalName === 'AutosaveWarning'}
-            loadAutosavedProject={this.props.loadAutosavedProject}
-            clearAutoSavedProject={this.props.clearAutoSavedProject}
+          toggle={this.props.closeActiveModal}
+          open={this.props.activeModalName === 'AutosaveWarning'}
+          loadAutosavedProject={this.props.loadAutosavedProject}
+          clearAutoSavedProject={this.props.clearAutoSavedProject}
         />
         <WelcomeMessage
           isMobile={isMobile}
@@ -130,7 +130,7 @@ class ModalHandler extends Component<ModalHandlerProps> {
           open={this.props.activeModalName === 'ExportOptions'}
           projectName={this.props.project.name}
           project={this.props.project}
-          />
+        />
         <GeneralWarning
           toggle={this.props.closeActiveModal}
           open={this.props.activeModalName === 'GeneralWarning'}
@@ -184,7 +184,7 @@ class ModalHandler extends Component<ModalHandlerProps> {
           isMobile={isMobile}
           toggle={this.props.closeActiveModal}
           open={this.props.activeModalName === 'OpenSourceNotices'}
-          />
+        />
         <MobileMenu
           openProjectFileDialog={this.props.openProjectFileDialog}
           openNewProjectConfirmation={this.props.openNewProjectConfirmation}
@@ -200,18 +200,18 @@ class ModalHandler extends Component<ModalHandlerProps> {
           deleteLocalWickFile={this.props.deleteLocalWickFile}
           reloadSavedWickFiles={this.props.reloadSavedWickFiles}
           openWarningModal={this.props.openWarningModal}
-          />
-        <SimpleProjectSettings 
+        />
+        <SimpleProjectSettings
           updateProjectSettings={this.props.updateProjectSettings}
           project={this.props.project}
           toggle={this.props.closeActiveModal}
-          open={this.props.activeModalName === 'SimpleProjectSettings'}/>
+          open={this.props.activeModalName === 'SimpleProjectSettings'} />
 
         <SupportUs
           isMobile={isMobile}
           toggle={this.props.closeActiveModal}
           open={this.props.activeModalName === 'SupportUs'}
-          />
+        />
       </div>
     );
   }

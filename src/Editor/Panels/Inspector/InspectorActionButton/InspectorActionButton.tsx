@@ -42,14 +42,14 @@ class InspectorActionButton extends Component<InspectorActionButtonProps> {
     const btnID = action.id === undefined ? 'tooltip-nyi' : action.id;
     const actionColor = action.color ? action.color : "inspector";
 
-    return(
+    return (
       <div className="inspector-button">
         <ActionButton
           color={actionColor}
           icon={action.icon}
           id={"inspector-button-" + btnID}
           action={action.action}
-          text={action.tooltip}/>
+          text={action.tooltip} />
       </div>
 
     )

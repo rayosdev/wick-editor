@@ -36,34 +36,38 @@ class MobileInspectorNumericSlider extends Component<MobileInspectorNumericSlide
   render(): JSX.Element {
     const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
     const renderIdentifier = (this.props.icon) ? <img src={this.props.icon} alt={this.props.iconAlt} className="mobile-inspector-row-icon"></img>
-    : <label htmlFor={idLabel + "-input-mobile"} className="mobile-inspector-row-identifier">
+      : <label htmlFor={idLabel + "-input-mobile"} className="mobile-inspector-row-identifier">
         {this.props.tooltip}
       </label>
 
-    return(
+    return (
       <div className="mobile-inspector-row">
-        {/* Identifier */} 
+        {/* Identifier */}
         {renderIdentifier}
 
         {/* Input */}
         <div className="mobile-inspector-small-input-container">
           <MobileInspectorInput
-            inputProps={{id: idLabel + "-input-mobile"}} 
+            inputProps={{ id: idLabel + "-input-mobile" }}
             input={
-              {type: "numeric",
-              value: this.props.val,
-              onChange: this.props.onChange}
+              {
+                type: "numeric",
+                value: this.props.val,
+                onChange: this.props.onChange
+              }
             } />
         </div>
 
         {/* Slider */}
         <div className="mobile-inspector-small-input-container">
           <MobileInspectorInput
-            inputProps={{...this.props.inputProps, id: idLabel+ "-input-mobile"}}
+            inputProps={{ ...this.props.inputProps, id: idLabel + "-input-mobile" }}
             input={
-              {type: "slider",
-               value: this.props.val,
-               onChange: this.props.onChange}
+              {
+                type: "slider",
+                value: this.props.val,
+                onChange: this.props.onChange
+              }
             } />
         </div>
       </div>

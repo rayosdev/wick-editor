@@ -32,17 +32,17 @@ interface InspectorCheckboxProps {
 class InspectorCheckbox extends Component<InspectorCheckboxProps> {
   render(): JSX.Element {
     const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
-    return(
+    return (
       <div className="inspector-row">
-        {/* Identifier */} 
+        {/* Identifier */}
         <label htmlFor={idLabel + "-input"} className="inspector-row-identifier">
           {this.props.tooltip}
         </label>
 
         {/* Checkbox */}
         <div className="inspector-small-input-container">
-          <InspectorInput 
-            inputProps={{id: idLabel + "-input"}}
+          <InspectorInput
+            inputProps={{ id: idLabel + "-input" }}
             input={
               {
                 type: "checkbox",

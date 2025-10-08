@@ -31,7 +31,7 @@ interface MenuBarSupportButtonProps {
 class MenuBarSupportButton extends Component<MenuBarSupportButtonProps> {
 
   render(): JSX.Element {
-    return(
+    return (
       <div className="menu-bar-support-button">
 
         <ActionButton

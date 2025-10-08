@@ -56,9 +56,9 @@ class SupportUs extends Component<SupportUsProps> {
     super(props);
 
     this.progressData = {
-      patreonProgress: 218, 
-      patreonGoal: 1000, 
-      githubProgress: 2, 
+      patreonProgress: 218,
+      patreonGoal: 1000,
+      githubProgress: 2,
       githubGoal: 10
     };
   }
@@ -66,13 +66,13 @@ class SupportUs extends Component<SupportUsProps> {
   renderMobileModal(contentDisplay: ReactNode[], footerDisplay: ReactNode[]): JSX.Element {
     return (
       <WickModal
-      open={this.props.open}
-      toggle={this.props.toggle}
-      className="support-modal-body-mobile"
-      overlayClassName="support-modal-overlay">
+        open={this.props.open}
+        toggle={this.props.toggle}
+        className="support-modal-body-mobile"
+        overlayClassName="support-modal-overlay">
         <div id="support-modal-interior-content">
           <div id="support-modal-title-mobile">
-            <img id="support-modal-title-img-mobile" src={whiteHeart} alt="white heart icon" style={{width: "24px", height: "auto", marginRight: "10px", display: "inline-block"}}></img>
+            <img id="support-modal-title-img-mobile" src={whiteHeart} alt="white heart icon" style={{ width: "24px", height: "auto", marginRight: "10px", display: "inline-block" }}></img>
             <p id="support-modal-title-text">Support Us!</p>
           </div>
           {contentDisplay}
@@ -85,10 +85,10 @@ class SupportUs extends Component<SupportUsProps> {
   renderDesktopModal(contentDisplay: ReactNode[], footerDisplay: ReactNode[]): JSX.Element {
     return (
       <WickModal
-      open={this.props.open}
-      toggle={this.props.toggle}
-      className="support-modal-body"
-      overlayClassName="support-modal-overlay">
+        open={this.props.open}
+        toggle={this.props.toggle}
+        className="support-modal-body"
+        overlayClassName="support-modal-overlay">
         <div id="support-modal-interior-content">
           <div id="support-modal-title">
             <img id="support-modal-title-img" alt="Wick Editor ghost flashy" src={flashy}></img>
@@ -100,7 +100,7 @@ class SupportUs extends Component<SupportUsProps> {
           <div className="support-modal-row">
             {contentDisplay}
           </div>
-          
+
           {footerDisplay}
         </div>
       </WickModal>
@@ -109,29 +109,29 @@ class SupportUs extends Component<SupportUsProps> {
 
   render(): JSX.Element {
     const contentDisplay: ReactNode[] = [<Fragment key="support-us-fragment-1">
-      <div key="support-us-patreon-cont" className={(this.props.isMobile)?"support-modal-col":"support-modal-col left-col"}>
+      <div key="support-us-patreon-cont" className={(this.props.isMobile) ? "support-modal-col" : "support-modal-col left-col"}>
         <div className="support-modal-col-title">
           <img src={patreonLogoWhite} alt="white patreon logo" className="support-modal-col-title-img"></img>
           <p className="support-modal-col-title-text">Patreon</p>
         </div>
         <p className="support-modal-col-text">for individuals and creators</p>
-        <div className="support-modal-progress-bar"><div className="support-modal-patreon-progress" style={{width:this.progressData.patreonProgress/this.progressData.patreonGoal*100+"%"}}></div></div>
-        <p className="support-modal-col-text">{"Goal: $" + this.progressData.patreonProgress+" / $" + this.progressData.patreonGoal + " per month"}</p>
-        <button className="support-modal-button patreon-button" onClick={() => {window.open("https://www.patreon.com/WickEditor", "_blank")}}>
+        <div className="support-modal-progress-bar"><div className="support-modal-patreon-progress" style={{ width: this.progressData.patreonProgress / this.progressData.patreonGoal * 100 + "%" }}></div></div>
+        <p className="support-modal-col-text">{"Goal: $" + this.progressData.patreonProgress + " / $" + this.progressData.patreonGoal + " per month"}</p>
+        <button className="support-modal-button patreon-button" onClick={() => { window.open("https://www.patreon.com/WickEditor", "_blank") }}>
           <img src={patreonLogoWhite} alt="white patreon logo" className="support-modal-button-img"></img>
           <p className="support-modal-button-text">Become a Patron</p>
         </button>
       </div>
-  
-      <div key="support-us-github-cont" className={(this.props.isMobile)?"support-modal-col":"support-modal-col right-col"}>
+
+      <div key="support-us-github-cont" className={(this.props.isMobile) ? "support-modal-col" : "support-modal-col right-col"}>
         <div className="support-modal-col-title">
           <img src={githubLogoWhite} alt="white github log" className="support-modal-col-title-img"></img>
           <p className="support-modal-col-title-text">GitHub Sponsors</p>
         </div>
         <p className="support-modal-col-text">for businesses and developers</p>
-        <div className="support-modal-progress-bar"><div className="support-modal-github-progress" style={{width:this.progressData.githubProgress/this.progressData.githubGoal*100+"%"}}></div></div>
-        <p className="support-modal-col-text">{"Goal: "+this.progressData.githubProgress+" of "+this.progressData.githubGoal +" sponsors found"}</p>
-        <button className="support-modal-button github-button" onClick={() => {window.open("https://github.com/sponsors/Wicklets", "_blank")}}>
+        <div className="support-modal-progress-bar"><div className="support-modal-github-progress" style={{ width: this.progressData.githubProgress / this.progressData.githubGoal * 100 + "%" }}></div></div>
+        <p className="support-modal-col-text">{"Goal: " + this.progressData.githubProgress + " of " + this.progressData.githubGoal + " sponsors found"}</p>
+        <button className="support-modal-button github-button" onClick={() => { window.open("https://github.com/sponsors/Wicklets", "_blank") }}>
           <img src={githubHeart} alt="pink heart" className="support-modal-button-img"></img>
           <p className="support-modal-button-text">Sponsor</p>
         </button>
@@ -140,20 +140,20 @@ class SupportUs extends Component<SupportUsProps> {
 
     const footerDisplay: ReactNode[] = [
       <Fragment key="support-us-fragment-2">
-      <p id="support-modal-follow-text">Follow us and share your work with <p id="support-modal-hashtag">#MadeWithWickEditor</p>!</p>
-  
-      <div id="support-modal-social-icons">
-        <button className="support-modal-social-icon" onClick={() => {window.open("https://www.facebook.com/wickeditor/", "_blank")}}>
-          <img className="support-modal-social-img" src={facebookIcon} alt="facebook logo"></img>
-        </button>
-        <button className="support-modal-social-icon" onClick={() => {window.open("https://www.instagram.com/wickeditor/", "_blank")}}>
-          <img className="support-modal-social-img" src={instagramIcon} alt="instagram logo"></img>
-        </button>
-        <button className="support-modal-social-icon" onClick={() => {window.open("https://twitter.com/wickeditor", "_blank")}}>
-          <img className="support-modal-social-img" src={twitterIcon} alt="twitter logo"></img>
-        </button>
-      </div>
-    </Fragment>];
+        <p id="support-modal-follow-text">Follow us and share your work with <p id="support-modal-hashtag">#MadeWithWickEditor</p>!</p>
+
+        <div id="support-modal-social-icons">
+          <button className="support-modal-social-icon" onClick={() => { window.open("https://www.facebook.com/wickeditor/", "_blank") }}>
+            <img className="support-modal-social-img" src={facebookIcon} alt="facebook logo"></img>
+          </button>
+          <button className="support-modal-social-icon" onClick={() => { window.open("https://www.instagram.com/wickeditor/", "_blank") }}>
+            <img className="support-modal-social-img" src={instagramIcon} alt="instagram logo"></img>
+          </button>
+          <button className="support-modal-social-icon" onClick={() => { window.open("https://twitter.com/wickeditor", "_blank") }}>
+            <img className="support-modal-social-img" src={twitterIcon} alt="twitter logo"></img>
+          </button>
+        </div>
+      </Fragment>];
 
     if (this.props.isMobile) {
       return this.renderMobileModal(contentDisplay, footerDisplay);

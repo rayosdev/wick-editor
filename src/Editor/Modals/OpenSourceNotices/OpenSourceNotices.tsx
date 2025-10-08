@@ -1972,7 +1972,7 @@ class OpenSourceNotices extends Component<OpenSourceNoticesProps> {
             <br />
             <br /> To apply the Apache License to your work, attach the
             following
-            <br /> boilerplate notice, with the fields enclosed by brackets "{}"
+            <br /> boilerplate notice, with the fields enclosed by brackets "{ }"
             <br /> replaced with your own identifying information. (Don\'t
             include
             <br /> the brackets!) The text should be enclosed in the appropriate
@@ -5755,7 +5755,7 @@ class OpenSourceNotices extends Component<OpenSourceNoticesProps> {
             <br />
             <br /> To apply the Apache License to your work, attach the
             following
-            <br /> boilerplate notice, with the fields enclosed by brackets "{}"
+            <br /> boilerplate notice, with the fields enclosed by brackets "{ }"
             <br /> replaced with your own identifying information. (Don\'t
             include
             <br /> the brackets!) The text should be enclosed in the appropriate

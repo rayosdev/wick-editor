@@ -33,9 +33,9 @@ interface InspectorNumericSliderProps {
 class InspectorNumericSlider extends Component<InspectorNumericSliderProps> {
   render(): JSX.Element {
     const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
-    return(
+    return (
       <div className="inspector-row">
-        {/* Identifier */} 
+        {/* Identifier */}
         <label htmlFor={idLabel + "-input"} className="inspector-row-identifier">
           {this.props.tooltip}
         </label>
@@ -43,22 +43,26 @@ class InspectorNumericSlider extends Component<InspectorNumericSliderProps> {
         {/* Input */}
         <div className="inspector-small-input-container">
           <InspectorInput
-            inputProps={{id: idLabel + "-input"}} 
+            inputProps={{ id: idLabel + "-input" }}
             input={
-              {type: "numeric",
-              value: this.props.val,
-              onChange: this.props.onChange}
+              {
+                type: "numeric",
+                value: this.props.val,
+                onChange: this.props.onChange
+              }
             } />
         </div>
 
         {/* Slider */}
         <div className="inspector-medium-input-container">
           <InspectorInput
-            inputProps={{...this.props.inputProps, id: idLabel+ "-input"}}
+            inputProps={{ ...this.props.inputProps, id: idLabel + "-input" }}
             input={
-              {type: "slider",
-               value: this.props.val,
-               onChange: this.props.onChange}
+              {
+                type: "slider",
+                value: this.props.val,
+                onChange: this.props.onChange
+              }
             } />
         </div>
       </div>

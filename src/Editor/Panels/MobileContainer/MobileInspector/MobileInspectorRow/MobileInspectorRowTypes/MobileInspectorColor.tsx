@@ -17,15 +17,27 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 
 import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
 
 import '../_mobileinspectorrow.scss';
 
-class MobileInspectorColor extends Component {
-  render() {
-    let idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
+interface MobileInspectorColorProps {
+  tooltip: string;
+  val: string;
+  onChange: (color: string) => void;
+  id: string;
+  stroke?: boolean;
+  colorPickerType?: string;
+  changeColorPickerType?: (type: string) => void;
+  updateLastColors?: (color: string) => void;
+  lastColorsUsed?: string[];
+}
+
+class MobileInspectorColor extends Component<MobileInspectorColorProps> {
+  render(): JSX.Element {
+    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
     return(
       <div className="mobile-inspector-row">
       {/* Identifier */} 

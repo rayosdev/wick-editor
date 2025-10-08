@@ -17,19 +17,34 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useState } from "react";
+import { useState, ReactNode } from "react";
 
 import "./_mobileinspectortabbedinterface.scss";
 
 import classNames from "classnames";
 
-export default function MobileInspectorTabbedInterface(props) {
-  const [selectedTab, setSelectedTab] = useState(props.tabs[0].label);
+interface TabConfig {
+  label: string;
+  icon: string;
+  iconActive: string;
+  alt: string;
+}
+
+interface MobileInspectorTabbedInterfaceProps {
+  tabs: TabConfig[];
+  children: ReactNode[];
+  className?: string;
+  tabClassName?: string;
+  bodyClassName?: string;
+}
+
+export default function MobileInspectorTabbedInterface(props: MobileInspectorTabbedInterfaceProps): JSX.Element {
+  const [selectedTab, setSelectedTab] = useState(props.tabs[0]?.label || '');
 
   /**
    * Renders the selectable tab bar.
    */
-  function renderTabs() {
+  function renderTabs(): JSX.Element {
     return (
       <div
         role="tablist"
@@ -62,7 +77,7 @@ export default function MobileInspectorTabbedInterface(props) {
     );
   }
 
-  let children = props.children.filter((obj) => obj);
+  const children = props.children.filter((obj) => obj);
   return (
     <div
       className={classNames(

@@ -30,7 +30,7 @@ interface MenuBarIconButtonProps {
 
 class MenuBarIconButton extends Component<MenuBarIconButtonProps> {
   render(): JSX.Element {
-    return(
+    return (
       <div className="menu-bar-icon-button">
         <ActionButton
           color="menu"

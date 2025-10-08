@@ -63,7 +63,7 @@ export default function SavedProjects(props: SavedProjectsProps): JSX.Element {
         title: "Lose Unsaved",
         description: "Any unsaved work will be lost.",
         acceptAction: openSelectedFile,
-        cancelAction: () => {},
+        cancelAction: () => { },
         acceptText: "Open",
         canceltText: "Cancel",
       });
@@ -76,7 +76,7 @@ export default function SavedProjects(props: SavedProjectsProps): JSX.Element {
         title: `Delete ${selectedProject.name}`,
         description: "This cannot be undone!",
         acceptAction: deleteSelectedFile,
-        cancelAction: () => {},
+        cancelAction: () => { },
         acceptText: "Delete",
         canceltText: "Cancel",
       });

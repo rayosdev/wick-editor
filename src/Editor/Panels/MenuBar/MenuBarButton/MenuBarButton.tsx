@@ -29,7 +29,7 @@ interface MenuBarButtonProps {
 
 class MenuBarButton extends Component<MenuBarButtonProps> {
   render(): JSX.Element {
-    return(
+    return (
       <div className="menu-bar-button">
         <ActionButton
           text={this.props.text}

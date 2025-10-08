@@ -18,10 +18,10 @@
  */
 
 import { Component } from 'react';
-import ActionButton from 'Editor/Util/ActionButton/ActionButton'; 
-import WickModal from 'Editor/Modals/WickModal/WickModal'; 
+import ActionButton from 'Editor/Util/ActionButton/ActionButton';
+import WickModal from 'Editor/Modals/WickModal/WickModal';
 import WickInput from 'Editor/Util/WickInput/WickInput';
-import ObjectInfo from '../Util/ObjectInfo/ObjectInfo'; 
+import ObjectInfo from '../Util/ObjectInfo/ObjectInfo';
 
 import './_makeanimated.scss';
 
@@ -56,7 +56,7 @@ class MakeAnimated extends Component<MakeAnimatedProps, MakeAnimatedState> {
 
   // Creates a clip and toggles the modal.
   createAndToggle = (): void => {
-    const name = this.state.name !== "" ? this.state.name : this.defaultName; 
+    const name = this.state.name !== "" ? this.state.name : this.defaultName;
     this.props.createClipFromSelection(name)
     this.props.toggle()
   }
@@ -65,23 +65,23 @@ class MakeAnimated extends Component<MakeAnimatedProps, MakeAnimatedState> {
   updateClipName = (newName: string): void => {
     this.setState({
       name: newName,
-    }); 
+    });
   }
 
   // Updates state value responsible for creating asset.
   updateAssetCheckbox = (val: boolean): void => {
     this.setState({
       makeAsset: val,
-    }); 
+    });
   }
 
   render(): JSX.Element {
     return (
-      <WickModal 
-      open={this.props.open} 
-      toggle={this.props.toggle} 
-      className="make-animated-modal-body"
-      overlayClassName="make-animated-modal-overlay">
+      <WickModal
+        open={this.props.open}
+        toggle={this.props.toggle}
+        className="make-animated-modal-body"
+        overlayClassName="make-animated-modal-overlay">
         <div id="make-animated-modal-interior-content">
           <div id="make-animated-modal-title">Make Animated</div>
           <div id="make-animated-modal-name-input">
@@ -91,9 +91,9 @@ class MakeAnimated extends Component<MakeAnimatedProps, MakeAnimatedState> {
               onChange={this.updateClipName}
               placeholder={this.placeholderName} />
           </div>
-          <ObjectInfo 
-          title="CLIP" 
-          rows={[
+          <ObjectInfo
+            title="CLIP"
+            rows={[
               {
                 text: "Has its own timeline",
                 icon: "check"
@@ -101,21 +101,21 @@ class MakeAnimated extends Component<MakeAnimatedProps, MakeAnimatedState> {
               {
                 text: "Can control timeline with code",
                 icon: "check"
-              }, 
+              },
               {
                 text: "Can add any code",
-                icon: "check", 
+                icon: "check",
               }
-            ]}/>
+            ]} />
         </div>
         <div id="make-animated-modal-footer">
           <div id="make-animated-modal-accept">
-            <ActionButton 
+            <ActionButton
               className="make-animated-modal-button"
               color='gray-green'
               action={this.createAndToggle}
               text="Convert to Clip"
-              />
+            />
           </div>
         </div>
         <div id="make-animated-asset-checkbox-container">

@@ -62,56 +62,56 @@ class EditorSettings extends Component<EditorSettingsProps> {
     for (let i = 0; i < options.length; i++) {
       const option = options[i];
       if (option) {
-        optionsLabels.push({label: option, value: option});
+        optionsLabels.push({ label: option, value: option });
       }
     }
     return (
       <div className="editor-settings-modal-body">
         <div className="editor-settings-group">
           <label htmlFor="onion-skin-style" className="editor-settings-group-title">Onion Skinning</label>
-            Style:
-            <WickInput
-              type="select"
-              id="onion-skin-style"
-              value={this.props.getToolSetting('onionSkinStyle')}
-              options={optionsLabels}
-              onChange={(val: any) => {this.props.setToolSetting('onionSkinStyle', val.value)}}
-            />
+          Style:
+          <WickInput
+            type="select"
+            id="onion-skin-style"
+            value={this.props.getToolSetting('onionSkinStyle')}
+            options={optionsLabels}
+            onChange={(val: any) => { this.props.setToolSetting('onionSkinStyle', val.value) }}
+          />
           {
             this.props.getToolSetting('onionSkinStyle') !== 'standard' &&
             <div className="editor-settings-row">
               Outline Colors:
               <div className="editor-settings-color-containers-row">
                 <div className="editor-settings-color-container">
-                  <img className="forward-backward-icon" alt="B:" src={iconBackwards}/>
+                  <img className="forward-backward-icon" alt="B:" src={iconBackwards} />
 
                   <WickInput
-                  type="color"
-                  id="editor-settings-backward-color-picker"
-                  disableAlpha={true}
-                  placement={'bottom'}
-                  color={(this.props.getToolSetting('backwardOnionSkinTint') as WickColor).rgba}
-                  onChange={(color: any) => {this.props.setToolSetting('backwardOnionSkinTint', new (window as any).Wick.Color(color))}}
-                  colorPickerType={this.props.colorPickerType}
-                  changeColorPickerType={this.props.changeColorPickerType}
-                  updateLastColors={this.props.updateLastColors}
-                  lastColorsUsed={this.props.lastColorsUsed} />
+                    type="color"
+                    id="editor-settings-backward-color-picker"
+                    disableAlpha={true}
+                    placement={'bottom'}
+                    color={(this.props.getToolSetting('backwardOnionSkinTint') as WickColor).rgba}
+                    onChange={(color: any) => { this.props.setToolSetting('backwardOnionSkinTint', new (window as any).Wick.Color(color)) }}
+                    colorPickerType={this.props.colorPickerType}
+                    changeColorPickerType={this.props.changeColorPickerType}
+                    updateLastColors={this.props.updateLastColors}
+                    lastColorsUsed={this.props.lastColorsUsed} />
                 </div>
 
                 <div className="editor-settings-color-container">
-                  <img className="forward-backward-icon" alt="F:" src={iconForwards}/>
+                  <img className="forward-backward-icon" alt="F:" src={iconForwards} />
 
                   <WickInput
-                  type="color"
-                  id="editor-settings-forward-color-picker"
-                  disableAlpha={true}
-                  placement={'bottom'}
-                  color={(this.props.getToolSetting('forwardOnionSkinTint') as WickColor).rgba}
-                  onChange={(color: any) => {this.props.setToolSetting('forwardOnionSkinTint', new (window as any).Wick.Color(color))}}
-                  colorPickerType={this.props.colorPickerType}
-                  changeColorPickerType={this.props.changeColorPickerType}
-                  updateLastColors={this.props.updateLastColors}
-                  lastColorsUsed={this.props.lastColorsUsed} />
+                    type="color"
+                    id="editor-settings-forward-color-picker"
+                    disableAlpha={true}
+                    placement={'bottom'}
+                    color={(this.props.getToolSetting('forwardOnionSkinTint') as WickColor).rgba}
+                    onChange={(color: any) => { this.props.setToolSetting('forwardOnionSkinTint', new (window as any).Wick.Color(color)) }}
+                    colorPickerType={this.props.colorPickerType}
+                    changeColorPickerType={this.props.changeColorPickerType}
+                    updateLastColors={this.props.updateLastColors}
+                    lastColorsUsed={this.props.lastColorsUsed} />
                 </div>
               </div>
             </div>

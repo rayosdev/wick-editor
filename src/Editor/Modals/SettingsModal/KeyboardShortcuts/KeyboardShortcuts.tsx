@@ -58,7 +58,7 @@ class KeyboardShortcuts extends Component<KeyboardShortcutsProps, KeyboardShortc
     this.state = {
       editingAction: { name: "", actionName: "", actionIndex: 0 },
       newActions: [],
-      cancelKeyRecording: () => {},
+      cancelKeyRecording: () => { },
       openTabs: [],
     };
   }
@@ -271,8 +271,8 @@ class KeyboardShortcuts extends Component<KeyboardShortcutsProps, KeyboardShortc
           let name = action.actionName || action.name;
           this.props.toast?.(
             "Key Command Overwritten: " +
-              name +
-              ". Please reset this key command.",
+            name +
+            ". Please reset this key command.",
             "warning"
           );
         }
@@ -288,8 +288,8 @@ class KeyboardShortcuts extends Component<KeyboardShortcutsProps, KeyboardShortc
         let name = action.actionName || action.name;
         this.props.toast?.(
           "Key Command Overwritten: " +
-            name +
-            ". Please reset this key command.",
+          name +
+          ". Please reset this key command.",
           "warning"
         );
         break;
@@ -308,7 +308,7 @@ class KeyboardShortcuts extends Component<KeyboardShortcutsProps, KeyboardShortc
     this.state.cancelKeyRecording();
     this.setState({
       editingAction: { actionName: "", name: "", actionIndex: 0 },
-      cancelKeyRecording: () => {},
+      cancelKeyRecording: () => { },
     });
   };
 

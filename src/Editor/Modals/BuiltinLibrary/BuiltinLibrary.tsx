@@ -110,10 +110,10 @@ class BuiltinLibrary extends Component<BuiltinLibraryProps> {
       .catch((error) => {
         console.error(
           "Error while importing builtin asset (" +
-            asset.name +
-            "," +
-            asset.file +
-            "): "
+          asset.name +
+          "," +
+          asset.file +
+          "): "
         );
         console.log(error);
       });
@@ -149,7 +149,7 @@ class BuiltinLibrary extends Component<BuiltinLibraryProps> {
         {this.props.isAssetInLibrary(asset.file.split("/").pop() || "") ? (
           <ActionButton
             className="add-as-asset-button"
-            action={() => {}}
+            action={() => { }}
             text="Already Added"
             color="gray"
           />
@@ -182,14 +182,14 @@ class BuiltinLibrary extends Component<BuiltinLibraryProps> {
           <AudioPlayer
             key={asset.file}
             src={src}
-            loadSrc={() => this.importForPreview(asset, () => {})}
+            loadSrc={() => this.importForPreview(asset, () => { })}
           />
         </div>
 
         {this.props.isAssetInLibrary(asset.file.split("/").pop() || "") ? (
           <ActionButton
             className="add-as-asset-button"
-            action={() => {}}
+            action={() => { }}
             text="Already Added"
             color="gray"
           />

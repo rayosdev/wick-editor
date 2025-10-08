@@ -37,21 +37,23 @@ class InspectorDualNumericInput extends Component<InspectorDualNumericInputProps
   render(): JSX.Element {
     const idLabel1 = this.props.tooltip1.replace(/\s+/g, '-').toLowerCase();
     const idLabel2 = this.props.tooltip2.replace(/\s+/g, '-').toLowerCase();
-    return(
+    return (
       <div className="inspector-row">
-        {/* Identifier1 */} 
+        {/* Identifier1 */}
         <label htmlFor={idLabel1 + "-input"} className="inspector-row-identifier">
           {this.props.tooltip1}
         </label>
 
         {/* Input1 */}
         <div className="inspector-small-input-container">
-          <InspectorInput 
-            inputProps={{id: idLabel1 + "-input"}}
+          <InspectorInput
+            inputProps={{ id: idLabel1 + "-input" }}
             input={
-              {type: "numeric",
-              value: this.props.val1,
-              onChange: this.props.onChange1}
+              {
+                type: "numeric",
+                value: this.props.val1,
+                onChange: this.props.onChange1
+              }
             } />
         </div>
 
@@ -59,15 +61,17 @@ class InspectorDualNumericInput extends Component<InspectorDualNumericInputProps
         <label htmlFor={idLabel2 + "-input"} className="inspector-row-identifier">
           {this.props.tooltip2}
         </label>
-        
+
         {/* Input2 */}
         <div className="inspector-small-input-container">
-          <InspectorInput 
-            inputProps={{id: idLabel2 + "-input"}}
+          <InspectorInput
+            inputProps={{ id: idLabel2 + "-input" }}
             input={
-              {type: "numeric",
-              value: this.props.val2,
-              onChange: this.props.onChange2}
+              {
+                type: "numeric",
+                value: this.props.val2,
+                onChange: this.props.onChange2
+              }
             } />
         </div>
       </div>

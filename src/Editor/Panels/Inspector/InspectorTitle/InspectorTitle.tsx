@@ -35,9 +35,9 @@ class InspectorTitle extends Component<InspectorTitleProps> {
       </div>
     )
   }
-  
+
   render(): JSX.Element {
-    return(
+    return (
       <div className="inspector-title">
         <div className="inspector-title-name">Inspector</div>
         {this.props.type && this.props.title && this.renderSelectionType()}
