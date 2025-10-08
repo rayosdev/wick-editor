@@ -17,8 +17,8 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from "react";
-import { DragSource } from "react-dnd";
+import { Component } from "react";
+import { DragSource, ConnectDragSource } from "react-dnd";
 import "./_asset.scss";
 import DragDropTypes from "Editor/DragDropTypes";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
@@ -26,10 +26,31 @@ import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
 import classNames from "classnames";
 
+interface AssetData {
+  uuid: string;
+  name: string;
+  classname: string;
+  files?: File[];
+}
+
+interface AssetProps {
+  asset: AssetData;
+  isSelected: boolean;
+  onClick: () => void;
+  addSoundToActiveFrame: (asset: AssetData) => void;
+  importProjectAsWickFile: (file: File) => void;
+  createAssets: (files: File[], data: any[]) => void;
+  createImageFromAsset: (uuid: string, x: number, y: number, center: boolean) => void;
+  clearSelection: () => void;
+  selectObjects: (objects: AssetData[]) => void;
+  deleteSelectedObjects: () => void;
+  connectDragSource?: ConnectDragSource;
+}
+
 const assetSource = {
-  beginDrag(props, monitor, component) {
+  beginDrag(props: AssetProps) {
     // Return the data describing the dragged item
-    let info = {
+    const info = {
       uuid: props.asset.uuid,
     };
 
@@ -40,14 +61,14 @@ const assetSource = {
 /**
  * Specifies which props to inject into your component.
  */
-function collect(connect, monitor) {
+function collect(connect: any) {
   return {
     connectDragSource: connect.dragSource(),
   };
 }
 
-class Asset extends Component {
-  getIcon(classname) {
+class Asset extends Component<AssetProps> {
+  getIcon(classname: string): string {
     if (classname === "ImageAsset") {
       return "image";
     } else if (classname === "SoundAsset") {
@@ -65,12 +86,12 @@ class Asset extends Component {
     }
   }
 
-  renderAddButton = () => {
+  renderAddButton = (): JSX.Element => {
     if (this.props.asset.classname === "SoundAsset") {
       return (
         <span className="asset-button add">
           <ActionButton
-            classsName="add"
+            className="add"
             color="green"
             text="Add to Frame"
             action={() => this.props.addSoundToActiveFrame(this.props.asset)}
@@ -81,7 +102,7 @@ class Asset extends Component {
       return (
         <span className="asset-button add">
           <ActionButton
-            classsName="add"
+            className="add"
             color="green"
             text="Add to Canvas"
             action={this.addToCanvas}
@@ -91,14 +112,14 @@ class Asset extends Component {
     }
   };
 
-  addToCanvas = () => {
-    let draggedItem = this.props.asset;
+  addToCanvas = (): void => {
+    const draggedItem = this.props.asset;
     if (draggedItem.files && draggedItem.files.length > 0) {
       // Dropped a file from native filesystem
-      if (draggedItem.files[0].name.endsWith(".wick")) {
+      const firstFile = draggedItem.files[0];
+      if (firstFile && firstFile.name.endsWith(".wick")) {
         // Wick Project (.wick file)
-        var file = draggedItem.files[0];
-        this.props.importProjectAsWickFile(file);
+        this.props.importProjectAsWickFile(firstFile);
       } else {
         // Assets (images, sounds, etc)
         this.props.createAssets(draggedItem.files, []);
@@ -109,11 +130,13 @@ class Asset extends Component {
     }
   };
 
-  render() {
+  render(): JSX.Element | null {
     // These props are injected by React DnD, as defined by the `collect` function above:
     const { connectDragSource } = this.props;
 
-    let icon = this.getIcon(this.props.asset.classname);
+    const icon = this.getIcon(this.props.asset.classname);
+
+    if (!connectDragSource) return null;
 
     return connectDragSource(
       <div
@@ -134,7 +157,7 @@ class Asset extends Component {
             {this.renderAddButton()}
             <span className="asset-button delete">
               <ActionButton
-                classsName="delete"
+                className="delete"
                 color="red"
                 icon="delete-black"
                 action={() => {
