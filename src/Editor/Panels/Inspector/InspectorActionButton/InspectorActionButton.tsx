@@ -17,18 +17,30 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 import './_inspectoractionbutton.scss';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 
-class InspectorActionButton extends Component {
-  render() {
-    let action = this.props.action;
+interface InspectorAction {
+  id?: string;
+  icon?: string;
+  tooltip?: string;
+  action: (e?: React.MouseEvent) => void;
+  color?: string;
+}
 
-    if (action === undefined) return (<div />)
+interface InspectorActionButtonProps {
+  action?: InspectorAction;
+}
 
-    let btnID = action.id === undefined ? 'tooltip-nyi' : action.id;
-    let actionColor = action.color ? action.color : "inspector";
+class InspectorActionButton extends Component<InspectorActionButtonProps> {
+  render(): JSX.Element | null {
+    const action = this.props.action;
+
+    if (action === undefined) return null;
+
+    const btnID = action.id === undefined ? 'tooltip-nyi' : action.id;
+    const actionColor = action.color ? action.color : "inspector";
 
     return(
       <div className="inspector-button">

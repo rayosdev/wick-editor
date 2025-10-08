@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import { Component } from "react";
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
@@ -6,8 +6,13 @@ import "./_outlinerexpandbutton.scss";
 
 import classNames from "classnames";
 
-class OutlinerExpandButton extends Component {
-  render() {
+interface OutlinerExpandButtonProps {
+  expanded: boolean;
+  toggleOutliner: (e?: React.MouseEvent) => void;
+}
+
+class OutlinerExpandButton extends Component<OutlinerExpandButtonProps> {
+  render(): JSX.Element {
     return (
       <ActionButton
         color="tool"
