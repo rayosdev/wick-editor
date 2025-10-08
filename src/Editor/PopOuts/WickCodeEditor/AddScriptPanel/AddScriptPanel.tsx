@@ -17,13 +17,27 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from "react";
+import { Component } from "react";
 import capitalize from "Editor/Util/DataFunctions/capitalize";
 
 import classNames from "classnames";
 
-class AddScriptPanel extends Component {
-  render() {
+interface Script {
+  name: string;
+  type: string;
+  description: string;
+}
+
+interface AddScriptPanelProps {
+  addScriptTab: string;
+  changeTab: (tab: string) => void;
+  scripts: Script[];
+  availableScripts?: string[];
+  addScript?: (scriptName: string) => void;
+}
+
+class AddScriptPanel extends Component<AddScriptPanelProps> {
+  render(): JSX.Element {
     return (
       <div className="add-script-container">
         <div className="add-script-tabs">
