@@ -79,21 +79,21 @@ class MobileAssetLibrary extends Component<MobileAssetLibraryProps, MobileAssetL
 
   filterArray = (array: AssetObject[]): AssetObject[] => {
     let filterText = this.state.filterText.toLowerCase();
-    return array.filter( item => {
-        return !item.isGifImage && item.name.toLowerCase().includes(filterText);
+    return array.filter(item => {
+      return !item.isGifImage && item.name.toLowerCase().includes(filterText);
     });
   }
 
   makeNode = (assetObject: AssetObject, i: number): JSX.Element => {
     return (
       <Asset
-       key={i}
-       asset={assetObject}
-       isSelected={this.props.isObjectSelected(assetObject)}
-       onClick={() => {
-         this.props.clearSelection();
-         this.props.selectObjects([assetObject]);
-      }}
+        key={i}
+        asset={assetObject}
+        isSelected={this.props.isObjectSelected(assetObject)}
+        onClick={() => {
+          this.props.clearSelection();
+          this.props.selectObjects([assetObject]);
+        }}
         createAssets={this.props.createAssets}
         importProjectAsWickFile={this.props.importProjectAsWickFile}
         createImageFromAsset={this.props.createImageFromAsset}
@@ -114,7 +114,7 @@ class MobileAssetLibrary extends Component<MobileAssetLibraryProps, MobileAssetL
     let copiedAssets: AssetObject[] = [].concat(assets as any);
 
     // Perform alphabetic sort.
-    copiedAssets.sort( (a,b) => a.name.localeCompare(b.name) );
+    copiedAssets.sort((a, b) => a.name.localeCompare(b.name));
     return copiedAssets;
   }
 
@@ -122,18 +122,18 @@ class MobileAssetLibrary extends Component<MobileAssetLibraryProps, MobileAssetL
     return (
       <div className="mobile-asset-library-left-container">
         <div className="mobile-asset-library-filter">
-            <div className="mobile-asset-library-filter-icon">
-              <ToolIcon name="search" />
-            </div>
-            <WickInput
-              id="mobile-asset-library-filter-input"
-              aria-label="filter"
-              placeholder="filter..."
-              type="text"
-              onChange={this.updateFilter}
-              value={this.state.filterText}/>
+          <div className="mobile-asset-library-filter-icon">
+            <ToolIcon name="search" />
           </div>
-          <div className="mobile-btn-asset-builtin">
+          <WickInput
+            id="mobile-asset-library-filter-input"
+            aria-label="filter"
+            placeholder="filter..."
+            type="text"
+            onChange={this.updateFilter}
+            value={this.state.filterText} />
+        </div>
+        <div className="mobile-btn-asset-builtin">
           <ActionButton
             color="green"
             action={this.openBuiltinAssetLibrary}
@@ -160,7 +160,7 @@ class MobileAssetLibrary extends Component<MobileAssetLibraryProps, MobileAssetL
   render(): JSX.Element {
     let filteredAssets = this.filterArray(this.props.assets);
     let sortedFilteredAssets = this.sortAssets(filteredAssets);
-    return(
+    return (
       <div className="docked-pane mobile-asset-library" aria-label="Asset Library">
         {this.renderLeftSection()}
         <div className="mobile-asset-library-right-container">
