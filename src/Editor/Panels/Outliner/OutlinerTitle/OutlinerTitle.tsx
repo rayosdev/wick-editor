@@ -17,13 +17,13 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 import './_outlinertitle.scss';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 class OutlinerTitle extends Component {
 
-  render() {
+  render(): JSX.Element {
     return(
       <div className="outliner-title">
         <div className="outliner-title-name">Outliner</div>

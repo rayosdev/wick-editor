@@ -17,15 +17,30 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 
 import '../_outlinerrow.scss'
 
 import OutlinerWidget from '../../OutlinerWidget/OutlinerWidget';
 
-class OutlinerDisplay extends Component {
-  render() {
-    const items = {path: "path-object",
+interface DisplaySettings {
+  path: boolean;
+  button: boolean;
+  clip: boolean;
+  text: boolean;
+  image: boolean;
+  [key: string]: boolean;
+}
+
+interface OutlinerDisplayProps {
+  tooltip: string;
+  display: DisplaySettings;
+  onChange: (display: DisplaySettings) => void;
+}
+
+class OutlinerDisplay extends Component<OutlinerDisplayProps> {
+  render(): JSX.Element {
+    const items: Record<string, string> = {path: "path-object",
       button: "button-object",
       clip: "clip-object",
       text: "text-object",
@@ -45,11 +60,11 @@ class OutlinerDisplay extends Component {
               tooltip={(this.props.display[item] ? "Hide " : "Show ") + item.charAt(0).toUpperCase() + item.slice(1) + " Objects"}
               key={item}
               onClick={() => {
-                var newDisplay = {...this.props.display};
+                const newDisplay = {...this.props.display};
                 newDisplay[item] = !newDisplay[item];
                 this.props.onChange(newDisplay);
               }} 
-              icon={items[item]}
+              icon={items[item] || ''}
               on={this.props.display[item]}
             />);
           })}

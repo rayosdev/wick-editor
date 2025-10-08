@@ -1,12 +1,19 @@
-import React, { Component } from "react";
+import { Component } from "react";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
 import "../_outliner.scss";
 
 import classNames from "classnames";
 
-class OutlinerLayerButtons extends Component {
-  render() {
+interface OutlinerLayerButtonsProps {
+  tooltip: string;
+  onClick: () => void;
+  icon: string;
+  on?: boolean;
+}
+
+class OutlinerLayerButtons extends Component<OutlinerLayerButtonsProps> {
+  render(): JSX.Element {
     return (
       <ActionButton
         color="tool"
