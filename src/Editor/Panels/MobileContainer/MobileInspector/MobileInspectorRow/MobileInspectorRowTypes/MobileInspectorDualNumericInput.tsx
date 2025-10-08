@@ -17,23 +17,36 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 
 //import InspectorRow from '../InspectorRow';
 import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
 
 import '../_mobileinspectorrow.scss';
 
-class MobileInspectorDualNumericInput extends Component {
-  render() {
-    let idLabel1 = this.props.tooltip1.replace(/\s+/g, '-').toLowerCase();
-    let idLabel2 = this.props.tooltip2.replace(/\s+/g, '-').toLowerCase();
+interface MobileInspectorDualNumericInputProps {
+  tooltip1: string;
+  tooltip2: string;
+  val1: number;
+  val2: number;
+  onChange1: (value: number) => void;
+  onChange2: (value: number) => void;
+  icon1?: string;
+  icon2?: string;
+  iconAlt1?: string;
+  iconAlt2?: string;
+}
 
-    let render1Identifier = (this.props.icon1) ? <img src={this.props.icon1} alt={this.props.iconAlt1} className="mobile-inspector-row-icon"></img>
+class MobileInspectorDualNumericInput extends Component<MobileInspectorDualNumericInputProps> {
+  render(): JSX.Element {
+    const idLabel1 = this.props.tooltip1.replace(/\s+/g, '-').toLowerCase();
+    const idLabel2 = this.props.tooltip2.replace(/\s+/g, '-').toLowerCase();
+
+    const render1Identifier = (this.props.icon1) ? <img src={this.props.icon1} alt={this.props.iconAlt1} className="mobile-inspector-row-icon"></img>
                                               : <label htmlFor={idLabel1 + "-input-mobile"} className="mobile-inspector-row-identifier">
                                                   {this.props.tooltip1}
                                                 </label>
-    let render2Identifier = (this.props.icon2) ? <img src={this.props.icon2} alt={this.props.iconAlt2} className="mobile-inspector-row-icon"></img>
+    const render2Identifier = (this.props.icon2) ? <img src={this.props.icon2} alt={this.props.iconAlt2} className="mobile-inspector-row-icon"></img>
     : [<label htmlFor={idLabel2 + "-input-mobile"} className="mobile-inspector-row-identifier">
         {this.props.tooltip2}
       </label>]
