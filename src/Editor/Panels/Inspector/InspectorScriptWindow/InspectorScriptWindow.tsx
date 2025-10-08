@@ -17,13 +17,28 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 import ScriptWindowRow from './ScriptWindowRow/ScriptWindowRow'; 
 import './_inspectorscriptwindow.scss';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 
-class InspectorScriptWindow extends Component {
-  renderScriptRow = (scriptobj, i) => {
+interface ScriptObject {
+  name: string;
+}
+
+interface Script {
+  scripts: ScriptObject[];
+}
+
+interface InspectorScriptWindowProps {
+  scriptInfoInterface: any;
+  script: Script;
+  deleteScript: (script: Script, name: string) => void;
+  editScript: (name: string) => void;
+}
+
+class InspectorScriptWindow extends Component<InspectorScriptWindowProps> {
+  renderScriptRow = (scriptobj: ScriptObject, i: number): JSX.Element => {
     return (
       <ScriptWindowRow 
       scriptInfoInterface={this.props.scriptInfoInterface} 
@@ -34,7 +49,7 @@ class InspectorScriptWindow extends Component {
     ); 
   }
 
-  render() {
+  render(): JSX.Element {
     return(
       <div className="inspector-script-window-container">
          <div className="inspector-script-window-header">

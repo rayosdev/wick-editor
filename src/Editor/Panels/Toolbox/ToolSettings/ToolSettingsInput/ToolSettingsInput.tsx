@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from "react";
+import { Component } from "react";
 
 import WickInput from "Editor/Util/WickInput/WickInput";
 import SettingsNumericSlider from "./SettingsNumericSlider/SettingsNumericSlider";
@@ -27,21 +27,31 @@ import "./_toolsettingsinput.scss";
 
 import classNames from "classnames";
 
-class ToolSettingsInput extends Component {
-  renderNumericInput = () => {
+interface ToolSettingsInputProps {
+  type: 'numeric' | 'checkbox' | 'dropdown';
+  isMobile?: boolean;
+  onChange: (value: any) => void;
+  value: any;
+  inputRestrictions?: any;
+  name: string;
+  icon?: string;
+  renderSize?: string;
+}
+
+class ToolSettingsInput extends Component<ToolSettingsInputProps> {
+  renderNumericInput = (): JSX.Element => {
     return (
       <SettingsNumericSlider
         isMobile={this.props.isMobile}
         onChange={this.props.onChange}
         value={this.props.value}
         inputRestrictions={this.props.inputRestrictions}
-        name={this.props.name}
-        icon={this.props.icon}
+        icon={this.props.icon || ''}
       />
     );
   };
 
-  renderCheckboxInput = () => {
+  renderCheckboxInput = (): JSX.Element => {
     return (
       <div className="settings-checkbox-input">
         <ActionButton
@@ -57,10 +67,10 @@ class ToolSettingsInput extends Component {
     );
   };
 
-  renderDropdownInput = () => {
+  renderDropdownInput = (): JSX.Element => {
     return (
       <WickInput
-        type="dropdown"
+        type="select"
         className="settings-dropdown-input"
         onChange={this.props.onChange}
         value={this.props.value}
@@ -68,7 +78,7 @@ class ToolSettingsInput extends Component {
     );
   };
 
-  renderInput = () => {
+  renderInput = (): JSX.Element | undefined => {
     if (this.props.type === "numeric") {
       return this.renderNumericInput();
     } else if (this.props.type === "checkbox") {
@@ -81,7 +91,7 @@ class ToolSettingsInput extends Component {
     }
   };
 
-  render() {
+  render(): JSX.Element {
     return (
       <div
         className={classNames("setting-input-container", {
