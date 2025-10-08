@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from "react";
+import { Component } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import WickModal from "Editor/Modals/WickModal/WickModal";
 
@@ -25,8 +25,14 @@ import "./_opensourcenotices.scss";
 
 import classNames from "classnames";
 
-class OpenSourceNotices extends Component {
-  render() {
+interface OpenSourceNoticesProps {
+  open: boolean;
+  toggle: () => void;
+  isMobile?: boolean;
+}
+
+class OpenSourceNotices extends Component<OpenSourceNoticesProps> {
+  render(): JSX.Element {
     return (
       <WickModal
         open={this.props.open}

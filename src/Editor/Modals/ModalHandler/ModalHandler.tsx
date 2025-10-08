@@ -118,8 +118,6 @@ class ModalHandler extends Component<ModalHandlerProps> {
         />
         <ExportOptions
           isMobile={isMobile}
-          openModal={this.props.openModal}
-          closeActiveModal={this.props.closeActiveModal}
           queueModal={this.props.queueModal}
           toggle={this.props.closeActiveModal}
           exportProjectAsGif={this.props.exportProjectAsGif}
@@ -185,7 +183,6 @@ class ModalHandler extends Component<ModalHandlerProps> {
         />
         <OpenSourceNotices
           isMobile={isMobile}
-          openModal={this.props.openModal}
           toggle={this.props.closeActiveModal}
           open={this.props.activeModalName === 'OpenSourceNotices'}
           />
