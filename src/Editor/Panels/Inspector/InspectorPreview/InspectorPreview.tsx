@@ -17,15 +17,27 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 import './_inspectorpreview.scss';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 import AudioPlayer from 'Editor/Util/AudioPlayer/AudioPlayer';
 
-class InspectorPreview extends Component {
+interface InspectorPreviewInfo {
+  type: 'image' | 'sound' | string;
+  src?: string;
+  loadSrc?: () => void;
+}
 
-  render() {
+interface InspectorPreviewProps {
+  info: InspectorPreviewInfo;
+  icon?: string;
+  preview?: boolean;
+}
+
+class InspectorPreview extends Component<InspectorPreviewProps> {
+
+  render(): JSX.Element {
     if (this.props.info.type === "image") {
       return (
         <div className="inspector-image-preview-container">
@@ -35,7 +47,7 @@ class InspectorPreview extends Component {
     } else if (this.props.info.type === 'sound') {
       return (
         <div className="inspector-sound-preview-container">
-          <AudioPlayer key={Math.random()} src={this.props.info.src}/>
+          <AudioPlayer key={Math.random()} src={this.props.info.src} loadSrc={this.props.info.loadSrc || (() => {})}/>
         </div>
       );
     } else {

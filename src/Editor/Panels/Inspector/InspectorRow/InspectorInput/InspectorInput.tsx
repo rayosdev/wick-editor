@@ -17,14 +17,19 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 
 import '../_inspectorrow.scss';
 
 import WickInput from 'Editor/Util/WickInput/WickInput';
 
-class InspectorInput extends Component {
-  render() {
+interface InspectorInputProps {
+  inputProps?: any;
+  input?: any;
+}
+
+class InspectorInput extends Component<InspectorInputProps> {
+  render(): JSX.Element {
     return (
       <div  className="inspector-input-element">
         <WickInput {...this.props.inputProps} {...this.props.input}/>

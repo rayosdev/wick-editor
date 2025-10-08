@@ -17,16 +17,31 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 
 import InspectorInput from 'Editor/Panels/Inspector/InspectorRow/InspectorInput/InspectorInput';
 
 import '../_inspectorrow.scss';
 
-class InspectorColorNumericInput extends Component {
-  render() {
-    let idLabel1 = this.props.tooltip1.replace(/\s+/g, '-').toLowerCase();
-    let idLabel2 = this.props.tooltip2.replace(/\s+/g, '-').toLowerCase();
+interface InspectorColorNumericInputProps {
+  tooltip1: string;
+  tooltip2: string;
+  val1: string;
+  val2: number;
+  onChange1: (color: string) => void;
+  onChange2: (value: number) => void;
+  id: string;
+  stroke?: boolean;
+  colorPickerType?: string;
+  changeColorPickerType?: (type: string) => void;
+  updateLastColors?: (color: string) => void;
+  lastColorsUsed?: string[];
+}
+
+class InspectorColorNumericInput extends Component<InspectorColorNumericInputProps> {
+  render(): JSX.Element {
+    const idLabel1 = this.props.tooltip1.replace(/\s+/g, '-').toLowerCase();
+    const idLabel2 = this.props.tooltip2.replace(/\s+/g, '-').toLowerCase();
     return(
       <div className="inspector-row">
       {/* Identifier1 */} 
