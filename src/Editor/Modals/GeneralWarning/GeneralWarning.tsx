@@ -17,26 +17,48 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
 
 import './_generalwarning.scss';
 
-class GeneralWarning extends Component {
-  acceptAndToggle = () => {
+interface WarningInfo {
+  title: string;
+  description: string;
+  acceptText: string;
+  acceptIcon: string;
+  acceptAction: () => void;
+  cancelText: string;
+  cancelIcon: string;
+  cancelAction: () => void;
+  finalAction: () => void;
+}
+
+interface GeneralWarningProps {
+  open: boolean;
+  toggle: () => void;
+  info: WarningInfo;
+}
+
+/**
+ * GeneralWarning modal displays a customizable warning with accept/cancel actions.
+ * Used for various confirmation dialogs throughout the editor.
+ */
+class GeneralWarning extends Component<GeneralWarningProps> {
+  acceptAndToggle = (): void => {
     this.props.toggle();
     this.props.info.acceptAction();
     this.props.info.finalAction();
   }
 
-  cancelAndToggle = () => {
+  cancelAndToggle = (): void => {
     this.props.info.cancelAction();
     this.props.info.finalAction();
     this.props.toggle();
   }
 
-  render() {
+  render(): JSX.Element {
     return (
       <WickModal
       open={this.props.open}
@@ -77,4 +99,4 @@ class GeneralWarning extends Component {
   }
 }
 
-export default GeneralWarning
+export default GeneralWarning;

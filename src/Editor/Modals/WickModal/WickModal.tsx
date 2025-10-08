@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from "react";
+import { Component, ReactNode } from "react";
 import Modal from "react-modal";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
@@ -26,8 +26,21 @@ import "./_wickmodal.scss";
 
 import classNames from "classnames";
 
-class WickModal extends Component {
-  renderIcon() {
+interface WickModalProps {
+  open: boolean;
+  toggle: () => void;
+  className?: string;
+  overlayClassName?: string;
+  icon?: string;
+  children?: ReactNode;
+}
+
+/**
+ * WickModal component provides a standardized modal wrapper for the editor.
+ * Includes close button, optional icon, and customizable styling.
+ */
+class WickModal extends Component<WickModalProps> {
+  renderIcon(): JSX.Element {
     return (
       <div id="modal-icon-container">
         <ToolIcon name={this.props.icon} />
@@ -35,7 +48,7 @@ class WickModal extends Component {
     );
   }
 
-  componentDidMount() {
+  componentDidMount(): void {
     // Use #root as the app element so react-modal doesn't try to toggle aria-hidden on <body>
     try {
       const root = document.getElementById("root");
@@ -47,7 +60,7 @@ class WickModal extends Component {
     }
   }
 
-  render() {
+  render(): JSX.Element {
     return (
       <Modal
         isOpen={this.props.open}

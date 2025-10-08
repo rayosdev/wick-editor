@@ -17,26 +17,37 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
 
 import './_autosavewarning.scss';
 
-class AutosaveWarning extends Component {
-  loadAndToggle = () => {
+interface AutosaveWarningProps {
+  open: boolean;
+  toggle: () => void;
+  loadAutosavedProject: (callback: () => void) => void;
+  clearAutoSavedProject: (callback: () => void) => void;
+}
+
+/**
+ * AutosaveWarning modal prompts user to load or delete an autosaved project.
+ * Displayed when an autosave is detected on editor startup.
+ */
+class AutosaveWarning extends Component<AutosaveWarningProps> {
+  loadAndToggle = (): void => {
     this.props.loadAutosavedProject(() => {
       this.props.toggle();
     });
   }
 
-  deleteAndToggle = () => {
+  deleteAndToggle = (): void => {
     this.props.clearAutoSavedProject(() => {
       this.props.toggle();
     });
   }
 
-  render() {
+  render(): JSX.Element {
     return (
       <WickModal
       open={this.props.open}
@@ -74,4 +85,4 @@ class AutosaveWarning extends Component {
   }
 }
 
-export default AutosaveWarning
+export default AutosaveWarning;
