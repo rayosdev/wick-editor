@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from "react";
+import { Component } from "react";
 import HotKeyInterface from "Editor/hotKeyMap";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
@@ -25,20 +25,36 @@ import "./_toolbutton.scss";
 
 import classNames from "classnames";
 
-class ToolButton extends Component {
-  constructor(props) {
+interface ToolButtonProps {
+  name: string;
+  tooltip: string;
+  keyMap: any;
+  getActiveToolName: () => string;
+  setActiveTool?: (name: string) => void;
+  action?: (e?: React.MouseEvent) => void;
+  secondaryAction?: () => void;
+  tooltipPlace?: 'top' | 'bottom' | 'left' | 'right';
+  iconClassName?: string;
+  dropdown?: boolean;
+  className?: string;
+}
+
+class ToolButton extends Component<ToolButtonProps> {
+  actionDefault: ((e?: React.MouseEvent) => void) | null;
+
+  constructor(props: ToolButtonProps) {
     super(props);
 
     this.actionDefault = this.props.setActiveTool
-      ? () => this.props.setActiveTool(this.props.name)
+      ? () => this.props.setActiveTool!(this.props.name)
       : null;
   }
 
-  getHotKey = (action) => {
+  getHotKey = (action: string): string | undefined => {
     return HotKeyInterface.getHotKey(this.props.keyMap, action);
   };
 
-  renderSelectButton = () => {
+  renderSelectButton = (): JSX.Element => {
     return (
       <ActionButton
         color="tool"
@@ -46,7 +62,7 @@ class ToolButton extends Component {
         id={"tool-button-" + this.props.name}
         tooltip={this.props.tooltip}
         tooltipHotkey={this.getHotKey("activate-" + this.props.name)}
-        action={this.props.action ? this.props.action : this.actionDefault}
+        action={this.props.action ? this.props.action : this.actionDefault!}
         secondaryAction={this.props.secondaryAction}
         tooltipPlace={
           this.props.tooltipPlace ? this.props.tooltipPlace : "bottom"
@@ -59,7 +75,7 @@ class ToolButton extends Component {
     );
   };
 
-  render() {
+  render(): JSX.Element {
     return (
       <div className={this.props.className ? this.props.className : ""}>
         <div className="tool-button-select-container">

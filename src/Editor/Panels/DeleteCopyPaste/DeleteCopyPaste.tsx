@@ -6,7 +6,23 @@ import "./_deletecopypaste.scss";
 
 import classNames from "classnames";
 
-export default function DeleteCopyPaste(props) {
+interface EditorAction {
+  action: (e?: React.MouseEvent) => void;
+}
+
+interface EditorActions {
+  delete: EditorAction;
+  copy: EditorAction;
+  paste: EditorAction;
+}
+
+interface DeleteCopyPasteProps {
+  previewPlaying: boolean;
+  selectionEmpty: boolean;
+  editorActions: EditorActions;
+}
+
+export default function DeleteCopyPaste(props: DeleteCopyPasteProps): JSX.Element {
   return (
     <div className="delete-copy-paste-widget">
       {!props.previewPlaying && (
