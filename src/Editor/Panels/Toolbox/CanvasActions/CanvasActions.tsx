@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import { Component } from "react";
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import ToolboxBreak from "../ToolboxBreak/ToolboxBreak";
@@ -7,8 +7,34 @@ import "./_canvasactions.scss";
 
 import classNames from "classnames";
 
-class CanvasActions extends Component {
-  renderActionButton(action) {
+interface CanvasAction {
+  icon: string;
+  tooltip: string;
+  action: (e?: React.MouseEvent) => void;
+}
+
+interface EditorActions {
+  sendToBack: CanvasAction;
+  sendBackward: CanvasAction;
+  sendForward: CanvasAction;
+  sendToFront: CanvasAction;
+  flipHorizontal: CanvasAction;
+  flipVertical: CanvasAction;
+  booleanUnite: CanvasAction;
+  booleanSubtract: CanvasAction;
+  booleanIntersect: CanvasAction;
+}
+
+interface CanvasActionsProps {
+  renderSize: string;
+  editorActions: EditorActions;
+  showCanvasActions: boolean;
+  toggleCanvasActions: () => void;
+  previewPlaying: boolean;
+}
+
+class CanvasActions extends Component<CanvasActionsProps> {
+  renderActionButton(action: CanvasAction): JSX.Element {
     return (
       <ActionButton
         color="tool"
@@ -22,7 +48,7 @@ class CanvasActions extends Component {
     );
   }
 
-  renderActions = () => {
+  renderActions = (): JSX.Element => {
     return (
       <div
         className={classNames(
@@ -45,18 +71,18 @@ class CanvasActions extends Component {
     );
   };
 
-  render() {
+  render(): JSX.Element {
     return (
       <PopupMenu
         mobile={this.props.renderSize === "small"}
         isOpen={this.props.showCanvasActions}
         toggle={this.props.toggleCanvasActions}
         target="more-canvas-actions-popover-button"
-        className={"more-canvas-actions-popover"}
       >
         <div
           className={classNames(
             "canvas-actions-widget",
+            "more-canvas-actions-popover",
             this.props.renderSize === "small" && "vertical"
           )}
         >

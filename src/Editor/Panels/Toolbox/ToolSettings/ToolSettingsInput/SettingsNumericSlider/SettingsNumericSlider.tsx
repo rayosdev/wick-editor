@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Popover } from "react-tiny-popover";
 
 import WickInput from "Editor/Util/WickInput/WickInput";
@@ -8,7 +8,15 @@ import "Editor/styles/Panels/Toolbox/settingsnumericslider.css";
 
 import classNames from "classnames";
 
-export default function SettingsNumericSlider(props) {
+interface SettingsNumericSliderProps {
+  icon: string;
+  isMobile?: boolean;
+  onChange: (value: number) => void;
+  value: number;
+  inputRestrictions?: any;
+}
+
+export default function SettingsNumericSlider(props: SettingsNumericSliderProps): JSX.Element {
   const [sliderOn, setSliderOn] = useState(false);
 
   return (

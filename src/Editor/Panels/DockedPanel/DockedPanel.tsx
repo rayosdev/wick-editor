@@ -17,12 +17,17 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { PureComponent } from 'react';
+import { PureComponent, ReactNode } from 'react';
 import './_dockedpanel.scss';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-class DockedPanel extends PureComponent {
-  render() {
+interface DockedPanelProps {
+  showOverlay?: boolean;
+  children?: ReactNode;
+}
+
+class DockedPanel extends PureComponent<DockedPanelProps> {
+  render(): JSX.Element {
     return(
       <div className="docked-panel">
         {this.props.showOverlay && <div className="docked-panel-overlay" />}
