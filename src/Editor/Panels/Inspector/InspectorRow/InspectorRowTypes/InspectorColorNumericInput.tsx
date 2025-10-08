@@ -42,50 +42,52 @@ class InspectorColorNumericInput extends Component<InspectorColorNumericInputPro
   render(): JSX.Element {
     const idLabel1 = this.props.tooltip1.replace(/\s+/g, '-').toLowerCase();
     const idLabel2 = this.props.tooltip2.replace(/\s+/g, '-').toLowerCase();
-    return(
+    return (
       <div className="inspector-row">
-      {/* Identifier1 */} 
-      <label htmlFor={idLabel1 + "-input"} className="inspector-row-identifier">
-        {this.props.tooltip1}
-      </label>
+        {/* Identifier1 */}
+        <label htmlFor={idLabel1 + "-input"} className="inspector-row-identifier">
+          {this.props.tooltip1}
+        </label>
 
-      {/* Input1 */}
-      <div className="inspector-small-input-container">
-        <InspectorInput 
-          inputProps={{id: idLabel1 + "-input"}}
-          input={
-            {
-              type: "color",
-              color: this.props.val1,
-              onChange: this.props.onChange1,
-              id: this.props.id,
-              stroke: !this.props.stroke ? false : this.props.stroke,
-              placement: "left",
-              colorPickerType: this.props.colorPickerType,
-              changeColorPickerType:this.props.changeColorPickerType,
-              updateLastColors:this.props.updateLastColors,
-              lastColorsUsed:this.props.lastColorsUsed,
+        {/* Input1 */}
+        <div className="inspector-small-input-container">
+          <InspectorInput
+            inputProps={{ id: idLabel1 + "-input" }}
+            input={
+              {
+                type: "color",
+                color: this.props.val1,
+                onChange: this.props.onChange1,
+                id: this.props.id,
+                stroke: !this.props.stroke ? false : this.props.stroke,
+                placement: "left",
+                colorPickerType: this.props.colorPickerType,
+                changeColorPickerType: this.props.changeColorPickerType,
+                updateLastColors: this.props.updateLastColors,
+                lastColorsUsed: this.props.lastColorsUsed,
+              }
             }
-          }
-        />
-      </div>
+          />
+        </div>
 
-      {/* Identifier2 */}
-      <label htmlFor={idLabel2+"-"+this.props.tooltip2 + "-input"} className="inspector-row-identifier">
-        {this.props.tooltip2}
-      </label>
+        {/* Identifier2 */}
+        <label htmlFor={idLabel2 + "-" + this.props.tooltip2 + "-input"} className="inspector-row-identifier">
+          {this.props.tooltip2}
+        </label>
 
-      {/* Input2 */}
-      <div className="inspector-small-input-container">
-        <InspectorInput 
-          inputProps={{id: idLabel2+"-"+this.props.tooltip2 + "-input"}}
-          input={
-            {type: "numeric",
-            value: this.props.val2,
-            onChange: this.props.onChange2}
-          } />
+        {/* Input2 */}
+        <div className="inspector-small-input-container">
+          <InspectorInput
+            inputProps={{ id: idLabel2 + "-" + this.props.tooltip2 + "-input" }}
+            input={
+              {
+                type: "numeric",
+                value: this.props.val2,
+                onChange: this.props.onChange2
+              }
+            } />
+        </div>
       </div>
-    </div>
     );
   }
 }

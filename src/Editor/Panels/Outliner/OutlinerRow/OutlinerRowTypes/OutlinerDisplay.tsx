@@ -40,13 +40,15 @@ interface OutlinerDisplayProps {
 
 class OutlinerDisplay extends Component<OutlinerDisplayProps> {
   render(): JSX.Element {
-    const items: Record<string, string> = {path: "path-object",
+    const items: Record<string, string> = {
+      path: "path-object",
       button: "button-object",
       clip: "clip-object",
       text: "text-object",
-      image: "image-object"}; 
-    
-    return(
+      image: "image-object"
+    };
+
+    return (
       <div className="outliner-row">
         {/* Identifier */}
         <span className="outliner-row-identifier">
@@ -56,17 +58,17 @@ class OutlinerDisplay extends Component<OutlinerDisplayProps> {
         <span className="outliner-input-container">
           {Object.keys(items).map((item) => {
             return (
-            <OutlinerWidget
-              tooltip={(this.props.display[item] ? "Hide " : "Show ") + item.charAt(0).toUpperCase() + item.slice(1) + " Objects"}
-              key={item}
-              onClick={() => {
-                const newDisplay = {...this.props.display};
-                newDisplay[item] = !newDisplay[item];
-                this.props.onChange(newDisplay);
-              }} 
-              icon={items[item] || ''}
-              on={this.props.display[item]}
-            />);
+              <OutlinerWidget
+                tooltip={(this.props.display[item] ? "Hide " : "Show ") + item.charAt(0).toUpperCase() + item.slice(1) + " Objects"}
+                key={item}
+                onClick={() => {
+                  const newDisplay = { ...this.props.display };
+                  newDisplay[item] = !newDisplay[item];
+                  this.props.onChange(newDisplay);
+                }}
+                icon={items[item] || ''}
+                on={this.props.display[item]}
+              />);
           })}
         </span>
       </div>

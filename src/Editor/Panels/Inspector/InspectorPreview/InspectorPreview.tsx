@@ -47,7 +47,7 @@ class InspectorPreview extends Component<InspectorPreviewProps> {
     } else if (this.props.info.type === 'sound') {
       return (
         <div className="inspector-sound-preview-container">
-          <AudioPlayer key={Math.random()} src={this.props.info.src} loadSrc={this.props.info.loadSrc || (() => {})}/>
+          <AudioPlayer key={Math.random()} src={this.props.info.src} loadSrc={this.props.info.loadSrc || (() => { })} />
         </div>
       );
     } else {

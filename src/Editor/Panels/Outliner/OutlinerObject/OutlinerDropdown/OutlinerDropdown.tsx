@@ -15,7 +15,7 @@ class OutlinerDropdown extends Component<OutlinerDropdownProps> {
   render(): JSX.Element {
     const collapsed = this.props.collapsed ? "collapsed" : "expanded";
     return (
-      this.props.empty ? 
+      this.props.empty ?
         <img
           className="outliner-dropdown-icon empty"
           alt="dropdown-icon"
@@ -23,7 +23,7 @@ class OutlinerDropdown extends Component<OutlinerDropdownProps> {
         />
         :
         <input
-          type="image" 
+          type="image"
           className={"outliner-dropdown-icon " + collapsed}
           alt="dropdown-icon"
           src={dropdownIcon}

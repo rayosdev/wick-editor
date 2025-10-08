@@ -31,8 +31,8 @@ interface MobileInspectorInputProps {
 class MobileInspectorInput extends Component<MobileInspectorInputProps> {
   render(): JSX.Element {
     return (
-      <div  className="inspector-input-element">
-        <WickInput {...this.props.inputProps} {...this.props.input}/>
+      <div className="inspector-input-element">
+        <WickInput {...this.props.inputProps} {...this.props.input} />
       </div>
     );
   }

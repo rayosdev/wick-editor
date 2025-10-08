@@ -38,34 +38,34 @@ interface MobileInspectorColorProps {
 class MobileInspectorColor extends Component<MobileInspectorColorProps> {
   render(): JSX.Element {
     const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
-    return(
+    return (
       <div className="mobile-inspector-row">
-      {/* Identifier */} 
-      <label htmlFor={idLabel + "-input-mobile"} className="mobile-inspector-row-identifier mobile-inspector-row-identifier-color">
-        {this.props.tooltip}
-      </label>
+        {/* Identifier */}
+        <label htmlFor={idLabel + "-input-mobile"} className="mobile-inspector-row-identifier mobile-inspector-row-identifier-color">
+          {this.props.tooltip}
+        </label>
 
-      {/* Input */}
-      <div className="mobile-inspector-small-input-container">
-        <MobileInspectorInput 
-          inputProps={{id: idLabel + "-input-mobile"}}
-          input={
-            {
-              type: "color",
-              color: this.props.val,
-              onChange: this.props.onChange,
-              id: this.props.id,
-              stroke: !this.props.stroke ? false : this.props.stroke,
-              placement: "left",
-              colorPickerType: this.props.colorPickerType,
-              changeColorPickerType:this.props.changeColorPickerType,
-              updateLastColors:this.props.updateLastColors,
-              lastColorsUsed:this.props.lastColorsUsed,
+        {/* Input */}
+        <div className="mobile-inspector-small-input-container">
+          <MobileInspectorInput
+            inputProps={{ id: idLabel + "-input-mobile" }}
+            input={
+              {
+                type: "color",
+                color: this.props.val,
+                onChange: this.props.onChange,
+                id: this.props.id,
+                stroke: !this.props.stroke ? false : this.props.stroke,
+                placement: "left",
+                colorPickerType: this.props.colorPickerType,
+                changeColorPickerType: this.props.changeColorPickerType,
+                updateLastColors: this.props.updateLastColors,
+                lastColorsUsed: this.props.lastColorsUsed,
+              }
             }
-          }
-        />
+          />
+        </div>
       </div>
-    </div>
     );
   }
 }

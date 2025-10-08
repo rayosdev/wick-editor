@@ -24,7 +24,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 class OutlinerTitle extends Component {
 
   render(): JSX.Element {
-    return(
+    return (
       <div className="outliner-title">
         <div className="outliner-title-name">Outliner</div>
       </div>

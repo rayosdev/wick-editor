@@ -31,8 +31,8 @@ interface InspectorInputProps {
 class InspectorInput extends Component<InspectorInputProps> {
   render(): JSX.Element {
     return (
-      <div  className="inspector-input-element">
-        <WickInput {...this.props.inputProps} {...this.props.input}/>
+      <div className="inspector-input-element">
+        <WickInput {...this.props.inputProps} {...this.props.input} />
       </div>
     );
   }
