@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 import WickModal from "../WickModal/WickModal";
 import ActionButton from "../../Util/ActionButton/ActionButton";
@@ -7,23 +7,57 @@ import "./_savedprojects.scss";
 import SavedProjectItem from "./SavedProjectItem/SavedProjectItem";
 import classNames from "classnames";
 
-export default function SavedProjects(props) {
+interface SavedProject {
+  name: string;
+  date?: string;
+  size?: string;
+}
+
+interface WarningModalInfo {
+  title: string;
+  description: string;
+  acceptAction: () => void;
+  cancelAction: () => void;
+  acceptText: string;
+  canceltText: string;
+}
+
+interface SavedProjectsProps {
+  open: boolean;
+  toggle: () => void;
+  localSavedFiles?: SavedProject[];
+  isMobile?: boolean;
+  loadLocalWickFile: (project: SavedProject) => void;
+  deleteLocalWickFile: (project: SavedProject) => void;
+  reloadSavedWickFiles: () => void;
+  openWarningModal?: (info: WarningModalInfo) => void;
+}
+
+/**
+ * SavedProjects modal displays a list of locally saved Wick projects.
+ * Allows users to open or delete saved projects with confirmation dialogs.
+ */
+export default function SavedProjects(props: SavedProjectsProps): JSX.Element {
   // Use an empty list if saved files are not provided.
   const projects = props.localSavedFiles ? props.localSavedFiles : [];
 
-  const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedProject, setSelectedProject] = useState<SavedProject | null>(null);
 
-  let openSelectedFile = () => {
-    props.loadLocalWickFile(selectedProject);
-    props.toggle();
+  const openSelectedFile = (): void => {
+    if (selectedProject) {
+      props.loadLocalWickFile(selectedProject);
+      props.toggle();
+    }
   };
 
-  let deleteSelectedFile = () => {
-    props.deleteLocalWickFile(selectedProject);
-    props.reloadSavedWickFiles();
+  const deleteSelectedFile = (): void => {
+    if (selectedProject) {
+      props.deleteLocalWickFile(selectedProject);
+      props.reloadSavedWickFiles();
+    }
   };
 
-  let attemptOpenFile = () => {
+  const attemptOpenFile = (): void => {
     if (props.openWarningModal) {
       props.openWarningModal({
         title: "Lose Unsaved",
@@ -36,8 +70,8 @@ export default function SavedProjects(props) {
     }
   };
 
-  let attemptDeleteFile = () => {
-    if (props.openWarningModal) {
+  const attemptDeleteFile = (): void => {
+    if (props.openWarningModal && selectedProject) {
       props.openWarningModal({
         title: `Delete ${selectedProject.name}`,
         description: "This cannot be undone!",
@@ -63,8 +97,9 @@ export default function SavedProjects(props) {
       <div className="saved-projects-modal-body">
         {projects.map((project) => (
           <SavedProjectItem
+            key={project.name}
             onClick={() => setSelectedProject(project)}
-            selected={selectedProject && selectedProject.name === project.name}
+            selected={selectedProject !== null && selectedProject.name === project.name}
             item={project}
           />
         ))}

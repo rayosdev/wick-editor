@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 
 import './_editorsettings.scss';
 import WickInput from 'Editor/Util/WickInput/WickInput';
@@ -25,20 +25,45 @@ import WickInput from 'Editor/Util/WickInput/WickInput';
 import iconBackwards from 'resources/timeline-icons/backwards.svg';
 import iconForwards from 'resources/timeline-icons/forwards.svg';
 
-class EditorSettings extends Component {
-  constructor () {
-    super();
+interface WickColor {
+  rgba: string;
+}
+
+interface ColorPickerType {
+  type: string;
+}
+
+interface EditorSettingsProps {
+  getToolSetting: (setting: string) => any;
+  setToolSetting: (setting: string, value: any) => void;
+  getToolSettingRestrictions: (setting: string) => { options: string[] };
+  colorPickerType: ColorPickerType;
+  changeColorPickerType: (type: ColorPickerType) => void;
+  updateLastColors: (color: string) => void;
+  lastColorsUsed: string[];
+}
+
+/**
+ * EditorSettings component for configuring editor preferences.
+ * Currently supports onion skinning style and color settings.
+ */
+class EditorSettings extends Component<EditorSettingsProps> {
+  constructor(props: EditorSettingsProps) {
+    super(props);
 
     this.state = {
 
     }
   }
 
-  render () {
-    let optionsLabels = [];
-    let options = this.props.getToolSettingRestrictions('onionSkinStyle').options;
+  render(): JSX.Element {
+    const optionsLabels: Array<{ label: string; value: string }> = [];
+    const options = this.props.getToolSettingRestrictions('onionSkinStyle').options;
     for (let i = 0; i < options.length; i++) {
-      optionsLabels.push({label: options[i], value: options[i]});
+      const option = options[i];
+      if (option) {
+        optionsLabels.push({label: option, value: option});
+      }
     }
     return (
       <div className="editor-settings-modal-body">
@@ -50,7 +75,7 @@ class EditorSettings extends Component {
               id="onion-skin-style"
               value={this.props.getToolSetting('onionSkinStyle')}
               options={optionsLabels}
-              onChange={(val) => {this.props.setToolSetting('onionSkinStyle', val.value)}}
+              onChange={(val: any) => {this.props.setToolSetting('onionSkinStyle', val.value)}}
             />
           {
             this.props.getToolSetting('onionSkinStyle') !== 'standard' &&
@@ -65,8 +90,8 @@ class EditorSettings extends Component {
                   id="editor-settings-backward-color-picker"
                   disableAlpha={true}
                   placement={'bottom'}
-                  color={this.props.getToolSetting('backwardOnionSkinTint').rgba}
-                  onChange={(color) => {this.props.setToolSetting('backwardOnionSkinTint', new window.Wick.Color(color))}}
+                  color={(this.props.getToolSetting('backwardOnionSkinTint') as WickColor).rgba}
+                  onChange={(color: any) => {this.props.setToolSetting('backwardOnionSkinTint', new (window as any).Wick.Color(color))}}
                   colorPickerType={this.props.colorPickerType}
                   changeColorPickerType={this.props.changeColorPickerType}
                   updateLastColors={this.props.updateLastColors}
@@ -81,8 +106,8 @@ class EditorSettings extends Component {
                   id="editor-settings-forward-color-picker"
                   disableAlpha={true}
                   placement={'bottom'}
-                  color={this.props.getToolSetting('forwardOnionSkinTint').rgba}
-                  onChange={(color) => {this.props.setToolSetting('forwardOnionSkinTint', new window.Wick.Color(color))}}
+                  color={(this.props.getToolSetting('forwardOnionSkinTint') as WickColor).rgba}
+                  onChange={(color: any) => {this.props.setToolSetting('forwardOnionSkinTint', new (window as any).Wick.Color(color))}}
                   colorPickerType={this.props.colorPickerType}
                   changeColorPickerType={this.props.changeColorPickerType}
                   updateLastColors={this.props.updateLastColors}
@@ -98,4 +123,4 @@ class EditorSettings extends Component {
   }
 }
 
-export default EditorSettings
+export default EditorSettings;
