@@ -71,6 +71,9 @@ class SettingsModal extends Component<SettingsModalProps> {
         resetCustomHotKeys={this.props.resetCustomHotKeys}
         customHotKeys={this.props.customHotKeys}
         keyMap={this.props.keyMap}
+        keyMapGroups={this.props.keyMapGroups}
+        createCombinedHotKeyMap={this.props.createCombinedHotKeyMap || (() => ({}))}
+        toast={this.props.toast}
       />
     );
   };
@@ -103,7 +106,7 @@ class SettingsModal extends Component<SettingsModalProps> {
               keyMapGroups={this.props.keyMapGroups}
               toast={this.props.toast}
               toggle={this.props.toggle}
-              createCombinedHotKeyMap={this.props.createCombinedHotKeyMap}
+              createCombinedHotKeyMap={this.props.createCombinedHotKeyMap || (() => ({}))}
             />
             <EditorSettings
               colorPickerType={this.props.colorPickerType}

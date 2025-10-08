@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from "react";
+import { Component } from "react";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import WickInput from "Editor/Util/WickInput/WickInput";
 
@@ -25,8 +25,34 @@ import "./_projectsettings.scss";
 
 import classNames from "classnames";
 
-class ProjectSettings extends Component {
-  constructor(props) {
+interface ProjectSettingsProps {
+  project: any;
+  updateProjectSettings: (settings: any) => void;
+  toggle?: () => void;
+  isMobile?: boolean;
+  colorPickerType?: any;
+  changeColorPickerType?: (type: any) => void;
+  updateLastColors?: (color: string) => void;
+  lastColorsUsed?: string[];
+}
+
+interface ProjectSettingsState {
+  name: string;
+  width: number;
+  height: number;
+  framerate: number;
+  backgroundColor: string;
+  preset: string;
+}
+
+class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsState> {
+  defaultName: string;
+  projectMinWidth: number;
+  projectMinHeight: number;
+  projectMinFramerate: number;
+  presets: Array<{ name: string; width: number; height: number }>;
+
+  constructor(props: ProjectSettingsProps) {
     super(props);
 
     this.defaultName = "New Project";
@@ -74,7 +100,7 @@ class ProjectSettings extends Component {
     };
   }
 
-  componentDidUpdate = (prevProps) => {
+  componentDidUpdate = (prevProps: ProjectSettingsProps): void => {
     let values = ["name", "width", "height", "framerate", "backgroundColor"];
     let different = false;
     values.forEach((value) => {
@@ -88,7 +114,7 @@ class ProjectSettings extends Component {
     }
   };
 
-  getPreset = (width, height) => {
+  getPreset = (width: number, height: number): string => {
     let possiblePreset = this.presets.find((preset) => preset.width === width);
     if (possiblePreset && possiblePreset.height === height) {
       return possiblePreset.name;
@@ -97,19 +123,19 @@ class ProjectSettings extends Component {
     }
   };
 
-  setPreset = (width, height) => {
+  setPreset = (width: number, height: number): void => {
     this.setState({
       preset: this.getPreset(width, height),
     });
   };
 
-  changeProjectName = (proposedName) => {
+  changeProjectName = (proposedName: string): void => {
     this.setState({
       name: proposedName,
     });
   };
 
-  changeProjectWidth = (widthAsNumber) => {
+  changeProjectWidth = (widthAsNumber: number): void => {
     let cleanWidthAsNumber = !widthAsNumber
       ? this.projectMinWidth
       : Math.max(this.projectMinWidth, widthAsNumber);
@@ -120,7 +146,7 @@ class ProjectSettings extends Component {
     this.setPreset(cleanWidthAsNumber, this.state.height);
   };
 
-  changeProjectHeight = (heightAsNumber) => {
+  changeProjectHeight = (heightAsNumber: number): void => {
     let cleanHeightAsNumber = !heightAsNumber
       ? this.projectMinHeight
       : Math.max(this.projectMinHeight, heightAsNumber);
@@ -131,7 +157,7 @@ class ProjectSettings extends Component {
     this.setPreset(this.state.width, cleanHeightAsNumber);
   };
 
-  changeProjectFramerate = (framerateAsNumber) => {
+  changeProjectFramerate = (framerateAsNumber: number): void => {
     let cleanFramerateAsNumber = !framerateAsNumber
       ? this.projectMinFramerate
       : Math.max(this.projectMinFramerate, framerateAsNumber);
@@ -140,13 +166,13 @@ class ProjectSettings extends Component {
     });
   };
 
-  changeProjectBackgroundColor = (color) => {
+  changeProjectBackgroundColor = (color: string): void => {
     this.setState({
       backgroundColor: color,
     });
   };
 
-  acceptProjectSettings = () => {
+  acceptProjectSettings = (): void => {
     let newSettings = {
       name: this.state.name === "" ? this.defaultName : this.state.name,
       width: this.state.width,
@@ -159,7 +185,7 @@ class ProjectSettings extends Component {
     this.props.toggle && this.props.toggle();
   };
 
-  reset = () => {
+  reset = (): void => {
     this.setState({
       name: this.props.project.name,
       width: this.props.project.width,
@@ -173,12 +199,12 @@ class ProjectSettings extends Component {
     });
   };
 
-  resetAndToggle = () => {
+  resetAndToggle = (): void => {
     this.reset();
     if (this.props.toggle) this.props.toggle();
   };
 
-  renderNameObject = () => {
+  renderNameObject = (): JSX.Element => {
     return (
       <div
         className={classNames(
@@ -205,7 +231,7 @@ class ProjectSettings extends Component {
     );
   };
 
-  renderFramerateObject = () => {
+  renderFramerateObject = (): JSX.Element => {
     return (
       <div
         className={classNames(
@@ -232,7 +258,7 @@ class ProjectSettings extends Component {
     );
   };
 
-  renderWidthObject = () => {
+  renderWidthObject = (): JSX.Element => {
     return (
       <div
         className={classNames(
@@ -281,7 +307,7 @@ class ProjectSettings extends Component {
     );
   };
 
-  renderSizeObjectMobile = () => {
+  renderSizeObjectMobile = (): JSX.Element => {
     return (
       <div className={classNames("project-setting-element", "mobile")}>
         <div className="project-settings-property-container project-settings-size-input-container mobile">
@@ -320,7 +346,7 @@ class ProjectSettings extends Component {
     );
   };
 
-  renderBackgroundColorObject = () => {
+  renderBackgroundColorObject = (): JSX.Element => {
     return (
       <div
         className={classNames(
@@ -352,7 +378,7 @@ class ProjectSettings extends Component {
     );
   };
 
-  selectPreset = (preset) => {
+  selectPreset = (preset: { name: string; width: number; height: number }): void => {
     this.setState({
       width: preset.width,
       height: preset.height,
@@ -360,7 +386,7 @@ class ProjectSettings extends Component {
     });
   };
 
-  renderPresetBoxes = () => {
+  renderPresetBoxes = (): JSX.Element => {
     return (
       <div className="preset-boxes">
         {this.presets.map((preset, i) => {
@@ -383,7 +409,7 @@ class ProjectSettings extends Component {
     );
   };
 
-  renderPresets = () => {
+  renderPresets = (): JSX.Element => {
     return (
       <div className="project-setting-element project-settings-presets-container">
         <label
@@ -399,13 +425,16 @@ class ProjectSettings extends Component {
     );
   };
 
-  renderPresetsMobile = () => {
-    let options = [];
+  renderPresetsMobile = (): JSX.Element => {
+    const options: Array<{ value: string; label: string }> = [];
     for (let i = 0; i < this.presets.length; i++) {
-      options.push({
-        value: this.presets[i].name,
-        label: this.presets[i].name,
-      });
+      const preset = this.presets[i];
+      if (preset) {
+        options.push({
+          value: preset.name,
+          label: preset.name,
+        });
+      }
     }
     return (
       <div className="project-setting-element project-settings-presets-container">
@@ -414,11 +443,12 @@ class ProjectSettings extends Component {
           <WickInput
             type="select"
             value={this.state.preset}
-            onChange={(option) =>
-              this.selectPreset(
-                this.presets.find((preset) => option.value === preset.name)
-              )
-            }
+            onChange={(option) => {
+              const foundPreset = this.presets.find((preset) => option.value === preset.name);
+              if (foundPreset) {
+                this.selectPreset(foundPreset);
+              }
+            }}
             options={options}
           />
         </div>
@@ -426,7 +456,7 @@ class ProjectSettings extends Component {
     );
   };
 
-  renderSizeObject = () => {
+  renderSizeObject = (): JSX.Element => {
     return (
       <div
         className={classNames(
@@ -475,7 +505,7 @@ class ProjectSettings extends Component {
     );
   };
 
-  renderDesktop = () => {
+  renderDesktop = (): JSX.Element => {
     return (
       <div id="project-settings-interior-content">
         {/* Body */}
@@ -515,7 +545,7 @@ class ProjectSettings extends Component {
     );
   };
 
-  renderMobile = () => {
+  renderMobile = (): JSX.Element => {
     return (
       <div id="project-settings-interior-content">
         {/* Body */}
@@ -559,7 +589,7 @@ class ProjectSettings extends Component {
     );
   };
 
-  render() {
+  render(): JSX.Element {
     if (this.props.isMobile) {
       return this.renderMobile();
     } else {
