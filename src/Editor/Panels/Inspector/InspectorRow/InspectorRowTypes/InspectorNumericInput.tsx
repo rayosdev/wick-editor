@@ -17,15 +17,21 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 
 import InspectorInput from 'Editor/Panels/Inspector/InspectorRow/InspectorInput/InspectorInput';
 
 import '../_inspectorrow.scss';
 
-class InspectorNumericSlider extends Component {
-  render() {
-    let idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
+interface InspectorNumericInputProps {
+  tooltip: string;
+  val: number;
+  onChange: (value: number) => void;
+}
+
+class InspectorNumericInput extends Component<InspectorNumericInputProps> {
+  render(): JSX.Element {
+    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
     return(
       <div className="inspector-row">
         {/* Identifier */} 
@@ -34,24 +40,13 @@ class InspectorNumericSlider extends Component {
         </label>
 
         {/* Input */}
-        <div className="inspector-small-input-container">
-          <InspectorInput
-            inputProps={{id: idLabel + "-input"}} 
+        <div className="inspector-large-input-container">
+          <InspectorInput 
+            inputProps={{id: idLabel + "-input"}}
             input={
               {type: "numeric",
               value: this.props.val,
               onChange: this.props.onChange}
-            } />
-        </div>
-
-        {/* Slider */}
-        <div className="inspector-medium-input-container">
-          <InspectorInput
-            inputProps={{...this.props.inputProps, id: idLabel+ "-input"}}
-            input={
-              {type: "slider",
-               value: this.props.val,
-               onChange: this.props.onChange}
             } />
         </div>
       </div>
@@ -59,4 +54,4 @@ class InspectorNumericSlider extends Component {
   }
 }
 
-export default InspectorNumericSlider
+export default InspectorNumericInput
