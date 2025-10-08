@@ -17,17 +17,32 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from "react";
+import { Component } from "react";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 
 import "./_objectinfo.scss";
 
 import classNames from "classnames";
 
-class MakeAnimated extends Component {
-  renderRow(rowInfo, i) {
-    let text = rowInfo.text;
-    let icon = rowInfo.icon;
+interface ObjectInfoRow {
+  text: string;
+  icon: string;
+}
+
+interface ObjectInfoProps {
+  className?: string;
+  title: string;
+  rows: ObjectInfoRow[];
+}
+
+/**
+ * ObjectInfo component displays a titled list of rows with icons and text.
+ * Used for displaying object information in modals.
+ */
+class MakeAnimated extends Component<ObjectInfoProps> {
+  renderRow = (rowInfo: ObjectInfoRow, i: number): JSX.Element => {
+    const text = rowInfo.text;
+    const icon = rowInfo.icon;
     return (
       <div key={i} className="object-info-row">
         <div className="object-info-row-icon">
@@ -36,9 +51,9 @@ class MakeAnimated extends Component {
         <div className="object-info-row-text">{text}</div>
       </div>
     );
-  }
+  };
 
-  render() {
+  render(): JSX.Element {
     return (
       <div
         className={classNames("object-info-container", this.props.className)}

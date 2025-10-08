@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
@@ -25,8 +25,19 @@ import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import './_editorinfo.scss';
 import ToolIcon from '../../Util/ToolIcon/ToolIcon';
 
-class WelcomeModal extends Component {
-    render () {
+interface EditorInfoProps {
+    open: boolean;
+    toggle: () => void;
+    editorVersion: string;
+    openModal: (modalName: string) => void;
+}
+
+/**
+ * EditorInfo modal displays information about Wick Editor.
+ * Shows version, links to policies, forum, and open source notices.
+ */
+class WelcomeModal extends Component<EditorInfoProps> {
+    render(): JSX.Element {
         return (
             <WickModal
             open={this.props.open} 

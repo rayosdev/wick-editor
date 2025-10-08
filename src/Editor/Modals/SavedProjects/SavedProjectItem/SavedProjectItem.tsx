@@ -1,10 +1,25 @@
-import React from "react";
-
 import "./_savedprojectitem.scss";
 
 import classNames from "classnames";
 
-export default function SavedProjectItem(props) {
+interface SavedProjectItemData {
+  name: string;
+  date?: string;
+  size?: string;
+}
+
+interface SavedProjectItemProps {
+  item: SavedProjectItemData;
+  onClick: () => void;
+  selected?: boolean;
+}
+
+/**
+ * SavedProjectItem - A list item displaying a saved project.
+ * @param props - Component props
+ * @returns JSX.Element
+ */
+export default function SavedProjectItem(props: SavedProjectItemProps): JSX.Element {
   return (
     <div
       onClick={props.onClick}

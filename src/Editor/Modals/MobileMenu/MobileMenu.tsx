@@ -17,26 +17,46 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 import Modal from 'react-modal';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 
 import './_mobilemenu.scss';
 
-class MobileMenu extends Component {
-  render() {
-    let modalProps = {
+interface MobileMenuItem {
+  text: string;
+  icon: string;
+  action: () => void;
+}
+
+interface MobileMenuProps {
+  open: boolean;
+  toggle: () => void;
+  openNewProjectConfirmation: () => void;
+  openProjectFileDialog: () => void;
+  openModal: (modalName: string) => void;
+}
+
+/**
+ * MobileMenu component displays a mobile-specific menu modal.
+ * Shows options for new project, open, export, settings, and about.
+ */
+class MobileMenu extends Component<MobileMenuProps> {
+  render(): JSX.Element {
+    const modalProps = {
       isOpen: this.props.open,
       toggle: this.props.toggle,
       onRequestClose: this.props.toggle,
       overlayClassName: "modal-overlay mobile-menu-overlay",
     };
 
-    let items = [{text: "new", icon: "create-white", action: this.props.openNewProjectConfirmation},
-        {text: "open", icon: "load-white", action: this.props.openProjectFileDialog},
-        {text: "export", icon: "export", action: () => this.props.openModal('ExportOptions')},
-        {text: "settings", icon: "gear-white", action: () => this.props.openModal('SettingsModal')},
-        {text: "about", icon: "mascotmarkwhite", action: () => this.props.openModal('EditorInfo')}];
+    const items: MobileMenuItem[] = [
+      {text: "new", icon: "create-white", action: this.props.openNewProjectConfirmation},
+      {text: "open", icon: "load-white", action: this.props.openProjectFileDialog},
+      {text: "export", icon: "export", action: () => this.props.openModal('ExportOptions')},
+      {text: "settings", icon: "gear-white", action: () => this.props.openModal('SettingsModal')},
+      {text: "about", icon: "mascotmarkwhite", action: () => this.props.openModal('EditorInfo')}
+    ];
 
     return (
         <Modal
@@ -55,4 +75,4 @@ class MobileMenu extends Component {
 
 }
 
-export default MobileMenu
+export default MobileMenu;

@@ -17,14 +17,31 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
 import { Progress } from 'reactstrap';
 
 import './_exportmedia.scss';
 
-class ExportMedia extends Component {
-  render() {
+interface WickProject {
+  name: string;
+}
+
+interface ExportMediaProps {
+  open: boolean;
+  toggle: () => void;
+  project: WickProject;
+  renderType: 'video' | 'gif' | 'image sequence';
+  renderProgress: number;
+  renderStatusMessage: string;
+}
+
+/**
+ * ExportMedia modal displays export progress for video, GIF, or image sequence.
+ * Shows progress bar and status message during rendering.
+ */
+class ExportMedia extends Component<ExportMediaProps> {
+  render(): JSX.Element {
     let renderName = this.props.project.name;
 
     if (this.props.renderType === "video") {
@@ -56,9 +73,9 @@ class ExportMedia extends Component {
     );
   }
 
-  get renderDone () {
+  get renderDone(): boolean {
     return this.props.renderProgress === 100;
   }
 }
 
-export default ExportMedia
+export default ExportMedia;

@@ -32,6 +32,7 @@ declare module 'tinycolor2';
 declare module 'react-color';
 declare module 'react-color/lib/components/common';
 declare module 'react-color/lib/components/sketch/SketchFields';
+declare module 'react-modal';
 
 // Wick Engine global
 interface Window {
