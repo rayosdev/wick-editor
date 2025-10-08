@@ -1,28 +1,53 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
 import WickInput from 'Editor/Util/WickInput/WickInput';
 
 import './_simpleprojectsettings.scss';
 import ActionButton from '../../Util/ActionButton/ActionButton';
 
-export default function SimpleProjectSettings(props) {
-  const [newProjectName, setNewProjectName] = useState(props.project.name);
-  const [newProjectFrameRate, setNewProjectFrameRate] = useState(props.project.framerate);
-  const [newWidth, setNewWidth] = useState(props.project.width);
-  const [newHeight, setNewHeight] = useState(props.project.height);
+interface WickProject {
+  name: string;
+  framerate: number;
+  width: number;
+  height: number;
+}
+
+interface ProjectSettingsUpdate {
+  name: string;
+  framerate: number;
+  width: number;
+  height: number;
+}
+
+interface SimpleProjectSettingsProps {
+  open: boolean;
+  toggle: () => void;
+  project: WickProject;
+  updateProjectSettings: (settings: ProjectSettingsUpdate) => void;
+}
+
+/**
+ * SimpleProjectSettings modal for editing basic project properties.
+ * Allows users to change name, framerate, width, and height.
+ */
+export default function SimpleProjectSettings(props: SimpleProjectSettingsProps): JSX.Element {
+  const [newProjectName, setNewProjectName] = useState<string>(props.project.name);
+  const [newProjectFrameRate, setNewProjectFrameRate] = useState<number>(props.project.framerate);
+  const [newWidth, setNewWidth] = useState<number>(props.project.width);
+  const [newHeight, setNewHeight] = useState<number>(props.project.height);
 
   useEffect(() => {
     resetProjectDetails();
   }, [props.open]);
 
-  function resetProjectDetails() {
+  function resetProjectDetails(): void {
     setNewProjectName(props.project.name);
     setNewProjectFrameRate(props.project.framerate);
     setNewWidth(props.project.width);
     setNewHeight(props.project.height);
   }
 
-  function updateProjectSettings() {
+  function updateProjectSettings(): void {
     props.updateProjectSettings({
       name: newProjectName,
       framerate: newProjectFrameRate,
