@@ -17,15 +17,23 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 
-import InspectorInput from '../InspectorInput/InspectorInput';
+import InspectorInput from 'Editor/Panels/Inspector/InspectorRow/InspectorInput/InspectorInput';
 
 import '../_inspectorrow.scss';
 
-class InspectorCheckbox extends Component {
-  render() {
-    let idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
+interface InspectorTextInputProps {
+  tooltip: string;
+  val: string;
+  onChange: (value: string) => void;
+  readOnly?: boolean;
+  placeholder?: string;
+}
+
+class InspectorTextInput extends Component<InspectorTextInputProps> {
+  render(): JSX.Element {
+    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
     return(
       <div className="inspector-row">
         {/* Identifier */} 
@@ -33,22 +41,23 @@ class InspectorCheckbox extends Component {
           {this.props.tooltip}
         </label>
 
-        {/* Checkbox */}
-        <div className="inspector-small-input-container">
+        {/* Input */}
+        <div className="inspector-large-input-container">
           <InspectorInput 
             inputProps={{id: idLabel + "-input"}}
             input={
               {
-                type: "checkbox",
-                checked: this.props.checked,
-                onChange: this.props.onChange
+                type: "text",
+                value: this.props.val,
+                onChange: this.props.onChange,
+                readOnly: this.props.readOnly,
+                placeholder: this.props.placeholder,
               }
-            }
-          />
+            } />
         </div>
       </div>
     );
   }
 }
 
-export default InspectorCheckbox
+export default InspectorTextInput

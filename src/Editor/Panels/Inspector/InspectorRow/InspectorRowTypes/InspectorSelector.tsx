@@ -17,15 +17,23 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 
 import InspectorInput from 'Editor/Panels/Inspector/InspectorRow/InspectorInput/InspectorInput';
 
 import '../_inspectorrow.scss';
 
-class InspectorTextInput extends Component {
-  render() {
-    let idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
+interface InspectorSelectorProps {
+  tooltip: string;
+  value: string;
+  onChange: (option: any) => void;
+  options: Array<{ value: string; label: string }>;
+  className?: string;
+}
+
+class InspectorSelector extends Component<InspectorSelectorProps> {
+  render(): JSX.Element {
+    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
     return(
       <div className="inspector-row">
         {/* Identifier */} 
@@ -36,14 +44,14 @@ class InspectorTextInput extends Component {
         {/* Input */}
         <div className="inspector-large-input-container">
           <InspectorInput 
-            inputProps={{id: idLabel + "-input"}}
+            inputProps={{id: idLabel+ "-input"}}
             input={
               {
-                type: "text",
-                value: this.props.val,
+                type: "select",
+                value: this.props.value,
                 onChange: this.props.onChange,
-                readOnly: this.props.readOnly,
-                placeholder: this.props.placeholder,
+                options: this.props.options,
+                className: this.props.className,
               }
             } />
         </div>
@@ -52,4 +60,4 @@ class InspectorTextInput extends Component {
   }
 }
 
-export default InspectorTextInput
+export default InspectorSelector

@@ -17,15 +17,21 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 
-import InspectorInput from 'Editor/Panels/Inspector/InspectorRow/InspectorInput/InspectorInput';
+import InspectorInput from '../InspectorInput/InspectorInput';
 
 import '../_inspectorrow.scss';
 
-class InspectorSelector extends Component {
-  render() {
-    let idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
+interface InspectorCheckboxProps {
+  tooltip: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}
+
+class InspectorCheckbox extends Component<InspectorCheckboxProps> {
+  render(): JSX.Element {
+    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
     return(
       <div className="inspector-row">
         {/* Identifier */} 
@@ -33,23 +39,22 @@ class InspectorSelector extends Component {
           {this.props.tooltip}
         </label>
 
-        {/* Input */}
-        <div className="inspector-large-input-container">
+        {/* Checkbox */}
+        <div className="inspector-small-input-container">
           <InspectorInput 
-            inputProps={{id: idLabel+ "-input"}}
+            inputProps={{id: idLabel + "-input"}}
             input={
               {
-                type: "select",
-                value: this.props.value,
-                onChange: this.props.onChange,
-                options: this.props.options,
-                className: this.props.className,
+                type: "checkbox",
+                checked: this.props.checked,
+                onChange: this.props.onChange
               }
-            } />
+            }
+          />
         </div>
       </div>
     );
   }
 }
 
-export default InspectorSelector
+export default InspectorCheckbox
