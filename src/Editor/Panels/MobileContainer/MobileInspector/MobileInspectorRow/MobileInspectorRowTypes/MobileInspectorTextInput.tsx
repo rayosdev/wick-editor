@@ -17,15 +17,23 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 
 import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
 
 import '../_mobileinspectorrow.scss';
 
-class MobileInspectorTextInput extends Component {
-  render() {
-    let idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
+interface MobileInspectorTextInputProps {
+  tooltip: string;
+  val: string;
+  onChange: (value: string) => void;
+  readOnly?: boolean;
+  placeholder?: string;
+}
+
+class MobileInspectorTextInput extends Component<MobileInspectorTextInputProps> {
+  render(): JSX.Element {
+    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
     return(
       <div className="mobile-inspector-row">
         {/* Identifier */} 
