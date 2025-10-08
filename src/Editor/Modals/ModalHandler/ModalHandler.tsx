@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 
 import MakeInteractive from '../MakeInteractive/MakeInteractive';
 import AutosaveWarning from '../AutosaveWarning/AutosaveWarning';
@@ -35,26 +35,75 @@ import SavedProjects from '../SavedProjects/SavedProjects';
 import SimpleProjectSettings from '../SimpleProjectSettings/SimpleProjectSettings';
 import SupportUs from '../SupportUs/SupportUs';
 
-class ModalHandler extends Component {
-  render() {
-    let isMobile = this.props.getRenderSize() === "small";
+interface ModalHandlerProps {
+  activeModalName: string | null;
+  openModal: (name: string) => void;
+  closeActiveModal: () => void;
+  createClipFromSelection: (name: string) => void;
+  createButtonFromSelection: (name: string) => void;
+  createAnimationFromSelection: (name: string) => void;
+  openWarningModal: (info: any) => void;
+  warningModalInfo: any;
+  exportProjectAsVideo: () => void;
+  renderProgress: number;
+  renderType: "video" | "gif" | "image sequence";
+  renderStatusMessage: string;
+  project: any;
+  updateProjectSettings: (settings: any) => void;
+  addCustomHotKeys: (keys: any) => void;
+  resetCustomHotKeys: () => void;
+  keyMap: any;
+  keyMapGroups: any;
+  customHotKeys: any;
+  colorPickerType: string;
+  changeColorPickerType: (type: string) => void;
+  updateLastColors: (color: string) => void;
+  lastColorsUsed: string[];
+  toast: (message: string) => void;
+  createCombinedHotKeyMap: () => any;
+  getToolSetting: (setting: string) => any;
+  setToolSetting: (setting: string, value: any) => void;
+  getToolSettingRestrictions: (setting: string) => any;
+  importFileAsAsset: (file: any) => void;
+  builtinPreviews: any;
+  addFileToBuiltinPreviews: (file: any) => void;
+  isAssetInLibrary: (asset: any) => boolean;
+  editorVersion: string;
+  openProjectFileDialog: () => void;
+  openNewProjectConfirmation: () => void;
+  localSavedFiles: any[];
+  loadLocalWickFile: (file: any) => void;
+  deleteLocalWickFile: (file: any) => void;
+  reloadSavedWickFiles: () => void;
+  getRenderSize: () => string;
+  loadAutosavedProject: any;
+  clearAutoSavedProject: any;
+  queueModal: (name: string) => void;
+  exportProjectAsGif: () => void;
+  exportProjectAsStandaloneZip: () => void;
+  exportProjectAsStandaloneHTML: () => void;
+  exportProjectAsImageSequence: () => void;
+  exportProjectAsAudioTrack: () => void;
+  exportProjectAsImageSVG: () => void;
+}
+
+class ModalHandler extends Component<ModalHandlerProps> {
+  render(): JSX.Element {
+    const isMobile = this.props.getRenderSize() === "small";
     return (
       <div>
         <MakeAnimated
-            openModal={this.props.openModal}
             toggle={this.props.closeActiveModal}
             open={this.props.activeModalName === 'MakeAnimated'}
             createClipFromSelection={this.props.createClipFromSelection}
           />
         <MakeInteractive
-            openModal={this.props.openModal}
             toggle={this.props.closeActiveModal}
             open={this.props.activeModalName === 'MakeInteractive'}
             createClipFromSelection={this.props.createClipFromSelection}
             createButtonFromSelection={this.props.createButtonFromSelection}
           />
         <AutosaveWarning
-            openModal={this.props.openModal}
             toggle={this.props.closeActiveModal}
             open={this.props.activeModalName === 'AutosaveWarning'}
             loadAutosavedProject={this.props.loadAutosavedProject}
@@ -85,15 +134,12 @@ class ModalHandler extends Component {
           project={this.props.project}
           />
         <GeneralWarning
-          openModal={this.props.openModal}
           toggle={this.props.closeActiveModal}
           open={this.props.activeModalName === 'GeneralWarning'}
           info={this.props.warningModalInfo}
         />
         <ExportMedia
-          openModal={this.props.openModal}
           toggle={this.props.closeActiveModal}
-          exportProjectAsVideo={this.props.exportProjectAsVideo}
           open={this.props.activeModalName === 'ExportMedia'}
           renderProgress={this.props.renderProgress}
           renderType={this.props.renderType}
@@ -102,7 +148,6 @@ class ModalHandler extends Component {
         />
         <SettingsModal
           isMobile={isMobile}
-          openModal={this.props.openModal}
           toggle={this.props.closeActiveModal}
           open={this.props.activeModalName === 'SettingsModal'}
           project={this.props.project}
@@ -152,7 +197,6 @@ class ModalHandler extends Component {
           open={this.props.activeModalName === 'MobileMenuModal'}
         />
         <SavedProjects
-          openModal={this.props.openModal}
           toggle={this.props.closeActiveModal}
           open={this.props.activeModalName === 'SavedProjects'}
           localSavedFiles={this.props.localSavedFiles}
@@ -169,7 +213,6 @@ class ModalHandler extends Component {
 
         <SupportUs
           isMobile={isMobile}
-          openModal={this.props.openModal}
           toggle={this.props.closeActiveModal}
           open={this.props.activeModalName === 'SupportUs'}
           />

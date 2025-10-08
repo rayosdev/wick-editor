@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton'; 
 import WickModal from 'Editor/Modals/WickModal/WickModal'; 
 import WickInput from 'Editor/Util/WickInput/WickInput';
@@ -25,8 +25,27 @@ import ObjectInfo from '../Util/ObjectInfo/ObjectInfo';
 
 import './_makeinteractive.scss';
 
-class MakeInteractive extends Component {
-  constructor (props) {
+interface MakeInteractiveProps {
+  open: boolean;
+  toggle: () => void;
+  createClipFromSelection: (name: string) => void;
+  createButtonFromSelection: (name: string) => void;
+}
+
+interface MakeInteractiveState {
+  name: string;
+  makeAsset: boolean;
+}
+
+/**
+ * MakeInteractive modal for converting selected objects into interactive clips or buttons.
+ * Clips have timelines and can be controlled with code.
+ * Buttons have 3 frames controlled by mouse interactions.
+ */
+class MakeInteractive extends Component<MakeInteractiveProps, MakeInteractiveState> {
+  placeholderName: string;
+
+  constructor(props: MakeInteractiveProps) {
     super(props);
     this.placeholderName = "Item_Name"
     this.state = {
@@ -40,8 +59,8 @@ class MakeInteractive extends Component {
    * Creates an item of type and toggles the modal.
    * @param {string} type Either 'Button' or 'Clip'
    */
-  createAndToggle = (type) => {
-    let name = this.state.name !== "" ? this.state.name : (type); 
+  createAndToggle = (type: 'Clip' | 'Button'): void => {
+    const name = this.state.name !== "" ? this.state.name : type; 
     if (type === 'Clip') {
       this.props.createClipFromSelection(name)
     } else if (type === 'Button') {
@@ -52,20 +71,20 @@ class MakeInteractive extends Component {
   }
 
   // Updates the clip name in the state.
-  updateClipName = (newName) => {
+  updateClipName = (newName: string): void => {
     this.setState({
       name: newName,
     }); 
   }
 
   // Updates state value responsible for creating asset.
-  updateAssetCheckbox = (val) => {
+  updateAssetCheckbox = (val: boolean): void => {
     this.setState({
       makeAsset: val,
     }); 
   }
 
-  render() {
+  render(): JSX.Element {
     return (
       <WickModal 
       open={this.props.open} 
