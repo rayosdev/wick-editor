@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import { Component, CSSProperties } from "react";
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
@@ -14,8 +14,24 @@ import {
 } from "react-color/lib/components/common";
 import { SketchFields } from "react-color/lib/components/sketch/SketchFields";
 
-class WickColorPicker extends Component {
-  renderSwatchColumn = (colorList, i) => {
+interface WickColorPickerProps {
+  color: any;
+  colorPickerType?: string;
+  changeColorPickerType?: (type: string) => void;
+  disableAlpha?: boolean;
+  onChangeComplete: (color: any) => void;
+  onChange?: (color: any) => void;
+  lastColorsUsed?: string[];
+  toggle: () => void;
+}
+
+/**
+ * WickColorPicker - A color picker component with swatches and spectrum modes.
+ * @param props - Component props
+ * @returns JSX.Element
+ */
+class WickColorPicker extends Component<WickColorPickerProps> {
+  renderSwatchColumn = (colorList: string[], i: number): JSX.Element => {
     return (
       <div
         key={"swatch-color-column-" + i}
@@ -35,7 +51,7 @@ class WickColorPicker extends Component {
     );
   };
 
-  renderSwatchbook = (colors) => {
+  renderSwatchbook = (colors: string[][]): JSX.Element => {
     return (
       <div className="wick-swatch-picker-book">
         {colors.map((colorList, i) => {
@@ -45,8 +61,8 @@ class WickColorPicker extends Component {
     );
   };
 
-  renderSwatches = () => {
-    let colors = [
+  renderSwatches = (): JSX.Element => {
+    let colors: string[][] = [
       ["#ff0000", "#ffcccc", "#ff9999", "#ff4d4d", "#cc0000", "#800000"],
       ["#ff8000", "#ffe6cc", "#ffcc99", "#ffa64d", "#cc6600", "#804000"],
       ["#ffff00", "#ffffcc", "#ffff99", "#ffff4d", "#cccc00", "#808000"],
@@ -71,7 +87,7 @@ class WickColorPicker extends Component {
     );
   };
 
-  renderHeader() {
+  renderHeader(): JSX.Element {
     return (
       <div className="wick-color-picker-header">
         <div className="wick-color-picker-action-button">
@@ -80,7 +96,7 @@ class WickColorPicker extends Component {
             id="color-picker-swatches-button"
             tooltip="Swatches"
             action={() => {
-              this.props.changeColorPickerType("swatches");
+              this.props.changeColorPickerType?.("swatches");
             }}
             isActive={() => this.props.colorPickerType === "swatches"}
             icon="swatches"
@@ -92,7 +108,7 @@ class WickColorPicker extends Component {
             id="color-picker-spectrum-button"
             tooltip="Spectrum"
             action={() => {
-              this.props.changeColorPickerType("spectrum");
+              this.props.changeColorPickerType?.("spectrum");
             }}
             isActive={() => this.props.colorPickerType === "spectrum"}
             icon="spectrum"
@@ -111,7 +127,7 @@ class WickColorPicker extends Component {
     );
   }
 
-  renderSwatchContainer = (colors) => {
+  renderSwatchContainer = (colors: string[]): JSX.Element => {
     return (
       <div className="wick-color-picker-swatches-container">
         {colors.map((color, i) => {
@@ -126,7 +142,7 @@ class WickColorPicker extends Component {
                   default: {},
                   ":focus": { outline: "2px solid white" },
                 }}
-                onClick={(color) => {
+                onClick={(color: any) => {
                   this.props.onChangeComplete(color);
                 }}
               />
@@ -137,8 +153,8 @@ class WickColorPicker extends Component {
     );
   };
 
-  renderSpectrum = () => {
-    let styles = {
+  renderSpectrum = (): JSX.Element => {
+    let styles: { activeColor: CSSProperties } = {
       activeColor: {
         position: "absolute",
         width: "100%",
@@ -147,7 +163,7 @@ class WickColorPicker extends Component {
       },
     };
 
-    let colors = [
+    let colors: string[] = [
       "#D0021B",
       "#F8E71C",
       "#7ED321",
@@ -157,7 +173,7 @@ class WickColorPicker extends Component {
       "#FFFFFF",
       "#FFFFFF00",
     ];
-    let lastUsedColorsDefaults = [
+    let lastUsedColorsDefaults: string[] = [
       "#000000",
       "#000000",
       "#000000",
@@ -204,7 +220,7 @@ class WickColorPicker extends Component {
     );
   };
 
-  render() {
+  render(): JSX.Element | undefined {
     if (
       this.props.colorPickerType === "swatches" ||
       !this.props.colorPickerType
@@ -215,7 +231,7 @@ class WickColorPicker extends Component {
     }
   }
 
-  openEyedropper = () => {
+  openEyedropper = (): void => {
     window.editor.setActiveTool("eyedropper");
     window.editor._onEyedropperPickedColor = this.props.onChange;
   };

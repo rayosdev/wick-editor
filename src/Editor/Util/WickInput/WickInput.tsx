@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from "react";
+import { Component, ReactNode, ChangeEvent } from "react";
 import "./_wickinput.scss";
 
 import Select from "react-select";
@@ -33,26 +33,44 @@ import { isMobile } from "react-device-detect";
 
 import classNames from "classnames";
 
+interface SelectOption {
+  label: string;
+  value: any;
+}
+
+interface WickInputProps {
+  type?: 'numeric' | 'text' | 'slider' | 'select' | 'color' | 'checkbox' | 'radio' | 'button';
+  className?: string;
+  containerclassname?: string;
+  tooltip?: string;
+  tooltipID?: string;
+  tooltipPlace?: 'top' | 'bottom' | 'left' | 'right';
+  value?: any;
+  onChange?: (value: any) => void;
+  readOnly?: boolean;
+  min?: number;
+  max?: number;
+  options?: SelectOption[];
+  id?: string;
+  name?: string;
+  label?: string;
+  children?: ReactNode;
+  updateLastColors?: (color: string) => void;
+  buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  secondaryAction?: () => void;
+  onClick?: (e?: any) => void;
+  onTouch?: (e?: any) => void;
+  [key: string]: any; // For spread props
+}
+
 /**
- * Creates an input to be used in the Wick Editor
- * prop {string} className The classname to apply to the input element
- *
- * prop {string} containerclassname The classname to apply to the container
- * element of the input.
- *
- * prop {string} tooltip The tooltip text to display on the container of the
- * element. No tooltip is shown if this is not provided.
- *
- * props {string} tooltipID A unique id which is required to properly display
- * the tooltip.
- *
- * prop {string} tooltipPlace 'top', 'bottom', 'left', 'right'. Defaults to 'bottom'.
- *
- * All remaining props will be applied directly to the input element.
- * @extends Component
+ * WickInput - A versatile input component for the Wick Editor.
+ * Supports numeric, text, slider, select, color, checkbox, radio, and button types.
+ * @param props - Component props
+ * @returns JSX.Element
  */
-class WickInput extends Component {
-  render() {
+class WickInput extends Component<WickInputProps> {
+  render(): JSX.Element | ReactNode {
     let tooltipID =
       this.props.tooltipID === undefined
         ? "action-button-tooltip-nyi"
@@ -78,7 +96,7 @@ class WickInput extends Component {
     }
   }
 
-  renderTooltip = (tooltipID) => {
+  renderTooltip = (tooltipID: string): JSX.Element => {
     // Detect if on mobile to disable tooltips.
 
     return (
@@ -100,7 +118,7 @@ class WickInput extends Component {
     );
   };
 
-  renderContent = () => {
+  renderContent = (): ReactNode => {
     if (this.props.type === "numeric") {
       return this.renderNumeric();
     } else if (this.props.type === "text") {
@@ -122,11 +140,11 @@ class WickInput extends Component {
     }
   };
 
-  renderNumeric = () => {
+  renderNumeric = (): JSX.Element => {
     let { min, max, ...rest } = this.props;
 
-    let isValid = (input) => {
-      let validNumber = !isNaN(input) && input !== "";
+    let isValid = (input: string | number): boolean => {
+      let validNumber = !isNaN(Number(input)) && input !== "";
 
       if (typeof input === "string") {
         validNumber = validNumber && !input.endsWith(".");
@@ -141,28 +159,29 @@ class WickInput extends Component {
      * Takes in a string and converts that string into a displayable value
      * and converts that value to a number, with proper padding and styling. Value may not be valid,
      * in which case the same value will be returned.
-     * @param {string} val - String to "Clean Up"
-     * @returns {number | string}  Returns cleaned up number if valid string representation is passed in, string otherwise.
+     * @param val - String to "Clean Up"
+     * @returns Returns cleaned up number if valid string representation is passed in, string otherwise.
      */
-    let cleanUp = (val) => {
+    let cleanUp = (val: string): string => {
       if (!isValid(val)) return val;
 
-      val = parseFloat(val);
+      let numVal = parseFloat(val);
       // Constrain between min and max
-      if (min) {
-        val = Math.max(val, min);
+      if (min !== undefined) {
+        numVal = Math.max(numVal, min);
       }
 
-      if (max) {
-        val = Math.min(val, max);
+      if (max !== undefined) {
+        numVal = Math.min(numVal, max);
       }
 
-      return Math.round(val * 1000) / 1000;
+      return (Math.round(numVal * 1000) / 1000).toString();
     };
 
     return (
       <WickTextInput
         {...rest}
+        value={this.props.value || ""}
         className={classNames(
           "wick-input",
           "numeric",
@@ -175,7 +194,7 @@ class WickInput extends Component {
     );
   };
 
-  renderText = () => {
+  renderText = (): JSX.Element => {
     return (
       <WickTextInput
         {...this.props}
@@ -189,23 +208,23 @@ class WickInput extends Component {
     );
   };
 
-  renderSlider = () => {
+  renderSlider = (): JSX.Element => {
     // Spit out the value of a text box back to the onChange function.
-    let wrappedOnChange = (val) => {
-      this.props.onChange(parseFloat(val.target.value));
+    let wrappedOnChange = (val: ChangeEvent<HTMLInputElement>): void => {
+      this.props.onChange?.(parseFloat(val.target.value));
     };
     return (
       <input
         {...this.props}
         className={classNames("wick-slider", this.props.className)}
         type="range"
-        onChange={this.props.onChange ? wrappedOnChange : null}
+        onChange={this.props.onChange ? wrappedOnChange : undefined}
       />
     );
   };
 
-  renderColor = () => {
-    let wrappedOnChange = (color) => {
+  renderColor = (): JSX.Element => {
+    let wrappedOnChange = (color: any): void => {
       let newColor = color;
 
       // TODO: Check if we can just use HEX here.
@@ -222,15 +241,16 @@ class WickInput extends Component {
 
     return (
       <ColorPicker
+        id={this.props.id || "color-picker"}
         className={classNames("wick-color-picker", this.props.className)}
-        {...this.props}
-        onChangeComplete={this.props.onChange ? wrappedOnChange : null}
+        {...(this.props as any)}
+        onChangeComplete={this.props.onChange ? wrappedOnChange : undefined}
       />
     );
   };
 
-  renderSelect = () => {
-    let value = this.props.options.find(
+  renderSelect = (): JSX.Element => {
+    let value = this.props.options?.find(
       (obj) => obj.value === this.props.value
     );
 
@@ -266,7 +286,7 @@ class WickInput extends Component {
             }
             return style;
           },
-          control: (provided, state) => {
+          control: (_provided: any, _state: any) => {
             return {};
           },
         }}
@@ -275,7 +295,7 @@ class WickInput extends Component {
     );
   };
 
-  renderCheckbox = () => {
+  renderCheckbox = (): JSX.Element => {
     return (
       <div className="wick-checkbox-container">
         {this.props.label && (
@@ -293,20 +313,23 @@ class WickInput extends Component {
     );
   };
 
-  renderRadio = () => {
+  renderRadio = (): JSX.Element => {
     if (!this.props.name)
       throw new Error("WickInput radio buttons require a name.");
+    
+    const { type, containerclassname, tooltip, tooltipID, tooltipPlace, updateLastColors, buttonProps, secondaryAction, onTouch, ...radioProps } = this.props;
+    
     return (
       <Input
         type="radio"
-        {...this.props}
+        {...(radioProps as any)}
         className={classNames("wick-radio", this.props.className)}
       />
     );
   };
 
-  renderButton = () => {
-    return <WickButton {...this.props}>{this.props.children}</WickButton>;
+  renderButton = (): JSX.Element => {
+    return <WickButton {...this.props as any}>{this.props.children}</WickButton>;
   };
 }
 

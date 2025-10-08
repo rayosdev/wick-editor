@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React from "react";
+import { ReactNode } from "react";
 
 import WickInput from "Editor/Util/WickInput/WickInput";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
@@ -26,7 +26,33 @@ import "./_actionbutton.scss";
 
 import classNames from "classnames";
 
-export default function ActionButton(props) {
+interface ActionButtonProps {
+  id?: string;
+  icon?: string;
+  text?: string;
+  tooltip?: string;
+  tooltipHotkey?: string;
+  tooltipPlace?: 'top' | 'bottom' | 'left' | 'right';
+  action: (e?: React.MouseEvent) => void;
+  useClickEvent?: boolean;
+  isActive?: () => boolean;
+  disabled?: boolean;
+  color?: string;
+  className?: string;
+  buttonClassName?: string;
+  iconClassName?: string;
+  textClassName?: string;
+  dropdown?: boolean;
+  secondaryAction?: () => void;
+  buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+}
+
+/**
+ * ActionButton - A versatile button component with icons, text, tooltips, and dropdown support.
+ * @param props - Component props
+ * @returns JSX.Element
+ */
+export default function ActionButton(props: ActionButtonProps): JSX.Element {
   let isActive = props.isActive || (() => false);
   let colorClass = props.color
     ? "action-button-" + props.color
@@ -42,13 +68,13 @@ export default function ActionButton(props) {
     ? "action-button-tooltip-" + props.id
     : "action-button-tooltip-nyi";
 
-  function runAction(e) {
+  function runAction(e?: React.MouseEvent): void {
     if (!props.disabled) {
       props.useClickEvent ? props.action(e) : props.action();
     }
   }
 
-  function renderSingleIcon() {
+  function renderSingleIcon(): JSX.Element {
     return (
       <ToolIcon
         className={classNames(
@@ -61,7 +87,7 @@ export default function ActionButton(props) {
     );
   }
 
-  function renderDropdownIcon() {
+  function renderDropdownIcon(): JSX.Element {
     return (
       <div className="action-button-dropdown-icon-container">
         <ToolIcon
@@ -77,7 +103,7 @@ export default function ActionButton(props) {
     );
   }
 
-  function renderTextIcon() {
+  function renderTextIcon(): JSX.Element {
     return (
       <div className="action-button-icon-text-container">
         <ToolIcon
@@ -99,7 +125,7 @@ export default function ActionButton(props) {
     );
   }
 
-  function renderText() {
+  function renderText(): JSX.Element {
     return (
       <span
         className={classNames(
@@ -113,7 +139,7 @@ export default function ActionButton(props) {
     );
   }
 
-  function renderContent() {
+  function renderContent(): ReactNode {
     if (props.dropdown && props.icon) {
       return renderDropdownIcon();
     } else if (props.icon && props.text) {
@@ -123,9 +149,10 @@ export default function ActionButton(props) {
     } else if (props.text) {
       return renderText();
     }
+    return null;
   }
 
-  function getTooltip() {
+  function getTooltip(): string | undefined {
     let hotkey = props.tooltipHotkey;
 
     if (props.tooltip) {
