@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from "react";
+import { Component } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Modal from "react-modal";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
@@ -31,9 +31,21 @@ import coolField from "resources/splash-screens/cool_field3.png";
 
 import classNames from "classnames";
 
-class WelcomeModal extends Component {
-  constructor() {
-    super();
+interface WelcomeModalProps {
+  open: boolean;
+  toggle: () => void;
+  editorVersion: string;
+  isMobile?: boolean;
+  project: any;
+}
+
+class WelcomeModal extends Component<WelcomeModalProps> {
+  forumPost: string;
+  updates: string[];
+  patreonSupporters: string[];
+
+  constructor(props: WelcomeModalProps) {
+    super(props);
     this.forumPost =
       "https://forum.wickeditor.com/t/help-needed-wick-editor-version-1-18-new-fill-bucket-outliner-tool-mobile-improvements/3314";
     this.updates = [
@@ -42,16 +54,16 @@ class WelcomeModal extends Component {
       "And Much More!",
     ]; // No More than 3
 
-    let t1 = ["Guy de Bree", "Dimp", "Hyun's Dojo"];
-    let t2 = ["Constance Ye", "Dan Doggett", "Anonymous"];
-    let t3 = [
+    const t1 = ["Guy de Bree", "Dimp", "Hyun's Dojo"];
+    const t2 = ["Constance Ye", "Dan Doggett", "Anonymous"];
+    const t3 = [
       "Gautaum Bose",
       "Trevor",
       "Jovanny Rodriguez",
       "André Bray",
       "Colin Fitz-Gerald",
     ];
-    let t4 = [
+    const t4 = [
       "Golan Levin",
       "Daniel Sun",
       "Benjamin Briand",
@@ -64,7 +76,7 @@ class WelcomeModal extends Component {
       "Laurens Bonnema",
       "Anonymous",
     ];
-    let t5 = [
+    const t5 = [
       "Joe",
       "Karlin Fox",
       "StepSwitcher",
@@ -78,7 +90,7 @@ class WelcomeModal extends Component {
   }
 
   // Render updates as a list.
-  renderUpdates = (className) => {
+  renderUpdates = (className?: string): JSX.Element => {
     return (
       <ul className={classNames("updates-list", className)}>
         {this.updates.map((update, i) => {
@@ -89,7 +101,7 @@ class WelcomeModal extends Component {
   };
 
   // Render a list of all Patreon supporters.
-  renderPatreonSupporters = (className) => {
+  renderPatreonSupporters = (className?: string): JSX.Element => {
     return (
       <div className={classNames("supporter-list-container", className)}>
         <a
@@ -107,7 +119,7 @@ class WelcomeModal extends Component {
     );
   };
 
-  renderMobileModal = (modalProps) => {
+  renderMobileModal = (modalProps: any): JSX.Element => {
     return (
       <Modal {...modalProps} className="modal-body welcome-modal-mobile-body">
         <div className="welcome-modal-mobile-image-container">
@@ -144,7 +156,7 @@ class WelcomeModal extends Component {
     );
   };
 
-  renderDesktopModal = (modalProps) => {
+  renderDesktopModal = (modalProps: any): JSX.Element => {
     return (
       <Modal {...modalProps} className="modal-body welcome-modal-body">
         <div id="welcome-modal-interior-content">
@@ -206,8 +218,8 @@ class WelcomeModal extends Component {
     );
   };
 
-  render() {
-    let modalProps = {
+  render(): JSX.Element {
+    const modalProps = {
       isOpen: this.props.open,
       toggle: this.props.toggle,
       onRequestClose: this.props.toggle,

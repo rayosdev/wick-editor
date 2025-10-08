@@ -111,9 +111,9 @@ class ModalHandler extends Component<ModalHandlerProps> {
         />
         <WelcomeMessage
           isMobile={isMobile}
-          openModal={this.props.openModal}
           toggle={this.props.closeActiveModal}
           open={this.props.activeModalName === 'WelcomeMessage'}
+          project={this.props.project}
           editorVersion={this.props.editorVersion}
         />
         <ExportOptions
@@ -166,7 +166,6 @@ class ModalHandler extends Component<ModalHandlerProps> {
           getToolSettingRestrictions={this.props.getToolSettingRestrictions}
         />
         <BuiltinLibrary
-          openModal={this.props.openModal}
           toggle={this.props.closeActiveModal}
           open={this.props.activeModalName === 'BuiltinLibrary'}
           project={this.props.project}

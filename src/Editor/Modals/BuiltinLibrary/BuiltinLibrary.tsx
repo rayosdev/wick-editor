@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { Component } from "react";
+import { Component } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import WickModal from "Editor/Modals/WickModal/WickModal";
 import TabbedInterface from "Editor/Util/TabbedInterface/TabbedInterface";
@@ -29,14 +29,37 @@ import sounds from "./sounds.js";
 
 import "./_builtinlibrary.scss";
 
-class BuiltinLibrary extends Component {
-  constructor(props) {
+interface BuiltinAsset {
+  file: string;
+  name: string;
+  icon?: string;
+}
+
+interface BuiltinPreview {
+  blob: Blob;
+  src?: string;
+}
+
+interface BuiltinLibraryProps {
+  open: boolean;
+  toggle: () => void;
+  project: any;
+  importFileAsAsset: (file: Blob) => void;
+  builtinPreviews: Record<string, BuiltinPreview>;
+  addFileToBuiltinPreviews: (filename: string, blob: Blob) => void;
+  isAssetInLibrary: (filename: string) => boolean;
+}
+
+class BuiltinLibrary extends Component<BuiltinLibraryProps> {
+  toPlay: any;
+
+  constructor(props: BuiltinLibraryProps) {
     super(props);
 
     this.toPlay = null;
   }
 
-  static get ROOT_ASSET_PATH() {
+  static get ROOT_ASSET_PATH(): string {
     // Default PUBLIC_URL to empty string so we don't render "undefined/..." in dev
     const base =
       typeof process !== "undefined" && process.env && process.env.PUBLIC_URL
@@ -45,7 +68,7 @@ class BuiltinLibrary extends Component {
     return base.replace(/\/$/, "") + "/builtinlibrary/";
   }
 
-  render() {
+  render(): JSX.Element {
     return (
       <WickModal
         open={this.props.open}
@@ -71,14 +94,14 @@ class BuiltinLibrary extends Component {
   }
 
   //Fetch file, add to builtinPreviews
-  importForPreview = (asset, callback) => {
-    var path = BuiltinLibrary.ROOT_ASSET_PATH + asset.file;
+  importForPreview = (asset: BuiltinAsset, callback?: (blob: Blob) => void): void => {
+    const path = BuiltinLibrary.ROOT_ASSET_PATH + asset.file;
 
     fetch(path)
       .then((response) => response.blob())
       .then((blob) => {
-        blob.lastModifiedDate = new Date();
-        blob.name = asset.file.split("/").pop();
+        (blob as any).lastModifiedDate = new Date();
+        (blob as any).name = asset.file.split("/").pop();
 
         this.props.addFileToBuiltinPreviews(asset.file, blob);
 
@@ -97,17 +120,20 @@ class BuiltinLibrary extends Component {
   };
 
   //Fetch file to builtinPreviews if necessary, then load into Asset Library
-  createWickAsset = (asset) => {
+  createWickAsset = (asset: BuiltinAsset): void => {
     if (!this.props.builtinPreviews[asset.file]) {
-      this.importForPreview(asset, (blob) => {
+      this.importForPreview(asset, (blob: Blob) => {
         this.props.importFileAsAsset(blob);
       });
     } else {
-      this.props.importFileAsAsset(this.props.builtinPreviews[asset.file].blob);
+      const preview = this.props.builtinPreviews[asset.file];
+      if (preview) {
+        this.props.importFileAsAsset(preview.blob);
+      }
     }
   };
 
-  renderBuiltinAsset = (asset) => {
+  renderBuiltinAsset = (asset: BuiltinAsset): JSX.Element => {
     return (
       <div key={asset.file} className="builtin-library-asset">
         <div className="builtin-library-asset-name">{asset.name}</div>
@@ -120,7 +146,7 @@ class BuiltinLibrary extends Component {
           />
         </div>
 
-        {this.props.isAssetInLibrary(asset.file.split("/").pop()) ? (
+        {this.props.isAssetInLibrary(asset.file.split("/").pop() || "") ? (
           <ActionButton
             className="add-as-asset-button"
             action={() => {}}
@@ -140,11 +166,12 @@ class BuiltinLibrary extends Component {
     );
   };
 
-  renderSoundAsset = (asset) => {
+  renderSoundAsset = (asset: BuiltinAsset): JSX.Element => {
     let src = undefined;
 
-    if (this.props.builtinPreviews[asset.file]) {
-      src = this.props.builtinPreviews[asset.file].src;
+    const preview = this.props.builtinPreviews[asset.file];
+    if (preview) {
+      src = preview.src;
     }
 
     return (
@@ -159,7 +186,7 @@ class BuiltinLibrary extends Component {
           />
         </div>
 
-        {this.props.isAssetInLibrary(asset.file.split("/").pop()) ? (
+        {this.props.isAssetInLibrary(asset.file.split("/").pop() || "") ? (
           <ActionButton
             className="add-as-asset-button"
             action={() => {}}
