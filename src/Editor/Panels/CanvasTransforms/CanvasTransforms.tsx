@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import { Component } from "react";
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import PlayButton from "Editor/Util/PlayButton/PlayButton";
@@ -9,12 +9,35 @@ import { isMobile } from "react-device-detect";
 
 import classNames from "classnames";
 
-class CanvasTransforms extends Component {
-  getHotkey(action) {
+interface TransformButtonOptions {
+  action: () => void;
+  name: string;
+  tooltip: string;
+  className?: string;
+  isActive?: () => boolean;
+  tooltipHotkey?: string;
+}
+
+interface CanvasTransformsProps {
+  keyMap: any;
+  activeToolName: string;
+  toggleOnionSkin: () => void;
+  onionSkinEnabled: boolean;
+  setActiveTool: (tool: string) => void;
+  recenterCanvas: () => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
+  previewPlaying: boolean;
+  togglePreviewPlaying: () => void;
+  renderSize?: string;
+}
+
+class CanvasTransforms extends Component<CanvasTransformsProps> {
+  getHotkey(action: string): string {
     return HotKeyInterface.getHotKey(this.props.keyMap, action);
   }
 
-  renderTransformButton(options) {
+  renderTransformButton(options: TransformButtonOptions): JSX.Element {
     return (
       <ActionButton
         color="tool"
@@ -26,7 +49,7 @@ class CanvasTransforms extends Component {
         id={"canvas-transform-button-" + options.name}
         tooltip={options.tooltip}
         tooltipPlace={"top"}
-        tooltipHotkey={this.getHotkey(options.tooltipHotkey)}
+        tooltipHotkey={options.tooltipHotkey ? this.getHotkey(options.tooltipHotkey) : undefined}
         action={options.action}
         icon={options.name}
         className={classNames("canvas-transform-button", options.className)}
@@ -153,7 +176,7 @@ class CanvasTransforms extends Component {
     });
   };
 
-  renderPlayButtonTooltip = () => {
+  renderPlayButtonTooltip = (): JSX.Element => {
     return (
       <ReactTooltip
         disable={isMobile}
@@ -171,7 +194,7 @@ class CanvasTransforms extends Component {
     );
   };
 
-  render() {
+  render(): JSX.Element {
     return (
       <div
         className={classNames(
