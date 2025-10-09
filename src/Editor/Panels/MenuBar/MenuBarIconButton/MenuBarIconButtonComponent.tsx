@@ -1,29 +1,35 @@
-// @ts-nocheck - TODO: Remove when converting to proper TypeScript
-import React, { Component } from 'react';
+import { FC, MouseEvent } from 'react';
 import './_menubariconbutton.scss';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 
 export type MenuBarIconButtonProps = {
   id?: string;
   tooltip?: string;
-  action: () => void;
+  tooltipPlace?: 'top' | 'bottom' | 'left' | 'right';
+  action: (event?: MouseEvent) => void;
   icon: string;
 };
 
-export default class MenuBarIconButton extends Component<MenuBarIconButtonProps> {
-  render() {
-    return (
-      <div className="menu-bar-icon-button">
-        <ActionButton
-          color="menu"
-          id={this.props.id}
-          tooltip={this.props.tooltip}
-          action={this.props.action}
-          icon={this.props.icon}
-          tooltipPlace="bottom"
-        />
-      </div>
-    );
-  }
-}
+const MenuBarIconButton: FC<MenuBarIconButtonProps> = ({
+  id,
+  tooltip,
+  tooltipPlace = 'bottom',
+  action,
+  icon,
+}) => {
+  return (
+    <div className="menu-bar-icon-button">
+      <ActionButton
+        color="menu"
+        id={id}
+        tooltip={tooltip}
+        tooltipPlace={tooltipPlace}
+        action={action}
+        icon={icon}
+      />
+    </div>
+  );
+};
+
+export default MenuBarIconButton;
 
