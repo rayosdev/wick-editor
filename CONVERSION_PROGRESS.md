@@ -242,6 +242,23 @@
 
 ---
 
+### 11. `MenuBar.jsx` → `MenuBar.tsx` ✅
+
+**Time**: 8 minutes  
+**Changes**:
+
+- Rebuilt the editor menu bar as a typed functional component with explicit props.
+- Added a lightweight JavaScript re-export so existing imports resolve the `.tsx` implementation without churn.
+- Removed duplicate state logic and centralized export-mode branching via a typed helper.
+
+**Testing**:
+
+- ✅ Type check: `npm run typecheck` - PASSED (Oct 9)
+
+**Result**: The UI now exercises the TypeScript menu bar while preserving compatibility during the broader migration.
+
+---
+
 ## Conversion Statistics
 
 | Metric                | Value                    |
