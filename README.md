@@ -32,6 +32,7 @@ These instructions are for MacOS and Linux, we currently don't have instructions
 
 You'll need to download the following:
 
+- [Node.js 22 LTS](https://nodejs.org/) (or newer)
 - [npm](https://www.npmjs.com/get-npm)
 
 ### Installation

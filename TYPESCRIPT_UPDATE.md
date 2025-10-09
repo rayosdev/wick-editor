@@ -238,16 +238,20 @@ Since strict mode is now enabled:
 
 ## Technical Notes
 
-### Peer Dependency Conflict
-**Issue**: `react-aria-menubutton@7.0.3` expects React 16-17, but project uses React 18.3.1
+### Peer Dependency Conflict (Resolved)
 
-**Solution**: Used `--legacy-peer-deps` flag
-- ✅ Safe: TypeScript update is independent of React version
-- ✅ Working: All tests passing
-- ℹ️ Future: Consider updating react-aria-menubutton to React 18 compatible version
+**Issue**: `react-aria-menubutton@7.0.3` expected React 16-17 while the project targets React 18+
+
+**Resolution**: Removed the unused dependency and replaced it with native menu components
+
+- ✅ npm installs now succeed without `--legacy-peer-deps`
+- ✅ React 18+ alignment unblocked
+- ℹ️ If reintroducing a menu button library, pick one that supports React 18+
 
 ### TypeScript 5.x Breaking Changes
+
 **None affecting this project**. The update from 4.9.5 → 5.9.3 was smooth because:
+
 - Configuration is standard
 - No use of deprecated features
 - Codebase is modern (ES2020+)
