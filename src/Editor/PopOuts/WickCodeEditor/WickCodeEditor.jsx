@@ -23,7 +23,7 @@ import WickInput from "Editor/Util/WickInput/WickInput";
 import { Rnd } from "react-rnd";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import AddScriptPanel from "./AddScriptPanel/AddScriptPanel";
-import { Console } from "console-feed";
+import ConsolePanel from "./ConsolePanel";
 
 // Import Ace Editor and themes.
 import AceEditor from "react-ace";
@@ -487,7 +487,7 @@ export default function WickCodeEditor(props) {
                   </div>
 
                   {consoleType === "console" && (
-                    <Console logs={props.consoleLogs} variant="dark" />
+                    <ConsolePanel logs={props.consoleLogs} />
                   )}
                   {consoleType === "options" && renderCodeEditorOptions()}
                 </div>

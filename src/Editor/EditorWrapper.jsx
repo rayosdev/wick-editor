@@ -24,7 +24,7 @@ import { ToastContainer } from 'react-toastify';
 import { GlobalHotKeys } from 'react-hotkeys';
 import ErrorPage from './Util/ErrorPage';
 import ModalHandler from './Modals/ModalHandler/ModalHandler';
-import { Hook, Unhook } from 'console-feed';
+import { attachConsoleListener } from './Util/consoleListener';
 
 /**
  * EditorWrapper
@@ -33,11 +33,25 @@ import { Hook, Unhook } from 'console-feed';
 
 export default function EditorWrapper(props) {
 
+    const MAX_CONSOLE_LOGS = 500;
+
     // Run once, connect the console to the console object.
     useEffect(() => {
-        Hook(window.console, log => {props.editor.setConsoleLogs([...props.editor.state.consoleLogs, log])}, false)
-        return () => Unhook(window.console)
-    }, [])
+        const detach = attachConsoleListener((entry) => {
+            if (entry.type === 'clear') {
+                props.editor.setConsoleLogs([]);
+                return;
+            }
+
+            const nextLogs = [...props.editor.state.consoleLogs, entry];
+            if (nextLogs.length > MAX_CONSOLE_LOGS) {
+                nextLogs.splice(0, nextLogs.length - MAX_CONSOLE_LOGS);
+            }
+            props.editor.setConsoleLogs(nextLogs);
+        });
+
+        return () => detach();
+    }, [props.editor])
 
 
     return (
