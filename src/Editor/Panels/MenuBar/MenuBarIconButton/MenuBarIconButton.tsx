@@ -24,6 +24,7 @@ import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 interface MenuBarIconButtonProps {
   id?: string;
   tooltip?: string;
+  tooltipPlace?: 'top' | 'bottom' | 'left' | 'right';
   action: (e?: React.MouseEvent) => void;
   icon?: string;
 }
@@ -38,7 +39,7 @@ class MenuBarIconButton extends Component<MenuBarIconButtonProps> {
           tooltip={this.props.tooltip}
           action={this.props.action}
           icon={this.props.icon}
-          tooltipPlace="bottom">
+          tooltipPlace={this.props.tooltipPlace ?? 'bottom'}>
         </ActionButton>
       </div>
     )
