@@ -1,7 +1,9 @@
-export type HotKeySequence = string | {
-  sequence: string;
-  action?: string;
-};
+export type HotKeySequence =
+  | string
+  | {
+      sequence: string;
+      action?: string;
+    };
 
 export interface HotKeyEntry {
   name: string;
