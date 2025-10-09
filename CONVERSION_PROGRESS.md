@@ -259,6 +259,23 @@
 
 ---
 
+### 12. `index.jsx` → `index.tsx` ✅
+
+**Time**: 6 minutes  
+**Changes**:
+
+- Converted the application entry point to TypeScript, including `window.process` shims and canvas context patching.  
+- Swapped synchronous `require` usage for a typed dynamic import of `react-modal`.  
+- Added runtime guards and explicit error handling for missing `#root` to satisfy strict mode.
+
+**Testing**:
+
+- ✅ Type check: `npm run typecheck` - PASSED (Oct 9)
+
+**Result**: Entry file is now TypeScript-safe while preserving all runtime bootstrap behavior.
+
+---
+
 ## Conversion Statistics
 
 | Metric                | Value                    |
