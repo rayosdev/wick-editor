@@ -8,6 +8,7 @@ import "./_canvastransforms.scss";
 import { isMobile } from "react-device-detect";
 
 import classNames from "classnames";
+import type { HotKeyMap } from "Editor/types/hotkeys";
 
 interface TransformButtonOptions {
   action: () => void;
@@ -19,7 +20,7 @@ interface TransformButtonOptions {
 }
 
 interface CanvasTransformsProps {
-  keyMap: any;
+  keyMap: HotKeyMap;
   activeToolName: string;
   toggleOnionSkin: () => void;
   onionSkinEnabled: boolean;

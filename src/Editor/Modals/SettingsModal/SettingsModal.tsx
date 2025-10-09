@@ -18,6 +18,7 @@
  */
 
 import { Component } from "react";
+import type { HotKeyMap } from "Editor/types/hotkeys";
 import WickModal from "Editor/Modals/WickModal/WickModal";
 import TabbedInterface from "Editor/Util/TabbedInterface/TabbedInterface";
 import ProjectSettings from "./ProjectSettings/ProjectSettings";
@@ -41,7 +42,7 @@ interface SettingsModalProps {
   addCustomHotKeys: (keys: any) => void;
   resetCustomHotKeys: () => void;
   customHotKeys: any;
-  keyMap: any;
+  keyMap: HotKeyMap;
   keyMapGroups?: any;
   toast?: (message: string) => void;
   createCombinedHotKeyMap?: () => any;

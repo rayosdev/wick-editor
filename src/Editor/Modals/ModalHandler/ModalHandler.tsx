@@ -18,6 +18,7 @@
  */
 
 import { Component } from 'react';
+import type { HotKeyMap } from "Editor/types/hotkeys";
 
 import MakeInteractive from '../MakeInteractive/MakeInteractive';
 import AutosaveWarning from '../AutosaveWarning/AutosaveWarning';
@@ -52,7 +53,7 @@ interface ModalHandlerProps {
   updateProjectSettings: (settings: any) => void;
   addCustomHotKeys: (keys: any) => void;
   resetCustomHotKeys: () => void;
-  keyMap: any;
+  keyMap: HotKeyMap;
   keyMapGroups: any;
   customHotKeys: any;
   colorPickerType: string;

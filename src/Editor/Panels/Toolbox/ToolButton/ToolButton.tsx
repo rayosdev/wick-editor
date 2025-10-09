@@ -20,6 +20,7 @@
 import { Component } from "react";
 import HotKeyInterface from "Editor/hotKeyMap";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
+import type { HotKeyMap } from "Editor/types/hotkeys";
 
 import "./_toolbutton.scss";
 
@@ -28,7 +29,7 @@ import classNames from "classnames";
 interface ToolButtonProps {
   name: string;
   tooltip: string;
-  keyMap: any;
+  keyMap: HotKeyMap;
   getActiveToolName: () => string;
   setActiveTool?: (name: string) => void;
   action?: (e?: React.MouseEvent) => void;

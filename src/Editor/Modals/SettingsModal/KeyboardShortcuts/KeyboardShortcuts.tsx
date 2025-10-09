@@ -25,6 +25,7 @@ import HotKeyInterface from "Editor/hotKeyMap.js";
 import "./_keyboardshortcuts.scss";
 
 import classNames from "classnames";
+import type { HotKeyMap } from "Editor/types/hotkeys";
 
 interface EditingAction {
   name: string;
@@ -34,7 +35,7 @@ interface EditingAction {
 }
 
 interface KeyboardShortcutsProps {
-  keyMap: any;
+  keyMap: HotKeyMap;
   keyMapGroups: any;
   customHotKeys: any;
   addCustomHotKeys: (keys: any) => void;
@@ -255,7 +256,10 @@ class KeyboardShortcuts extends Component<KeyboardShortcutsProps, KeyboardShortc
 
     // Check if we have overwritten any previous keys and make that change. Remove duplicates if they exist.
     Object.keys(this.props.keyMap).forEach((key) => {
-      let action = this.props.keyMap[key];
+      const action = this.props.keyMap[key];
+      if (!action) {
+        return;
+      }
 
       action.sequences.forEach((seq: any, index: number) => {
         if (typeof seq === "string" && seq.toLowerCase() === keyCommand) {
@@ -268,7 +272,7 @@ class KeyboardShortcuts extends Component<KeyboardShortcutsProps, KeyboardShortc
           };
 
           actions.push(act);
-          let name = action.actionName || action.name;
+          const name = action.actionName || action.name;
           this.props.toast?.(
             "Key Command Overwritten: " +
             name +
@@ -376,16 +380,21 @@ class KeyboardShortcuts extends Component<KeyboardShortcutsProps, KeyboardShortc
             {groupedRows.map((action) => {
               if (action.type === "header") {
                 return this.createHeader(action);
-              } else {
-                let actionName = action.name;
-                let { sequences, name } = keyMap[actionName];
-                return this.createRow({
-                  actionName: actionName,
-                  name: name || actionName,
-                  sequence1: sequences[0],
-                  sequence2: sequences[1],
-                });
               }
+
+              const actionName = action.name;
+              const entry = keyMap[actionName];
+              if (!entry) {
+                return null;
+              }
+
+              const { sequences, name } = entry;
+              return this.createRow({
+                actionName: actionName,
+                name: name || actionName,
+                sequence1: sequences[0],
+                sequence2: sequences[1],
+              });
             })}
           </tbody>
         </table>
