@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import ErrorBoundary from "./Util/ErrorBoundary";
 import { Slide } from "react-toastify";
 import { ToastContainer } from "react-toastify";
@@ -33,23 +33,61 @@ import { attachConsoleListener } from "./Util/consoleListener";
 
 export default function EditorWrapper(props) {
   const MAX_CONSOLE_LOGS = 500;
+  const pendingEntriesRef = useRef([]);
+  const flushScheduledRef = useRef(false);
+  const clearQueuedRef = useRef(false);
 
   // Run once, connect the console to the console object.
   useEffect(() => {
-    const detach = attachConsoleListener((entry) => {
-      if (entry.type === "clear") {
-        props.editor.setConsoleLogs([]);
+    let cancelled = false;
+
+    const flushPending = () => {
+      flushScheduledRef.current = false;
+      if (cancelled) {
         return;
       }
 
-      const nextLogs = [...props.editor.state.consoleLogs, entry];
-      if (nextLogs.length > MAX_CONSOLE_LOGS) {
-        nextLogs.splice(0, nextLogs.length - MAX_CONSOLE_LOGS);
+      if (clearQueuedRef.current) {
+        clearQueuedRef.current = false;
+        props.editor.setConsoleLogs(() => []);
       }
-      props.editor.setConsoleLogs(nextLogs);
+
+      if (pendingEntriesRef.current.length) {
+        const additions = pendingEntriesRef.current;
+        pendingEntriesRef.current = [];
+        props.editor.setConsoleLogs((prevLogs = []) => {
+          const merged = [...prevLogs, ...additions];
+          if (merged.length > MAX_CONSOLE_LOGS) {
+            return merged.slice(-MAX_CONSOLE_LOGS);
+          }
+          return merged;
+        });
+      }
+    };
+
+    const scheduleFlush = () => {
+      if (flushScheduledRef.current || cancelled) {
+        return;
+      }
+      flushScheduledRef.current = true;
+      Promise.resolve().then(flushPending);
+    };
+
+    const detach = attachConsoleListener((entry) => {
+      if (entry.type === "clear") {
+        clearQueuedRef.current = true;
+        pendingEntriesRef.current = [];
+      } else {
+        pendingEntriesRef.current.push(entry);
+      }
+
+      scheduleFlush();
     });
 
-    return () => detach();
+    return () => {
+      cancelled = true;
+      detach();
+    };
   }, [props.editor]);
 
   return (

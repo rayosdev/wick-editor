@@ -60,8 +60,9 @@ import pkg from "../../package.json";
 const { version } = pkg;
 
 // Check if we're in development mode
-const isDevelopment = import.meta.env.DEV || 
-                      (window.location && window.location.hostname === 'localhost');
+const isDevelopment =
+  import.meta.env.DEV ||
+  (window.location && window.location.hostname === "localhost");
 
 class Editor extends EditorCore {
   constructor() {
@@ -79,9 +80,10 @@ class Editor extends EditorCore {
       project: null,
       previewPlaying: false,
       // Skip welcome message in development or if user has dismissed it before
-      activeModalName: (window.localStorage.skipWelcomeMessage || isDevelopment)
-        ? null
-        : "WelcomeMessage",
+      activeModalName:
+        window.localStorage.skipWelcomeMessage || isDevelopment
+          ? null
+          : "WelcomeMessage",
       activeModalQueue: [],
       codeEditorOpen: false,
       scriptToEdit: "default",
@@ -961,10 +963,13 @@ class Editor extends EditorCore {
     }
   };
 
-  setConsoleLogs = (logs) => {
-    this.setState({
-      consoleLogs: logs,
-    });
+  setConsoleLogs = (logsOrUpdater) => {
+    this.setState((prevState) => ({
+      consoleLogs:
+        typeof logsOrUpdater === "function"
+          ? logsOrUpdater(prevState.consoleLogs ?? [])
+          : logsOrUpdater,
+    }));
   };
 
   render = () => {
