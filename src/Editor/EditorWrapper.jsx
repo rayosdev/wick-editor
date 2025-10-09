@@ -17,14 +17,14 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useEffect } from 'react';
-import ErrorBoundary from './Util/ErrorBoundary';
-import { Slide } from 'react-toastify';
-import { ToastContainer } from 'react-toastify';
-import { GlobalHotKeys } from 'react-hotkeys';
-import ErrorPage from './Util/ErrorPage';
-import ModalHandler from './Modals/ModalHandler/ModalHandler';
-import { attachConsoleListener } from './Util/consoleListener';
+import React, { useEffect } from "react";
+import ErrorBoundary from "./Util/ErrorBoundary";
+import { Slide } from "react-toastify";
+import { ToastContainer } from "react-toastify";
+import { GlobalHotKeys } from "react-hotkeys";
+import ErrorPage from "./Util/ErrorPage";
+import ModalHandler from "./Modals/ModalHandler/ModalHandler";
+import { attachConsoleListener } from "./Util/consoleListener";
 
 /**
  * EditorWrapper
@@ -32,101 +32,111 @@ import { attachConsoleListener } from './Util/consoleListener';
  */
 
 export default function EditorWrapper(props) {
+  const MAX_CONSOLE_LOGS = 500;
 
-    const MAX_CONSOLE_LOGS = 500;
+  // Run once, connect the console to the console object.
+  useEffect(() => {
+    const detach = attachConsoleListener((entry) => {
+      if (entry.type === "clear") {
+        props.editor.setConsoleLogs([]);
+        return;
+      }
 
-    // Run once, connect the console to the console object.
-    useEffect(() => {
-        const detach = attachConsoleListener((entry) => {
-            if (entry.type === 'clear') {
-                props.editor.setConsoleLogs([]);
-                return;
-            }
+      const nextLogs = [...props.editor.state.consoleLogs, entry];
+      if (nextLogs.length > MAX_CONSOLE_LOGS) {
+        nextLogs.splice(0, nextLogs.length - MAX_CONSOLE_LOGS);
+      }
+      props.editor.setConsoleLogs(nextLogs);
+    });
 
-            const nextLogs = [...props.editor.state.consoleLogs, entry];
-            if (nextLogs.length > MAX_CONSOLE_LOGS) {
-                nextLogs.splice(0, nextLogs.length - MAX_CONSOLE_LOGS);
-            }
-            props.editor.setConsoleLogs(nextLogs);
+    return () => detach();
+  }, [props.editor]);
+
+  return (
+    <ErrorBoundary
+      fallback={ErrorPage}
+      processError={(error, errorInfo) => {
+        props.editor.autoSaveProject(() => {
+          "Project Autosaved";
         });
-
-        return () => detach();
-    }, [props.editor])
-
-
-    return (
-        <ErrorBoundary
-            fallback={ErrorPage}
-            processError={(error, errorInfo) => { props.editor.autoSaveProject(() => { "Project Autosaved" }) }}
-        >
-            <ToastContainer
-                transition={Slide}
-                position="top-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnVisibilityChange
-                draggable
-                pauseOnHover />
-            <GlobalHotKeys
-                allowChanges={true}
-                keyMap={props.editor.getKeyMap()}
-                handlers={props.editor.getKeyHandlers()} />
-            <div id="editor" className="theme-default">
-                <ModalHandler
-                    getRenderSize={props.editor.getRenderSize}
-                    activeModalName={props.editor.state.activeModalName}
-                    openModal={props.editor.openModal}
-                    closeActiveModal={props.editor.closeActiveModal}
-                    queueModal={props.editor.queueModal}
-                    project={props.editor.project}
-                    createClipFromSelection={props.editor.createClipFromSelection}
-                    createButtonFromSelection={props.editor.createButtonFromSelection}
-                    updateProjectSettings={props.editor.updateProjectSettings}
-                    exportProjectAsGif={props.editor.exportProjectAsAnimatedGIF}
-                    exportProjectAsVideo={props.editor.exportProjectAsVideo}
-                    exportProjectAsStandaloneZip={props.editor.exportProjectAsStandaloneZip}
-                    exportProjectAsStandaloneHTML={props.editor.exportProjectAsStandaloneHTML}
-                    exportProjectAsImageSequence={props.editor.exportProjectAsImageSequence}
-                    exportProjectAsAudioTrack={props.editor.exportProjectAsAudioTrack}
-                    warningModalInfo={props.editor.state.warningModalInfo}
-                    loadAutosavedProject={props.editor.loadAutosavedProject}
-                    clearAutoSavedProject={props.editor.clearAutoSavedProject}
-                    renderProgress={props.editor.state.renderProgress}
-                    renderStatusMessage={props.editor.state.renderStatusMessage}
-                    renderType={props.editor.state.renderType}
-                    addCustomHotKeys={props.editor.addCustomHotKeys}
-                    resetCustomHotKeys={props.editor.resetCustomHotKeys}
-                    customHotKeys={props.editor.state.customHotKeys}
-                    keyMap={props.editor.getKeyMap(true)}
-                    keyMapGroups={props.editor.hotKeyInterface.createHandlerGroups()}
-                    importFileAsAsset={props.editor.importFileAsAsset}
-                    colorPickerType={props.editor.state.colorPickerType}
-                    changeColorPickerType={props.editor.changeColorPickerType}
-                    updateLastColors={props.editor.updateLastColors}
-                    lastColorsUsed={props.editor.state.lastColorsUsed}
-                    editorVersion={props.editor.editorVersion}
-                    toast={props.editor.toast}
-                    createCombinedHotKeyMap={props.editor.createCombinedHotKeyMap}
-                    getToolSetting={props.editor.getToolSetting}
-                    setToolSetting={props.editor.setToolSetting}
-                    getToolSettingRestrictions={props.editor.getToolSettingRestrictions}
-                    exportProjectAsImageSVG={props.editor.exportProjectAsImageSVG}
-                    builtinPreviews={props.editor.builtinPreviews}
-                    addFileToBuiltinPreviews={props.editor.addFileToBuiltinPreviews}
-                    isAssetInLibrary={props.editor.isAssetInLibrary}
-                    openProjectFileDialog={props.editor.openProjectFileDialog}
-                    openNewProjectConfirmation={props.editor.openNewProjectConfirmation}
-                    localSavedFiles={props.editor.state.localSavedFiles}
-                    loadLocalWickFile={props.editor.loadLocalWickFile}
-                    deleteLocalWickFile={props.editor.deleteLocalWickFile}
-                    reloadSavedWickFiles={props.editor.reloadSavedWickFiles}
-                    openWarningModal={props.editor.openWarningModal}
-                />
-                {props.children}
-            </div>
-        </ErrorBoundary>
-    )
+      }}
+    >
+      <ToastContainer
+        transition={Slide}
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnVisibilityChange
+        draggable
+        pauseOnHover
+      />
+      <GlobalHotKeys
+        allowChanges={true}
+        keyMap={props.editor.getKeyMap()}
+        handlers={props.editor.getKeyHandlers()}
+      />
+      <div id="editor" className="theme-default">
+        <ModalHandler
+          getRenderSize={props.editor.getRenderSize}
+          activeModalName={props.editor.state.activeModalName}
+          openModal={props.editor.openModal}
+          closeActiveModal={props.editor.closeActiveModal}
+          queueModal={props.editor.queueModal}
+          project={props.editor.project}
+          createClipFromSelection={props.editor.createClipFromSelection}
+          createButtonFromSelection={props.editor.createButtonFromSelection}
+          updateProjectSettings={props.editor.updateProjectSettings}
+          exportProjectAsGif={props.editor.exportProjectAsAnimatedGIF}
+          exportProjectAsVideo={props.editor.exportProjectAsVideo}
+          exportProjectAsStandaloneZip={
+            props.editor.exportProjectAsStandaloneZip
+          }
+          exportProjectAsStandaloneHTML={
+            props.editor.exportProjectAsStandaloneHTML
+          }
+          exportProjectAsImageSequence={
+            props.editor.exportProjectAsImageSequence
+          }
+          exportProjectAsAudioTrack={props.editor.exportProjectAsAudioTrack}
+          warningModalInfo={props.editor.state.warningModalInfo}
+          loadAutosavedProject={props.editor.loadAutosavedProject}
+          clearAutoSavedProject={props.editor.clearAutoSavedProject}
+          renderProgress={props.editor.state.renderProgress}
+          renderStatusMessage={props.editor.state.renderStatusMessage}
+          renderType={props.editor.state.renderType}
+          addCustomHotKeys={props.editor.addCustomHotKeys}
+          resetCustomHotKeys={props.editor.resetCustomHotKeys}
+          customHotKeys={props.editor.state.customHotKeys}
+          keyMap={props.editor.getKeyMap(true)}
+          keyMapGroups={props.editor.hotKeyInterface.createHandlerGroups()}
+          importFileAsAsset={props.editor.importFileAsAsset}
+          colorPickerType={props.editor.state.colorPickerType}
+          changeColorPickerType={props.editor.changeColorPickerType}
+          updateLastColors={props.editor.updateLastColors}
+          lastColorsUsed={props.editor.state.lastColorsUsed}
+          editorVersion={props.editor.editorVersion}
+          toast={props.editor.toast}
+          createCombinedHotKeyMap={props.editor.createCombinedHotKeyMap}
+          getToolSetting={props.editor.getToolSetting}
+          setToolSetting={props.editor.setToolSetting}
+          getToolSettingRestrictions={props.editor.getToolSettingRestrictions}
+          exportProjectAsImageSVG={props.editor.exportProjectAsImageSVG}
+          builtinPreviews={props.editor.builtinPreviews}
+          addFileToBuiltinPreviews={props.editor.addFileToBuiltinPreviews}
+          isAssetInLibrary={props.editor.isAssetInLibrary}
+          openProjectFileDialog={props.editor.openProjectFileDialog}
+          openNewProjectConfirmation={props.editor.openNewProjectConfirmation}
+          localSavedFiles={props.editor.state.localSavedFiles}
+          loadLocalWickFile={props.editor.loadLocalWickFile}
+          deleteLocalWickFile={props.editor.deleteLocalWickFile}
+          reloadSavedWickFiles={props.editor.reloadSavedWickFiles}
+          openWarningModal={props.editor.openWarningModal}
+        />
+        {props.children}
+      </div>
+    </ErrorBoundary>
+  );
 }
