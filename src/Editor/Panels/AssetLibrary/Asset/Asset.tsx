@@ -26,7 +26,7 @@ import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
 import classNames from "classnames";
 
-interface AssetData {
+export interface AssetData {
   uuid: string;
   name: string;
   classname: string;
@@ -40,7 +40,7 @@ interface AssetProps {
   addSoundToActiveFrame: (asset: AssetData) => void;
   importProjectAsWickFile: (file: File) => void;
   createAssets: (files: File[], data: any[]) => void;
-  createImageFromAsset: (uuid: string, x: number, y: number, center: boolean) => void;
+  createImageFromAsset: (uuid: string, x: number, y: number, center?: boolean) => void;
   clearSelection: () => void;
   selectObjects: (objects: AssetData[]) => void;
   deleteSelectedObjects: () => void;
