@@ -38,7 +38,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Returns the name of the active tool.
    * @returns {string} The string representation active tool name.
    */
-  getActiveTool: AnyFunction = () => {
+  getActiveTool = (): any => {
     return this.project.activeTool;
   };
 
@@ -46,7 +46,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Change the active tool.
    * @param {string} newTool - The string representation of the tool to switch to.
    */
-  setActiveTool: AnyFunction = (newTool) => {
+  setActiveTool = (newTool: string) => {
     if (newTool !== this.getActiveTool().name) {
       this.lastUsedTool = this.getActiveTool();
       this.project.activeTool = newTool;
@@ -71,7 +71,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Toggles highlighted clip borders.
    */
-  toggleClipBorders: AnyFunction = () => {
+  toggleClipBorders = (): void => {
     this.project.showClipBorders = !this.project.showClipBorders;
     this.projectDidChange({ actionName: "Toggle Clip Borders" });
   };
@@ -79,7 +79,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Activates the tool that was used before the current tool was activated.
    */
-  activateLastTool: AnyFunction = () => {
+  activateLastTool = (): void => {
     this.project.activeTool = this.lastUsedTool;
     this.projectDidChange({ actionName: "Activate Last Tool" });
   };
@@ -87,7 +87,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Undo the last action that was done.
    */
-  undoAction: AnyFunction = () => {
+  undoAction = (): void => {
     if (!this.project.undo()) {
       this.toast("Nothing to undo.", "warning");
     } else {
@@ -98,7 +98,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Recover the state of the project from before the last action was done.
    */
-  redoAction: AnyFunction = () => {
+  redoAction = (): void => {
     if (!this.project.redo()) {
       this.toast("Nothing to redo.", "warning");
     } else {
@@ -109,7 +109,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Recenters the canvas.
    */
-  recenterCanvas: AnyFunction = () => {
+  recenterCanvas = (): void => {
     this.project.recenter();
     this.projectDidChange({ skipHistory: true, actionName: "recenterCanvas" });
   };
@@ -117,7 +117,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Zooms in the canvas.
    */
-  zoomIn: AnyFunction = () => {
+  zoomIn = (): void => {
     this.project.zoomIn();
     this.project.view.render();
   };
@@ -125,7 +125,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Zooms out the canvas.
    */
-  zoomOut: AnyFunction = () => {
+  zoomOut = (): void => {
     this.project.zoomOut();
     this.project.view.render();
   };
@@ -134,7 +134,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Returns an object containing the tool settings.
    * @returns {object} The object containing the tool settings.
    */
-  getToolSetting: AnyFunction = (name) => {
+  getToolSetting = (name: string): unknown => {
     return this.project.toolSettings.getSetting(name);
   };
 
@@ -142,7 +142,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Updates the tool settings state.
    * @param {object} newToolSettings - An object of key-value pairs where the keys represent tool settings and the values represent the values to change those settings to.
    */
-  setToolSetting: AnyFunction = (name, value) => {
+  setToolSetting = (name: string, value: unknown): void => {
     this.project.toolSettings.setSetting(name, value);
     this.projectDidChange({
       actionName: "Change Tool Setting " + name + ":" + value,
@@ -152,7 +152,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    *
    */
-  getToolSettingRestrictions: AnyFunction = (name) => {
+  getToolSettingRestrictions = (name: string): unknown => {
     return this.project.toolSettings.getSettingRestrictions(name);
   };
 
@@ -160,7 +160,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Returns all animation types available
    * @returns {Object[]} - Animation types listed as objects with label and value keys.
    */
-  getClipAnimationTypes: AnyFunction = () => {
+  getClipAnimationTypes = (): Array<{ label: string; value: string }> => {
     let outputTypes: Array<{ label: string; value: string }> = [];
     Object.keys(window.Wick.Clip.animationTypes).forEach((key) => {
       outputTypes.push({
