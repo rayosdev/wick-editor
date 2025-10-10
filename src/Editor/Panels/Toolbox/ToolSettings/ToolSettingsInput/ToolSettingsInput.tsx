@@ -27,68 +27,103 @@ import "./_toolsettingsinput.scss";
 
 import classNames from "classnames";
 
-interface ToolSettingsInputProps {
-  type: 'numeric' | 'checkbox' | 'dropdown';
-  isMobile?: boolean;
-  onChange: (value: any) => void;
-  value: any;
-  inputRestrictions?: any;
-  name: string;
+type RenderSize = "small" | "medium" | "large" | string;
+
+type NumericInputProps = {
+  type: "numeric";
+  value: number;
+  onChange: (value: number) => void;
+  icon: string;
+  inputRestrictions?: Record<string, unknown>;
+};
+
+type CheckboxInputProps = {
+  type: "checkbox";
+  value: boolean;
+  onChange: (value: boolean) => void;
   icon?: string;
-  renderSize?: string;
-}
+};
+
+type DropdownInputProps = {
+  type: "dropdown";
+  value: string;
+  onChange: (value: string) => void;
+  icon?: string;
+  options?: { label: string; value: any }[];
+};
+
+type ToolSettingsInputProps = (
+  | NumericInputProps
+  | CheckboxInputProps
+  | DropdownInputProps
+) & {
+  isMobile?: boolean;
+  name: string;
+  renderSize?: RenderSize;
+};
 
 class ToolSettingsInput extends Component<ToolSettingsInputProps> {
-  renderNumericInput = (): JSX.Element => {
+  private renderNumericInput = (
+    props: NumericInputProps & { isMobile?: boolean }
+  ): JSX.Element => {
     return (
       <SettingsNumericSlider
-        isMobile={this.props.isMobile}
-        onChange={this.props.onChange}
-        value={this.props.value}
-        inputRestrictions={this.props.inputRestrictions}
-        icon={this.props.icon || ''}
+        isMobile={props.isMobile}
+        onChange={props.onChange}
+        value={props.value}
+        inputRestrictions={props.inputRestrictions}
+        icon={props.icon}
       />
     );
   };
 
-  renderCheckboxInput = (): JSX.Element => {
+  private renderCheckboxInput = (
+    props: CheckboxInputProps & { name: string }
+  ): JSX.Element => {
     return (
       <div className="settings-checkbox-input">
         <ActionButton
-          icon={this.props.icon}
-          isActive={() => this.props.value}
+          icon={props.icon}
+          isActive={() => props.value}
           color="checkbox"
-          id={"settings-input-id-" + this.props.name}
-          tooltip={this.props.name}
-          action={() => this.props.onChange(!this.props.value)}
+          id={"settings-input-id-" + props.name}
+          tooltip={props.name}
+          action={() => props.onChange(!props.value)}
           iconClassName="toolbox-input-icon"
         />
       </div>
     );
   };
 
-  renderDropdownInput = (): JSX.Element => {
+  private renderDropdownInput = (
+    props: DropdownInputProps
+  ): JSX.Element => {
     return (
       <WickInput
         type="select"
         className="settings-dropdown-input"
-        onChange={this.props.onChange}
-        value={this.props.value}
+        onChange={props.onChange}
+        value={props.value}
+        options={props.options}
       />
     );
   };
 
-  renderInput = (): JSX.Element | undefined => {
+  private renderInput = (): JSX.Element | undefined => {
     if (this.props.type === "numeric") {
-      return this.renderNumericInput();
-    } else if (this.props.type === "checkbox") {
-      return this.renderCheckboxInput();
-    } else if (this.props.type === "dropdown") {
-      return this.renderDropdownInput();
-    } else {
-      console.error("No valid 'type' prop provided.");
-      return;
+      return this.renderNumericInput(this.props);
     }
+
+    if (this.props.type === "checkbox") {
+      return this.renderCheckboxInput(this.props);
+    }
+
+    if (this.props.type === "dropdown") {
+      return this.renderDropdownInput(this.props);
+    }
+
+    console.error("No valid 'type' prop provided.");
+    return;
   };
 
   render(): JSX.Element {
