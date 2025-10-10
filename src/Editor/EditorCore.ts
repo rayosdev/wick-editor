@@ -174,9 +174,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Shrinks the brush/eraser size by a given amount.
    */
-  changeBrushSize: AnyFunction = (amt) => {
-    var tool = this.project.activeTool.name;
-    var option;
+  changeBrushSize = (amt: number): void => {
+    const tool = this.project.activeTool.name;
+    let option: string | undefined;
     if (tool === "brush") {
       option = "brushSize";
     } else if (tool === "eraser") {
@@ -185,8 +185,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       return;
     }
 
-    let brushSize = this.getToolSetting(option);
-    let newBrushSize = (brushSize += amt);
+    const brushSize = Number(this.getToolSetting(option) ?? 0);
+    const newBrushSize = brushSize + amt;
 
     this.setToolSetting(option, newBrushSize);
   };
@@ -194,7 +194,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Moves the active timeline's playhead forward one frame.
    */
-  movePlayheadForwards: AnyFunction = () => {
+  movePlayheadForwards = (): void => {
     this.project.focus.timeline.playheadPosition++;
     this.project.guiElement.checkForPlayheadAutoscroll();
     this.project.view.render();
@@ -204,7 +204,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Moves the active timeline's playhead backwards one frame.
    */
-  movePlayheadBackwards: AnyFunction = () => {
+  movePlayheadBackwards = (): void => {
     this.project.focus.timeline.playheadPosition--;
     this.project.guiElement.checkForPlayheadAutoscroll();
     this.project.view.render();
@@ -214,7 +214,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Finishes a playhead moving operation.
    */
-  finishMovingPlayhead: AnyFunction = () => {
+  finishMovingPlayhead = (): void => {
     this.projectDidChange({ actionName: "Finish Moving Playhead" });
   };
 
@@ -222,7 +222,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Determines the type of the object/objects that are in the selection state.
    * @returns {string} The string representation of the type of object/objects selected
    */
-  getSelectionType: AnyFunction = () => {
+  getSelectionType = (): string => {
     return this.project.selection.selectionType;
   };
 
@@ -230,7 +230,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Returns true if the selection is scriptable.
    * @return {boolean} True if the selection is scriptable.
    */
-  selectionIsScriptable: AnyFunction = () => {
+  selectionIsScriptable = (): boolean => {
     return this.project.selection.isScriptable;
   };
 
@@ -238,7 +238,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * The selected scriptable object.
    * @return {Wick.Frame|Wick.Clip} object - the scriptable object that is selected
    */
-  getSelectedObjectScript: AnyFunction = () => {
+  getSelectedObjectScript = (): unknown => {
     if (this.selectionIsScriptable()) {
       return this.project.selection.getSelectedObject();
     } else {
@@ -251,7 +251,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {(<Wick.Frame>|<Wick.Tween>)[]} An array containing the selected
    * tweens and frames
    */
-  getSelectedTimelineObjects: AnyFunction = () => {
+  getSelectedTimelineObjects = (): unknown[] => {
     return this.project.selection.getSelectedObjects("Timeline");
   };
 
@@ -259,7 +259,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Returns all selected frames.
    * @returns {<Wick.Frame>)[]} An array containing the selected frames.
    */
-  getSelectedFrames: AnyFunction = () => {
+  getSelectedFrames = (): unknown[] => {
     return this.project.selection.getSelectedObjects("Frame");
   };
 
@@ -267,7 +267,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Returns all selected tweens.
    * @returns {<Wick.Tween>)[]} An array containing the selected tweens.
    */
-  getSelectedTweens: AnyFunction = () => {
+  getSelectedTweens = (): unknown[] => {
     return this.project.selection.getSelectedObjects("Tween");
   };
 
@@ -276,7 +276,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {(<Wick.Path>|<Wick.Clip>|<Wick.Button>)[]} An array containing
    * the selected clips and paths
    */
-  getSelectedCanvasObjects: AnyFunction = () => {
+  getSelectedCanvasObjects = (): unknown[] => {
     return this.project.selection.getSelectedObjects("Canvas");
   };
 
@@ -284,7 +284,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Returns all selected paths.
    * @returns {<Wick.Path>)[]} An array containing the selected paths.
    */
-  getSelectedPaths: AnyFunction = () => {
+  getSelectedPaths = (): unknown[] => {
     return this.project.selection.getSelectedObjects("Path");
   };
 
@@ -292,7 +292,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Returns all selected clips.
    * @returns {<Wick.Clip>)[]} An array containing the selected clips.
    */
-  getSelectedClips: AnyFunction = () => {
+  getSelectedClips = (): unknown[] => {
     return this.project.selection.getSelectedObjects("Clip");
   };
 
@@ -300,7 +300,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Returns all selected buttons.
    * @returns {<Wick.Button>)[]} An array containing the selected buttons.
    */
-  getSelectedButtons: AnyFunction = () => {
+  getSelectedButtons = (): unknown[] => {
     return this.project.selection.getSelectedObjects("Button");
   };
 
@@ -309,7 +309,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {(<Wick.ImageAsset>|<Wick.SoundAsset>)[]} An array containing the
    * selected assets
    */
-  getSelectedAssetLibraryObjects: AnyFunction = () => {
+  getSelectedAssetLibraryObjects = (): unknown[] => {
     return this.project.selection.getSelectedObjects("AssetLibrary");
   };
 
@@ -318,7 +318,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {(<Wick.SoundAsset>)[]} An array containing the selected sound
    * assets.
    */
-  getSelectedSoundAssets: AnyFunction = () => {
+  getSelectedSoundAssets = (): unknown[] => {
     return this.project.selection.getSelectedObjects("SoundAsset");
   };
 
