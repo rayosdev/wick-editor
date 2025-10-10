@@ -40,6 +40,7 @@ type VoidHandler = (...args: unknown[]) => void;
 
 type InspectorScriptWindowProps = ComponentProps<typeof InspectorScriptWindow>;
 type MobileAssetLibraryProps = ComponentProps<typeof MobileAssetLibrary>;
+type MobileInspectorProps = ComponentProps<typeof MobileInspector>;
 
 type AssetObject = MobileAssetLibraryProps["assets"][number];
 
@@ -56,23 +57,23 @@ interface MobileContainerProps {
     dragSoundOntoTimeline: VoidHandler;
     getToolSetting: (name: string) => unknown;
     setToolSetting: (name: string, value: unknown) => void;
-    getSelectionType: () => string;
-    getAllSoundAssets: () => unknown;
-    getAllSelectionAttributes: () => unknown;
-    setSelectionAttribute: (name: string, value: unknown) => void;
-    editorActions: unknown;
-    selectionIsScriptable: () => boolean;
+    getSelectionType: MobileInspectorProps["getSelectionType"];
+    getAllSoundAssets: MobileInspectorProps["getAllSoundAssets"];
+    getAllSelectionAttributes: MobileInspectorProps["getAllSelectionAttributes"];
+    setSelectionAttribute: MobileInspectorProps["setSelectionAttribute"];
+    editorActions: MobileInspectorProps["editorActions"];
+    selectionIsScriptable: NonNullable<MobileInspectorProps["selectionIsScriptable"]>;
     script: InspectorScriptWindowProps["script"];
     scriptInfoInterface: InspectorScriptWindowProps["scriptInfoInterface"];
     deleteScript: InspectorScriptWindowProps["deleteScript"];
     editScript: InspectorScriptWindowProps["editScript"];
-    fontInfoInterface: unknown;
-    importFileAsAsset: (file: unknown, callback: () => void) => void;
-    colorPickerType: string;
-    changeColorPickerType: (type: string) => void;
-    updateLastColors: (color: string) => void;
-    lastColorsUsed: string[];
-    getClipAnimationTypes: () => Array<{ label: string; value: string }>;
+    fontInfoInterface: MobileInspectorProps["fontInfoInterface"];
+    importFileAsAsset: MobileInspectorProps["importFileAsAsset"];
+    colorPickerType: MobileInspectorProps["colorPickerType"];
+    changeColorPickerType: MobileInspectorProps["changeColorPickerType"];
+    updateLastColors: MobileInspectorProps["updateLastColors"];
+    lastColorsUsed: MobileInspectorProps["lastColorsUsed"];
+    getClipAnimationTypes: MobileInspectorProps["getClipAnimationTypes"];
     assets: AssetObject[];
     openModal: MobileAssetLibraryProps["openModal"];
     openImportAssetFileDialog: MobileAssetLibraryProps["openImportAssetFileDialog"];

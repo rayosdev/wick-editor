@@ -30,11 +30,14 @@ interface MobileInspectorNumericSliderProps {
   icon?: string;
   iconAlt?: string;
   inputProps?: any;
+  id?: string;
+  divider?: boolean;
 }
 
 class MobileInspectorNumericSlider extends Component<MobileInspectorNumericSliderProps> {
   render(): JSX.Element {
     const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
+    const inputId = this.props.id ?? idLabel + "-input-mobile";
     const renderIdentifier = (this.props.icon) ? <img src={this.props.icon} alt={this.props.iconAlt} className="mobile-inspector-row-icon"></img>
       : <label htmlFor={idLabel + "-input-mobile"} className="mobile-inspector-row-identifier">
         {this.props.tooltip}
@@ -48,7 +51,7 @@ class MobileInspectorNumericSlider extends Component<MobileInspectorNumericSlide
         {/* Input */}
         <div className="mobile-inspector-small-input-container">
           <MobileInspectorInput
-            inputProps={{ id: idLabel + "-input-mobile" }}
+            inputProps={{ id: inputId }}
             input={
               {
                 type: "numeric",
@@ -61,7 +64,7 @@ class MobileInspectorNumericSlider extends Component<MobileInspectorNumericSlide
         {/* Slider */}
         <div className="mobile-inspector-small-input-container">
           <MobileInspectorInput
-            inputProps={{ ...this.props.inputProps, id: idLabel + "-input-mobile" }}
+            inputProps={{ ...this.props.inputProps, id: inputId }}
             input={
               {
                 type: "slider",

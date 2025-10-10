@@ -24,6 +24,7 @@ import InspectorPreview from 'Editor/Panels/Inspector/InspectorPreview/Inspector
 interface InspectorSoundPreviewProps {
   icon?: string;
   src: string;
+  id?: string;
 }
 
 class InspectorSoundPreview extends Component<InspectorSoundPreviewProps> {

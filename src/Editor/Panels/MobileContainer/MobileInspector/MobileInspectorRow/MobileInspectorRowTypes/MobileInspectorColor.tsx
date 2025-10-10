@@ -33,6 +33,7 @@ interface MobileInspectorColorProps {
   changeColorPickerType?: (type: string) => void;
   updateLastColors?: (color: string) => void;
   lastColorsUsed?: string[];
+  divider?: boolean;
 }
 
 class MobileInspectorColor extends Component<MobileInspectorColorProps> {

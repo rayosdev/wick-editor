@@ -26,14 +26,18 @@ import '../_mobileinspectorrow.scss';
 interface MobileInspectorTextInputProps {
   tooltip: string;
   val: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
   readOnly?: boolean;
   placeholder?: string;
+  id?: string;
+  divider?: boolean;
 }
 
 class MobileInspectorTextInput extends Component<MobileInspectorTextInputProps> {
   render(): JSX.Element {
     const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
+    const inputId = this.props.id ?? idLabel + "-input-mobile";
+    const handleChange = this.props.onChange ?? (() => { });
     return (
       <div className="mobile-inspector-row">
         {/* Identifier */}
@@ -44,12 +48,12 @@ class MobileInspectorTextInput extends Component<MobileInspectorTextInputProps> 
         {/* Input */}
         <div className="inspector-large-input-container">
           <MobileInspectorInput
-            inputProps={{ id: idLabel + "-input-mobile" }}
+            inputProps={{ id: inputId }}
             input={
               {
                 type: "text",
                 value: this.props.val,
-                onChange: this.props.onChange,
+                onChange: handleChange,
                 readOnly: this.props.readOnly,
                 placeholder: this.props.placeholder,
               }

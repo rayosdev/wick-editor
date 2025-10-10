@@ -35,12 +35,18 @@ interface MobileInspectorDualNumericInputProps {
   icon2?: string;
   iconAlt1?: string;
   iconAlt2?: string;
+  id?: string;
+  id1?: string;
+  id2?: string;
+  divider?: boolean;
 }
 
 class MobileInspectorDualNumericInput extends Component<MobileInspectorDualNumericInputProps> {
   render(): JSX.Element {
     const idLabel1 = this.props.tooltip1.replace(/\s+/g, '-').toLowerCase();
     const idLabel2 = this.props.tooltip2.replace(/\s+/g, '-').toLowerCase();
+    const inputId1 = this.props.id1 ?? this.props.id ?? idLabel1 + "-input-mobile";
+    const inputId2 = this.props.id2 ?? this.props.id ?? idLabel2 + "-input-mobile";
 
     const render1Identifier = (this.props.icon1) ? <img src={this.props.icon1} alt={this.props.iconAlt1} className="mobile-inspector-row-icon"></img>
       : <label htmlFor={idLabel1 + "-input-mobile"} className="mobile-inspector-row-identifier">
@@ -59,7 +65,7 @@ class MobileInspectorDualNumericInput extends Component<MobileInspectorDualNumer
         {/* Input1 */}
         <div className="mobile-inspector-small-input-container">
           <MobileInspectorInput
-            inputProps={{ id: idLabel1 + "-input-mobile" }}
+            inputProps={{ id: inputId1 }}
             input={
               {
                 type: "numeric",
@@ -75,7 +81,7 @@ class MobileInspectorDualNumericInput extends Component<MobileInspectorDualNumer
         {/* Input2 */}
         <div className="mobile-inspector-small-input-container">
           <MobileInspectorInput
-            inputProps={{ id: idLabel2 + "-input-mobile" }}
+            inputProps={{ id: inputId2 }}
             input={
               {
                 type: "numeric",

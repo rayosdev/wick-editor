@@ -23,12 +23,21 @@ import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
 
 import '../_mobileinspectorrow.scss';
 
+export type MobileInspectorSelectorOption = {
+  value: any;
+  label: string;
+  className?: string;
+  [key: string]: any;
+};
+
 interface MobileInspectorSelectorProps {
   tooltip: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: Array<{ name: string; value: string }>;
+  value: any;
+  onChange: (value: MobileInspectorSelectorOption) => void;
+  options: MobileInspectorSelectorOption[];
   className?: string;
+  type?: string;
+  isSearchable?: boolean;
 }
 
 class MobileInspectorSelector extends Component<MobileInspectorSelectorProps> {
@@ -47,11 +56,12 @@ class MobileInspectorSelector extends Component<MobileInspectorSelectorProps> {
             inputProps={{ id: idLabel + "-input-mobile" }}
             input={
               {
-                type: "select",
+                type: this.props.type ?? "select",
                 value: this.props.value,
                 onChange: this.props.onChange,
                 options: this.props.options,
                 className: this.props.className,
+                isSearchable: this.props.isSearchable,
               }
             } />
         </div>

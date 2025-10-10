@@ -29,12 +29,17 @@ interface MobileInspectorNumericInputProps {
   onChange: (value: number) => void;
   icon?: string;
   iconAlt?: string;
+  id?: string;
+  type?: string;
+  divider?: boolean;
 }
 
 class MobileInspectorNumericInput extends Component<MobileInspectorNumericInputProps> {
 
   render(): JSX.Element {
     const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
+    const inputId = this.props.id ?? idLabel + "-input-mobile";
+    const inputType = this.props.type ?? "numeric";
 
     const renderIdentifier = (this.props.icon) ? <img src={this.props.icon} alt={this.props.iconAlt} className="mobile-inspector-row-icon"></img>
       : <label htmlFor={idLabel + "-input-mobile"} className="mobile-inspector-row-identifier">
@@ -48,10 +53,10 @@ class MobileInspectorNumericInput extends Component<MobileInspectorNumericInputP
         {/* Input */}
         <div className="mobile-inspector-small-input-container">
           <MobileInspectorInput
-            inputProps={{ id: idLabel + "-input-mobile" }}
+            inputProps={{ id: inputId }}
             input={
               {
-                type: "numeric",
+                type: inputType,
                 value: this.props.val,
                 onChange: this.props.onChange
               }

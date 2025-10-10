@@ -24,6 +24,7 @@ import InspectorPreview from 'Editor/Panels/Inspector/InspectorPreview/Inspector
 interface InspectorImagePreviewProps {
   icon?: string;
   src: string;
+  id?: string;
 }
 
 class InspectorImagePreview extends Component<InspectorImagePreviewProps> {
