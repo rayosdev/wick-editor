@@ -48,6 +48,8 @@ interface MobileAssetLibraryProps {
   createImageFromAsset: (asset: any) => void;
   deleteSelectedObjects: () => void;
   addSoundToActiveFrame: (sound: any) => void;
+  projectData?: unknown;
+  toast?: (...args: unknown[]) => void;
 }
 
 interface MobileAssetLibraryState {
