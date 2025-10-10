@@ -17,4 +17,4 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export { default } from "./MobileContainer";
+export { default } from "./MobileContainer.tsx";

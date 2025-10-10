@@ -1,1 +1,1 @@
-export { default } from "./MobileInspector";
+export { default } from "./MobileInspector.tsx";
