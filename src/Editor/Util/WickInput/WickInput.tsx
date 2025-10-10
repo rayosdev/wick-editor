@@ -33,7 +33,7 @@ import { isMobile } from "react-device-detect";
 
 import classNames from "classnames";
 
-interface SelectOption {
+export interface SelectOption {
   label: string;
   value: any;
 }

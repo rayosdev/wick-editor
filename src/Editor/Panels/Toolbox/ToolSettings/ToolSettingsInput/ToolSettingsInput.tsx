@@ -19,7 +19,7 @@
 
 import { Component } from "react";
 
-import WickInput from "Editor/Util/WickInput/WickInput";
+import WickInput, { type SelectOption } from "Editor/Util/WickInput/WickInput";
 import SettingsNumericSlider from "./SettingsNumericSlider/SettingsNumericSlider";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
@@ -49,7 +49,7 @@ type DropdownInputProps = {
   value: string;
   onChange: (value: string) => void;
   icon?: string;
-  options?: { label: string; value: any }[];
+  options?: SelectOption[];
 };
 
 type ToolSettingsInputProps = (
