@@ -36,6 +36,7 @@ interface InspectorColorNumericInputProps {
   changeColorPickerType?: (type: string) => void;
   updateLastColors?: (color: string) => void;
   lastColorsUsed?: string[];
+  divider?: boolean;
 }
 
 class InspectorColorNumericInput extends Component<InspectorColorNumericInputProps> {

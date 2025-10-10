@@ -25,27 +25,30 @@ import '../_inspectorrow.scss';
 
 interface InspectorNumericInputProps {
   tooltip: string;
-  val: number;
-  onChange: (value: number) => void;
+  val: number | string | null | undefined;
+  onChange: (value: any) => void;
+  id?: string;
+  type?: string;
 }
 
 class InspectorNumericInput extends Component<InspectorNumericInputProps> {
   render(): JSX.Element {
     const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
+    const inputId = this.props.id ?? idLabel + "-input";
     return (
       <div className="inspector-row">
         {/* Identifier */}
-        <label htmlFor={idLabel + "-input"} className="inspector-row-identifier">
+        <label htmlFor={inputId} className="inspector-row-identifier">
           {this.props.tooltip}
         </label>
 
         {/* Input */}
         <div className="inspector-large-input-container">
           <InspectorInput
-            inputProps={{ id: idLabel + "-input" }}
+            inputProps={{ id: inputId }}
             input={
               {
-                type: "numeric",
+                type: this.props.type ?? "numeric",
                 value: this.props.val,
                 onChange: this.props.onChange
               }

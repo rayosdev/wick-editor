@@ -23,12 +23,20 @@ import InspectorInput from 'Editor/Panels/Inspector/InspectorRow/InspectorInput/
 
 import '../_inspectorrow.scss';
 
+interface InspectorSelectorOption {
+  value: any;
+  label: string;
+  [key: string]: any;
+}
+
 interface InspectorSelectorProps {
   tooltip: string;
-  value: string;
+  value: any;
   onChange: (option: any) => void;
-  options: Array<{ value: string; label: string }>;
+  options: InspectorSelectorOption[];
   className?: string;
+  type?: string;
+  isSearchable?: boolean;
 }
 
 class InspectorSelector extends Component<InspectorSelectorProps> {

@@ -31,6 +31,7 @@ interface InspectorDualNumericInputProps {
   val2: number;
   onChange1: (value: number) => void;
   onChange2: (value: number) => void;
+  id?: string;
 }
 
 class InspectorDualNumericInput extends Component<InspectorDualNumericInputProps> {

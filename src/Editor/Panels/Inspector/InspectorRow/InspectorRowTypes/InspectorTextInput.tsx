@@ -26,14 +26,15 @@ import '../_inspectorrow.scss';
 interface InspectorTextInputProps {
   tooltip: string;
   val: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
   readOnly?: boolean;
   placeholder?: string;
+  id?: string;
 }
 
 class InspectorTextInput extends Component<InspectorTextInputProps> {
   render(): JSX.Element {
-    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
+    const idLabel = (this.props.id || this.props.tooltip.replace(/\s+/g, '-').toLowerCase());
     return (
       <div className="inspector-row">
         {/* Identifier */}

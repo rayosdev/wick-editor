@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import { Component, type InputHTMLAttributes } from 'react';
 
 import InspectorInput from 'Editor/Panels/Inspector/InspectorRow/InspectorInput/InspectorInput';
 
@@ -27,7 +27,9 @@ interface InspectorNumericSliderProps {
   tooltip: string;
   val: number;
   onChange: (value: number) => void;
-  inputProps?: React.HTMLAttributes<HTMLInputElement>;
+  inputProps?: InputHTMLAttributes<HTMLInputElement>;
+  divider?: boolean;
+  id?: string;
 }
 
 class InspectorNumericSlider extends Component<InspectorNumericSliderProps> {
