@@ -19,3 +19,4 @@
 
 export { default } from "./Toolbox.tsx";
 export * from "./Toolbox.tsx";
+export * from "./Toolbox.tsx";

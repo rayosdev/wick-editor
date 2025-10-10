@@ -17,27 +17,6 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// Ensure a global `process` shim exists in the browser so libraries that
-// reference `process.env` (common in many npm packages) don't throw.
-if (typeof window !== "undefined" && typeof window.process === "undefined") {
-  // Minimal stub – expand if you need NODE_ENV or other keys during dev.
-  window.process = { env: {} };
-}
-
-// Prefer willReadFrequently for 2D canvas readbacks to reduce warnings
-// and improve performance for code that frequently calls getImageData.
-// This mirrors the browser recommendation. We patch getContext so libraries
-// that call `canvas.getContext('2d')` receive { willReadFrequently: true }
-// when appropriate.
-try {
-  const origGetContext = HTMLCanvasElement.prototype.getContext;
-  HTMLCanvasElement.prototype.getContext = function (type, opts) {
-    if (type === "2d") {
-      // If options are undefined or don't set willReadFrequently, prefer true.
-      const newOpts = Object.assign({}, opts);
-      if (typeof newOpts.willReadFrequently === "undefined") {
-        newOpts.willReadFrequently = true;
-      }
       return origGetContext.call(this, type, newOpts);
     }
     return origGetContext.call(this, type, opts);
@@ -94,38 +73,4 @@ try {
   // ignore
 }
 
-import React from "react";
-import { createRoot } from "react-dom/client";
-import "./index.css";
-import Editor from "./Editor/Editor";
-import * as serviceWorker from "./serviceWorker";
-import initializeDefaultFileHandlers from "./files/filehandler";
-
-// Creates file handlers in the window.
-initializeDefaultFileHandlers();
-
-const container = document.getElementById("root");
-const root = createRoot(container);
-root.render(<Editor />);
-
-// Defensive cleanup: some modal libraries set aria-hidden on <body> and may not
-// clean up correctly in dev/hot-reload flows. If it's present and hides the
-// entire accessibility tree, restore it.
-try {
-  const body = document && document.body;
-  if (
-    body &&
-    body.hasAttribute &&
-    body.getAttribute("aria-hidden") === "true"
-  ) {
-    // Only remove if it's blocking the accessibility tree for the whole page.
-    body.removeAttribute("aria-hidden");
-  }
-} catch (e) {
-  // ignore in non-DOM environments
-}
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: http://bit.ly/CRA-PWA
-serviceWorker.unregister();
+export * from "./index.tsx";

@@ -18,3 +18,4 @@
  */
 
 export { default } from "./Timeline.tsx";
+export * from "./Timeline.tsx";

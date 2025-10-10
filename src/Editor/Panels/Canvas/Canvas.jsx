@@ -19,3 +19,4 @@
 
 export { default } from "./Canvas.tsx";
 export * from "./Canvas.tsx";
+export * from "./Canvas.tsx";
