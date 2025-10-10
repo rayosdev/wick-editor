@@ -327,7 +327,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {(<Wick.ImageAsset>)[]} An array containing the selected image
    * assets.
    */
-  getSelectedImageAssets: AnyFunction = () => {
+  getSelectedImageAssets = (): unknown[] => {
     return this.project.selection.getSelectedObjects("ImageAsset");
   };
 
@@ -336,7 +336,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * object.
    * @return {object|null} selected scriptable object.
    */
-  getSelectedScriptableObject: AnyFunction = () => {
+  getSelectedScriptableObject = (): unknown => {
     return (
       this.project.selection.getSelectedObject().isScriptable &&
       this.project.selection.getSelectedObject()
@@ -347,7 +347,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Returns the number of objects selected on the canvas.
    * @return {number} Number of canvas objects selected.
    */
-  getNumCanvasObjectsSelected: AnyFunction = () => {
+  getNumCanvasObjectsSelected = (): number => {
     return this.project.selection.numObjects;
   };
 
@@ -355,7 +355,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Sets the active layer
    * @param {number} index The index to set as active
    */
-  setActiveLayerIndex: AnyFunction = (index) => {
+  setActiveLayerIndex = (index: number): void => {
     this.project.activeTimeline.activeLayerIndex = index;
     this.projectDidChange({ actionName: "Set Active Layer" });
   };
@@ -364,7 +364,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Toggles layer hidden
    * @param {object} layer The layer to toggle
    */
-  toggleHidden: AnyFunction = (layer) => {
+  toggleHidden = (layer: { hidden: boolean }): void => {
     layer.hidden = !layer.hidden;
     this.projectDidChange({ actionName: "Toggle Layer Hidden" });
   };
@@ -373,7 +373,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Toggles layer locked
    * @param {object} layer The layer to toggle
    */
-  toggleLocked: AnyFunction = (layer) => {
+  toggleLocked = (layer: { locked: boolean }): void => {
     layer.locked = !layer.locked;
     this.projectDidChange({ actionName: "Toggle Layer Locked" });
   };
@@ -383,7 +383,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {object} target The object to insert into
    * @param {number} index The index to insert at
    */
-  moveSelection: AnyFunction = (target, index) => {
+  moveSelection = (target: unknown, index: number): void => {
     if (this.project.moveSelection(target, index)) {
       this.projectDidChange({ actionName: "Moved Selection" });
     }
@@ -393,7 +393,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Adds the given object to the selection.
    * @param {object} object - The object to add to the selection.
    */
-  selectObject: AnyFunction = (object) => {
+  selectObject = (object: unknown): void => {
     this.project.selection.select(object);
     this.projectDidChange({ actionName: "Select Object" });
   };
@@ -403,7 +403,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * changes will be made if the selection does not change.
    * @param {object[]} objects - The objects to add to the selection.
    */
-  selectObjects: AnyFunction = (objects) => {
+  selectObjects = (objects: unknown[]): void => {
     this.project.selection.selectMultipleObjects(objects);
     this.projectDidChange({ actionName: "Select Multiple Objects" });
   };
@@ -413,8 +413,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * changes will be made if the selection does not change.
    * @param {object[]} objects - The objects to remove from the selection.
    */
-  deselectObjects: AnyFunction = (objects) => {
-    objects.forEach((object: any) => {
+  deselectObjects = (objects: unknown[]): void => {
+    objects.forEach((object) => {
       this.project.selection.deselect(object);
     });
     this.projectDidChange({ actionName: "Deselect Multiple Objects" });
@@ -423,7 +423,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Clears the selection.
    */
-  clearSelection: AnyFunction = () => {
+  clearSelection = (): void => {
     this.project.selection.clear();
     this.projectDidChange({ actionName: "Clear Selection" });
   };
@@ -431,7 +431,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Selects everything on the canvas.
    */
-  selectAll: AnyFunction = () => {
+  selectAll = (): void => {
     this.project.selectAll();
     this.projectDidChange({ actionName: "Select All" });
   };
@@ -442,7 +442,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @return {string|number|undefined} Value of the selection attribute to
    * retrieve. Returns undefined is attribute does not exist.
    */
-  getSelectionAttribute: AnyFunction = (attributeName) => {
+  getSelectionAttribute = (attributeName: string): unknown => {
     let attribute = this.project.selection[attributeName];
 
     if (attribute instanceof Array) {
@@ -489,7 +489,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {string} attribute Name of the attribute to update.
    * @param {string|number} newValue  New value of the attribute to update.
    */
-  setSelectionAttribute: AnyFunction = (attribute, newValue) => {
+  setSelectionAttribute = (attribute: string, newValue: unknown): void => {
     this.project.selection[attribute] = newValue;
     this.projectDidChange({
       actionName: "Set Selection Attribute: " + attribute + ":" + newValue,
@@ -501,7 +501,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {object} object - Selection object to check if it is selected
    * @returns {boolean} - True if the object is selected, false otherwise
    */
-  isObjectSelected: AnyFunction = (object) => {
+  isObjectSelected = (object: unknown): boolean => {
     return this.project.selection.isObjectSelected(object);
   };
 
@@ -512,7 +512,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    *    Default is true, to preserve existing script behavior.
    *    Calling this function with false ensures user doesn't accidentally wrap a Clip within another Clip.
    */
-  createClipFromSelection: AnyFunction = (name, wrapSingularClip = true) => {
+  createClipFromSelection = (name: string, wrapSingularClip = true): void => {
     if (this.project.selection.numObjects === 0) {
       console.log("No selection from which to create clips.");
       return;
