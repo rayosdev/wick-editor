@@ -16,3 +16,4 @@
  * You should have received a copy of the GNU General Public License
  */
 export { default } from "./AssetLibrary.tsx";
+export * from "./AssetLibrary.tsx";

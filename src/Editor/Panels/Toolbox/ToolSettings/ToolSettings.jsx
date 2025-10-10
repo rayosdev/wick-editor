@@ -18,3 +18,4 @@
  */
 
 export { default } from "./ToolSettings.tsx";
+export * from "./ToolSettings.tsx";
