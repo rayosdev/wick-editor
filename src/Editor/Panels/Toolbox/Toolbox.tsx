@@ -365,7 +365,7 @@ class Toolbox extends Component<ToolboxProps, ToolboxState> {
 
     private renderToolButtonsMobile = (): JSX.Element => {
         const activeToolName = this.props.getActiveToolName();
-    const dropdownKeys = TOOL_DROPDOWN_KEYS;
+        const dropdownKeys = TOOL_DROPDOWN_KEYS;
         dropdownKeys.forEach((key) => {
             const dropdownConfig = this.toolDropdowns[key];
             if (!dropdownConfig || typeof dropdownConfig === "string") {
