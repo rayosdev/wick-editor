@@ -35,6 +35,49 @@ import CanvasActions, {
 import PopupMenu from "Editor/Util/PopupMenu/PopupMenu";
 import type { HotKeyMap } from "Editor/types/hotkeys";
 
+const TOOL_NAMES = [
+    "cursor",
+    "brush",
+    "pencil",
+    "eraser",
+    "rectangle",
+    "ellipse",
+    "line",
+    "pathcursor",
+    "text",
+    "fillbucket",
+    "eyedropper",
+] as const;
+
+type ToolName = typeof TOOL_NAMES[number];
+
+const TOOL_TITLES: Record<ToolName, string> = {
+    cursor: "Cursor",
+    brush: "Brush",
+    pencil: "Pencil",
+    eraser: "Eraser",
+    rectangle: "Rectangle",
+    ellipse: "Ellipse",
+    line: "Line",
+    pathcursor: "Path Cursor",
+    text: "Text",
+    fillbucket: "Fill Bucket",
+    eyedropper: "Eyedropper",
+};
+
+const TOOL_DROPDOWN_KEYS = [
+    "cursors",
+    "brushes",
+    "eraser",
+    "shapes",
+    "tools",
+] as const;
+
+type ToolDropdownKey = typeof TOOL_DROPDOWN_KEYS[number];
+
+const isToolName = (value: string): value is ToolName =>
+    (TOOL_NAMES as readonly string[]).includes(value);
+
 interface ToolboxAction extends CanvasAction { }
 
 interface ToolboxEditorActions extends CanvasEditorActions {
@@ -70,28 +113,14 @@ interface ToolboxState {
 }
 
 type ToolDropdownConfig =
-    | string
+    | ToolName
     | {
-        active: string;
-        options: string[];
+        active: ToolName;
+        options: ToolName[];
     };
 
-const TOOL_TITLES: Record<string, string> = {
-    cursor: "Cursor",
-    brush: "Brush",
-    pencil: "Pencil",
-    eraser: "Eraser",
-    rectangle: "Rectangle",
-    ellipse: "Ellipse",
-    line: "Line",
-    pathcursor: "Path Cursor",
-    text: "Text",
-    fillbucket: "Fill Bucket",
-    eyedropper: "Eyedropper",
-};
-
 class Toolbox extends Component<ToolboxProps, ToolboxState> {
-    private toolDropdowns: Record<string, ToolDropdownConfig> = {
+    private toolDropdowns: Record<ToolDropdownKey, ToolDropdownConfig> = {
         cursors: { active: "cursor", options: ["cursor", "pathcursor"] },
         brushes: { active: "brush", options: ["brush", "pencil"] },
         eraser: "eraser",
@@ -137,7 +166,7 @@ class Toolbox extends Component<ToolboxProps, ToolboxState> {
     }
 
     private getToolTooltip = (toolName: string): string => {
-        return TOOL_TITLES[toolName] ?? toolName;
+        return isToolName(toolName) ? TOOL_TITLES[toolName] : toolName;
     };
 
     private renderToolButtonFromAction = (
@@ -157,23 +186,9 @@ class Toolbox extends Component<ToolboxProps, ToolboxState> {
     private renderToolButtons = (): JSX.Element => {
         const baseProps = this.getToolButtonBaseProps();
 
-        const tools = [
-            "cursor",
-            "brush",
-            "pencil",
-            "eraser",
-            "rectangle",
-            "ellipse",
-            "line",
-            "pathcursor",
-            "text",
-            "fillbucket",
-            "eyedropper",
-        ];
-
         return (
             <div className="tool-collection-container">
-                {tools.map((tool) => (
+                {TOOL_NAMES.map((tool) => (
                     <ToolButton
                         key={tool}
                         {...baseProps}
@@ -350,13 +365,14 @@ class Toolbox extends Component<ToolboxProps, ToolboxState> {
 
     private renderToolButtonsMobile = (): JSX.Element => {
         const activeToolName = this.props.getActiveToolName();
-        Object.keys(this.toolDropdowns).forEach((key) => {
+    const dropdownKeys = TOOL_DROPDOWN_KEYS;
+        dropdownKeys.forEach((key) => {
             const dropdownConfig = this.toolDropdowns[key];
             if (!dropdownConfig || typeof dropdownConfig === "string") {
                 return;
             }
 
-            if (dropdownConfig.options.includes(activeToolName)) {
+            if (isToolName(activeToolName) && dropdownConfig.options.includes(activeToolName)) {
                 dropdownConfig.active = activeToolName;
             }
         });
@@ -365,7 +381,7 @@ class Toolbox extends Component<ToolboxProps, ToolboxState> {
 
         return (
             <div className="tool-collection-container">
-                {Object.keys(this.toolDropdowns).map((key) => {
+                {dropdownKeys.map((key) => {
                     const dropdownConfig = this.toolDropdowns[key];
                     if (!dropdownConfig) {
                         return null;
