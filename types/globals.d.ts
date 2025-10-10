@@ -43,4 +43,5 @@ declare module "react-modal";
 interface Window {
   Wick: any;
   editor: any;
+  [key: string]: any;
 }
