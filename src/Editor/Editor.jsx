@@ -48,7 +48,7 @@ import Timeline from "./Panels/Timeline/Timeline";
 import MobileContainer from "./Panels/MobileContainer/MobileContainer";
 import DeleteCopyPaste from "./Panels/DeleteCopyPaste/DeleteCopyPaste";
 import CanvasTransforms from "./Panels/CanvasTransforms/CanvasTransforms";
-import Toolbox from "./Panels/Toolbox/Toolbox";
+import Toolbox from "./Panels/Toolbox/Toolbox.tsx";
 import AssetLibrary from "./Panels/AssetLibrary/AssetLibrary";
 import Outliner from "./Panels/Outliner/Outliner";
 import OutlinerExpandButton from "./Panels/OutlinerExpandButton/OutlinerExpandButton";
