@@ -28,6 +28,8 @@ import AudioExport from "./export/AudioExport";
 type AnyFunction = (...args: any[]) => any;
 type EditorCoreProps = Record<string, never>;
 type EditorCoreState = EditorCoreUIState & Record<string, any>;
+type WickAsset = { uuid: string; filename?: string };
+type AutosaveEntry = { uuid: string };
 
 class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   [key: string]: any;
@@ -49,7 +51,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       this.lastUsedTool = this.getActiveTool();
       this.project.activeTool = newTool;
 
-      this._onEyedropperPickedColor = (color: any) => {
+      this._onEyedropperPickedColor = (color: unknown) => {
         this.project.toolSettings.setSetting(
           "fillColor",
           new window.Wick.Color(color)
@@ -836,7 +838,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         window.Wick.ObjectCache.getObjectByUUID(uuid),
         dropPoint.x,
         dropPoint.y,
-        (path) => {
+        (_path: unknown) => {
           this.projectDidChange({ actionName: "Create Image Path From Asset" });
         }
       );
@@ -845,7 +847,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         window.Wick.ObjectCache.getObjectByUUID(uuid),
         dropPoint.x,
         dropPoint.y,
-        (clip) => {
+        (_clip: unknown) => {
           this.projectDidChange({
             actionName: "Create Clip Instance From Asset",
           });
@@ -856,7 +858,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         window.Wick.ObjectCache.getObjectByUUID(uuid),
         dropPoint.x,
         dropPoint.y,
-        (svg) => {
+        (_svg: unknown) => {
           this.projectDidChange({
             actionName: "Create SVG Instance From Asset",
           });
@@ -907,11 +909,14 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {File} file - File object to create an asset of.
    * @param {Function} callback - (optional) Callback to return asset to. If the import was unsuccessful, null is sent to the callback.
    */
-  importFileAsAsset: AnyFunction = (file, callback) => {
-    this.project.importFile(file, (asset) => {
+  importFileAsAsset = (
+    file: File,
+    callback?: (asset: WickAsset | null) => void
+  ) => {
+    this.project.importFile(file, (asset: WickAsset | null) => {
       if (callback) callback(asset);
 
-      if (asset === null) {
+      if (!asset) {
         this.toast("Could not add files to project: " + file.name, "error");
       } else {
         this.toast(`Imported ${file.name || "project"} successfully.`);
@@ -963,52 +968,54 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {File[]} rejectedFiles - Files uploaded by user with unsupported MIME types.
    * @param {object} options - optional flags. Can include "create", which if true will create an instance of the object on the canvas.
    */
-  createAssets: AnyFunction = (acceptedFiles, rejectedFiles, options) => {
-    if (!options) options = {};
+  createAssets = (
+    acceptedFiles: File[],
+    rejectedFiles: File[],
+    options?: { create?: boolean; location?: { x?: number; y?: number } }
+  ) => {
+    const resolvedOptions = options ?? {};
+    const location = resolvedOptions.location ?? {};
 
     let toastID = this.toast("Importing files...", "info");
 
     // Error message for failed uploads
     if (rejectedFiles.length > 0) {
-      let fileNamesRejected = rejectedFiles.map((file) => file.name).join(", ");
+      let fileNamesRejected = rejectedFiles
+        .map((file: File) => file.name)
+        .join(", ");
       this.updateToast(toastID, {
         type: "error",
         text: "Could not import files: " + fileNamesRejected,
       });
     }
 
-    let createCallback = (asset) => {
-      if (options.create)
-        this.createImageFromAsset(
-          asset.uuid,
-          options.location.x || 0,
-          options.location.y || 0
-        );
+    let createCallback = (asset: WickAsset | null) => {
+      if (!asset) return;
+      if (resolvedOptions.create)
+        this.createImageFromAsset(asset.uuid, location.x ?? 0, location.y ?? 0);
     };
 
     // Add all successfully uploaded assets
-    for (var i = 0; i < acceptedFiles.length; i++) {
-      if (acceptedFiles[i].type === "image/gif") {
+    for (const file of acceptedFiles) {
+      if (file.type === "image/gif") {
         GIFImport.importGIFIntoProject({
-          gifFile: acceptedFiles[i],
+          gifFile: file,
           project: this.project,
-          onProgress: (percent) => {
+          onProgress: (percent: number) => {
             console.log("GIFImport onProgress: " + percent);
           },
-          onFinish: (gifAsset) => {
+          onFinish: (gifAsset: WickAsset) => {
             this.project.addAsset(gifAsset);
             this.projectDidChange({ actionName: "Add Asset" });
-            if (options.create)
+            if (resolvedOptions.create)
               this.createImageFromAsset(
                 gifAsset.uuid,
-                options.location.x || 0,
-                options.location.y || 0
+                location.x ?? 0,
+                location.y ?? 0
               );
           },
         });
       } else {
-        var file = acceptedFiles[i];
-
         this.importFileAsAsset(file, createCallback);
       }
     }
@@ -1033,21 +1040,24 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   exportProjectToNewWindow: AnyFunction = () => {
     this.showWaitOverlay();
-    window.Wick.HTMLPreview.previewProject(this.project, (previewWindow) => {
-      this.hideWaitOverlay();
-      if (previewWindow) {
-        this.toast("Project preview window opened.", "info", {
-          autoClose: false,
-        });
-      } else {
-        // If pop ups are disabled, previewWindow will be null.
-        this.toast(
-          "Could not open a preview window. Try disabling your popup blocker!",
-          "error",
-          { autoClose: false }
-        );
+    window.Wick.HTMLPreview.previewProject(
+      this.project,
+      (previewWindow: Window | null | undefined) => {
+        this.hideWaitOverlay();
+        if (previewWindow) {
+          this.toast("Project preview window opened.", "info", {
+            autoClose: false,
+          });
+        } else {
+          // If pop ups are disabled, previewWindow will be null.
+          this.toast(
+            "Could not open a preview window. Try disabling your popup blocker!",
+            "error",
+            { autoClose: false }
+          );
+        }
       }
-    });
+    );
   };
 
   /**
@@ -1060,35 +1070,44 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       autoClose: false,
     });
 
-    window.Wick.WickFile.toWickFile(this.project, (file) => {
-      if (file === undefined) {
-        this.updateToast(toastID, {
-          type: "error",
-          text: "Could not export .wick file.",
-        });
+    window.Wick.WickFile.toWickFile(
+      this.project,
+      (file: BlobPart | ArrayBuffer | undefined) => {
+        if (file === undefined) {
+          this.updateToast(toastID, {
+            type: "error",
+            text: "Could not export .wick file.",
+          });
+          this.hideWaitOverlay();
+          return;
+        }
+
+        let success = () => {
+          this.updateToast(toastID, {
+            type: "success",
+            text: "Successfully saved .wick file.",
+          });
+        };
+
+        let fail = () => {
+          this.updateToast(toastID, {
+            type: "error",
+            text: "Error saving .wick file. Please try again.",
+          });
+        };
+
+        const wickBlob = new Blob([file], { type: "application/wick" });
+        window.saveFileFromWick(
+          wickBlob,
+          this.project.name,
+          ".wick",
+          success,
+          fail
+        );
+
         this.hideWaitOverlay();
-        return;
       }
-
-      let success = () => {
-        this.updateToast(toastID, {
-          type: "success",
-          text: "Successfully saved .wick file.",
-        });
-      };
-
-      let fail = () => {
-        this.updateToast(toastID, {
-          type: "error",
-          text: "Error saving .wick file. Please try again.",
-        });
-      };
-
-      file = new Blob([file], { type: "application/wick" });
-      window.saveFileFromWick(file, this.project.name, ".wick", success, fail);
-
-      this.hideWaitOverlay();
-    });
+    );
   };
 
   /**
@@ -1107,18 +1126,18 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     let outputName = args.name || this.project.name;
     let toastID = this.toast("Exporting animated GIF...", "info");
 
-    let onProgress = (message, progress) => {
+    let onProgress = (message: string, progress: number) => {
       this.setState({
         renderStatusMessage: message,
         renderProgress: progress,
       });
     };
 
-    let onError = (message) => {
+    let onError = (message?: string) => {
       console.error("Gif Render had an error with message: ", message);
     };
 
-    let onFinish = (gifBlob) => {
+    let onFinish = (gifBlob: Blob) => {
       let success = () => {
         this.updateToast(toastID, {
           type: "success",
@@ -1165,7 +1184,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
 
     let toastID = this.toast("Exporting image sequence...", "info");
 
-    let onProgress = (completed, maxFrames) => {
+    let onProgress = (completed: number, maxFrames: number) => {
       let message = "Rendered " + completed + "/" + maxFrames + " frames";
       let percentage = 10 + 90 * (completed / maxFrames);
       this.setState({
@@ -1174,11 +1193,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       });
     };
 
-    let onError = (message) => {
+    let onError = (message?: string) => {
       console.error("Image Render had an error with message: ", message);
     };
 
-    let onFinish = (sequenceBlobZip) => {
+    let onFinish = (sequenceBlobZip: Blob) => {
       let success = () => {
         this.updateToast(toastID, {
           type: "success",
@@ -1215,7 +1234,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         this.hideWaitOverlay();
         onError();
       },
-      onFinish: (file) => {
+      onFinish: (file: Blob) => {
         this.hideWaitOverlay();
         onFinish(file);
       },
@@ -1237,18 +1256,18 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
 
     let toastID = this.toast("Exporting video...", "info");
 
-    let onProgress = (message, progress) => {
+    let onProgress = (message: string, progress: number) => {
       this.setState({
         renderStatusMessage: message,
         renderProgress: progress,
       });
     };
 
-    let onError = (message) => {
+    let onError = (message?: string) => {
       console.error("Video Render had an error with message: ", message);
     };
 
-    let onFinish = (message) => {
+    let onFinish = (message?: string) => {
       this.updateToast(toastID, {
         type: "success",
         text: "Successfully created .mp4 file.",
@@ -1291,11 +1310,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
 
     let toastID = this.toast("Exporting svg...", "info");
 
-    let onError = (message) => {
+    let onError = (message?: string) => {
       console.error("SVG builder had an error with message: ", message);
     };
 
-    let onFinish = (file) => {
+    let onFinish = (file: Blob) => {
       let success = () => {
         this.updateToast(toastID, {
           type: "success",
@@ -1318,12 +1337,16 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     // this.showWaitOverlay('Rendering video...');
     window.Wick.SVGFile.toSVGFile(
       this.project.activeTimeline,
-      onError,
-      (file) => {
+      (message?: string) => {
+        onError(message);
+      },
+      (file: Blob) => {
         this.hideWaitOverlay();
         onFinish(file);
       }
     );
+
+    return undefined;
   };
 
   /**
@@ -1332,7 +1355,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   exportProjectAsStandaloneZip: AnyFunction = (args) => {
     let toastID = this.toast("Exporting project as ZIP...", "info");
     let outputName = args.name || this.project.name;
-    window.Wick.ZIPExport.bundleProject(this.project, (blob) => {
+    window.Wick.ZIPExport.bundleProject(this.project, (blob: Blob) => {
       let success = () => {
         this.updateToast(toastID, {
           type: "success",
@@ -1357,31 +1380,34 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   exportProjectAsStandaloneHTML: AnyFunction = (args) => {
     let toastID = this.toast("Exporting project as HTML...", "info");
     let outputName = args.name || this.project.name;
-    window.Wick.HTMLExport.bundleProject(this.project, (html) => {
-      let file = new Blob([html], { type: "text/html" });
+    window.Wick.HTMLExport.bundleProject(
+      this.project,
+      (html: BlobPart | ArrayBuffer) => {
+        let file = new Blob([html], { type: "text/html" });
 
-      let success = () => {
-        this.updateToast(toastID, {
-          type: "success",
-          text: "Successfully saved .html file.",
-        });
-      };
+        let success = () => {
+          this.updateToast(toastID, {
+            type: "success",
+            text: "Successfully saved .html file.",
+          });
+        };
 
-      let fail = () => {
-        this.updateToast(toastID, {
-          type: "error",
-          text: "Error saving .html file. Please try again.",
-        });
-      };
+        let fail = () => {
+          this.updateToast(toastID, {
+            type: "error",
+            text: "Error saving .html file. Please try again.",
+          });
+        };
 
-      window.saveFileFromWick(file, outputName, ".html", success, fail);
-    });
+        window.saveFileFromWick(file, outputName, ".html", success, fail);
+      }
+    );
   };
 
   /**
    * Exports the audio of a Wick project's audio as a single track in an audio file.
    */
-  exportProjectAsAudioTrack: AnyFunction = (args) => {
+  exportProjectAsAudioTrack: AnyFunction = (_args?: unknown) => {
     AudioExport.generateAudioFile({
       project: this.project,
     }).then((result) => {
@@ -1393,9 +1419,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Imports a wick file into the editor.
    * @param {File} file Zipped wick file to import.
    */
-  importProjectAsWickFile: AnyFunction = (file) => {
+  importProjectAsWickFile: AnyFunction = (file: File) => {
     this.showWaitOverlay();
-    window.Wick.WickFile.fromWickFile(file, (project) => {
+    window.Wick.WickFile.fromWickFile(file, (project: any) => {
       if (project) {
         this.setupNewProject(project);
         this.toast(`Opened ${file.name || "project"} successfully.`, "success");
@@ -1445,7 +1471,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   };
 
   showAutosavedProjects: AnyFunction = () => {
-    this.doesAutoSavedProjectExist((exists) => {
+    this.doesAutoSavedProjectExist((exists: boolean) => {
       if (exists) {
         this.queueModal("AutosaveWarning");
       }
@@ -1463,16 +1489,16 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * the example parameter takes precedence.
    */
   tryToParseProjectURL: AnyFunction = () => {
-    var urlParams = queryString.parse(window.location.search);
+    const urlParams = queryString.parse(window.location.search);
 
-    let loadProjectFromURL = (url) => {
+    const loadProjectFromURL = (url: string | URL) => {
       // Download and open the wick project.
       fetch(url)
         .then((resp) => resp.blob())
         .then((blob) => {
           window.Wick.WickFile.fromWickFile(
             blob,
-            (loadedProject) => {
+            (loadedProject: any) => {
               this.setupNewProject(loadedProject);
             },
             "blob"
@@ -1494,7 +1520,10 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       return;
     }
 
-    var projectLink = urlParams.project;
+    const projectParam = urlParams.project;
+    let projectLink = Array.isArray(projectParam)
+      ? projectParam[0] ?? ""
+      : projectParam ?? "";
 
     // No URL param, skip the download
     if (!projectLink) {
@@ -1547,7 +1576,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       }
     }
 
-    this.project.onError((message) => {
+    this.project.onError((message: string) => {
       if (message === "OUT_OF_BOUNDS" || message === "LEAKY_HOLE") {
         this.toast("The shape you are trying to fill has a gap.", "warning");
       } else if (message === "FILL_EQUALS_HOLE") {
@@ -1597,7 +1626,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Save the current project in localstorage
    */
-  autoSaveProject: AnyFunction = (callback) => {
+  autoSaveProject: AnyFunction = (callback: () => void) => {
     if (!this.project) return;
     if (this.state.previewPlaying) return;
     if (this.state.activeModalName !== null) return;
@@ -1611,13 +1640,13 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Attempts to automatically load an autosaved project if it exists.
    * Does nothing if not autosaved project is stored.
    */
-  loadAutosavedProject: AnyFunction = (callback) => {
-    window.Wick.AutoSave.getAutosavesList((autosaveList) => {
+  loadAutosavedProject: AnyFunction = (callback: () => void) => {
+    window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
       if (!autosaveList[0]) {
         callback();
       } else {
         this.showWaitOverlay();
-        window.Wick.AutoSave.load(autosaveList[0].uuid, (project) => {
+        window.Wick.AutoSave.load(autosaveList[0].uuid, (project: any) => {
           this.setupNewProject(project);
           this.hideWaitOverlay();
           callback();
@@ -1625,14 +1654,15 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       }
     });
   };
-
   /**
    * Check if auto saved project exists.
    * @param  {Function} callback a callback which receives a boolean.
    * True if an autosave exists.
    */
-  doesAutoSavedProjectExist: AnyFunction = (callback) => {
-    window.Wick.AutoSave.getAutosavesList((autosaveList) => {
+  doesAutoSavedProjectExist: AnyFunction = (
+    callback: (exists: boolean) => void
+  ) => {
+    window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
       callback(autosaveList.length > 0);
     });
   };
@@ -1640,7 +1670,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Clears any autosaved project from local storage.
    */
-  clearAutoSavedProject: AnyFunction = (callback) => {
+  clearAutoSavedProject: AnyFunction = (callback: () => void) => {
     window.Wick.AutoSave.delete(this.project.uuid, () => {
       callback();
     });
@@ -1883,7 +1913,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     if (!clip) return;
     if (!(clip instanceof window.Wick.Clip)) return;
 
-    window.Wick.WickObjectFile.toWickObjectFile(clip, "blob", (file) => {
+    window.Wick.WickObjectFile.toWickObjectFile(clip, "blob", (file: Blob) => {
       window.saveFileFromWick(file, clip.identifier || "object", ".wickobj");
     });
   };
@@ -1907,9 +1937,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Loads Local Wick File from
    * @param {*} fileEntry
    */
-  loadLocalWickFile: AnyFunction = (fileEntry) => {
+  loadLocalWickFile: AnyFunction = (fileEntry: any) => {
     if (window.loadWickFileEntry) {
-      window.loadWickFileEntry(fileEntry, (blob) => {
+      window.loadWickFileEntry(fileEntry, (blob: File) => {
         // Wraps the file in a fake event. TODO: Simplify this.
         this.handleWickFileLoad({
           target: {
@@ -1935,7 +1965,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   reloadSavedWickFiles: AnyFunction = () => {
     if (window.getSavedWickFiles) {
-      window.getSavedWickFiles((files) => {
+      window.getSavedWickFiles((files: File[]) => {
         this.setState({
           localSavedFiles: files,
         });
