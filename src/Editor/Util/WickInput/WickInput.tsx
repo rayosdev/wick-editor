@@ -316,9 +316,9 @@ class WickInput extends Component<WickInputProps> {
   renderRadio = (): JSX.Element => {
     if (!this.props.name)
       throw new Error("WickInput radio buttons require a name.");
-    
+
     const { type, containerclassname, tooltip, tooltipID, tooltipPlace, updateLastColors, buttonProps, secondaryAction, onTouch, ...radioProps } = this.props;
-    
+
     return (
       <Input
         type="radio"
