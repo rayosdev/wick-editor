@@ -26,7 +26,7 @@ import "./_toolbutton.scss";
 
 import classNames from "classnames";
 
-interface ToolButtonProps {
+export interface ToolButtonProps {
   name: string;
   tooltip: string;
   keyMap: HotKeyMap;

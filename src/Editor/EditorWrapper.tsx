@@ -5,6 +5,7 @@ import { GlobalHotKeys, KeyMap, GlobalHotKeysProps } from "react-hotkeys";
 import ErrorPage from "./Util/ErrorPage";
 import ModalHandler from "./Modals/ModalHandler/ModalHandler";
 import { attachConsoleListener } from "./Util/consoleListener";
+import type { HotKeyMap } from "Editor/types/hotkeys";
 
 type AnyFunction = (...args: unknown[]) => unknown;
 
@@ -54,7 +55,7 @@ type EditorLike = {
     };
     autoSaveProject: (callback: AnyFunction) => void;
     toast: AnyFunction;
-    getKeyMap: (fullKeyMap?: boolean) => KeyMap;
+    getKeyMap: (fullKeyMap?: boolean) => HotKeyMap;
     getKeyHandlers: (
         fullKeyHandlers?: boolean
     ) => GlobalHotKeysProps["handlers"];
@@ -191,7 +192,7 @@ function EditorWrapper({ editor, children }: EditorWrapperProps) {
             />
             <GlobalHotKeys
                 allowChanges={true}
-                keyMap={editor.getKeyMap()}
+                keyMap={editor.getKeyMap() as unknown as KeyMap}
                 handlers={editor.getKeyHandlers()}
             />
             <div id="editor" className="theme-default">

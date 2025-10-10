@@ -7,13 +7,13 @@ import "./_canvasactions.scss";
 
 import classNames from "classnames";
 
-interface CanvasAction {
+export interface CanvasAction {
   icon: string;
   tooltip: string;
   action: (e?: React.MouseEvent) => void;
 }
 
-interface EditorActions {
+export interface EditorActions {
   sendToBack: CanvasAction;
   sendBackward: CanvasAction;
   sendForward: CanvasAction;
@@ -25,7 +25,7 @@ interface EditorActions {
   booleanIntersect: CanvasAction;
 }
 
-interface CanvasActionsProps {
+export interface CanvasActionsProps {
   renderSize: string;
   editorActions: EditorActions;
   showCanvasActions: boolean;

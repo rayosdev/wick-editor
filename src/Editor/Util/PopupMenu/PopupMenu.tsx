@@ -29,6 +29,7 @@ interface PopupMenuProps {
   target: string;
   mobile?: boolean;
   children?: ReactNode;
+  className?: string;
 }
 
 /**
@@ -46,7 +47,8 @@ class PopupMenu extends Component<PopupMenuProps> {
         boundariesElement={"viewport" as any}
         className={classNames(
           "popup-menu-popover",
-          this.props.mobile && "mobile"
+          this.props.mobile && "mobile",
+          this.props.className
         )}
       >
         {this.props.children}
