@@ -30,6 +30,11 @@ type EditorCoreProps = Record<string, never>;
 type EditorCoreState = EditorCoreUIState & Record<string, any>;
 type WickAsset = { uuid: string; filename?: string };
 type AutosaveEntry = { uuid: string };
+type ExportMediaArgs = {
+  name?: string;
+  width?: number;
+  height?: number;
+};
 
 class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   [key: string]: any;
@@ -974,7 +979,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Checks if an asset with filename filename exists
    * @param {string} filename - name of file
    */
-  isAssetInLibrary: AnyFunction = (filename) => {
+  isAssetInLibrary = (filename: string): boolean => {
     let assets = this.project.getAssets();
     for (let i = 0; i < assets.length; i++) {
       if (assets[i].filename === filename) {
@@ -1046,21 +1051,21 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Begin interactive object creation process.
    */
-  beginMakeInteractiveProcess: AnyFunction = () => {
+  beginMakeInteractiveProcess = (): void => {
     this.openModal("MakeInteractive");
   };
 
   /**
    * Begin animated object creation process.
    */
-  beginMakeAnimatedProcess: AnyFunction = () => {
+  beginMakeAnimatedProcess = (): void => {
     this.openModal("MakeAnimated");
   };
 
   /**
    * Export the current project to a new window.
    */
-  exportProjectToNewWindow: AnyFunction = () => {
+  exportProjectToNewWindow = (): void => {
     this.showWaitOverlay();
     window.Wick.HTMLPreview.previewProject(
       this.project,
@@ -1085,7 +1090,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Export the current project as a Wick File using the save as dialog.
    */
-  exportProjectAsWickFile: AnyFunction = () => {
+  exportProjectAsWickFile = (): void => {
     this.showWaitOverlay();
 
     let toastID = this.toast("Exporting project as a .wick file...", "info", {
@@ -1135,7 +1140,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Export the current project as an animated GIF.
    */
-  exportProjectAsAnimatedGIF: AnyFunction = (args) => {
+  exportProjectAsAnimatedGIF = (args: ExportMediaArgs = {}): void => {
     // Open export media loading bar modal.
     this.openModal("ExportMedia");
     this.setState({
@@ -1145,7 +1150,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     });
 
     // this.showWaitOverlay();
-    let outputName = args.name || this.project.name;
+    const outputName = args.name ?? this.project.name;
     let toastID = this.toast("Exporting animated GIF...", "info");
 
     let onProgress = (message: string, progress: number) => {
