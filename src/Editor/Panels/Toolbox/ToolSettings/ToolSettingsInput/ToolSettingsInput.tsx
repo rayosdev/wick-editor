@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from "react";
+import React from "react";
 
 import WickInput, { type SelectOption } from "Editor/Util/WickInput/WickInput";
 import SettingsNumericSlider from "./SettingsNumericSlider/SettingsNumericSlider";
@@ -62,81 +62,79 @@ type ToolSettingsInputProps = (
   renderSize?: RenderSize;
 };
 
-class ToolSettingsInput extends Component<ToolSettingsInputProps> {
-  private renderNumericInput = (
-    props: NumericInputProps & { isMobile?: boolean }
+const ToolSettingsInput: React.FC<ToolSettingsInputProps> = (props) => {
+  const renderNumericInput = (
+    inputProps: NumericInputProps & { isMobile?: boolean }
   ): JSX.Element => {
     return (
       <SettingsNumericSlider
-        isMobile={props.isMobile}
-        onChange={props.onChange}
-        value={props.value}
-        inputRestrictions={props.inputRestrictions}
-        icon={props.icon}
+        isMobile={inputProps.isMobile}
+        onChange={inputProps.onChange}
+        value={inputProps.value}
+        inputRestrictions={inputProps.inputRestrictions}
+        icon={inputProps.icon}
       />
     );
   };
 
-  private renderCheckboxInput = (
-    props: CheckboxInputProps & { name: string }
+  const renderCheckboxInput = (
+    inputProps: CheckboxInputProps & { name: string }
   ): JSX.Element => {
     return (
       <div className="settings-checkbox-input">
         <ActionButton
-          icon={props.icon}
-          isActive={() => props.value}
+          icon={inputProps.icon}
+          isActive={() => inputProps.value}
           color="checkbox"
-          id={"settings-input-id-" + props.name}
-          tooltip={props.name}
-          action={() => props.onChange(!props.value)}
+          id={`settings-input-id-${inputProps.name}`}
+          tooltip={inputProps.name}
+          action={() => inputProps.onChange(!inputProps.value)}
           iconClassName="toolbox-input-icon"
         />
       </div>
     );
   };
 
-  private renderDropdownInput = (
-    props: DropdownInputProps
+  const renderDropdownInput = (
+    inputProps: DropdownInputProps
   ): JSX.Element => {
     return (
       <WickInput
         type="select"
         className="settings-dropdown-input"
-        onChange={props.onChange}
-        value={props.value}
-        options={props.options}
+        onChange={inputProps.onChange}
+        value={inputProps.value}
+        options={inputProps.options}
       />
     );
   };
 
-  private renderInput = (): JSX.Element | undefined => {
-    if (this.props.type === "numeric") {
-      return this.renderNumericInput(this.props);
+  const renderInput = (): JSX.Element | undefined => {
+    if (props.type === "numeric") {
+      return renderNumericInput(props);
     }
 
-    if (this.props.type === "checkbox") {
-      return this.renderCheckboxInput(this.props);
+    if (props.type === "checkbox") {
+      return renderCheckboxInput(props);
     }
 
-    if (this.props.type === "dropdown") {
-      return this.renderDropdownInput(this.props);
+    if (props.type === "dropdown") {
+      return renderDropdownInput(props);
     }
 
     console.error("No valid 'type' prop provided.");
     return;
   };
 
-  render(): JSX.Element {
-    return (
-      <div
-        className={classNames("setting-input-container", {
-          mobile: this.props.renderSize === "small",
-        })}
-      >
-        {this.renderInput()}
-      </div>
-    );
-  }
-}
+  return (
+    <div
+      className={classNames("setting-input-container", {
+        mobile: props.renderSize === "small",
+      })}
+    >
+      {renderInput()}
+    </div>
+  );
+};
 
 export default ToolSettingsInput;

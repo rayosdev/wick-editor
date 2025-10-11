@@ -1,4 +1,4 @@
-import { Component } from "react";
+import React from "react";
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import PlayButton from "Editor/Util/PlayButton/PlayButton";
@@ -33,24 +33,36 @@ interface CanvasTransformsProps {
   renderSize?: string;
 }
 
-class CanvasTransforms extends Component<CanvasTransformsProps> {
-  getHotkey(action: string): string {
-    return HotKeyInterface.getHotKey(this.props.keyMap, action);
-  }
+const CanvasTransforms: React.FC<CanvasTransformsProps> = ({
+  keyMap,
+  activeToolName,
+  toggleOnionSkin,
+  onionSkinEnabled,
+  setActiveTool,
+  recenterCanvas,
+  zoomIn,
+  zoomOut,
+  previewPlaying,
+  togglePreviewPlaying,
+  renderSize
+}) => {
+  const getHotkey = (action: string): string => {
+    return HotKeyInterface.getHotKey(keyMap, action);
+  };
 
-  renderTransformButton(options: TransformButtonOptions): JSX.Element {
+  const renderTransformButton = (options: TransformButtonOptions): JSX.Element => {
     return (
       <ActionButton
         color="tool"
         isActive={
           options.isActive
             ? options.isActive
-            : () => this.props.activeToolName === options.name
+            : () => activeToolName === options.name
         }
-        id={"canvas-transform-button-" + options.name}
+        id={`canvas-transform-button-${options.name}`}
         tooltip={options.tooltip}
         tooltipPlace={"top"}
-        tooltipHotkey={options.tooltipHotkey ? this.getHotkey(options.tooltipHotkey) : undefined}
+        tooltipHotkey={options.tooltipHotkey ? getHotkey(options.tooltipHotkey) : undefined}
         action={options.action}
         icon={options.name}
         className={classNames("canvas-transform-button", options.className)}
@@ -58,33 +70,33 @@ class CanvasTransforms extends Component<CanvasTransformsProps> {
         iconClassName="canvas-transform-icon"
       />
     );
-  }
+  };
 
-  renderTransformations = () => {
+  const renderTransformations = () => {
     return (
       <div className="transforms-container">
-        {this.renderTransformButton({
-          action: this.props.toggleOnionSkin,
+        {renderTransformButton({
+          action: toggleOnionSkin,
           name: "onionskinning",
           tooltip: "Onion Skinning",
           className: "canvas-transform-item onion-skin-button",
           isActive: () => {
-            return this.props.onionSkinEnabled;
+            return onionSkinEnabled;
           },
           tooltipHotkey: "toggle-onion-skinning",
         })}
-        {this.renderTransformButton({
-          action: () => this.props.setActiveTool("pan"),
+        {renderTransformButton({
+          action: () => setActiveTool("pan"),
           name: "pan",
           tooltip: "Pan",
           className: "canvas-transform-item",
           tooltipHotkey: "activate-pan",
         })}
-        {this.renderZoomIn()}
-        {this.renderZoomTool()}
-        {this.renderZoomOut()}
-        {this.renderTransformButton({
-          action: this.props.recenterCanvas,
+        {renderZoomIn()}
+        {renderZoomTool()}
+        {renderZoomOut()}
+        {renderTransformButton({
+          action: recenterCanvas,
           name: "recenter",
           tooltip: "Recenter",
           className: "canvas-transform-item",
@@ -93,63 +105,12 @@ class CanvasTransforms extends Component<CanvasTransformsProps> {
     );
   };
 
-  // TODO: Adjust this when the touch events are added.
-  // renderTransformations = () => {
-  //   if (this.props.renderSize === "small") {
-  //     return (
-  //       <div className='transforms-container'>
-  //         {this.renderTransformButton({
-  //           action:this.props.toggleOnionSkin,
-  //           name:'onionskinning',
-  //           tooltip:'Onion Skinning',
-  //           className:'canvas-transform-item onion-skin-button',
-  //           isActive:(() => {return this.props.onionSkinEnabled}),
-  //         })}
-  //         {this.renderTransformButton({
-  //           action: (this.props.recenterCanvas),
-  //           name: 'recenter',
-  //           tooltip: 'Recenter',
-  //           className:'canvas-transform-item'
-  //         })}
-  //       </div>
-  //     );
-  //   }
-  //   else {
-  //     return (
-  //       <div className='transforms-container'>
-  //         {this.renderTransformButton({
-  //           action:this.props.toggleOnionSkin,
-  //           name:'onionskinning',
-  //           tooltip:'Onion Skinning',
-  //           className:'canvas-transform-item onion-skin-button',
-  //           isActive:(() => {return this.props.onionSkinEnabled}),
-  //         })}
-  //         {this.renderTransformButton({
-  //           action: (() => this.props.setActiveTool('pan')),
-  //           name: 'pan',
-  //           tooltip: 'Pan',
-  //           className:'canvas-transform-item'
-  //         })}
-  //         {this.renderZoomIn()}
-  //         {this.renderZoomTool()}
-  //         {this.renderZoomOut()}
-  //         {this.renderTransformButton({
-  //           action: (this.props.recenterCanvas),
-  //           name: 'recenter',
-  //           tooltip: 'Recenter',
-  //           className:'canvas-transform-item'
-  //         })}
-  //       </div>
-  //     );
-  //   }
-  // }
-
-  renderZoomTool = () => {
+  const renderZoomTool = () => {
     return (
       <div id="zoom-tool-container">
         {/* Zoom Tool / NumericInput*/}
-        {this.renderTransformButton({
-          action: () => this.props.setActiveTool("zoom"),
+        {renderTransformButton({
+          action: () => setActiveTool("zoom"),
           name: "zoom",
           tooltip: "Zoom",
           className: "zoom-tool",
@@ -159,25 +120,25 @@ class CanvasTransforms extends Component<CanvasTransformsProps> {
     );
   };
 
-  renderZoomIn = () => {
-    return this.renderTransformButton({
-      action: () => this.props.zoomIn(),
+  const renderZoomIn = () => {
+    return renderTransformButton({
+      action: () => zoomIn(),
       name: "zoomin",
       tooltip: "Zoom In",
       className: "thin-transform-button zoom-in-button",
     });
   };
 
-  renderZoomOut = () => {
-    return this.renderTransformButton({
-      action: () => this.props.zoomOut(),
+  const renderZoomOut = () => {
+    return renderTransformButton({
+      action: () => zoomOut(),
       name: "zoomout",
       tooltip: "Zoom Out",
       className: "thin-transform-button zoom-out-button",
     });
   };
 
-  renderPlayButtonTooltip = (): JSX.Element => {
+  const renderPlayButtonTooltip = (): JSX.Element => {
     return (
       <ReactTooltip
         disable={isMobile}
@@ -188,34 +149,32 @@ class CanvasTransforms extends Component<CanvasTransformsProps> {
         aria-haspopup="true"
         className="wick-tooltip"
       >
-        <span>{`Preview Play (${this.getHotkey(
+        <span>{`Preview Play (${getHotkey(
           "preview-play-toggle"
         ).toUpperCase()})`}</span>
       </ReactTooltip>
     );
   };
 
-  render(): JSX.Element {
-    return (
-      <div
-        className={classNames(
-          "canvas-transforms-widget",
-          this.props.renderSize === "small" && "mobile"
-        )}
-      >
-        {!this.props.previewPlaying && this.renderTransformations()}
-        <div className="play-button-container">
-          {this.renderPlayButtonTooltip()}
-          <PlayButton
-            id="play-button-object"
-            className="play-button canvas-transform-button"
-            playing={this.props.previewPlaying}
-            action={this.props.togglePreviewPlaying}
-          />
-        </div>
+  return (
+    <div
+      className={classNames(
+        "canvas-transforms-widget",
+        renderSize === "small" && "mobile"
+      )}
+    >
+      {!previewPlaying && renderTransformations()}
+      <div className="play-button-container">
+        {renderPlayButtonTooltip()}
+        <PlayButton
+          id="play-button-object"
+          className="play-button canvas-transform-button"
+          playing={previewPlaying}
+          action={togglePreviewPlaying}
+        />
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
 export default CanvasTransforms;

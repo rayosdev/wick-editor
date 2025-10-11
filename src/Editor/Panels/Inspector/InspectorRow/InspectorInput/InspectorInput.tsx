@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 import '../_inspectorrow.scss';
 
@@ -28,14 +28,12 @@ interface InspectorInputProps {
   input?: any;
 }
 
-class InspectorInput extends Component<InspectorInputProps> {
-  render(): JSX.Element {
-    return (
-      <div className="inspector-input-element">
-        <WickInput {...this.props.inputProps} {...this.props.input} />
-      </div>
-    );
-  }
-}
+const InspectorInput: React.FC<InspectorInputProps> = ({ inputProps, input }) => {
+  return (
+    <div className="inspector-input-element">
+      <WickInput {...inputProps} {...input} />
+    </div>
+  );
+};
 
-export default InspectorInput
+export default InspectorInput;

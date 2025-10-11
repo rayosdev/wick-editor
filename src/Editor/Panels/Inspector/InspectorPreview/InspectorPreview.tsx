@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 import './_inspectorpreview.scss';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -35,27 +35,24 @@ interface InspectorPreviewProps {
   preview?: boolean;
 }
 
-class InspectorPreview extends Component<InspectorPreviewProps> {
-
-  render(): JSX.Element {
-    if (this.props.info.type === "image") {
-      return (
-        <div className="inspector-image-preview-container">
-          <img alt='' className="inspector-image-preview" src={this.props.info.src} />
-        </div>
-      )
-    } else if (this.props.info.type === 'sound') {
-      return (
-        <div className="inspector-sound-preview-container">
-          <AudioPlayer key={Math.random()} src={this.props.info.src} loadSrc={this.props.info.loadSrc || (() => { })} />
-        </div>
-      );
-    } else {
-      return (
-        <div />
-      )
-    }
+const InspectorPreview: React.FC<InspectorPreviewProps> = ({ info }) => {
+  if (info.type === "image") {
+    return (
+      <div className="inspector-image-preview-container">
+        <img alt='' className="inspector-image-preview" src={info.src} />
+      </div>
+    );
+  } else if (info.type === 'sound') {
+    return (
+      <div className="inspector-sound-preview-container">
+        <AudioPlayer key={Math.random()} src={info.src} loadSrc={info.loadSrc || (() => { })} />
+      </div>
+    );
+  } else {
+    return (
+      <div />
+    );
   }
-}
+};
 
-export default InspectorPreview
+export default InspectorPreview;

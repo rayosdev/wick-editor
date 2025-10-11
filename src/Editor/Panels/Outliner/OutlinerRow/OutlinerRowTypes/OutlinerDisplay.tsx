@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 import '../_outlinerrow.scss'
 
@@ -38,45 +38,43 @@ interface OutlinerDisplayProps {
   onChange: (display: DisplaySettings) => void;
 }
 
-class OutlinerDisplay extends Component<OutlinerDisplayProps> {
-  render(): JSX.Element {
-    const items: Record<string, string> = {
-      path: "path-object",
-      button: "button-object",
-      clip: "clip-object",
-      text: "text-object",
-      image: "image-object"
-    };
+const OutlinerDisplay: React.FC<OutlinerDisplayProps> = ({ tooltip, display, onChange }) => {
+  const items: Record<string, string> = {
+    path: "path-object",
+    button: "button-object",
+    clip: "clip-object",
+    text: "text-object",
+    image: "image-object"
+  };
 
-    return (
-      <div className="outliner-row">
-        {/* Identifier */}
-        <span className="outliner-row-identifier">
-          {this.props.tooltip}
-        </span>
-        {/* Input */}
-        <span className="outliner-input-container">
-          {Object.keys(items).map((item) => {
-            return (
-              <OutlinerWidget
-                tooltip={(this.props.display[item] ? "Hide " : "Show ") + item.charAt(0).toUpperCase() + item.slice(1) + " Objects"}
-                key={item}
-                onClick={() => {
-                  const newDisplay = { ...this.props.display };
-                  newDisplay[item] = !newDisplay[item];
-                  this.props.onChange(newDisplay);
-                }}
-                icon={items[item] || ''}
-                on={this.props.display[item]}
-              />);
-          })}
-        </span>
-      </div>
-    )
-  }
-}
+  return (
+    <div className="outliner-row">
+      {/* Identifier */}
+      <span className="outliner-row-identifier">
+        {tooltip}
+      </span>
+      {/* Input */}
+      <span className="outliner-input-container">
+        {Object.keys(items).map((item) => {
+          return (
+            <OutlinerWidget
+              tooltip={`${display[item] ? "Hide " : "Show "}${item.charAt(0).toUpperCase()}${item.slice(1)} Objects`}
+              key={item}
+              onClick={() => {
+                const newDisplay = { ...display };
+                newDisplay[item] = !newDisplay[item];
+                onChange(newDisplay);
+              }}
+              icon={items[item] || ''}
+              on={display[item]}
+            />);
+        })}
+      </span>
+    </div>
+  );
+};
 
-export default OutlinerDisplay
+export default OutlinerDisplay;
 /*
 renderDisplay = () => {
   

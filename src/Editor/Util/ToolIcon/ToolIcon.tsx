@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component, ReactNode } from "react";
+import React, { ReactNode } from "react";
 import classNames from "classnames";
 import "./_toolbutton.scss";
 
@@ -341,28 +341,26 @@ interface ToolIconProps {
  * @param props.default - Optional default content to display if icon is not found
  * @returns JSX.Element
  */
-class ToolIcon extends Component<ToolIconProps> {
-  getSource(): string {
-    if (this.props.name && this.props.name in icons) {
-      return icons[this.props.name]!;
+const ToolIcon: React.FC<ToolIconProps> = ({ name, className, default: defaultContent }) => {
+  const getSource = (): string => {
+    if (name && name in icons) {
+      return icons[name]!;
     } else {
       return iconUnknown;
     }
-  }
+  };
 
-  render(): JSX.Element | ReactNode {
-    if ((this.props.name && this.props.name in icons) || this.props.default === undefined) {
-      return (
-        <img
-          className={classNames("img-tool-icon", this.props.className)}
-          alt={(this.props.name || "unknown") + " icon"}
-          src={this.getSource()}
-        ></img>
-      );
-    } else {
-      return <div className="img-tool-icon">{this.props.default}</div>;
-    }
+  if ((name && name in icons) || defaultContent === undefined) {
+    return (
+      <img
+        className={classNames("img-tool-icon", className)}
+        alt={`${name || "unknown"} icon`}
+        src={getSource()}
+      />
+    );
+  } else {
+    return <div className="img-tool-icon">{defaultContent}</div>;
   }
-}
+};
 
 export default ToolIcon;

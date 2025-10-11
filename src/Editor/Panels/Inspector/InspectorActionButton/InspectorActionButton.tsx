@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 import './_inspectoractionbutton.scss';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 
@@ -33,27 +33,22 @@ interface InspectorActionButtonProps {
   action?: InspectorAction;
 }
 
-class InspectorActionButton extends Component<InspectorActionButtonProps> {
-  render(): JSX.Element | null {
-    const action = this.props.action;
+const InspectorActionButton: React.FC<InspectorActionButtonProps> = ({ action }) => {
+  if (action === undefined) return null;
 
-    if (action === undefined) return null;
+  const btnID = action.id === undefined ? 'tooltip-nyi' : action.id;
+  const actionColor = action.color ? action.color : "inspector";
 
-    const btnID = action.id === undefined ? 'tooltip-nyi' : action.id;
-    const actionColor = action.color ? action.color : "inspector";
+  return (
+    <div className="inspector-button">
+      <ActionButton
+        color={actionColor}
+        icon={action.icon}
+        id={`inspector-button-${btnID}`}
+        action={action.action}
+        text={action.tooltip} />
+    </div>
+  );
+};
 
-    return (
-      <div className="inspector-button">
-        <ActionButton
-          color={actionColor}
-          icon={action.icon}
-          id={"inspector-button-" + btnID}
-          action={action.action}
-          text={action.tooltip} />
-      </div>
-
-    )
-  }
-}
-
-export default InspectorActionButton
+export default InspectorActionButton;

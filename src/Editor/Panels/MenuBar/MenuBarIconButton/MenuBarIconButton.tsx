@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 import './_menubariconbutton.scss';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 
@@ -29,21 +29,25 @@ interface MenuBarIconButtonProps {
   icon?: string;
 }
 
-class MenuBarIconButton extends Component<MenuBarIconButtonProps> {
-  render(): JSX.Element {
-    return (
-      <div className="menu-bar-icon-button">
-        <ActionButton
-          color="menu"
-          id={this.props.id}
-          tooltip={this.props.tooltip}
-          action={this.props.action}
-          icon={this.props.icon}
-          tooltipPlace={this.props.tooltipPlace ?? 'bottom'}>
-        </ActionButton>
-      </div>
-    )
-  }
-}
+const MenuBarIconButton: React.FC<MenuBarIconButtonProps> = ({
+  id,
+  tooltip,
+  tooltipPlace,
+  action,
+  icon
+}) => {
+  return (
+    <div className="menu-bar-icon-button">
+      <ActionButton
+        color="menu"
+        id={id}
+        tooltip={tooltip}
+        action={action}
+        icon={icon}
+        tooltipPlace={tooltipPlace ?? 'bottom'}>
+      </ActionButton>
+    </div>
+  );
+};
 
-export default MenuBarIconButton
+export default MenuBarIconButton;
