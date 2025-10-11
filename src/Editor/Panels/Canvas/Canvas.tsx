@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component, createRef } from "react";
+import { useRef, useEffect, useImperativeHandle, forwardRef } from "react";
 import {
     DropTarget,
     type ConnectDropTarget,
@@ -46,7 +46,7 @@ type WickProjectLike = {
 
 interface CanvasExternalProps {
     project: WickProjectLike;
-    onRef: (instance: Canvas) => void;
+    onRef: (instance: CanvasHandle | null) => void;
     projectDidChange: (options: { actionName: string }) => void;
     onEyedropperPickedColor: (event: unknown) => void;
     importProjectAsWickFile: (file: File) => void;
@@ -70,38 +70,34 @@ interface CanvasCollectedProps {
 
 type CanvasProps = CanvasExternalProps & CanvasCollectedProps;
 
-class Canvas extends Component<CanvasProps> {
-    private canvasContainer = createRef<HTMLDivElement>();
-    private currentAttachedProject?: WickProjectLike;
+export interface CanvasHandle {
+    // Empty for now - methods can be exposed here if needed
+}
 
-    componentDidMount(): void {
-        this.attachProjectToComponent(this.props.project);
-        this.updateCanvas(this.props.project);
-        this.props.onRef(this);
-    }
+const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
+    const canvasContainer = useRef<HTMLDivElement>(null);
+    const currentAttachedProject = useRef<WickProjectLike>();
 
-    componentDidUpdate(): void {
-        this.updateCanvas(this.props.project);
-    }
+    useImperativeHandle(ref, () => ({}), []);
 
-    attachProjectToComponent = (project: WickProjectLike): void => {
-        if (!project || project === this.currentAttachedProject) {
+    const attachProjectToComponent = (project: WickProjectLike): void => {
+        if (!project || project === currentAttachedProject.current) {
             return;
         }
 
-        this.currentAttachedProject = project;
+        currentAttachedProject.current = project;
         const view = project.view;
 
         const borderColor = styles.editorCanvasBorder;
         if (borderColor) {
             view.canvasBGColor = borderColor;
         }
-        view.canvasContainer = this.canvasContainer.current;
+        view.canvasContainer = canvasContainer.current;
         view.resize();
 
         view.on("canvasModified", (_event: unknown, actionName?: unknown) => {
             const label = typeof actionName === "string" ? actionName : "";
-            this.props.projectDidChange({
+            props.projectDidChange({
                 actionName: label
                     ? `Canvas Modified ${label}`
                     : "Canvas Modified",
@@ -109,36 +105,46 @@ class Canvas extends Component<CanvasProps> {
         });
 
         view.on("eyedropperPickedColor", (event: unknown) => {
-            this.props.onEyedropperPickedColor(event);
+            props.onEyedropperPickedColor(event);
         });
     };
 
-    updateCanvas = (project: WickProjectLike): void => {
-        this.attachProjectToComponent(project);
+    const updateCanvas = (project: WickProjectLike): void => {
+        attachProjectToComponent(project);
     };
 
-    render(): JSX.Element {
-        const renderNode = (
-            <div
-                id="canvas-container-wrapper"
-                style={{ width: "100%", height: "100%" }}
-                aria-label="Canvas"
-            >
-                {this.props.isOver && <div className="drag-drop-overlay" />}
-                <div id="wick-canvas-container" ref={this.canvasContainer}></div>
-            </div>
-        );
+    useEffect(() => {
+        attachProjectToComponent(props.project);
+        updateCanvas(props.project);
+        props.onRef(ref as any);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-        if (this.props.connectDropTarget) {
-            const connected = this.props.connectDropTarget(renderNode);
-            if (connected) {
-                return connected;
-            }
+    useEffect(() => {
+        updateCanvas(props.project);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.project]);
+
+    const renderNode = (
+        <div
+            id="canvas-container-wrapper"
+            style={{ width: "100%", height: "100%" }}
+            aria-label="Canvas"
+        >
+            {props.isOver && <div className="drag-drop-overlay" />}
+            <div id="wick-canvas-container" ref={canvasContainer}></div>
+        </div>
+    );
+
+    if (props.connectDropTarget) {
+        const connected = props.connectDropTarget(renderNode);
+        if (connected) {
+            return connected;
         }
-
-        return renderNode;
     }
-}
+
+    return renderNode;
+});
 
 const canvasTarget = {
     drop(props: CanvasProps, monitor: DropTargetMonitor) {

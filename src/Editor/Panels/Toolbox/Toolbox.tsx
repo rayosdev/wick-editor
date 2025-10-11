@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from "react";
+import { useState } from "react";
 import classNames from "classnames";
 
 import "./_toolbox.scss";
@@ -108,10 +108,6 @@ interface ToolboxProps
     lastColorsUsed: string[];
 }
 
-interface ToolboxState {
-    dropdownSelector: string | null;
-}
-
 type ToolDropdownConfig =
     | ToolName
     | {
@@ -119,8 +115,10 @@ type ToolDropdownConfig =
         options: ToolName[];
     };
 
-class Toolbox extends Component<ToolboxProps, ToolboxState> {
-    private toolDropdowns: Record<ToolDropdownKey, ToolDropdownConfig> = {
+const Toolbox: React.FC<ToolboxProps> = (props) => {
+    const [dropdownSelector, setDropdownSelector] = useState<string | null>(null);
+
+    const toolDropdowns: Record<ToolDropdownKey, ToolDropdownConfig> = {
         cursors: { active: "cursor", options: ["cursor", "pathcursor"] },
         brushes: { active: "brush", options: ["brush", "pencil"] },
         eraser: "eraser",
@@ -131,48 +129,28 @@ class Toolbox extends Component<ToolboxProps, ToolboxState> {
         tools: { active: "fillbucket", options: ["fillbucket", "eyedropper"] },
     };
 
-    constructor(props: ToolboxProps) {
-        super(props);
-
-        this.state = {
-            dropdownSelector: null,
-        };
-    }
-
-    render(): JSX.Element {
-        return (
-            <div className="tool-box-container" aria-label="Toolbox">
-                {this.props.renderSize === "large"
-                    ? this.renderLargeToolbox()
-                    : this.props.renderSize === "medium"
-                        ? this.renderMediumToolbox()
-                        : this.renderSmallToolbox()}
-            </div>
-        );
-    }
-
-    private getToolButtonBaseProps(): Pick<
+    const getToolButtonBaseProps = (): Pick<
         ToolButtonProps,
         "setActiveTool" | "className" | "getActiveToolName" | "keyMap"
-    > {
+    > => {
         return {
-            setActiveTool: this.props.setActiveTool,
+            setActiveTool: props.setActiveTool,
             className: classNames("toolbox-item", {
-                mobile: this.props.renderSize === "small",
+                mobile: props.renderSize === "small",
             }),
-            getActiveToolName: this.props.getActiveToolName,
-            keyMap: this.props.keyMap,
+            getActiveToolName: props.getActiveToolName,
+            keyMap: props.keyMap,
         };
-    }
+    };
 
-    private getToolTooltip = (toolName: string): string => {
+    const getToolTooltip = (toolName: string): string => {
         return isToolName(toolName) ? TOOL_TITLES[toolName] : toolName;
     };
 
-    private renderToolButtonFromAction = (
+    const renderToolButtonFromAction = (
         action: ToolboxAction
     ): JSX.Element => {
-        const baseProps = this.getToolButtonBaseProps();
+        const baseProps = getToolButtonBaseProps();
         return (
             <ToolButton
                 {...baseProps}
@@ -183,8 +161,8 @@ class Toolbox extends Component<ToolboxProps, ToolboxState> {
         );
     };
 
-    private renderToolButtons = (): JSX.Element => {
-        const baseProps = this.getToolButtonBaseProps();
+    const renderToolButtons = (): JSX.Element => {
+        const baseProps = getToolButtonBaseProps();
 
         return (
             <div className="tool-collection-container">
@@ -193,16 +171,16 @@ class Toolbox extends Component<ToolboxProps, ToolboxState> {
                         key={tool}
                         {...baseProps}
                         name={tool}
-                        tooltip={this.getToolTooltip(tool)}
+                        tooltip={getToolTooltip(tool)}
                     />
                 ))}
             </div>
         );
     };
 
-    private renderColorPickers = (): JSX.Element => {
-        const fillColor = this.props.getToolSetting("fillColor");
-        const strokeColor = this.props.getToolSetting("strokeColor");
+    const renderColorPickers = (): JSX.Element => {
+        const fillColor = props.getToolSetting("fillColor");
+        const strokeColor = props.getToolSetting("strokeColor");
 
         return (
             <div className="tool-collection-container">
@@ -214,7 +192,7 @@ class Toolbox extends Component<ToolboxProps, ToolboxState> {
                         type="color"
                         color={fillColor?.rgba}
                         onChange={(color) => {
-                            this.props.setToolSetting(
+                            props.setToolSetting(
                                 "fillColor",
                                 new (window as any).Wick.Color(color)
                             );
@@ -223,10 +201,10 @@ class Toolbox extends Component<ToolboxProps, ToolboxState> {
                         tooltipID="tool-box-fill-color"
                         tooltip="Fill Color"
                         placement="bottom"
-                        colorPickerType={this.props.colorPickerType}
-                        changeColorPickerType={this.props.changeColorPickerType}
-                        updateLastColors={this.props.updateLastColors}
-                        lastColorsUsed={this.props.lastColorsUsed}
+                        colorPickerType={props.colorPickerType}
+                        changeColorPickerType={props.changeColorPickerType}
+                        updateLastColors={props.updateLastColors}
+                        lastColorsUsed={props.lastColorsUsed}
                     />
                 </div>
                 <div
@@ -237,7 +215,7 @@ class Toolbox extends Component<ToolboxProps, ToolboxState> {
                         type="color"
                         color={strokeColor?.rgba}
                         onChange={(color) => {
-                            this.props.setToolSetting(
+                            props.setToolSetting(
                                 "strokeColor",
                                 new (window as any).Wick.Color(color)
                             );
@@ -247,127 +225,127 @@ class Toolbox extends Component<ToolboxProps, ToolboxState> {
                         tooltip="Stroke Color"
                         placement="bottom"
                         stroke={true}
-                        colorPickerType={this.props.colorPickerType}
-                        changeColorPickerType={this.props.changeColorPickerType}
-                        lastColorsUsed={this.props.lastColorsUsed}
+                        colorPickerType={props.colorPickerType}
+                        changeColorPickerType={props.changeColorPickerType}
+                        lastColorsUsed={props.lastColorsUsed}
                     />
                 </div>
             </div>
         );
     };
 
-    private renderCanvasActions = (): JSX.Element => {
+    const renderCanvasActions = (): JSX.Element => {
         return (
             <div className="toolbox-actions-right-container">
                 <div className="toolbox-actions-right">
                     <div id="more-canvas-actions-popover-button">
-                        {this.renderToolButtonFromAction(
-                            this.props.editorActions.showMoreCanvasActions
+                        {renderToolButtonFromAction(
+                            props.editorActions.showMoreCanvasActions
                         )}
                         <CanvasActions
-                            renderSize={this.props.renderSize}
-                            editorActions={this.props.editorActions}
-                            showCanvasActions={this.props.showCanvasActions}
-                            toggleCanvasActions={this.props.toggleCanvasActions}
-                            previewPlaying={this.props.previewPlaying}
+                            renderSize={props.renderSize}
+                            editorActions={props.editorActions}
+                            showCanvasActions={props.showCanvasActions}
+                            toggleCanvasActions={props.toggleCanvasActions}
+                            previewPlaying={props.previewPlaying}
                         />
                     </div>
 
-                    {this.renderToolButtonFromAction(this.props.editorActions.delete)}
-                    {this.renderToolButtonFromAction(this.props.editorActions.copy)}
-                    {this.renderToolButtonFromAction(this.props.editorActions.paste)}
-                    {this.renderToolButtonFromAction(this.props.editorActions.undo)}
-                    {this.renderToolButtonFromAction(this.props.editorActions.redo)}
+                    {renderToolButtonFromAction(props.editorActions.delete)}
+                    {renderToolButtonFromAction(props.editorActions.copy)}
+                    {renderToolButtonFromAction(props.editorActions.paste)}
+                    {renderToolButtonFromAction(props.editorActions.undo)}
+                    {renderToolButtonFromAction(props.editorActions.redo)}
                 </div>
             </div>
         );
     };
 
-    private renderLargeToolbox = (): JSX.Element => {
+    const renderLargeToolbox = (): JSX.Element => {
         return (
             <div className={classNames("tool-box", "tool-box-large")}>
-                {this.renderToolButtons()}
+                {renderToolButtons()}
 
                 <ToolboxBreak />
 
-                {this.renderColorPickers()}
+                {renderColorPickers()}
 
                 <ToolboxBreak />
 
                 <ToolSettings
-                    renderSize={this.props.renderSize as "small" | "medium" | "large"}
-                    activeTool={this.props.activeToolName}
-                    getToolSetting={this.props.getToolSetting}
-                    setToolSetting={this.props.setToolSetting}
-                    getToolSettingRestrictions={this.props.getToolSettingRestrictions}
-                    toggleBrushModes={this.props.toggleBrushModes}
-                    showBrushModes={this.props.showBrushModes}
-                    previewPlaying={this.props.previewPlaying}
+                    renderSize={props.renderSize as "small" | "medium" | "large"}
+                    activeTool={props.activeToolName}
+                    getToolSetting={props.getToolSetting}
+                    setToolSetting={props.setToolSetting}
+                    getToolSettingRestrictions={props.getToolSettingRestrictions}
+                    toggleBrushModes={props.toggleBrushModes}
+                    showBrushModes={props.showBrushModes}
+                    previewPlaying={props.previewPlaying}
                 />
 
-                {this.renderCanvasActions()}
+                {renderCanvasActions()}
             </div>
         );
     };
 
-    private renderMediumToolbox = (): JSX.Element => {
+    const renderMediumToolbox = (): JSX.Element => {
         return (
             <div className={classNames("tool-box", "tool-box-medium")}>
                 <div className="medium-toolbox-row">
-                    {this.renderToolButtons()}
+                    {renderToolButtons()}
                     <ToolboxBreak />
-                    {this.renderColorPickers()}
+                    {renderColorPickers()}
                     <ToolboxBreak />
                 </div>
                 <div className="medium-toolbox-row">
                     <ToolSettings
-                        renderSize={this.props.renderSize as "small" | "medium" | "large"}
-                        activeTool={this.props.activeToolName}
-                        getToolSetting={this.props.getToolSetting}
-                        setToolSetting={this.props.setToolSetting}
-                        getToolSettingRestrictions={this.props.getToolSettingRestrictions}
-                        toggleBrushModes={this.props.toggleBrushModes}
-                        showBrushModes={this.props.showBrushModes}
-                        previewPlaying={this.props.previewPlaying}
+                        renderSize={props.renderSize as "small" | "medium" | "large"}
+                        activeTool={props.activeToolName}
+                        getToolSetting={props.getToolSetting}
+                        setToolSetting={props.setToolSetting}
+                        getToolSettingRestrictions={props.getToolSettingRestrictions}
+                        toggleBrushModes={props.toggleBrushModes}
+                        showBrushModes={props.showBrushModes}
+                        previewPlaying={props.previewPlaying}
                     />
-                    {this.renderCanvasActions()}
+                    {renderCanvasActions()}
                 </div>
             </div>
         );
     };
 
-    private renderSmallToolbox = (): JSX.Element => {
+    const renderSmallToolbox = (): JSX.Element => {
         return (
             <div className={classNames("tool-box", "tool-box-medium")}>
                 <div className="medium-toolbox-row">
-                    {this.renderToolButtonsMobile()}
+                    {renderToolButtonsMobile()}
                     <ToolboxBreak className={classNames("toolbox-break", "mobile")} />
-                    {this.renderCanvasActionsMobile()}
+                    {renderCanvasActionsMobile()}
                 </div>
                 <div className="medium-toolbox-row">
-                    {this.renderColorPickers()}
+                    {renderColorPickers()}
                     <ToolboxBreak className={classNames("toolbox-break", "mobile")} />
                     <ToolSettings
-                        renderSize={this.props.renderSize as "small" | "medium" | "large"}
+                        renderSize={props.renderSize as "small" | "medium" | "large"}
                         isMobile={true}
-                        activeTool={this.props.activeToolName}
-                        getToolSetting={this.props.getToolSetting}
-                        setToolSetting={this.props.setToolSetting}
-                        getToolSettingRestrictions={this.props.getToolSettingRestrictions}
-                        toggleBrushModes={this.props.toggleBrushModes}
-                        showBrushModes={this.props.showBrushModes}
-                        previewPlaying={this.props.previewPlaying}
+                        activeTool={props.activeToolName}
+                        getToolSetting={props.getToolSetting}
+                        setToolSetting={props.setToolSetting}
+                        getToolSettingRestrictions={props.getToolSettingRestrictions}
+                        toggleBrushModes={props.toggleBrushModes}
+                        showBrushModes={props.showBrushModes}
+                        previewPlaying={props.previewPlaying}
                     />
                 </div>
             </div>
         );
     };
 
-    private renderToolButtonsMobile = (): JSX.Element => {
-        const activeToolName = this.props.getActiveToolName();
+    const renderToolButtonsMobile = (): JSX.Element => {
+        const activeToolName = props.getActiveToolName();
         const dropdownKeys = TOOL_DROPDOWN_KEYS;
         dropdownKeys.forEach((key) => {
-            const dropdownConfig = this.toolDropdowns[key];
+            const dropdownConfig = toolDropdowns[key];
             if (!dropdownConfig || typeof dropdownConfig === "string") {
                 return;
             }
@@ -377,18 +355,18 @@ class Toolbox extends Component<ToolboxProps, ToolboxState> {
             }
         });
 
-        const baseProps = this.getToolButtonBaseProps();
+        const baseProps = getToolButtonBaseProps();
 
         return (
             <div className="tool-collection-container">
                 {dropdownKeys.map((key) => {
-                    const dropdownConfig = this.toolDropdowns[key];
+                    const dropdownConfig = toolDropdowns[key];
                     if (!dropdownConfig) {
                         return null;
                     }
 
                     if (typeof dropdownConfig === "string") {
-                        const tooltip = this.getToolTooltip(dropdownConfig);
+                        const tooltip = getToolTooltip(dropdownConfig);
                         return (
                             <ToolButton
                                 key={key}
@@ -402,22 +380,22 @@ class Toolbox extends Component<ToolboxProps, ToolboxState> {
                     }
 
                     const id = `more-${key}-popover-button`;
-                    const tooltip = this.getToolTooltip(dropdownConfig.active);
+                    const tooltip = getToolTooltip(dropdownConfig.active);
                     return (
                         <div key={key} id={id}>
                             <ToolButton
                                 {...baseProps}
                                 className={classNames("toolbox-item", "mobile")}
-                                action={() => this.props.setActiveTool(dropdownConfig.active)}
-                                secondaryAction={() => this.toggleDropdownSelector(key)}
+                                action={() => props.setActiveTool(dropdownConfig.active)}
+                                secondaryAction={() => toggleDropdownSelector(key)}
                                 name={dropdownConfig.active}
                                 tooltip={tooltip}
                                 dropdown={true}
                             />
                             <PopupMenu
                                 mobile={true}
-                                isOpen={this.state.dropdownSelector === key}
-                                toggle={() => this.toggleDropdownSelector(key)}
+                                isOpen={dropdownSelector === key}
+                                toggle={() => toggleDropdownSelector(key)}
                                 target={id}
                                 className={"more-canvas-actions-popover"}
                             >
@@ -433,12 +411,12 @@ class Toolbox extends Component<ToolboxProps, ToolboxState> {
                                                 {...baseProps}
                                                 action={() => {
                                                     dropdownConfig.active = option;
-                                                    this.props.setActiveTool(option);
-                                                    this.toggleDropdownSelector(key);
+                                                    props.setActiveTool(option);
+                                                    toggleDropdownSelector(key);
                                                 }}
                                                 className="tool-selector-item"
                                                 name={option}
-                                                tooltip={this.getToolTooltip(option)}
+                                                tooltip={getToolTooltip(option)}
                                             />
                                         );
                                     })}
@@ -451,34 +429,44 @@ class Toolbox extends Component<ToolboxProps, ToolboxState> {
         );
     };
 
-    private toggleDropdownSelector = (value: string): void => {
-        this.setState((previous) => ({
-            dropdownSelector: previous.dropdownSelector === value ? null : value,
-        }));
+    const toggleDropdownSelector = (value: string): void => {
+        setDropdownSelector((previous) =>
+            previous === value ? null : value
+        );
     };
 
-    private renderCanvasActionsMobile = (): JSX.Element => {
+    const renderCanvasActionsMobile = (): JSX.Element => {
         return (
             <div className="toolbox-actions-right-container">
                 <div className="toolbox-actions-right">
-                    {this.renderToolButtonFromAction(this.props.editorActions.undo)}
-                    {this.renderToolButtonFromAction(this.props.editorActions.redo)}
+                    {renderToolButtonFromAction(props.editorActions.undo)}
+                    {renderToolButtonFromAction(props.editorActions.redo)}
                     <div id="more-canvas-actions-popover-button">
-                        {this.renderToolButtonFromAction(
-                            this.props.editorActions.showMoreCanvasActions
+                        {renderToolButtonFromAction(
+                            props.editorActions.showMoreCanvasActions
                         )}
                         <CanvasActions
-                            renderSize={this.props.renderSize}
-                            editorActions={this.props.editorActions}
-                            showCanvasActions={this.props.showCanvasActions}
-                            toggleCanvasActions={this.props.toggleCanvasActions}
-                            previewPlaying={this.props.previewPlaying}
+                            renderSize={props.renderSize}
+                            editorActions={props.editorActions}
+                            showCanvasActions={props.showCanvasActions}
+                            toggleCanvasActions={props.toggleCanvasActions}
+                            previewPlaying={props.previewPlaying}
                         />
                     </div>
                 </div>
             </div>
         );
     };
-}
+
+    return (
+        <div className="tool-box-container" aria-label="Toolbox">
+            {props.renderSize === "large"
+                ? renderLargeToolbox()
+                : props.renderSize === "medium"
+                    ? renderMediumToolbox()
+                    : renderSmallToolbox()}
+        </div>
+    );
+};
 
 export default Toolbox;
