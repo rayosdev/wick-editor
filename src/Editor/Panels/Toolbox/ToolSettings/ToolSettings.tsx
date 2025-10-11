@@ -28,9 +28,9 @@ interface ToolSettingsProps {
     renderSize: "small" | "medium" | "large";
     isMobile?: boolean;
     activeTool: string;
-    getToolSetting: (setting: string) => any;
-    setToolSetting: (setting: string, value: any) => void;
-    getToolSettingRestrictions: (setting: string) => any;
+    getToolSetting: (setting: string) => string | number | boolean;
+    setToolSetting: (setting: string, value: string | number | boolean) => void;
+    getToolSettingRestrictions: (setting: string) => Record<string, unknown>; // Child components expect flexible shape
     toggleBrushModes: () => void;
     showBrushModes: boolean;
     previewPlaying?: boolean;

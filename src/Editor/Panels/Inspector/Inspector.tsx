@@ -39,8 +39,14 @@ import InspectorSoundPreview from "./InspectorPreview/InspectorPreviewTypes/Insp
 import InspectorScriptWindow from "./InspectorScriptWindow/InspectorScriptWindow";
 import InspectorCheckbox from "./InspectorRow/InspectorRowTypes/InspectorCheckbox";
 
-type SelectionAttributes = Record<string, any>;
-type InspectorSelectorOption = { value: any; label: string;[key: string]: any };
+import type { WickAsset } from "Editor/types";
+
+type SelectionAttributes = Record<string, any>; // Dynamic selection attributes - inherently flexible
+type InspectorSelectorOption = {
+    value: string | number | boolean | null | WickAsset; // Selector values can be primitives, null, or assets
+    label: string;
+    [key: string]: any; // Additional props inherently flexible
+};
 
 interface FontInfoInterface {
     allFontNames: string[];
@@ -55,18 +61,18 @@ interface FontInfoInterface {
 
 interface InspectorProps {
     getAllSelectionAttributes: () => SelectionAttributes;
-    setSelectionAttribute: (attribute: string, value: any) => void;
+    setSelectionAttribute: (attribute: string, value: unknown) => void; // Truly polymorphic
     getSelectionType: () => string;
-    getSelectionInputProps?: (attribute: string) => Record<string, any> | undefined;
+    getSelectionInputProps?: (attribute: string) => Record<string, any> | undefined; // Dynamic props
     colorPickerType?: string;
     changeColorPickerType?: (type: string) => void;
     updateLastColors?: (color: string) => void;
     lastColorsUsed?: string[];
     fontInfoInterface: FontInfoInterface;
     importFileAsAsset: (file: File, onComplete: () => void) => void;
-    getAllSoundAssets: () => any[];
+    getAllSoundAssets: () => WickAsset[];
     getClipAnimationTypes: () => Array<{ label: string; value: string }>;
-    editorActions: Record<string, any>;
+    editorActions: Record<string, (...args: any[]) => void>; // Action functions
     selectionIsScriptable: () => boolean;
     script?: ScriptType;
     deleteScript?: (script: ScriptType, name: string) => void;

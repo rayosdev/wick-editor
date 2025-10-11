@@ -24,32 +24,23 @@ import Asset from './Asset/Asset';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import WickInput from 'Editor/Util/WickInput/WickInput';
 import ToolIcon from 'Editor/Util/ToolIcon/ToolIcon';
-import type { ToastType, ToastOptions } from 'Editor/types';
+import type { ToastType, ToastOptions, WickAsset, WickProject } from 'Editor/types';
 
 import './_mobileassetlibrary.scss';
 
-interface AssetObject {
-  uuid: string;
-  name: string;
-  classname: string;
-  isGifImage?: boolean;
-  files?: File[];
-  [key: string]: any;
-}
-
 interface MobileAssetLibraryProps {
-  assets: AssetObject[];
+  assets: WickAsset[];
   openImportAssetFileDialog: () => void;
   openModal: (modalName: string) => void;
-  isObjectSelected: (obj: any) => boolean;
+  isObjectSelected: (obj: WickAsset) => boolean;
   clearSelection: () => void;
-  selectObjects: (objects: any[]) => void;
-  createAssets: (files: any) => void;
-  importProjectAsWickFile: (file: any) => void;
-  createImageFromAsset: (asset: any) => void;
+  selectObjects: (objects: WickAsset[]) => void;
+  createAssets: (files: FileList | File[]) => void;
+  importProjectAsWickFile: (file: File) => void;
+  createImageFromAsset: (asset: WickAsset) => void;
   deleteSelectedObjects: () => void;
-  addSoundToActiveFrame: (sound: any) => void;
-  projectData?: unknown;
+  addSoundToActiveFrame: (sound: WickAsset) => void;
+  projectData?: WickProject;
   toast?: (message: string, type?: ToastType, options?: ToastOptions) => void;
 }
 
@@ -80,30 +71,30 @@ class MobileAssetLibrary extends Component<MobileAssetLibraryProps, MobileAssetL
     });
   }
 
-  filterArray = (array: AssetObject[]): AssetObject[] => {
+  filterArray = (array: WickAsset[]): WickAsset[] => {
     let filterText = this.state.filterText.toLowerCase();
     return array.filter(item => {
       return !item.isGifImage && item.name.toLowerCase().includes(filterText);
     });
   }
 
-  makeNode = (assetObject: AssetObject, i: number): JSX.Element => {
+  makeNode = (assetObject: WickAsset, i: number): JSX.Element => {
     return (
       <Asset
         key={i}
-        asset={assetObject}
+        asset={assetObject as any}
         isSelected={this.props.isObjectSelected(assetObject)}
         onClick={() => {
           this.props.clearSelection();
           this.props.selectObjects([assetObject]);
         }}
-        createAssets={this.props.createAssets}
+        createAssets={this.props.createAssets as any}
         importProjectAsWickFile={this.props.importProjectAsWickFile}
-        createImageFromAsset={this.props.createImageFromAsset}
+        createImageFromAsset={this.props.createImageFromAsset as any}
         deleteSelectedObjects={this.props.deleteSelectedObjects}
         clearSelection={this.props.clearSelection}
-        selectObjects={this.props.selectObjects}
-        addSoundToActiveFrame={this.props.addSoundToActiveFrame}
+        selectObjects={this.props.selectObjects as any}
+        addSoundToActiveFrame={this.props.addSoundToActiveFrame as any}
       />
     )
   }
@@ -113,8 +104,8 @@ class MobileAssetLibrary extends Component<MobileAssetLibraryProps, MobileAssetL
    * @param  {Wick.Asset[]} assets An array of Wick.Asset objects.
    * @return {Wick.Asset[]}        Returns a sorted array of Wick.Assets.
    */
-  sortAssets = (assets: AssetObject[]): AssetObject[] => {
-    let copiedAssets: AssetObject[] = [].concat(assets as any);
+  sortAssets = (assets: WickAsset[]): WickAsset[] => {
+    let copiedAssets: WickAsset[] = [].concat(assets as any);
 
     // Perform alphabetic sort.
     copiedAssets.sort((a, b) => a.name.localeCompare(b.name));

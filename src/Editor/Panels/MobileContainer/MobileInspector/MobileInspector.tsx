@@ -65,9 +65,9 @@ import strokeIcon from "resources/mobile-inspector-icons/strokewidth-icon.svg";
 import opacityIcon from "resources/mobile-inspector-icons/opacity-icon.svg";
 import fillOpacityIcon from "resources/mobile-inspector-icons/fillopacity-icon.svg";
 
-type AnyFunction = (...args: any[]) => any;
+import type { WickAsset } from "Editor/types";
 
-type SelectionAttributes = Record<string, any>;
+type SelectionAttributes = Record<string, any>; // Dynamic selection attributes - inherently flexible
 
 type FontInfoInterface = {
     allFontNames: string[];
@@ -78,11 +78,6 @@ type FontInfoInterface = {
         callback: (blob: Blob) => void;
         error: (error: unknown) => void;
     }) => void;
-};
-
-type AssetLike = {
-    name?: string;
-    [key: string]: any;
 };
 
 type TabOption = {
@@ -97,8 +92,6 @@ type ClipAnimationOption = {
     value: string;
 };
 
-type EditorActionsMap = Record<string, any>;
-
 declare global {
     interface Window {
         Wick: any;
@@ -107,7 +100,7 @@ declare global {
 
 interface MobileInspectorProps {
     getAllSelectionAttributes: () => SelectionAttributes;
-    setSelectionAttribute: (attribute: string, value: any) => void;
+    setSelectionAttribute: (attribute: string, value: unknown) => void; // Truly polymorphic
     colorPickerType: string;
     changeColorPickerType: (type: string) => void;
     updateLastColors: (color: string) => void;
@@ -115,18 +108,18 @@ interface MobileInspectorProps {
     fontInfoInterface: FontInfoInterface;
     importFileAsAsset: (file: File, callback: () => void) => void;
     getSelectionType: () => string;
-    getAllSoundAssets: () => AssetLike[];
+    getAllSoundAssets: () => WickAsset[];
     getClipAnimationTypes: () => ClipAnimationOption[];
-    editorActions: EditorActionsMap;
+    editorActions: Record<string, (...args: any[]) => void>; // Action functions
     getToolSetting?: (name: string) => string | number | boolean;
     setToolSetting?: (name: string, value: string | number | boolean) => void;
     selectionIsScriptable?: () => boolean;
     project?: any; // Wick Engine project instance (not used in MobileInspector)
     script?: Script;
     scriptInfoInterface?: ScriptWindowScriptInfoInterface;
-    deleteScript?: AnyFunction;
-    editScript?: AnyFunction;
-    [key: string]: any;
+    deleteScript?: (script: Script, name: string) => void;
+    editScript?: (name: string) => void;
+    [key: string]: any; // Additional props inherently flexible
 }
 
 type MobileInspectorState = Record<string, never>;
@@ -638,7 +631,7 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
             },
         ];
 
-        const mapAsset = (asset: AssetLike | undefined) => {
+        const mapAsset = (asset: WickAsset | undefined) => {
             if (!asset) {
                 return {
                     value: "novalue",
