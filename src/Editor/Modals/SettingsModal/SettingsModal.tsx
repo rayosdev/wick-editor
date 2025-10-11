@@ -36,10 +36,8 @@ import "./_settingsmodal.scss";
 import classNames from "classnames";
 
 // Hotkey groups structure from editor.hotKeyInterface.createHandlerGroups()
-type KeyMapGroup = {
-  name: string;
-  actions: HotKeyMap;
-};
+// Maps group names to arrays of action names
+type KeyMapGroups = Record<string, string[]>;
 
 // Tool settings can return various types including WickColor objects
 type ToolSettingValue = string | number | boolean | { rgba: string };
@@ -58,7 +56,7 @@ interface SettingsModalProps {
   resetCustomHotKeys: () => void;
   customHotKeys: CustomHotKeys;
   keyMap: HotKeyMap;
-  keyMapGroups?: KeyMapGroup[];
+  keyMapGroups?: KeyMapGroups;
   toast?: (message: string) => void;
   createCombinedHotKeyMap?: () => HotKeyMap;
   getToolSetting: (setting: string) => ToolSettingValue;
@@ -87,7 +85,7 @@ class SettingsModal extends Component<SettingsModalProps> {
         resetCustomHotKeys={this.props.resetCustomHotKeys}
         customHotKeys={this.props.customHotKeys}
         keyMap={this.props.keyMap}
-        keyMapGroups={this.props.keyMapGroups}
+        keyMapGroups={this.props.keyMapGroups || {}}
         createCombinedHotKeyMap={this.props.createCombinedHotKeyMap || (() => ({}))}
         toast={this.props.toast}
       />
@@ -119,7 +117,7 @@ class SettingsModal extends Component<SettingsModalProps> {
               resetCustomHotKeys={this.props.resetCustomHotKeys}
               customHotKeys={this.props.customHotKeys}
               keyMap={this.props.keyMap}
-              keyMapGroups={this.props.keyMapGroups}
+              keyMapGroups={this.props.keyMapGroups || {}}
               toast={this.props.toast}
               toggle={this.props.toggle}
               createCombinedHotKeyMap={this.props.createCombinedHotKeyMap || (() => ({}))}

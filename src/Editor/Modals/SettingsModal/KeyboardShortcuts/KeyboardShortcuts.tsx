@@ -25,8 +25,14 @@ import HotKeyInterface from "Editor/hotKeyMap.js";
 import "./_keyboardshortcuts.scss";
 
 import classNames from "classnames";
-import type { HotKeyMap } from "Editor/types/hotkeys";
+import type { HotKeyMap, HotKeySequence } from "Editor/types/hotkeys";
+import type { CustomHotKeys } from "Editor/types";
 
+// Hotkey groups structure from editor.hotKeyInterface.createHandlerGroups()
+// Maps group names to arrays of action names
+type KeyMapGroups = Record<string, string[]>;
+
+// Structure for tracking action edits
 interface EditingAction {
   name: string;
   actionName: string;
@@ -34,20 +40,28 @@ interface EditingAction {
   index?: number;
 }
 
+// Structure for new/modified actions
+interface ActionChange {
+  actionName: string;
+  name: string;
+  index: number;
+  sequence: string;
+}
+
 interface KeyboardShortcutsProps {
   keyMap: HotKeyMap;
-  keyMapGroups: any;
-  customHotKeys: any;
-  addCustomHotKeys: (keys: any) => void;
+  keyMapGroups: KeyMapGroups;
+  customHotKeys: CustomHotKeys;
+  addCustomHotKeys: (keys: CustomHotKeys) => void;
   resetCustomHotKeys: () => void;
-  createCombinedHotKeyMap: () => any;
-  toast?: (message: string, type: string) => void;
+  createCombinedHotKeyMap: () => HotKeyMap;
+  toast?: (message: string, type?: string) => void;
   toggle?: () => void;
 }
 
 interface KeyboardShortcutsState {
   editingAction: EditingAction;
-  newActions: any[];
+  newActions: ActionChange[];
   cancelKeyRecording: () => void;
   openTabs: string[];
 }
@@ -84,17 +98,21 @@ class KeyboardShortcuts extends Component<KeyboardShortcutsProps, KeyboardShortc
   };
 
   // Creates the key icons to show on each row.
-  makeKey = (sequence: any, labelledby: string): JSX.Element => {
+  makeKey = (sequence: HotKeySequence | undefined, labelledby: string): JSX.Element => {
+    let sequenceStr: string;
+
     if (sequence === undefined) {
-      sequence = "";
+      sequenceStr = "";
     } else if (typeof sequence === "object") {
       // Swap text for icons.
-      let key = HotKeyInterface.replaceKeys(sequence["sequence"]);
-      let action = sequence["action"] ? "+" + sequence["action"] : "";
-      sequence = key + action;
+      let key = HotKeyInterface.replaceKeys(sequence.sequence);
+      let action = sequence.action ? "+" + sequence.action : "";
+      sequenceStr = key + action;
+    } else {
+      sequenceStr = sequence;
     }
 
-    let sequenceItems = sequence.split("+");
+    let sequenceItems = sequenceStr.split("+");
 
     // Adds plus signs to keys that are not the last key...
     return (
@@ -118,7 +136,8 @@ class KeyboardShortcuts extends Component<KeyboardShortcutsProps, KeyboardShortc
   };
 
   // Returns the action if it is edited, undefined otherwise.
-  isEdited = (actionName: string, index: number): boolean => {
+  // Returns the edited action if it exists.
+  isEdited = (actionName: string, index: number): ActionChange | undefined => {
     let actions = this.state.newActions.filter(
       (obj) => obj.actionName === actionName
     );
@@ -134,7 +153,7 @@ class KeyboardShortcuts extends Component<KeyboardShortcutsProps, KeyboardShortc
     );
   };
 
-  createHeader = (headerInfo: any): JSX.Element => {
+  createHeader = (headerInfo: { name: string }): JSX.Element => {
     let { name } = headerInfo;
 
     return (
@@ -163,7 +182,7 @@ class KeyboardShortcuts extends Component<KeyboardShortcutsProps, KeyboardShortc
     );
   };
 
-  createRow = (rowInfo: any): JSX.Element => {
+  createRow = (rowInfo: { actionName: string; name: string; sequence1?: HotKeySequence; sequence2?: HotKeySequence }): JSX.Element => {
     let { actionName, name, sequence1, sequence2 } = rowInfo;
 
     // Only check each column once.
@@ -287,7 +306,7 @@ class KeyboardShortcuts extends Component<KeyboardShortcutsProps, KeyboardShortc
     let newActionsArray = this.state.newActions.concat([]);
     for (var i = 0; i < newActionsArray.length; i++) {
       let action = newActionsArray[i];
-      if (action.sequence === keyCommand) {
+      if (action && action.sequence === keyCommand) {
         newActionsArray.splice(i, 1);
         let name = action.actionName || action.name;
         this.props.toast?.(
@@ -327,7 +346,14 @@ class KeyboardShortcuts extends Component<KeyboardShortcutsProps, KeyboardShortc
 
   // Apply all new hotkeys to the editor.
   applyNewKeys = () => {
-    this.props.addCustomHotKeys(this.state.newActions);
+    // Convert ActionChange[] to CustomHotKeys format (Record<string, string>)
+    const customKeys: CustomHotKeys = {};
+    this.state.newActions.forEach(action => {
+      const key = `${action.actionName}-${action.index}`;
+      customKeys[key] = action.sequence;
+    });
+
+    this.props.addCustomHotKeys(customKeys);
     this.resetNewActions();
     this.stopEditingKey();
 
@@ -355,9 +381,11 @@ class KeyboardShortcuts extends Component<KeyboardShortcutsProps, KeyboardShortc
       groupedRows.push({ name: groupName, type: "header" });
       if (this.state.openTabs.indexOf(groupName) > -1) {
         let groupMembers = this.props.keyMapGroups[groupName];
-        groupMembers.forEach((member: any) => {
-          groupedRows.push({ name: member, type: "member" });
-        });
+        if (groupMembers) {
+          groupMembers.forEach((member: string) => {
+            groupedRows.push({ name: member, type: "member" });
+          });
+        }
       }
     });
     return groupedRows;
