@@ -41863,7 +41863,7 @@ https://github.com/nodeca/pako/blob/master/LICENSE
                     s.match_length <= 5 &&
                     (s.strategy === Z_FILTERED ||
                       (s.match_length === MIN_MATCH &&
-                        s.strstart - s.match_start > 4096) /*TOO_FAR*/)
+                        s.strstart - s.match_start > 4096)) /*TOO_FAR*/
                   ) {
                     /* If prev_match is also MIN_MATCH, match_start is garbage
                      * but we will ignore the current match anyway.
@@ -69349,6 +69349,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       this._rebuildBox();
       this._box.remove();
       this._items = this._itemsInBox(this._box);
+      if (
+        typeof window !== "undefined" &&
+        window.Wick &&
+        window.Wick.DebugSelection
+      ) {
+        console.debug("SelectionBox: end with", this._items.length, "items");
+      }
     }
 
     /*
@@ -69387,12 +69394,23 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       });
     }
     _itemsInBox(box) {
+      var debugSelection =
+        typeof window !== "undefined" &&
+        window.Wick &&
+        window.Wick.DebugSelection;
       var checkItems = [];
       this._getSelectableLayers().forEach((layer) => {
-        layer.children.forEach((child) => {
-          checkItems.push(child);
-        });
+        this._collectSelectableItems(layer, checkItems);
       });
+      if (debugSelection) {
+        console.debug(
+          "SelectionBox: evaluating",
+          checkItems.length,
+          "items from",
+          this._getSelectableLayers().length,
+          "layers"
+        );
+      }
       var items = [];
       checkItems.forEach((item) => {
         if (this.mode === "contains") {
@@ -69405,7 +69423,31 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           }
         }
       });
+      if (debugSelection) {
+        console.debug(
+          "SelectionBox: matched",
+          items.length,
+          "items with mode",
+          this.mode
+        );
+      }
       return items;
+    }
+    _collectSelectableItems(item, bucket) {
+      if (!item) {
+        return;
+      }
+      if (item.data && item.data.isSelectionBoxGUI) {
+        return;
+      }
+      if (item.data && item.data.wickUUID) {
+        bucket.push(item);
+      }
+      if (item.children && item.children.length) {
+        item.children.forEach((child) => {
+          this._collectSelectableItems(child, bucket);
+        });
+      }
     }
     _shapesIntersect(itemA, itemB) {
       if (itemA instanceof this.paper.Group) {
@@ -69427,13 +69469,49 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       }
     }
     _getSelectableLayers() {
-      var project = this.paper && this.paper.project;
-      if (!project || !project.layers) {
+      var debugSelection =
+        typeof window !== "undefined" &&
+        window.Wick &&
+        window.Wick.DebugSelection;
+      var paperScope = this.paper || null;
+      if (!paperScope) {
         return [];
       }
-      return project.layers.filter((layer) => {
-        return !layer.locked;
+
+      var view = paperScope.view || null;
+      var projectFromView = view && view.project ? view.project : null;
+      var project = projectFromView || paperScope.project || null;
+
+      if (!project) {
+        return [];
+      }
+
+      var layers = Array.isArray(project.layers)
+        ? project.layers
+        : Array.from(project.layers || []);
+
+      var selectableLayers = layers.filter((layer) => {
+        if (!layer) {
+          return false;
+        }
+        if (layer.locked) {
+          return false;
+        }
+        if (layer.data && layer.data.isSelectionBoxGUI) {
+          return false;
+        }
+        return true;
       });
+      if (debugSelection) {
+        console.debug(
+          "SelectionBox: using project",
+          project && project._id ? project._id : project,
+          "with",
+          selectableLayers.length,
+          "selectable layers"
+        );
+      }
+      return selectableLayers;
     }
   };
   paper.PaperScope.inject({
