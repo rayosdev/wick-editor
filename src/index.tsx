@@ -18,6 +18,7 @@
  */
 
 import { createRoot } from "react-dom/client";
+import JSZip from "jszip";
 import "./index.css";
 import Editor from "./Editor/Editor";
 import * as serviceWorker from "./serviceWorker";
@@ -27,6 +28,7 @@ declare global {
     interface Window {
         process?: ProcessShim;
         __REACT_MODAL_APP_ELEMENT?: string;
+        JSZip?: typeof JSZip;
     }
 }
 
@@ -42,6 +44,10 @@ if (typeof window !== "undefined") {
         (window as Window & { process: ProcessShim }).process = { env: {} };
     } else if (typeof existingProcess.env !== "object") {
         existingProcess.env = {};
+    }
+
+    if (!window.JSZip) {
+        window.JSZip = JSZip;
     }
 }
 

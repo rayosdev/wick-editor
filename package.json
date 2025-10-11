@@ -26,6 +26,7 @@
     "file-saver": "^2.0.5",
     "gif.js": "^0.2.0",
     "gifenc": "^1.0.3",
+    "jszip": "^3.10.1",
     "localforage": "^1.10.0",
     "query-string": "^9.1.0",
     "rc-slider": "^10.6.2",
