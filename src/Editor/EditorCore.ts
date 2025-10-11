@@ -1370,8 +1370,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         });
       };
 
-  const outputName = name ?? this.project.name;
-  window.saveFileFromWick(file, outputName, ".svg", success, fail);
+      const outputName = name ?? this.project.name;
+      window.saveFileFromWick(file, outputName, ".svg", success, fail);
 
       this.hideWaitOverlay();
     };
@@ -1393,8 +1393,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Export the current project as a bundled standalone ZIP that can be uploaded to itch/newgrounds/etc.
    */
   exportProjectAsStandaloneZip = (args: ExportMediaArgs = {}): void => {
-  const toastID = this.toast("Exporting project as ZIP...", "info");
-  const outputName = args.name ?? this.project.name;
+    const toastID = this.toast("Exporting project as ZIP...", "info");
+    const outputName = args.name ?? this.project.name;
     window.Wick.ZIPExport.bundleProject(this.project, (blob: Blob) => {
       let success = () => {
         this.updateToast(toastID, {
@@ -1418,8 +1418,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Export the current project as a bundled standalone HTML file.
    */
   exportProjectAsStandaloneHTML = (args: ExportMediaArgs = {}): void => {
-  const toastID = this.toast("Exporting project as HTML...", "info");
-  const outputName = args.name ?? this.project.name;
+    const toastID = this.toast("Exporting project as HTML...", "info");
+    const outputName = args.name ?? this.project.name;
     window.Wick.HTMLExport.bundleProject(
       this.project,
       (html: BlobPart | ArrayBuffer) => {
@@ -1481,7 +1481,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   setupNewProject = (project?: unknown): void => {
     // if (!project) return;
     this.resetEditorForLoad();
-    this.project = (project as typeof this.project) || new window.Wick.Project();
+    this.project =
+      (project as typeof this.project) || new window.Wick.Project();
     this.project.selection.clear();
 
     // Attach error handling messages
@@ -1557,8 +1558,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     if (urlParams.example) {
       let url = window.location.origin + "/examples/" + urlParams.example;
       console.log("attempting to load project", url);
-  loadProjectFromURL(url);
-  return true;
+      loadProjectFromURL(url);
+      return true;
     }
 
     const projectParam = urlParams.project;
@@ -1580,7 +1581,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       var url = new URL(projectLink);
     } catch {
       this.toast("Project URL is invalid!", "warning");
-  return false;
+      return false;
     }
 
     // Check if the provided URL is allowed in the whitelist.
@@ -1700,9 +1701,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param  {Function} callback a callback which receives a boolean.
    * True if an autosave exists.
    */
-  doesAutoSavedProjectExist = (
-    callback: (exists: boolean) => void
-  ): void => {
+  doesAutoSavedProjectExist = (callback: (exists: boolean) => void): void => {
     window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
       callback(autosaveList.length > 0);
     });
