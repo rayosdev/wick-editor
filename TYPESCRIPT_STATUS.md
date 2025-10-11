@@ -13,7 +13,7 @@
 | Files converted to `.tsx/.ts` | 98      | 115    | 🟡 85%           |
 | Files still `.jsx`            | 17      | 0      | 🟡 15% remaining |
 | Files with `@ts-nocheck`      | 0       | 0      | ✅ 100%          |
-| Instances of `unknown`        | 50+     | < 10   | � In progress   |
+| Instances of `unknown`        | 50+     | < 10   | � In progress    |
 | Instances of `any`            | ?       | 0      | 🟡 In progress   |
 | TypeScript errors             | 0       | 0      | ✅ Passing       |
 

@@ -1,10 +1,15 @@
 /**
  * Editor-specific Type Definitions
- * 
+ *
  * These types are specific to the Wick Editor UI and not part of the core engine.
  */
 
-import type { WickProject, WickAsset, CanvasObject, TimelineObject } from './core.types';
+import type {
+  WickProject,
+  WickAsset,
+  CanvasObject,
+  TimelineObject,
+} from "./core.types";
 
 // ============================================================================
 // Tool Settings
@@ -16,25 +21,25 @@ export interface ToolSettings {
   brushColor: string;
   brushSmoothness: number;
   brushPressureEnabled: boolean;
-  
+
   // Eraser Tool
   eraserSize: number;
   eraserSmoothness: number;
-  
+
   // Fill & Stroke
   fillColor: string;
   strokeColor: string;
   strokeWidth: number;
-  
+
   // Text Tool
   fontFamily: string;
   fontSize: number;
   fontWeight: string;
   fontStyle: string;
-  
+
   // Eyedropper Tool
-  eyedropperTarget: 'fill' | 'stroke';
-  
+  eyedropperTarget: "fill" | "stroke";
+
   // Additional tool settings
   [key: string]: string | number | boolean;
 }
@@ -48,20 +53,20 @@ export interface ToolSettingRestrictions {
   options?: string[];
 }
 
-export type ToolType = 
-  | 'cursor'
-  | 'brush'
-  | 'eraser'
-  | 'pencil'
-  | 'rectangle'
-  | 'ellipse'
-  | 'line'
-  | 'text'
-  | 'fillbucket'
-  | 'eyedropper'
-  | 'pathcursor'
-  | 'zoom'
-  | 'pan';
+export type ToolType =
+  | "cursor"
+  | "brush"
+  | "eraser"
+  | "pencil"
+  | "rectangle"
+  | "ellipse"
+  | "line"
+  | "text"
+  | "fillbucket"
+  | "eyedropper"
+  | "pathcursor"
+  | "zoom"
+  | "pan";
 
 // ============================================================================
 // Project Settings
@@ -104,7 +109,7 @@ export interface AssetLibraryItem extends WickAsset {
 // Console & Logging
 // ============================================================================
 
-export type ConsoleMethod = 'log' | 'warn' | 'error' | 'info' | 'debug';
+export type ConsoleMethod = "log" | "warn" | "error" | "info" | "debug";
 
 export interface ConsoleLogEntry {
   id: string;
@@ -117,14 +122,14 @@ export interface ConsoleLogEntry {
 // Rendering & Export
 // ============================================================================
 
-export type RenderType = 
-  | 'gif' 
-  | 'video' 
-  | 'zip' 
-  | 'html' 
-  | 'image-sequence' 
-  | 'audio' 
-  | 'svg';
+export type RenderType =
+  | "gif"
+  | "video"
+  | "zip"
+  | "html"
+  | "image-sequence"
+  | "audio"
+  | "svg";
 
 export interface RenderOptions {
   type: RenderType;
@@ -132,22 +137,22 @@ export interface RenderOptions {
   statusMessage: string;
 }
 
-export type RenderSize = 'small' | 'medium' | 'large' | 'full';
+export type RenderSize = "small" | "medium" | "large" | "full";
 
 // ============================================================================
 // Modals & UI State
 // ============================================================================
 
-export type ModalName = 
-  | 'CreateNewProjectPrompt'
-  | 'SettingsModal'
-  | 'ExportMediaModal'
-  | 'ReferenceModal'
-  | 'BuiltinLibrary'
-  | 'WelcomeModal'
-  | 'AutosaveWarningModal'
-  | 'WarningModal'
-  | 'HotKeySettings'
+export type ModalName =
+  | "CreateNewProjectPrompt"
+  | "SettingsModal"
+  | "ExportMediaModal"
+  | "ReferenceModal"
+  | "BuiltinLibrary"
+  | "WelcomeModal"
+  | "AutosaveWarningModal"
+  | "WarningModal"
+  | "HotKeySettings"
   | null;
 
 export interface WarningModalInfo {
@@ -163,7 +168,7 @@ export interface WarningModalInfo {
 // Color Picker
 // ============================================================================
 
-export type ColorPickerType = 'chrome' | 'sketch' | 'circle';
+export type ColorPickerType = "chrome" | "sketch" | "circle";
 
 // ============================================================================
 // Onion Skin
@@ -171,7 +176,7 @@ export type ColorPickerType = 'chrome' | 'sketch' | 'circle';
 
 export interface OnionSkinOptions {
   enabled: boolean;
-  mode: 'single' | 'multiple';
+  mode: "single" | "multiple";
   forwardCount: number;
   backwardCount: number;
   opacity: number;
@@ -197,7 +202,7 @@ export interface HotKeyConfig {
 // ============================================================================
 
 export interface InspectorData {
-  type: 'canvas' | 'timeline' | 'script' | 'asset' | null;
+  type: "canvas" | "timeline" | "script" | "asset" | null;
   objects: (CanvasObject | TimelineObject | WickAsset)[];
   attributes: Record<string, unknown>;
 }
@@ -232,7 +237,7 @@ export interface CanvasUIState {
 // Toast Notifications
 // ============================================================================
 
-export type ToastType = 'success' | 'info' | 'warning' | 'error';
+export type ToastType = "success" | "info" | "warning" | "error";
 
 export interface ToastOptions {
   autoClose?: number | false;
@@ -240,7 +245,13 @@ export interface ToastOptions {
   closeOnClick?: boolean;
   pauseOnHover?: boolean;
   draggable?: boolean;
-  position?: 'top-left' | 'top-right' | 'top-center' | 'bottom-left' | 'bottom-right' | 'bottom-center';
+  position?:
+    | "top-left"
+    | "top-right"
+    | "top-center"
+    | "bottom-left"
+    | "bottom-right"
+    | "bottom-center";
 }
 
 // ============================================================================

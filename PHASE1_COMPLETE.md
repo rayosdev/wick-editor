@@ -12,6 +12,7 @@
 **File**: `src/Editor/types/core.types.ts`
 
 Defined fundamental Wick Engine types:
+
 - `WickProject`, `WickClip`, `WickFrame`, `WickPath`, etc.
 - `Transformation`, `EasingType`, asset types
 - Union types: `CanvasObject`, `TimelineObject`, `SelectableObject`
@@ -22,6 +23,7 @@ Defined fundamental Wick Engine types:
 **File**: `src/Editor/types/editor.types.ts`
 
 Defined editor-specific types:
+
 - `ToolSettings`, `ToolType`, tool setting restrictions
 - `ProjectSettings`
 - `LocalFileEntry` (FileSystem API types)
@@ -40,6 +42,7 @@ Defined editor-specific types:
 **File**: `src/Editor/types/selection.types.ts`
 
 Defined complete selection API:
+
 - `SelectionInterface` - Full API for object selection
 - Methods for getting selected objects (timeline, canvas, assets)
 - Selection operations (select, deselect, check)
@@ -51,13 +54,14 @@ Defined complete selection API:
 **File**: `src/Editor/types/index.ts`
 
 Single import point for all types:
+
 ```typescript
 import type {
   WickProject,
   WickClip,
   CanvasObject,
   // ... all types
-} from './types';
+} from "./types";
 ```
 
 ### 5. Improved EditorWrapper.tsx ✅
@@ -65,6 +69,7 @@ import type {
 **Replaced 14 instances of `unknown` with proper types:**
 
 Before:
+
 ```typescript
 project: ProjectLike; // Had unknown properties
 localSavedFiles: unknown[];
@@ -74,6 +79,7 @@ builtinPreviews: unknown;
 ```
 
 After:
+
 ```typescript
 project: WickProject;
 localSavedFiles: LocalFileEntry[];
@@ -108,6 +114,7 @@ With these type definitions in place, we can now:
 ## Example: How to Use the New Types
 
 ### Before (with unknown):
+
 ```typescript
 function doSomething(obj: unknown) {
   // TypeScript can't help us here
@@ -117,8 +124,9 @@ function doSomething(obj: unknown) {
 ```
 
 ### After (with proper types):
+
 ```typescript
-import { WickClip, isWickClip } from './types';
+import { WickClip, isWickClip } from "./types";
 
 function doSomething(obj: CanvasObject) {
   // Type guard ensures safety
@@ -135,11 +143,13 @@ function doSomething(obj: CanvasObject) {
 ## Next Steps (Phase 2)
 
 ### Immediate Priority:
+
 1. **EditorCore.ts** - Replace ~60 instances of `unknown`
 2. **ModalHandler.tsx** - Update from `any` to proper types
 3. **Timeline.tsx** - Replace 7 instances of `unknown`
 
 ### Quick Wins:
+
 - Update `ConsolePanel.tsx` (already mostly typed)
 - Convert `src/index.jsx` → `src/index.tsx`
 
@@ -148,7 +158,7 @@ function doSomething(obj: CanvasObject) {
 ## Files Created
 
 1. ✅ `src/Editor/types/core.types.ts` - 230 lines
-2. ✅ `src/Editor/types/editor.types.ts` - 180 lines  
+2. ✅ `src/Editor/types/editor.types.ts` - 180 lines
 3. ✅ `src/Editor/types/selection.types.ts` - 130 lines
 4. ✅ `src/Editor/types/index.ts` - 120 lines
 5. ✅ Updated `src/Editor/EditorWrapper.tsx` - Improved types
