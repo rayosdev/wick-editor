@@ -535,7 +535,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Creates a new button from the selected paths and clips and adds it to the project.
    * @param {string} name The name of the button after creation.
    */
-  createButtonFromSelection: AnyFunction = (name) => {
+  createButtonFromSelection = (name: string): void => {
     this.project.createClipFromSelection({
       identifier: name,
       type: "Button",
@@ -547,7 +547,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Updates the focus object of the project.
    * @param {Wick.Clip} object Object to set as focus.
    */
-  setFocusObject: AnyFunction = (object) => {
+  setFocusObject = (object: unknown): void => {
     this.project.focus = object;
     this.projectDidChange({ actionName: "Set Focus Object" });
   };
@@ -555,7 +555,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Break apart the selected clip(s) and select the objects that were contained within those clip(s).
    */
-  breakApartSelection: AnyFunction = () => {
+  breakApartSelection = (): void => {
     //only break apart selections that have at least 1 clip or button
     //it might be better for these checks to go wherever project.breakApartSelection is defined
     var sel = this.project.selection;
@@ -573,7 +573,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Deletes all selected objects.
    * @returns {object[]} The objects that were deleted.
    */
-  deleteSelectedObjects: AnyFunction = () => {
+  deleteSelectedObjects = (): void => {
     if (this.project.selection.location === "AssetLibrary") {
       this.openWarningModal({
         description:
@@ -599,7 +599,10 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {Object} scriptOwner Script owner to remove sub script from
    * @param {string} scriptName Name of the script to remove
    */
-  deleteScript: AnyFunction = (scriptOwner, scriptName) => {
+  deleteScript = (
+    scriptOwner: { removeScript: (name: string) => void },
+    scriptName: string
+  ): void => {
     let oldEditorState = this.state.codeEditorOpen;
 
     // Turn off code editor if necessary, then open warning modal.
@@ -619,7 +622,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Opens the code editor to the script name tab if that tab exists.
    * @param {string} scriptName Name of the script to open the tab of. Must be all lowercase.
    */
-  editScript: AnyFunction = (scriptName) => {
+  editScript = (scriptName: string): void => {
     this.setState({
       scriptToEdit: scriptName,
       codeEditorOpen: true,
@@ -629,7 +632,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Moves the selected objects on the canvas to the back.
    */
-  sendSelectionToBack: AnyFunction = () => {
+  sendSelectionToBack = (): void => {
     this.project.selection.sendToBack();
     this.projectDidChange({ actionName: "Send Selection to Back" });
   };
@@ -637,7 +640,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Moves the selected objects on the canvas to the front.
    */
-  sendSelectionToFront: AnyFunction = () => {
+  sendSelectionToFront = (): void => {
     this.project.selection.bringToFront();
     this.projectDidChange({ actionName: "Bring Selection to Front" });
   };
@@ -645,7 +648,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Moves the selected objects on the canvas backwards.
    */
-  moveSelectionBackwards: AnyFunction = () => {
+  moveSelectionBackwards = (): void => {
     this.project.selection.moveBackwards();
     this.projectDidChange({ actionName: "Move Selection Backwards" });
   };
@@ -653,7 +656,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Moves the selected objects on the canvas forwards.
    */
-  moveSelectionForwards: AnyFunction = () => {
+  moveSelectionForwards = (): void => {
     this.project.selection.moveForwards();
     this.projectDidChange({ actionName: "Move Selection Forwards" });
   };
@@ -661,7 +664,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Horizontally flips the canvas selection.
    */
-  flipSelectedHorizontal: AnyFunction = () => {
+  flipSelectedHorizontal = (): void => {
     this.project.selection.flipHorizontally();
     this.projectDidChange({ actionName: "Flip Selection Horizontal" });
   };
@@ -669,12 +672,12 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Vertically flips the canvas selection.
    */
-  flipSelectedVertical: AnyFunction = () => {
+  flipSelectedVertical = (): void => {
     this.project.selection.flipVertically();
     this.projectDidChange({ actionName: "Flip Selection Vertical" });
   };
 
-  nudgeSelection: AnyFunction = (x, y) => {
+  nudgeSelection = (x: number, y: number): void => {
     if (this.project.selection.numObjects === 0) return; // Ignore if no objects are selected.
     this.project.selection.x += x;
     this.project.selection.y += y;
@@ -688,35 +691,35 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Moves the selected objects up 1 pixel.
    */
-  nudgeSelectionUp: AnyFunction = () => {
+  nudgeSelectionUp = (): void => {
     this.nudgeSelection(0, -1);
   };
 
   /**
    * Moves the selected objects down 1 pixel.
    */
-  nudgeSelectionDown: AnyFunction = () => {
+  nudgeSelectionDown = (): void => {
     this.nudgeSelection(0, 1);
   };
 
   /**
    * Moves the selected objects right 1 pixel.
    */
-  nudgeSelectionRight: AnyFunction = () => {
+  nudgeSelectionRight = (): void => {
     this.nudgeSelection(1, 0);
   };
 
   /**
    * Moves the selected objects left 1 pixel.
    */
-  nudgeSelectionLeft: AnyFunction = () => {
+  nudgeSelectionLeft = (): void => {
     this.nudgeSelection(-1, 0);
   };
 
   /**
    * Moves the selected objects up 10 pixels.
    */
-  nudgeSelectionUpMore: AnyFunction = () => {
+  nudgeSelectionUpMore = (): void => {
     this.nudgeSelection(0, -10);
   };
 
