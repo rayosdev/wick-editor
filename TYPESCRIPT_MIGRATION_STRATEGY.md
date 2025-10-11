@@ -1,10 +1,17 @@
 # TypeScript Migration Strategy
 
-## Overview
+## ⚠️ OUTDATED - See TYPESCRIPT_REFACTOR_PLAN.md
 
-This document describes the incremental TypeScript migration approach for the Wick Editor codebase.
+This document describes the **original** incremental TypeScript migration approach for the Wick Editor codebase.
 
-**Status**: Phase 2 Complete - Ready for incremental conversion  
+**Status**: Strategy revised - See new plan  
+**Reason**: File conversion is mostly complete (98 files), but type quality needs improvement  
+**New Document**: [`TYPESCRIPT_REFACTOR_PLAN.md`](./TYPESCRIPT_REFACTOR_PLAN.md)
+
+---
+
+## Original Strategy (Archived)
+
 **TypeScript Version**: 5.9.3 with strict mode enabled  
 **Strategy**: Incremental file-by-file conversion with `@ts-nocheck` protection
 
