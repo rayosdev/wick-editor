@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from "react";
+import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import WickModal from "Editor/Modals/WickModal/WickModal";
 import TabbedInterface from "Editor/Util/TabbedInterface/TabbedInterface";
@@ -50,52 +50,26 @@ interface BuiltinLibraryProps {
   isAssetInLibrary: (filename: string) => boolean;
 }
 
-class BuiltinLibrary extends Component<BuiltinLibraryProps> {
-  toPlay: any;
+const ROOT_ASSET_PATH = (() => {
+  // Default PUBLIC_URL to empty string so we don't render "undefined/..." in dev
+  const base =
+    typeof process !== "undefined" && process.env && process.env.PUBLIC_URL
+      ? process.env.PUBLIC_URL
+      : "";
+  return base.replace(/\/$/, "") + "/builtinlibrary/";
+})();
 
-  constructor(props: BuiltinLibraryProps) {
-    super(props);
-
-    this.toPlay = null;
-  }
-
-  static get ROOT_ASSET_PATH(): string {
-    // Default PUBLIC_URL to empty string so we don't render "undefined/..." in dev
-    const base =
-      typeof process !== "undefined" && process.env && process.env.PUBLIC_URL
-        ? process.env.PUBLIC_URL
-        : "";
-    return base.replace(/\/$/, "") + "/builtinlibrary/";
-  }
-
-  render(): JSX.Element {
-    return (
-      <WickModal
-        open={this.props.open}
-        toggle={this.props.toggle}
-        className="modal-body welcome-modal-body"
-        overlayClassName="modal-overlay welcome-modal-overlay"
-      >
-        <div className="builtin-library">
-          <div className="builtin-library-modal-title">
-            Builtin Library (Beta)
-          </div>
-          <TabbedInterface tabNames={["Clips", "Sounds"]}>
-            <div className="builtin-library-asset-grid">
-              {wickobjects.assets.map(this.renderBuiltinAsset)}
-            </div>
-            <div className="builtin-library-asset-grid">
-              {sounds.assets.map(this.renderSoundAsset)}
-            </div>
-          </TabbedInterface>
-        </div>
-      </WickModal>
-    );
-  }
-
+const BuiltinLibrary: React.FC<BuiltinLibraryProps> = ({
+  open,
+  toggle,
+  importFileAsAsset,
+  builtinPreviews,
+  addFileToBuiltinPreviews,
+  isAssetInLibrary
+}) => {
   //Fetch file, add to builtinPreviews
-  importForPreview = (asset: BuiltinAsset, callback?: (blob: Blob) => void): void => {
-    const path = BuiltinLibrary.ROOT_ASSET_PATH + asset.file;
+  const importForPreview = (asset: BuiltinAsset, callback?: (blob: Blob) => void): void => {
+    const path = ROOT_ASSET_PATH + asset.file;
 
     fetch(path)
       .then((response) => response.blob())
@@ -103,37 +77,33 @@ class BuiltinLibrary extends Component<BuiltinLibraryProps> {
         (blob as any).lastModifiedDate = new Date();
         (blob as any).name = asset.file.split("/").pop();
 
-        this.props.addFileToBuiltinPreviews(asset.file, blob);
+        addFileToBuiltinPreviews(asset.file, blob);
 
         callback && callback(blob);
       })
       .catch((error) => {
         console.error(
-          "Error while importing builtin asset (" +
-          asset.name +
-          "," +
-          asset.file +
-          "): "
+          `Error while importing builtin asset (${asset.name},${asset.file}): `
         );
         console.log(error);
       });
   };
 
   //Fetch file to builtinPreviews if necessary, then load into Asset Library
-  createWickAsset = (asset: BuiltinAsset): void => {
-    if (!this.props.builtinPreviews[asset.file]) {
-      this.importForPreview(asset, (blob: Blob) => {
-        this.props.importFileAsAsset(blob);
+  const createWickAsset = (asset: BuiltinAsset): void => {
+    if (!builtinPreviews[asset.file]) {
+      importForPreview(asset, (blob: Blob) => {
+        importFileAsAsset(blob);
       });
     } else {
-      const preview = this.props.builtinPreviews[asset.file];
+      const preview = builtinPreviews[asset.file];
       if (preview) {
-        this.props.importFileAsAsset(preview.blob);
+        importFileAsAsset(preview.blob);
       }
     }
   };
 
-  renderBuiltinAsset = (asset: BuiltinAsset): JSX.Element => {
+  const renderBuiltinAsset = (asset: BuiltinAsset): JSX.Element => {
     return (
       <div key={asset.file} className="builtin-library-asset">
         <div className="builtin-library-asset-name">{asset.name}</div>
@@ -141,12 +111,12 @@ class BuiltinLibrary extends Component<BuiltinLibraryProps> {
         <div className="builtin-library-asset-icon-container">
           <img
             alt="Builtin Asset Icon"
-            src={BuiltinLibrary.ROOT_ASSET_PATH + asset.icon}
+            src={ROOT_ASSET_PATH + asset.icon}
             className="builtin-library-asset-icon"
           />
         </div>
 
-        {this.props.isAssetInLibrary(asset.file.split("/").pop() || "") ? (
+        {isAssetInLibrary(asset.file.split("/").pop() || "") ? (
           <ActionButton
             className="add-as-asset-button"
             action={() => { }}
@@ -157,7 +127,7 @@ class BuiltinLibrary extends Component<BuiltinLibraryProps> {
           <ActionButton
             className="add-as-asset-button"
             action={() => {
-              this.createWickAsset(asset);
+              createWickAsset(asset);
             }}
             text="Add as Asset"
           />
@@ -166,10 +136,10 @@ class BuiltinLibrary extends Component<BuiltinLibraryProps> {
     );
   };
 
-  renderSoundAsset = (asset: BuiltinAsset): JSX.Element => {
+  const renderSoundAsset = (asset: BuiltinAsset): JSX.Element => {
     let src = undefined;
 
-    const preview = this.props.builtinPreviews[asset.file];
+    const preview = builtinPreviews[asset.file];
     if (preview) {
       src = preview.src;
     }
@@ -182,11 +152,11 @@ class BuiltinLibrary extends Component<BuiltinLibraryProps> {
           <AudioPlayer
             key={asset.file}
             src={src}
-            loadSrc={() => this.importForPreview(asset, () => { })}
+            loadSrc={() => importForPreview(asset, () => { })}
           />
         </div>
 
-        {this.props.isAssetInLibrary(asset.file.split("/").pop() || "") ? (
+        {isAssetInLibrary(asset.file.split("/").pop() || "") ? (
           <ActionButton
             className="add-as-asset-button"
             action={() => { }}
@@ -197,7 +167,7 @@ class BuiltinLibrary extends Component<BuiltinLibraryProps> {
           <ActionButton
             className="add-as-asset-button"
             action={() => {
-              this.createWickAsset(asset);
+              createWickAsset(asset);
             }}
             text="Add as Asset"
           />
@@ -205,6 +175,29 @@ class BuiltinLibrary extends Component<BuiltinLibraryProps> {
       </div>
     );
   };
-}
+
+  return (
+    <WickModal
+      open={open}
+      toggle={toggle}
+      className="modal-body welcome-modal-body"
+      overlayClassName="modal-overlay welcome-modal-overlay"
+    >
+      <div className="builtin-library">
+        <div className="builtin-library-modal-title">
+          Builtin Library (Beta)
+        </div>
+        <TabbedInterface tabNames={["Clips", "Sounds"]}>
+          <div className="builtin-library-asset-grid">
+            {wickobjects.assets.map(renderBuiltinAsset)}
+          </div>
+          <div className="builtin-library-asset-grid">
+            {sounds.assets.map(renderSoundAsset)}
+          </div>
+        </TabbedInterface>
+      </div>
+    </WickModal>
+  );
+};
 
 export default BuiltinLibrary;

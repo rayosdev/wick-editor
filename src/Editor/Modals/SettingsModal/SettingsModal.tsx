@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from "react";
+import React from "react";
 import type { HotKeyMap } from "Editor/types/hotkeys";
 import type {
   CustomHotKeys,
@@ -68,35 +68,12 @@ interface SettingsModalProps {
  * SettingsModal component provides access to project, editor, and keyboard settings.
  * Renders different layouts for desktop (3 tabs) vs mobile (2 tabs).
  */
-class SettingsModal extends Component<SettingsModalProps> {
-  renderProjectSettings = (): JSX.Element => {
-    return (
-      <ProjectSettings
-        project={this.props.project}
-        updateProjectSettings={this.props.updateProjectSettings}
-      />
-    );
-  };
-
-  renderShortcuts = (): JSX.Element => {
-    return (
-      <KeyboardShortcuts
-        addCustomHotKeys={this.props.addCustomHotKeys}
-        resetCustomHotKeys={this.props.resetCustomHotKeys}
-        customHotKeys={this.props.customHotKeys}
-        keyMap={this.props.keyMap}
-        keyMapGroups={this.props.keyMapGroups || {}}
-        createCombinedHotKeyMap={this.props.createCombinedHotKeyMap || (() => ({}))}
-        toast={this.props.toast}
-      />
-    );
-  };
-
-  renderDesktop = (): JSX.Element => {
+const SettingsModal: React.FC<SettingsModalProps> = (props) => {
+  const renderDesktop = (): JSX.Element => {
     return (
       <WickModal
-        open={this.props.open}
-        toggle={this.props.toggle}
+        open={props.open}
+        toggle={props.toggle}
         className="settings-modal-container"
         overlayClassName="settings-modal-overlay"
       >
@@ -104,32 +81,32 @@ class SettingsModal extends Component<SettingsModalProps> {
         <div className="settings-modal-body">
           <TabbedInterface tabNames={["Project", "Shortcuts", "Editor"]}>
             <ProjectSettings
-              project={this.props.project}
-              updateProjectSettings={this.props.updateProjectSettings}
-              colorPickerType={this.props.colorPickerType}
-              changeColorPickerType={this.props.changeColorPickerType}
-              updateLastColors={this.props.updateLastColors}
-              toggle={this.props.toggle}
-              lastColorsUsed={this.props.lastColorsUsed}
+              project={props.project}
+              updateProjectSettings={props.updateProjectSettings}
+              colorPickerType={props.colorPickerType}
+              changeColorPickerType={props.changeColorPickerType}
+              updateLastColors={props.updateLastColors}
+              toggle={props.toggle}
+              lastColorsUsed={props.lastColorsUsed}
             />
             <KeyboardShortcuts
-              addCustomHotKeys={this.props.addCustomHotKeys}
-              resetCustomHotKeys={this.props.resetCustomHotKeys}
-              customHotKeys={this.props.customHotKeys}
-              keyMap={this.props.keyMap}
-              keyMapGroups={this.props.keyMapGroups || {}}
-              toast={this.props.toast}
-              toggle={this.props.toggle}
-              createCombinedHotKeyMap={this.props.createCombinedHotKeyMap || (() => ({}))}
+              addCustomHotKeys={props.addCustomHotKeys}
+              resetCustomHotKeys={props.resetCustomHotKeys}
+              customHotKeys={props.customHotKeys}
+              keyMap={props.keyMap}
+              keyMapGroups={props.keyMapGroups || {}}
+              toast={props.toast}
+              toggle={props.toggle}
+              createCombinedHotKeyMap={props.createCombinedHotKeyMap || (() => ({}))}
             />
             <EditorSettings
-              colorPickerType={this.props.colorPickerType}
-              changeColorPickerType={this.props.changeColorPickerType}
-              updateLastColors={this.props.updateLastColors}
-              lastColorsUsed={this.props.lastColorsUsed}
-              getToolSetting={this.props.getToolSetting}
-              setToolSetting={this.props.setToolSetting}
-              getToolSettingRestrictions={this.props.getToolSettingRestrictions}
+              colorPickerType={props.colorPickerType}
+              changeColorPickerType={props.changeColorPickerType}
+              updateLastColors={props.updateLastColors}
+              lastColorsUsed={props.lastColorsUsed}
+              getToolSetting={props.getToolSetting}
+              setToolSetting={props.setToolSetting}
+              getToolSettingRestrictions={props.getToolSettingRestrictions}
             />
           </TabbedInterface>
         </div>
@@ -137,14 +114,14 @@ class SettingsModal extends Component<SettingsModalProps> {
     );
   };
 
-  renderMobile = (): JSX.Element => {
+  const renderMobile = (): JSX.Element => {
     return (
       <WickModal
-        open={this.props.open}
-        toggle={this.props.toggle}
+        open={props.open}
+        toggle={props.toggle}
         className={classNames(
           "settings-modal-container",
-          this.props.isMobile && "mobile"
+          props.isMobile && "mobile"
         )}
         overlayClassName="settings-modal-overlay"
       >
@@ -153,21 +130,21 @@ class SettingsModal extends Component<SettingsModalProps> {
           <TabbedInterface tabNames={["Project", "Editor"]}>
             <ProjectSettings
               isMobile={true}
-              project={this.props.project}
-              updateProjectSettings={this.props.updateProjectSettings}
-              colorPickerType={this.props.colorPickerType}
-              changeColorPickerType={this.props.changeColorPickerType}
-              updateLastColors={this.props.updateLastColors}
-              lastColorsUsed={this.props.lastColorsUsed}
+              project={props.project}
+              updateProjectSettings={props.updateProjectSettings}
+              colorPickerType={props.colorPickerType}
+              changeColorPickerType={props.changeColorPickerType}
+              updateLastColors={props.updateLastColors}
+              lastColorsUsed={props.lastColorsUsed}
             />
             <EditorSettings
-              colorPickerType={this.props.colorPickerType}
-              changeColorPickerType={this.props.changeColorPickerType}
-              updateLastColors={this.props.updateLastColors}
-              lastColorsUsed={this.props.lastColorsUsed}
-              getToolSetting={this.props.getToolSetting}
-              setToolSetting={this.props.setToolSetting}
-              getToolSettingRestrictions={this.props.getToolSettingRestrictions}
+              colorPickerType={props.colorPickerType}
+              changeColorPickerType={props.changeColorPickerType}
+              updateLastColors={props.updateLastColors}
+              lastColorsUsed={props.lastColorsUsed}
+              getToolSetting={props.getToolSetting}
+              setToolSetting={props.setToolSetting}
+              getToolSettingRestrictions={props.getToolSettingRestrictions}
             />
           </TabbedInterface>
         </div>
@@ -175,13 +152,11 @@ class SettingsModal extends Component<SettingsModalProps> {
     );
   };
 
-  render(): JSX.Element {
-    if (this.props.isMobile) {
-      return this.renderMobile();
-    } else {
-      return this.renderDesktop();
-    }
+  if (props.isMobile) {
+    return renderMobile();
+  } else {
+    return renderDesktop();
   }
-}
+};
 
 export default SettingsModal;

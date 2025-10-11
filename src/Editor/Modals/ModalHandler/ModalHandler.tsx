@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 import type { HotKeyMap } from "Editor/types/hotkeys";
 import type {
   ProjectSettings,
@@ -100,144 +100,142 @@ interface ModalHandlerProps {
   exportProjectAsImageSVG: () => void;
 }
 
-class ModalHandler extends Component<ModalHandlerProps> {
-  render(): JSX.Element {
-    const isMobile = this.props.getRenderSize() === "small";
-    return (
-      <div>
-        <MakeAnimated
-          toggle={this.props.closeActiveModal}
-          open={this.props.activeModalName === 'MakeAnimated'}
-          createClipFromSelection={this.props.createClipFromSelection}
-        />
-        <MakeInteractive
-          toggle={this.props.closeActiveModal}
-          open={this.props.activeModalName === 'MakeInteractive'}
-          createClipFromSelection={this.props.createClipFromSelection}
-          createButtonFromSelection={this.props.createButtonFromSelection}
-        />
-        <AutosaveWarning
-          toggle={this.props.closeActiveModal}
-          open={this.props.activeModalName === 'AutosaveWarning'}
-          loadAutosavedProject={this.props.loadAutosavedProject}
-          clearAutoSavedProject={this.props.clearAutoSavedProject}
-        />
-        <WelcomeMessage
-          isMobile={isMobile}
-          toggle={this.props.closeActiveModal}
-          open={this.props.activeModalName === 'WelcomeMessage'}
-          project={this.props.project}
-          editorVersion={this.props.editorVersion}
-        />
-        <ExportOptions
-          isMobile={isMobile}
-          queueModal={this.props.queueModal}
-          toggle={this.props.closeActiveModal}
-          exportProjectAsGif={this.props.exportProjectAsGif}
-          exportProjectAsStandaloneZip={this.props.exportProjectAsStandaloneZip}
-          exportProjectAsStandaloneHTML={this.props.exportProjectAsStandaloneHTML}
-          exportProjectAsVideo={this.props.exportProjectAsVideo}
-          exportProjectAsImageSequence={this.props.exportProjectAsImageSequence}
-          exportProjectAsAudioTrack={this.props.exportProjectAsAudioTrack}
-          exportProjectAsImageSVG={this.props.exportProjectAsImageSVG}
-          open={this.props.activeModalName === 'ExportOptions'}
-          projectName={this.props.project.name}
-          project={this.props.project}
-        />
-        <GeneralWarning
-          toggle={this.props.closeActiveModal}
-          open={this.props.activeModalName === 'GeneralWarning'}
-          info={this.props.warningModalInfo as any || {
-            title: '',
-            description: '',
-            acceptText: '',
-            acceptIcon: '',
-            acceptAction: () => { },
-            cancelText: '',
-            cancelIcon: '',
-            cancelAction: () => { },
-            finalAction: () => { },
-          }}
-        />
-        <ExportMedia
-          toggle={this.props.closeActiveModal}
-          open={this.props.activeModalName === 'ExportMedia'}
-          renderProgress={this.props.renderProgress}
-          renderType={this.props.renderType}
-          renderStatusMessage={this.props.renderStatusMessage}
-          project={this.props.project}
-        />
-        <SettingsModal
-          isMobile={isMobile}
-          toggle={this.props.closeActiveModal}
-          open={this.props.activeModalName === 'SettingsModal'}
-          project={this.props.project}
-          updateProjectSettings={this.props.updateProjectSettings}
-          addCustomHotKeys={this.props.addCustomHotKeys}
-          resetCustomHotKeys={this.props.resetCustomHotKeys}
-          keyMap={this.props.keyMap}
-          keyMapGroups={this.props.keyMapGroups}
-          customHotKeys={this.props.customHotKeys}
-          colorPickerType={this.props.colorPickerType}
-          changeColorPickerType={this.props.changeColorPickerType}
-          updateLastColors={this.props.updateLastColors}
-          lastColorsUsed={this.props.lastColorsUsed}
-          toast={this.props.toast}
-          createCombinedHotKeyMap={this.props.createCombinedHotKeyMap}
-          getToolSetting={this.props.getToolSetting}
-          setToolSetting={this.props.setToolSetting}
-          getToolSettingRestrictions={this.props.getToolSettingRestrictions}
-        />
-        <BuiltinLibrary
-          toggle={this.props.closeActiveModal}
-          open={this.props.activeModalName === 'BuiltinLibrary'}
-          project={this.props.project}
-          importFileAsAsset={this.props.importFileAsAsset as any}
-          builtinPreviews={this.props.builtinPreviews as any}
-          addFileToBuiltinPreviews={this.props.addFileToBuiltinPreviews as any}
-          isAssetInLibrary={this.props.isAssetInLibrary as any}
-        />
-        <EditorInfo
-          openModal={this.props.openModal}
-          toggle={this.props.closeActiveModal}
-          open={this.props.activeModalName === 'EditorInfo'}
-          editorVersion={this.props.editorVersion}
-        />
-        <OpenSourceNotices
-          isMobile={isMobile}
-          toggle={this.props.closeActiveModal}
-          open={this.props.activeModalName === 'OpenSourceNotices'}
-        />
-        <MobileMenu
-          openProjectFileDialog={this.props.openProjectFileDialog}
-          openNewProjectConfirmation={this.props.openNewProjectConfirmation}
-          openModal={this.props.openModal}
-          toggle={this.props.closeActiveModal}
-          open={this.props.activeModalName === 'MobileMenuModal'}
-        />
-        <SavedProjects
-          toggle={this.props.closeActiveModal}
-          open={this.props.activeModalName === 'SavedProjects'}
-          localSavedFiles={this.props.localSavedFiles as any}
-          loadLocalWickFile={this.props.loadLocalWickFile as any}
-          deleteLocalWickFile={this.props.deleteLocalWickFile as any}
-          reloadSavedWickFiles={this.props.reloadSavedWickFiles}
-          openWarningModal={this.props.openWarningModal as any}
-        />
-        <SimpleProjectSettings
-          updateProjectSettings={this.props.updateProjectSettings}
-          project={this.props.project}
-          toggle={this.props.closeActiveModal}
-          open={this.props.activeModalName === 'SimpleProjectSettings'} />
+const ModalHandler: React.FC<ModalHandlerProps> = (props) => {
+  const isMobile = props.getRenderSize() === "small";
+  return (
+    <div>
+      <MakeAnimated
+        toggle={props.closeActiveModal}
+        open={props.activeModalName === 'MakeAnimated'}
+        createClipFromSelection={props.createClipFromSelection}
+      />
+      <MakeInteractive
+        toggle={props.closeActiveModal}
+        open={props.activeModalName === 'MakeInteractive'}
+        createClipFromSelection={props.createClipFromSelection}
+        createButtonFromSelection={props.createButtonFromSelection}
+      />
+      <AutosaveWarning
+        toggle={props.closeActiveModal}
+        open={props.activeModalName === 'AutosaveWarning'}
+        loadAutosavedProject={props.loadAutosavedProject}
+        clearAutoSavedProject={props.clearAutoSavedProject}
+      />
+      <WelcomeMessage
+        isMobile={isMobile}
+        toggle={props.closeActiveModal}
+        open={props.activeModalName === 'WelcomeMessage'}
+        project={props.project}
+        editorVersion={props.editorVersion}
+      />
+      <ExportOptions
+        isMobile={isMobile}
+        queueModal={props.queueModal}
+        toggle={props.closeActiveModal}
+        exportProjectAsGif={props.exportProjectAsGif}
+        exportProjectAsStandaloneZip={props.exportProjectAsStandaloneZip}
+        exportProjectAsStandaloneHTML={props.exportProjectAsStandaloneHTML}
+        exportProjectAsVideo={props.exportProjectAsVideo}
+        exportProjectAsImageSequence={props.exportProjectAsImageSequence}
+        exportProjectAsAudioTrack={props.exportProjectAsAudioTrack}
+        exportProjectAsImageSVG={props.exportProjectAsImageSVG}
+        open={props.activeModalName === 'ExportOptions'}
+        projectName={props.project.name}
+        project={props.project}
+      />
+      <GeneralWarning
+        toggle={props.closeActiveModal}
+        open={props.activeModalName === 'GeneralWarning'}
+        info={props.warningModalInfo as any || {
+          title: '',
+          description: '',
+          acceptText: '',
+          acceptIcon: '',
+          acceptAction: () => { },
+          cancelText: '',
+          cancelIcon: '',
+          cancelAction: () => { },
+          finalAction: () => { },
+        }}
+      />
+      <ExportMedia
+        toggle={props.closeActiveModal}
+        open={props.activeModalName === 'ExportMedia'}
+        renderProgress={props.renderProgress}
+        renderType={props.renderType}
+        renderStatusMessage={props.renderStatusMessage}
+        project={props.project}
+      />
+      <SettingsModal
+        isMobile={isMobile}
+        toggle={props.closeActiveModal}
+        open={props.activeModalName === 'SettingsModal'}
+        project={props.project}
+        updateProjectSettings={props.updateProjectSettings}
+        addCustomHotKeys={props.addCustomHotKeys}
+        resetCustomHotKeys={props.resetCustomHotKeys}
+        keyMap={props.keyMap}
+        keyMapGroups={props.keyMapGroups}
+        customHotKeys={props.customHotKeys}
+        colorPickerType={props.colorPickerType}
+        changeColorPickerType={props.changeColorPickerType}
+        updateLastColors={props.updateLastColors}
+        lastColorsUsed={props.lastColorsUsed}
+        toast={props.toast}
+        createCombinedHotKeyMap={props.createCombinedHotKeyMap}
+        getToolSetting={props.getToolSetting}
+        setToolSetting={props.setToolSetting}
+        getToolSettingRestrictions={props.getToolSettingRestrictions}
+      />
+      <BuiltinLibrary
+        toggle={props.closeActiveModal}
+        open={props.activeModalName === 'BuiltinLibrary'}
+        project={props.project}
+        importFileAsAsset={props.importFileAsAsset as any}
+        builtinPreviews={props.builtinPreviews as any}
+        addFileToBuiltinPreviews={props.addFileToBuiltinPreviews as any}
+        isAssetInLibrary={props.isAssetInLibrary as any}
+      />
+      <EditorInfo
+        openModal={props.openModal}
+        toggle={props.closeActiveModal}
+        open={props.activeModalName === 'EditorInfo'}
+        editorVersion={props.editorVersion}
+      />
+      <OpenSourceNotices
+        isMobile={isMobile}
+        toggle={props.closeActiveModal}
+        open={props.activeModalName === 'OpenSourceNotices'}
+      />
+      <MobileMenu
+        openProjectFileDialog={props.openProjectFileDialog}
+        openNewProjectConfirmation={props.openNewProjectConfirmation}
+        openModal={props.openModal}
+        toggle={props.closeActiveModal}
+        open={props.activeModalName === 'MobileMenuModal'}
+      />
+      <SavedProjects
+        toggle={props.closeActiveModal}
+        open={props.activeModalName === 'SavedProjects'}
+        localSavedFiles={props.localSavedFiles as any}
+        loadLocalWickFile={props.loadLocalWickFile as any}
+        deleteLocalWickFile={props.deleteLocalWickFile as any}
+        reloadSavedWickFiles={props.reloadSavedWickFiles}
+        openWarningModal={props.openWarningModal as any}
+      />
+      <SimpleProjectSettings
+        updateProjectSettings={props.updateProjectSettings}
+        project={props.project}
+        toggle={props.closeActiveModal}
+        open={props.activeModalName === 'SimpleProjectSettings'} />
 
-        <SupportUs
-          isMobile={isMobile}
-          toggle={this.props.closeActiveModal}
-          open={this.props.activeModalName === 'SupportUs'}
-        />
-      </div>
-    );
-  }
-}
+      <SupportUs
+        isMobile={isMobile}
+        toggle={props.closeActiveModal}
+        open={props.activeModalName === 'SupportUs'}
+      />
+    </div>
+  );
+};
 
 export default ModalHandler

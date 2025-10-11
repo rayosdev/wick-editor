@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React, { useState } from 'react';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
 import WickInput from 'Editor/Util/WickInput/WickInput';
@@ -31,108 +31,87 @@ interface MakeAnimatedProps {
   createClipFromSelection: (name: string) => void;
 }
 
-interface MakeAnimatedState {
-  name: string;
-  makeAsset: boolean;
-}
-
 /**
  * MakeAnimated modal for converting selected objects into an animated clip.
  * Clips have their own timeline and can be controlled with code.
  */
-class MakeAnimated extends Component<MakeAnimatedProps, MakeAnimatedState> {
-  placeholderName: string;
-  defaultName: string;
-
-  constructor(props: MakeAnimatedProps) {
-    super(props);
-    this.placeholderName = "Item Name"
-    this.defaultName = "Clip"
-    this.state = {
-      name: "",
-      makeAsset: true,
-    }
-  }
+const MakeAnimated: React.FC<MakeAnimatedProps> = ({
+  open,
+  toggle,
+  createClipFromSelection
+}) => {
+  const placeholderName = "Item Name";
+  const defaultName = "Clip";
+  const [name, setName] = useState("");
 
   // Creates a clip and toggles the modal.
-  createAndToggle = (): void => {
-    const name = this.state.name !== "" ? this.state.name : this.defaultName;
-    this.props.createClipFromSelection(name)
-    this.props.toggle()
-  }
+  const createAndToggle = (): void => {
+    const clipName = name !== "" ? name : defaultName;
+    createClipFromSelection(clipName);
+    toggle();
+  };
 
   // Updates the clip name in the state.
-  updateClipName = (newName: string): void => {
-    this.setState({
-      name: newName,
-    });
-  }
+  const updateClipName = (newName: string): void => {
+    setName(newName);
+  };
 
-  // Updates state value responsible for creating asset.
-  updateAssetCheckbox = (val: boolean): void => {
-    this.setState({
-      makeAsset: val,
-    });
-  }
-
-  render(): JSX.Element {
-    return (
-      <WickModal
-        open={this.props.open}
-        toggle={this.props.toggle}
-        className="make-animated-modal-body"
-        overlayClassName="make-animated-modal-overlay">
-        <div id="make-animated-modal-interior-content">
-          <div id="make-animated-modal-title">Make Animated</div>
-          <div id="make-animated-modal-name-input">
-            <WickInput
-              type="text"
-              value={this.state.name}
-              onChange={this.updateClipName}
-              placeholder={this.placeholderName} />
-          </div>
-          <ObjectInfo
-            title="CLIP"
-            rows={[
-              {
-                text: "Has its own timeline",
-                icon: "check"
-              },
-              {
-                text: "Can control timeline with code",
-                icon: "check"
-              },
-              {
-                text: "Can add any code",
-                icon: "check",
-              }
-            ]} />
+  return (
+    <WickModal
+      open={open}
+      toggle={toggle}
+      className="make-animated-modal-body"
+      overlayClassName="make-animated-modal-overlay">
+      <div id="make-animated-modal-interior-content">
+        <div id="make-animated-modal-title">Make Animated</div>
+        <div id="make-animated-modal-name-input">
+          <WickInput
+            type="text"
+            value={name}
+            onChange={updateClipName}
+            placeholder={placeholderName} />
         </div>
-        <div id="make-animated-modal-footer">
-          <div id="make-animated-modal-accept">
-            <ActionButton
-              className="make-animated-modal-button"
-              color='gray-green'
-              action={this.createAndToggle}
-              text="Convert to Clip"
-            />
-          </div>
-        </div>
-        <div id="make-animated-asset-checkbox-container">
-          {/* <WickInput
-            type="checkbox"
-            containerclassname="make-animated-asset-checkbox-input-container"
-            className="make-animated-asset-checkbox-input"
-            onChange={this.updateAssetCheckbox}
-            defaultChecked={this.state.makeAsset}
+        <ObjectInfo
+          title="CLIP"
+          rows={[
+            {
+              text: "Has its own timeline",
+              icon: "check"
+            },
+            {
+              text: "Can control timeline with code",
+              icon: "check"
+            },
+            {
+              text: "Can add any code",
+              icon: "check",
+            }
+          ]} />
+      </div>
+      <div id="make-animated-modal-footer">
+        <div id="make-animated-modal-accept">
+          <ActionButton
+            className="make-animated-modal-button"
+            color='gray-green'
+            action={createAndToggle}
+            text="Convert to Clip"
           />
-          <div id="make-animated-asset-checkbox-message">
-            Add to asset library
-          </div> */}
         </div>
-      </WickModal>
-    );
-  }
-}
+      </div>
+      <div id="make-animated-asset-checkbox-container">
+        {/* <WickInput
+          type="checkbox"
+          containerclassname="make-animated-asset-checkbox-input-container"
+          className="make-animated-asset-checkbox-input"
+          onChange={updateAssetCheckbox}
+          defaultChecked={makeAsset}
+        />
+        <div id="make-animated-asset-checkbox-message">
+          Add to asset library
+        </div> */}
+      </div>
+    </WickModal>
+  );
+};
 
 export default MakeAnimated

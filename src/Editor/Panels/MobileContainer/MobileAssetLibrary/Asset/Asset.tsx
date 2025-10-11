@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from "react";
+import React from "react";
 import { DragSource, ConnectDragSource } from "react-dnd";
 import "./_asset.scss";
 import DragDropTypes from "Editor/DragDropTypes";
@@ -67,8 +67,8 @@ function collect(connect: any) {
   };
 }
 
-class Asset extends Component<MobileAssetProps> {
-  getIcon(classname: string): string {
+const Asset: React.FC<MobileAssetProps> = (props) => {
+  const getIcon = (classname: string): string => {
     if (classname === "ImageAsset") {
       return "image";
     } else if (classname === "SoundAsset") {
@@ -84,90 +84,88 @@ class Asset extends Component<MobileAssetProps> {
     } else {
       return "asset";
     }
-  }
+  };
 
-  addToCanvas = (): void => {
-    const draggedItem = this.props.asset;
+  const addToCanvas = (): void => {
+    const draggedItem = props.asset;
     if (draggedItem.files && draggedItem.files.length > 0) {
       // Dropped a file from native filesystem
       const firstFile = draggedItem.files[0];
       if (firstFile && firstFile.name.endsWith(".wick")) {
         // Wick Project (.wick file)
-        this.props.importProjectAsWickFile(firstFile);
+        props.importProjectAsWickFile(firstFile);
       } else {
         // Assets (images, sounds, etc)
-        this.props.createAssets(draggedItem.files, []);
+        props.createAssets(draggedItem.files, []);
       }
     } else {
       // Dropped an asset from the asset library
-      this.props.createImageFromAsset(draggedItem.uuid, 0, 0, true);
+      props.createImageFromAsset(draggedItem.uuid, 0, 0, true);
     }
   };
 
-  render(): JSX.Element | null {
-    // These props are injected by React DnD, as defined by the `collect` function above:
-    const { connectDragSource } = this.props;
+  // These props are injected by React DnD, as defined by the `collect` function above:
+  const { connectDragSource } = props;
 
-    const icon = this.getIcon(this.props.asset.classname);
+  const icon = getIcon(props.asset.classname);
 
-    if (!connectDragSource) return null;
+  if (!connectDragSource) return null;
 
-    return connectDragSource(
-      <div
-        className={classNames("asset-item", {
-          "asset-selected": this.props.isSelected,
-        })}
-      >
-        <button className="select" onClick={this.props.onClick}>
-          <div className="asset-name-text">
-            <span>
-              <ToolIcon className="asset-icon" name={icon} />
-            </span>
-            <span>{this.props.asset.name}</span>
-          </div>
-        </button>
-        {this.props.isSelected && (
-          <div className="asset-buttons-container">
-            {this.props.asset.classname === "SoundAsset" && (
-              <span className="asset-button add">
-                <ActionButton
-                  className="add"
-                  color="green"
-                  text="Add"
-                  action={() =>
-                    this.props.addSoundToActiveFrame(this.props.asset)
-                  }
-                />
-              </span>
-            )}
-            {this.props.asset.classname !== "SoundAsset" && (
-              <span className="asset-button add">
-                <ActionButton
-                  className="add"
-                  color="green"
-                  text="Add"
-                  action={this.addToCanvas}
-                />
-              </span>
-            )}
-            <span className="asset-button delete">
+  return connectDragSource(
+    <div
+      className={classNames("asset-item", {
+        "asset-selected": props.isSelected,
+      })}
+    >
+      <button className="select" onClick={props.onClick}>
+        <div className="asset-name-text">
+          <span>
+            <ToolIcon className="asset-icon" name={icon} />
+          </span>
+          <span>{props.asset.name}</span>
+        </div>
+      </button>
+      {props.isSelected && (
+        <div className="asset-buttons-container">
+          {props.asset.classname === "SoundAsset" && (
+            <span className="asset-button add">
               <ActionButton
-                className="delete"
-                color="red"
-                icon="delete-black"
-                action={() => {
-                  this.props.clearSelection();
-                  this.props.selectObjects([this.props.asset]);
-                  this.props.deleteSelectedObjects();
-                }}
+                className="add"
+                color="green"
+                text="Add"
+                action={() =>
+                  props.addSoundToActiveFrame(props.asset)
+                }
               />
             </span>
-          </div>
-        )}
-      </div>
-    );
-  }
-}
+          )}
+          {props.asset.classname !== "SoundAsset" && (
+            <span className="asset-button add">
+              <ActionButton
+                className="add"
+                color="green"
+                text="Add"
+                action={addToCanvas}
+              />
+            </span>
+          )}
+          <span className="asset-button delete">
+            <ActionButton
+              className="delete"
+              color="red"
+              icon="delete-black"
+              action={() => {
+                props.clearSelection();
+                props.selectObjects([props.asset]);
+                props.deleteSelectedObjects();
+              }}
+            />
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default DragSource(
   DragDropTypes.GET_ASSET_TYPE,

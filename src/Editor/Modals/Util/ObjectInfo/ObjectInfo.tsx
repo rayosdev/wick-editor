@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from "react";
+import React from "react";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 
 import "./_objectinfo.scss";
@@ -39,8 +39,8 @@ interface ObjectInfoProps {
  * ObjectInfo component displays a titled list of rows with icons and text.
  * Used for displaying object information in modals.
  */
-class MakeAnimated extends Component<ObjectInfoProps> {
-  renderRow = (rowInfo: ObjectInfoRow, i: number): JSX.Element => {
+const ObjectInfo: React.FC<ObjectInfoProps> = ({ className, title, rows }) => {
+  const renderRow = (rowInfo: ObjectInfoRow, i: number): JSX.Element => {
     const text = rowInfo.text;
     const icon = rowInfo.icon;
     return (
@@ -53,16 +53,14 @@ class MakeAnimated extends Component<ObjectInfoProps> {
     );
   };
 
-  render(): JSX.Element {
-    return (
-      <div
-        className={classNames("object-info-container", this.props.className)}
-      >
-        <div className="object-info-title">{this.props.title}</div>
-        {this.props.rows.map(this.renderRow)}
-      </div>
-    );
-  }
-}
+  return (
+    <div
+      className={classNames("object-info-container", className)}
+    >
+      <div className="object-info-title">{title}</div>
+      {rows.map(renderRow)}
+    </div>
+  );
+};
 
-export default MakeAnimated;
+export default ObjectInfo;

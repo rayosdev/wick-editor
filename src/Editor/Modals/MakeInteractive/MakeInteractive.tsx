@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React, { useState } from 'react';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
 import WickInput from 'Editor/Util/WickInput/WickInput';
@@ -32,138 +32,118 @@ interface MakeInteractiveProps {
   createButtonFromSelection: (name: string) => void;
 }
 
-interface MakeInteractiveState {
-  name: string;
-  makeAsset: boolean;
-}
-
 /**
  * MakeInteractive modal for converting selected objects into interactive clips or buttons.
  * Clips have timelines and can be controlled with code.
  * Buttons have 3 frames controlled by mouse interactions.
  */
-class MakeInteractive extends Component<MakeInteractiveProps, MakeInteractiveState> {
-  placeholderName: string;
-
-  constructor(props: MakeInteractiveProps) {
-    super(props);
-    this.placeholderName = "Item_Name"
-    this.state = {
-      name: "",
-      makeAsset: true,
-    }
-  }
-
+const MakeInteractive: React.FC<MakeInteractiveProps> = ({
+  open,
+  toggle,
+  createClipFromSelection,
+  createButtonFromSelection
+}) => {
+  const placeholderName = "Item_Name";
+  const [name, setName] = useState("");
 
   /**
    * Creates an item of type and toggles the modal.
    * @param {string} type Either 'Button' or 'Clip'
    */
-  createAndToggle = (type: 'Clip' | 'Button'): void => {
-    const name = this.state.name !== "" ? this.state.name : type;
+  const createAndToggle = (type: 'Clip' | 'Button'): void => {
+    const itemName = name !== "" ? name : type;
     if (type === 'Clip') {
-      this.props.createClipFromSelection(name)
+      createClipFromSelection(itemName);
     } else if (type === 'Button') {
-      this.props.createButtonFromSelection(name);
+      createButtonFromSelection(itemName);
     }
 
-    this.props.toggle()
-  }
+    toggle();
+  };
 
   // Updates the clip name in the state.
-  updateClipName = (newName: string): void => {
-    this.setState({
-      name: newName,
-    });
-  }
+  const updateClipName = (newName: string): void => {
+    setName(newName);
+  };
 
-  // Updates state value responsible for creating asset.
-  updateAssetCheckbox = (val: boolean): void => {
-    this.setState({
-      makeAsset: val,
-    });
-  }
-
-  render(): JSX.Element {
-    return (
-      <WickModal
-        open={this.props.open}
-        toggle={this.props.toggle}
-        className="make-interactive-modal-body"
-        overlayClassName="make-interactive-modal-overlay">
-        <div id="make-interactive-modal-interior-content">
-          <div id="make-interactive-modal-title">Make Interactive</div>
-          <div id="make-interactive-modal-name-input">
-            <WickInput
-              type="text"
-              value={this.state.name}
-              onChange={this.updateClipName}
-              placeholder={this.placeholderName} />
-          </div>
-          <div className="make-interactive-object-info-container">
-            <ObjectInfo
-              title="CLIP"
-              rows={[
-                {
-                  text: "Can add any code",
-                  icon: "check"
-                },
-                {
-                  text: "Has its own timeline",
-                  icon: "check"
-                },
-                {
-                  text: "Can control timeline with code",
-                  icon: "check",
-                }
-              ]} />
-            <ObjectInfo
-              title="BUTTON"
-              rows={[
-                {
-                  text: "Can add any code",
-                  icon: "check"
-                },
-                {
-                  text: "Only has 3 frames",
-                  icon: "check"
-                },
-                {
-                  text: "Frames controlled by mouse interactions",
-                  icon: "check",
-                }
-              ]} />
-          </div>
+  return (
+    <WickModal
+      open={open}
+      toggle={toggle}
+      className="make-interactive-modal-body"
+      overlayClassName="make-interactive-modal-overlay">
+      <div id="make-interactive-modal-interior-content">
+        <div id="make-interactive-modal-title">Make Interactive</div>
+        <div id="make-interactive-modal-name-input">
+          <WickInput
+            type="text"
+            value={name}
+            onChange={updateClipName}
+            placeholder={placeholderName} />
         </div>
-        <div id="make-interactive-modal-footer">
-          <ActionButton
-            className="make-interactive-modal-button"
-            color='gray-green'
-            action={() => { this.createAndToggle("Clip") }}
-            text="Convert to Clip"
+        <div className="make-interactive-object-info-container">
+          <ObjectInfo
+            title="CLIP"
+            rows={[
+              {
+                text: "Can add any code",
+                icon: "check"
+              },
+              {
+                text: "Has its own timeline",
+                icon: "check"
+              },
+              {
+                text: "Can control timeline with code",
+                icon: "check",
+              }
+            ]} />
+          <ObjectInfo
+            title="BUTTON"
+            rows={[
+              {
+                text: "Can add any code",
+                icon: "check"
+              },
+              {
+                text: "Only has 3 frames",
+                icon: "check"
+              },
+              {
+                text: "Frames controlled by mouse interactions",
+                icon: "check",
+              }
+            ]} />
+        </div>
+      </div>
+      <div id="make-interactive-modal-footer">
+        <ActionButton
+          className="make-interactive-modal-button"
+          color='gray-green'
+          action={() => { createAndToggle("Clip") }}
+          text="Convert to Clip"
+        />
+        <ActionButton
+          className="make-interactive-modal-button"
+          color='gray-green'
+          action={() => { createAndToggle("Button") }}
+          text="Convert to Button"
+        />
+      </div>
+      <div id="make-interactive-asset-checkbox-container">
+        {/* <WickInput
+            type="checkbox"
+            containerclassname="make-interactive-asset-checkbox-input-container"
+            className="make-interactive-asset-checkbox-input"
+            onChange={updateAssetCheckbox}
+            defaultChecked={makeAsset}
           />
-          <ActionButton
-            className="make-interactive-modal-button"
-            color='gray-green'
-            action={() => { this.createAndToggle("Button") }}
-            text="Convert to Button"
-          />
-        </div>
-        <div id="make-interactive-asset-checkbox-container">
-          {/* <WickInput
-              type="checkbox"
-              containerclassname="make-interactive-asset-checkbox-input-container"
-              className="make-interactive-asset-checkbox-input"
-              onChange={this.updateAssetCheckbox}
-              defaultChecked={this.state.makeAsset}
-            />
-            <div id="make-interactive-asset-checkbox-message">
-              Add to asset library
-            </div> */}
-        </div>
-      </WickModal>
-    );
-  }
-}
+          <div id="make-interactive-asset-checkbox-message">
+            Add to asset library
+          </div> */}
+      </div>
+    </WickModal>
+  );
+};
 
 export default MakeInteractive
