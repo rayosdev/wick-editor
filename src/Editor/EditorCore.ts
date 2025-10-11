@@ -25,7 +25,6 @@ import GIFExport from "./export/GIFExport";
 import GIFImport from "./import/GIFImport";
 import AudioExport from "./export/AudioExport";
 
-type AnyFunction = (...args: any[]) => any;
 type EditorCoreProps = Record<string, never>;
 type EditorCoreState = EditorCoreUIState & Record<string, any>;
 type WickAsset = { uuid: string; filename?: string };
@@ -34,6 +33,19 @@ type ExportMediaArgs = {
   name?: string;
   width?: number;
   height?: number;
+};
+type AutosaveCallback = () => void;
+type WickScriptError = {
+  uuid?: string;
+  name?: string;
+  message?: string;
+  lineNumber?: number;
+};
+type EyedropperEvent = { color: unknown };
+type WickFileInputEvent = {
+  target: {
+    files: FileList | File[] | null;
+  };
 };
 
 class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
@@ -1200,7 +1212,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Export the current project as an image sequence
    */
-  exportProjectAsImageSequence: AnyFunction = (args) => {
+  exportProjectAsImageSequence = (args: ExportMediaArgs = {}): void => {
+    const { width, height } = args;
     this.openModal("ExportMedia");
     this.setState({
       renderProgress: 0,
@@ -1254,8 +1267,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
 
     window.Wick.ImageSequence.toPNGSequence({
       project: this.project,
-      width: args.width,
-      height: args.height,
+      width,
+      height,
       onProgress: onProgress,
       onError: () => {
         this.hideWaitOverlay();
@@ -1271,7 +1284,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Export the current project as a video.
    */
-  exportProjectAsVideo: AnyFunction = (args) => {
+  exportProjectAsVideo = (args: ExportMediaArgs = {}): void => {
+    const { width, height } = args;
     // Open export media loading bar modal.
     this.openModal("ExportMedia");
     this.setState({
@@ -1309,8 +1323,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     // this.showWaitOverlay('Rendering video...');
     VideoExport.renderVideo({
       project: this.project,
-      width: args.width,
-      height: args.height,
+      width,
+      height,
       onProgress: onProgress,
       onError: () => {
         this.hideWaitOverlay();
@@ -1326,7 +1340,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Export the current project as a video.
    */
 
-  exportProjectAsImageSVG: AnyFunction = () => {
+  exportProjectAsImageSVG = (name?: string): void => {
     // Open export media loading bar modal.
     this.openModal("ExportMedia");
     this.setState({
@@ -1356,7 +1370,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         });
       };
 
-      window.saveFileFromWick(file, this.project.name, ".svg", success, fail);
+  const outputName = name ?? this.project.name;
+  window.saveFileFromWick(file, outputName, ".svg", success, fail);
 
       this.hideWaitOverlay();
     };
@@ -1372,16 +1387,14 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         onFinish(file);
       }
     );
-
-    return undefined;
   };
 
   /**
    * Export the current project as a bundled standalone ZIP that can be uploaded to itch/newgrounds/etc.
    */
-  exportProjectAsStandaloneZip: AnyFunction = (args) => {
-    let toastID = this.toast("Exporting project as ZIP...", "info");
-    let outputName = args.name || this.project.name;
+  exportProjectAsStandaloneZip = (args: ExportMediaArgs = {}): void => {
+  const toastID = this.toast("Exporting project as ZIP...", "info");
+  const outputName = args.name ?? this.project.name;
     window.Wick.ZIPExport.bundleProject(this.project, (blob: Blob) => {
       let success = () => {
         this.updateToast(toastID, {
@@ -1404,9 +1417,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Export the current project as a bundled standalone HTML file.
    */
-  exportProjectAsStandaloneHTML: AnyFunction = (args) => {
-    let toastID = this.toast("Exporting project as HTML...", "info");
-    let outputName = args.name || this.project.name;
+  exportProjectAsStandaloneHTML = (args: ExportMediaArgs = {}): void => {
+  const toastID = this.toast("Exporting project as HTML...", "info");
+  const outputName = args.name ?? this.project.name;
     window.Wick.HTMLExport.bundleProject(
       this.project,
       (html: BlobPart | ArrayBuffer) => {
@@ -1434,11 +1447,12 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Exports the audio of a Wick project's audio as a single track in an audio file.
    */
-  exportProjectAsAudioTrack: AnyFunction = (_args?: unknown) => {
+  exportProjectAsAudioTrack = (args: ExportMediaArgs = {}): void => {
     AudioExport.generateAudioFile({
       project: this.project,
     }).then((result) => {
-      window.saveFileFromWick(new Blob([result]), "audiotrack", ".wav");
+      const outputName = args.name ?? "audiotrack";
+      window.saveFileFromWick(new Blob([result]), outputName, ".wav");
     });
   };
 
@@ -1446,7 +1460,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Imports a wick file into the editor.
    * @param {File} file Zipped wick file to import.
    */
-  importProjectAsWickFile: AnyFunction = (file: File) => {
+  importProjectAsWickFile = (file: File): void => {
     this.showWaitOverlay();
     window.Wick.WickFile.fromWickFile(file, (project: any) => {
       if (project) {
@@ -1464,10 +1478,10 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * history, selection, and all other ability to retrieve your project.
    * @param {Wick.Project} project - the project to load.
    */
-  setupNewProject: AnyFunction = (project) => {
+  setupNewProject = (project?: unknown): void => {
     // if (!project) return;
     this.resetEditorForLoad();
-    this.project = project || new window.Wick.Project();
+    this.project = (project as typeof this.project) || new window.Wick.Project();
     this.project.selection.clear();
 
     // Attach error handling messages
@@ -1479,7 +1493,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     this.project.prepareProjectForEditor();
   };
 
-  openNewProjectConfirmation: AnyFunction = () => {
+  openNewProjectConfirmation = (): void => {
     this.openWarningModal({
       description: "You will lose any unsaved changes.",
       title: "Create New Project?",
@@ -1497,7 +1511,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     });
   };
 
-  showAutosavedProjects: AnyFunction = () => {
+  showAutosavedProjects = (): void => {
     this.doesAutoSavedProjectExist((exists: boolean) => {
       if (exists) {
         this.queueModal("AutosaveWarning");
@@ -1515,7 +1529,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    *
    * the example parameter takes precedence.
    */
-  tryToParseProjectURL: AnyFunction = () => {
+  tryToParseProjectURL = (): boolean => {
     const urlParams = queryString.parse(window.location.search);
 
     const loadProjectFromURL = (url: string | URL) => {
@@ -1543,8 +1557,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     if (urlParams.example) {
       let url = window.location.origin + "/examples/" + urlParams.example;
       console.log("attempting to load project", url);
-      loadProjectFromURL(url);
-      return;
+  loadProjectFromURL(url);
+  return true;
     }
 
     const projectParam = urlParams.project;
@@ -1566,7 +1580,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       var url = new URL(projectLink);
     } catch {
       this.toast("Project URL is invalid!", "warning");
-      return false;
+  return false;
     }
 
     // Check if the provided URL is allowed in the whitelist.
@@ -1594,7 +1608,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Attach toast messages to the engine error handler.
    */
-  attachErrorHandlers: AnyFunction = () => {
+  attachErrorHandlers = (): void => {
     // Release any messages we may have had while loading the project.
     if (this.project && this.project._internalErrorMessages) {
       let errors = this.project._internalErrorMessages.concat([]);
@@ -1637,7 +1651,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Attempts to autosave if enough time has passed since the last autosave.
    */
-  requestAutosave: AnyFunction = () => {
+  requestAutosave = (): void => {
     let now = Date.now();
     let last = this._lastAutosave;
     let timeSince = now - last;
@@ -1653,7 +1667,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Save the current project in localstorage
    */
-  autoSaveProject: AnyFunction = (callback: () => void) => {
+  autoSaveProject = (callback: AutosaveCallback): void => {
     if (!this.project) return;
     if (this.state.previewPlaying) return;
     if (this.state.activeModalName !== null) return;
@@ -1667,7 +1681,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Attempts to automatically load an autosaved project if it exists.
    * Does nothing if not autosaved project is stored.
    */
-  loadAutosavedProject: AnyFunction = (callback: () => void) => {
+  loadAutosavedProject = (callback: AutosaveCallback): void => {
     window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
       if (!autosaveList[0]) {
         callback();
@@ -1686,9 +1700,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param  {Function} callback a callback which receives a boolean.
    * True if an autosave exists.
    */
-  doesAutoSavedProjectExist: AnyFunction = (
+  doesAutoSavedProjectExist = (
     callback: (exists: boolean) => void
-  ) => {
+  ): void => {
     window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
       callback(autosaveList.length > 0);
     });
@@ -1697,7 +1711,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Clears any autosaved project from local storage.
    */
-  clearAutoSavedProject: AnyFunction = (callback: () => void) => {
+  clearAutoSavedProject = (callback: AutosaveCallback): void => {
     window.Wick.AutoSave.delete(this.project.uuid, () => {
       callback();
     });
@@ -1706,7 +1720,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Toggle onion skinning on/off.
    */
-  toggleOnionSkin: AnyFunction = () => {
+  toggleOnionSkin = (): void => {
     this.project.onionSkinEnabled = !this.project.onionSkinEnabled;
     this.projectDidChange({ actionName: "Toggle Onion Skinning" });
   };
@@ -1714,14 +1728,14 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Return all possible sound assets.
    */
-  getAllSoundAssets: AnyFunction = () => {
+  getAllSoundAssets = (): unknown[] => {
     return this.project.getAssets("Sound");
   };
 
   /**
    * Toggles the preview play between on and off states.
    */
-  togglePreviewPlaying: AnyFunction = () => {
+  togglePreviewPlaying = (): void => {
     if (this.processingAction) return;
 
     let onionSkinningWasOn = false;
@@ -1761,7 +1775,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Start playing the project from the beginning of the timeline.
    */
-  startPreviewPlayFromBeginning: AnyFunction = () => {
+  startPreviewPlayFromBeginning = (): void => {
     if (this.state.previewPlaying) return;
 
     this.project.focus.timeline.playheadPosition = 1;
@@ -1772,7 +1786,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Stops the project if it is currently preview playing and displays any errors in the code window.
    * @param {object} error - any errors called while playing
    */
-  stopPreviewPlaying: AnyFunction = (error) => {
+  stopPreviewPlaying = (error?: WickScriptError): void => {
     this.setState({
       previewPlaying: false,
       codeEditorOpen:
@@ -1781,13 +1795,18 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     });
 
     if (error) {
-      let obj = window.Wick.ObjectCache.getObjectByUUID(error.uuid);
+      const objectUuid = error.uuid;
+      if (objectUuid) {
+        let obj = window.Wick.ObjectCache.getObjectByUUID(objectUuid);
 
-      if (obj) {
-        this.selectObject(obj);
+        if (obj) {
+          this.selectObject(obj);
+        }
       }
 
-      this.editScript(error.name);
+      if (error.name) {
+        this.editScript(error.name);
+      }
     }
 
     this.projectDidChange({ actionName: "Stop Preview Playing" });
@@ -1796,7 +1815,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Clears the current error message in the project.
    */
-  clearCodeEditorError: AnyFunction = () => {
+  clearCodeEditorError = (): void => {
     this.project.error = null;
     this.setState({
       codeError: null,
@@ -1807,7 +1826,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Copies the selection state and selected objects to the clipboard.
    */
-  copySelectionToClipboard: AnyFunction = () => {
+  copySelectionToClipboard = (): void => {
     if (this.project.copySelectionToClipboard()) {
       this.projectDidChange({ actionName: "Copy Selection" });
     } else {
@@ -1818,7 +1837,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Duplicates the current objects in the selection.
    */
-  duplicateSelection: AnyFunction = () => {
+  duplicateSelection = (): void => {
     if (this.project.duplicateSelection()) {
       this.projectDidChange({ actionName: "Duplicate Selection" });
     } else {
@@ -1829,7 +1848,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Copies the selected objects to the clipboard and then deletes them from the project.
    */
-  cutSelectionToClipboard: AnyFunction = () => {
+  cutSelectionToClipboard = (): void => {
     if (this.project.cutSelectionToClipboard()) {
       this.projectDidChange({ actionName: "Cut Selection" });
     } else {
@@ -1841,7 +1860,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Attempts to paste in objects on the clipboard if they are available.
    * @return {[type]} [description]
    */
-  pasteFromClipboard: AnyFunction = () => {
+  pasteFromClipboard = (): void => {
     if (this.project.pasteClipboardContents()) {
       this.projectDidChange({ actionName: "Paste from Clipboard" });
     } else {
@@ -1852,7 +1871,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Creates a new keyframe at the current playhead position.
    */
-  addTweenKeyframe: AnyFunction = () => {
+  addTweenKeyframe = (): void => {
     if (!this.project.activeFrame) return;
     this.project.activeFrame.createTween();
     this.projectDidChange({ actionName: "Add Tween Keyframe" });
@@ -1861,7 +1880,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Returns all existing fonts in the project.
    */
-  getExistingFonts: AnyFunction = () => {
+  getExistingFonts = (): string[] => {
     return this.project.getFonts();
   };
 
@@ -1870,72 +1889,72 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {string} font Font to check
    * @return {boolean} true if the project has this font.
    */
-  hasFont: AnyFunction = (font) => {
+  hasFont = (font: string): boolean => {
     return this.project.hasFont(font);
   };
 
-  extendFrame: AnyFunction = () => {
+  extendFrame = (): void => {
     var frames = this.project.selection.getSelectedObjects("Frame");
     this.project.extendFrames(frames);
     this.project.guiElement.draw();
   };
 
-  shrinkFrame: AnyFunction = () => {
+  shrinkFrame = (): void => {
     var frames = this.project.selection.getSelectedObjects("Frame");
     this.project.shrinkFrames(frames);
     this.project.guiElement.draw();
   };
 
-  moveFrameRight: AnyFunction = () => {
+  moveFrameRight = (): void => {
     this.project.moveSelectedFramesRight();
     this.project.guiElement.draw();
   };
 
-  moveFrameLeft: AnyFunction = () => {
+  moveFrameLeft = (): void => {
     this.project.moveSelectedFramesLeft();
     this.project.guiElement.draw();
   };
 
-  createTween: AnyFunction = () => {
+  createTween = (): void => {
     this.project.createTween();
     this.projectDidChange({ actionName: "Create Tween" });
   };
 
-  cutFrame: AnyFunction = () => {
+  cutFrame = (): void => {
     this.project.cutSelectedFrames();
     this.projectDidChange({ actionName: "Cut Frame" });
   };
 
-  insertBlankFrame: AnyFunction = () => {
+  insertBlankFrame = (): void => {
     this.project.insertBlankFrame();
     this.projectDidChange({ actionName: "Insert Blank Frame" });
   };
 
-  extendSelectedFramesAndPushOtherFrames: AnyFunction = () => {
+  extendSelectedFramesAndPushOtherFrames = (): void => {
     var frames = this.project.selection.getSelectedObjects("Frame");
     this.project.extendFramesAndPushOtherFrames(frames);
     this.project.guiElement.draw();
   };
 
-  shrinkSelectedFramesAndPullOtherFrames: AnyFunction = () => {
+  shrinkSelectedFramesAndPullOtherFrames = (): void => {
     var frames = this.project.selection.getSelectedObjects("Frame");
     this.project.shrinkFramesAndPullOtherFrames(frames);
     this.project.guiElement.draw();
   };
 
-  extendActiveFramesAndPushOtherFrames: AnyFunction = () => {
+  extendActiveFramesAndPushOtherFrames = (): void => {
     var frames = this.project.activeTimeline.activeFrames;
     this.project.extendFramesAndPushOtherFrames(frames);
     this.project.guiElement.draw();
   };
 
-  shrinkActiveFramesAndPullOtherFrames: AnyFunction = () => {
+  shrinkActiveFramesAndPullOtherFrames = (): void => {
     var frames = this.project.activeTimeline.activeFrames;
     this.project.shrinkFramesAndPullOtherFrames(frames);
     this.project.guiElement.draw();
   };
 
-  exportSelectedClip: AnyFunction = () => {
+  exportSelectedClip = (): void => {
     var clip = this.project.selection.getSelectedObject();
     if (!clip) return;
     if (!(clip instanceof window.Wick.Clip)) return;
@@ -1945,13 +1964,21 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     });
   };
 
-  onEyedropperPickedColor: AnyFunction = (e) => {
-    this._onEyedropperPickedColor(e.color);
+  onEyedropperPickedColor = (event: EyedropperEvent): void => {
+    this._onEyedropperPickedColor(event.color);
     this.activateLastTool();
   };
 
-  handleWickFileLoad: AnyFunction = (e) => {
-    var file = e.target.files[0];
+  handleWickFileLoad = (event: WickFileInputEvent): void => {
+    const files = event.target?.files;
+    let file: File | undefined;
+
+    if (Array.isArray(files)) {
+      file = files[0];
+    } else if (files && typeof files.item === "function") {
+      file = files.item(0) ?? undefined;
+    }
+
     if (!file) {
       console.warn("handleWickFileLoad: no files recieved");
       return;
@@ -1964,7 +1991,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Loads Local Wick File from
    * @param {*} fileEntry
    */
-  loadLocalWickFile: AnyFunction = (fileEntry: any) => {
+  loadLocalWickFile = (fileEntry: unknown): void => {
     if (window.loadWickFileEntry) {
       window.loadWickFileEntry(fileEntry, (blob: File) => {
         // Wraps the file in a fake event. TODO: Simplify this.
@@ -1983,14 +2010,14 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Deletes local Wick File From Storage.
    * @param {FileEntry} fileEntry
    */
-  deleteLocalWickFile: AnyFunction = (fileEntry) => {
+  deleteLocalWickFile = (fileEntry: unknown): void => {
     window.deleteLocalWickFile(fileEntry);
   };
 
   /**
    * Reloads any saved files currently on disk.
    */
-  reloadSavedWickFiles: AnyFunction = () => {
+  reloadSavedWickFiles = (): void => {
     if (window.getSavedWickFiles) {
       window.getSavedWickFiles((files: File[]) => {
         this.setState({
