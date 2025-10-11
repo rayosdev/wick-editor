@@ -117,9 +117,9 @@ const MobileTabbedInterface: React.FC<MobileTabbedInterfaceProps> = ({
       >
         {
           children[
-            tabs
-              .map((tab) => tab.label)
-              .indexOf(selectedTab)
+          tabs
+            .map((tab) => tab.label)
+            .indexOf(selectedTab)
           ]
         }
       </div>

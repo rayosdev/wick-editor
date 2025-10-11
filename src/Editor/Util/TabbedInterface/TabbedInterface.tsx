@@ -95,7 +95,7 @@ const TabbedInterface: React.FC<TabbedInterfaceProps> = ({
       >
         {
           children[
-            tabNames.indexOf(selectedTab)
+          tabNames.indexOf(selectedTab)
           ]
         }
       </div>
