@@ -15,6 +15,7 @@
 #### Types Fixed:
 
 **Props Interface** (6 fixes):
+
 - `projectData`: `unknown` → `WickProject`
 - `getSelectedTimelineObjects`: `(...args: unknown[]) => unknown` → `() => TimelineObject[]`
 - `setOnionSkinOptions`: `(...args: unknown[]) => void` → `(options: OnionSkinOptions) => void`
@@ -30,6 +31,7 @@
 #### Types Fixed:
 
 **Timeline Props Passthrough** (4 fixes):
+
 - `projectData`: `unknown` → `WickProject`
 - `getSelectedTimelineObjects`: `VoidHandler` → `() => TimelineObject[]`
 - `setOnionSkinOptions`: `VoidHandler` → `(options: OnionSkinOptions) => void`
@@ -41,13 +43,13 @@
 
 ## 📊 Cumulative Statistics
 
-| File | Unknown Before | Unknown After | Fixed |
-|------|----------------|---------------|-------|
-| EditorCore.ts | 33 | 0 | ✅ 33 |
-| EditorWrapper.tsx | 14 | 0 | ✅ 14 |
-| Timeline.tsx | 6 | 0 | ✅ 6 |
-| MobileContainer.tsx | 6+ | 6 | ✅ 6 |
-| **Total** | **59+** | **6** | **59** |
+| File                | Unknown Before | Unknown After | Fixed  |
+| ------------------- | -------------- | ------------- | ------ |
+| EditorCore.ts       | 33             | 0             | ✅ 33  |
+| EditorWrapper.tsx   | 14             | 0             | ✅ 14  |
+| Timeline.tsx        | 6              | 0             | ✅ 6   |
+| MobileContainer.tsx | 6+             | 6             | ✅ 6   |
+| **Total**           | **59+**        | **6**         | **59** |
 
 ---
 
@@ -56,15 +58,17 @@
 ### Timeline Panel Now Has:
 
 1. **Type-Safe Props**
+
    ```typescript
    // Before
    getSelectedTimelineObjects: (...args: unknown[]) => unknown
-   
-   // After  
+
+   // After
    getSelectedTimelineObjects: () => TimelineObject[]
    ```
 
 2. **Clear Onion Skin API**
+
    ```typescript
    setOnionSkinOptions(options: OnionSkinOptions): void
    getOnionSkinOptions(): OnionSkinOptions
@@ -72,7 +76,7 @@
 
 3. **Proper Project Data**
    ```typescript
-   projectData: WickProject // Instead of unknown!
+   projectData: WickProject; // Instead of unknown!
    ```
 
 ### MobileContainer Now:
@@ -88,6 +92,7 @@
 ### High Priority:
 
 1. **MobileInspector.tsx** - 5 instances
+
    - `project?: unknown`
    - `script?: unknown`
    - `scriptInfoInterface?: unknown`
@@ -113,17 +118,20 @@
 ## 📈 Phase 2 Progress Tracker
 
 ### Completed:
+
 - [x] EditorCore.ts - 33 unknowns
 - [x] EditorWrapper.tsx - 14 unknowns
 - [x] Timeline.tsx - 6 unknowns
 - [x] MobileContainer.tsx (partial) - 6 unknowns
 
 ### In Progress:
+
 - [ ] MobileInspector.tsx - 5 unknowns
 - [ ] ModalHandler.tsx - Multiple any types
 - [ ] Remaining components
 
 ### Estimated Completion:
+
 - **Phase 2**: 65-70% complete
 - **Remaining unknowns**: ~15-20 instances
 - **Target**: < 10 instances total
@@ -133,14 +141,17 @@
 ## 💡 Key Insights
 
 ### Type Propagation:
+
 When we typed Timeline.tsx, we had to also type MobileContainer.tsx because it passes props through. This is good - it ensures consistency!
 
 ### OnionSkinOptions Type:
+
 We created `OnionSkinOptions` in `editor.types.ts`:
+
 ```typescript
 interface OnionSkinOptions {
   enabled: boolean;
-  mode: 'single' | 'multiple';
+  mode: "single" | "multiple";
   forwardCount: number;
   backwardCount: number;
   opacity: number;
@@ -150,6 +161,7 @@ interface OnionSkinOptions {
 This makes the API crystal clear.
 
 ### Timeline Object Union:
+
 Using `TimelineObject` (which is `WickFrame | WickTween`) makes the selection API type-safe.
 
 ---
@@ -166,10 +178,12 @@ Using `TimelineObject` (which is `WickFrame | WickTween`) makes the selection AP
 ## 📝 Files Modified This Session
 
 ### Updated:
+
 1. `src/Editor/Panels/Timeline/Timeline.tsx` - Fixed 6 unknowns
 2. `src/Editor/Panels/MobileContainer/MobileContainer.tsx` - Fixed 6 unknowns
 
 ### Total Impact:
+
 - **12 unknown types** eliminated
 - **0 TypeScript errors** introduced
 - **2 major panel components** improved
@@ -179,12 +193,14 @@ Using `TimelineObject` (which is `WickFrame | WickTween`) makes the selection AP
 ## 🚀 Next Steps
 
 ### Immediate (This Session):
+
 1. ✅ ~~Timeline.tsx~~ - DONE!
 2. ✅ ~~MobileContainer.tsx (partial)~~ - DONE!
 3. 🔲 MobileInspector.tsx - 5 unknowns
 4. 🔲 ModalHandler.tsx - any types
 
 ### Short Term (Next Session):
+
 1. Finish remaining panel components
 2. Clean up utility components
 3. Complete Phase 2
@@ -195,12 +211,14 @@ Using `TimelineObject` (which is `WickFrame | WickTween`) makes the selection AP
 
 We've now eliminated **59+ instances** of `unknown` across 4 major files without breaking anything!
 
-**Progress**: 
+**Progress**:
+
 - Phase 1: ✅ Complete
-- Phase 2: 🟢 ~70% Complete  
+- Phase 2: 🟢 ~70% Complete
 - Phase 3: 📋 Planned
 
 **See Also**:
+
 - [`PHASE2_MILESTONE.md`](./PHASE2_MILESTONE.md) - Previous milestone
 - [`TYPESCRIPT_STATUS.md`](./TYPESCRIPT_STATUS.md) - Overall status
 - [`TYPESCRIPT_REFACTOR_PLAN.md`](./TYPESCRIPT_REFACTOR_PLAN.md) - Full plan

@@ -55,7 +55,7 @@ import iconGapFillExtendFrames from "resources/timeline-icons/gapFillExtendFrame
 
 interface TimelineOwnProps {
     project: any;
-    projectDidChange: (options: { actionName: string; [key: string]: unknown }) => void;
+    projectDidChange: (options: { actionName: string;[key: string]: unknown }) => void;
     projectData: WickProject;
     getSelectedTimelineObjects: () => TimelineObject[];
     setOnionSkinOptions: (options: OnionSkinOptions) => void;

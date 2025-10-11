@@ -55,7 +55,7 @@ type AssetObject = MobileAssetLibraryProps["assets"][number];
 
 interface MobileContainerProps {
     project: any; // Wick Engine project instance (engine API)
-    projectDidChange: (options: { actionName: string; [key: string]: unknown }) => void;
+    projectDidChange: (options: { actionName: string;[key: string]: unknown }) => void;
     projectData: WickProject;
     getSelectedTimelineObjects: () => TimelineObject[];
     setOnionSkinOptions: (options: OnionSkinOptions) => void;
