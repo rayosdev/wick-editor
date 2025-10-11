@@ -26,6 +26,14 @@ import Timeline from "../Timeline/Timeline";
 import MobileInspector from "./MobileInspector/MobileInspector";
 import MobileAssetLibrary from "./MobileAssetLibrary/MobileAssetLibrary";
 import InspectorScriptWindow from "../Inspector/InspectorScriptWindow/InspectorScriptWindow";
+import type {
+    WickProject,
+    WickClip,
+    TimelineObject,
+    OnionSkinOptions,
+    ToastType,
+    ToastOptions,
+} from "Editor/types";
 
 import timelineIcon from "resources/mobile-container-icons/timeline-icon.svg";
 import timelineIconActive from "resources/mobile-container-icons/timeline-icon-active.svg";
@@ -36,7 +44,8 @@ import codeIconActive from "resources/mobile-container-icons/code-icon-active.sv
 import assetIcon from "resources/mobile-container-icons/asset-icon.svg";
 import assetIconActive from "resources/mobile-container-icons/asset-icon-active.svg";
 
-type VoidHandler = (...args: unknown[]) => void;
+// Timeline instance type for onRef callback (Timeline is a class component wrapped by react-dnd)
+type TimelineInstance = Component<any, any>;
 
 type InspectorScriptWindowProps = ComponentProps<typeof InspectorScriptWindow>;
 type MobileAssetLibraryProps = ComponentProps<typeof MobileAssetLibrary>;
@@ -45,18 +54,18 @@ type MobileInspectorProps = ComponentProps<typeof MobileInspector>;
 type AssetObject = MobileAssetLibraryProps["assets"][number];
 
 interface MobileContainerProps {
-    project: unknown;
-    projectDidChange: (options: { actionName: string;[key: string]: unknown }) => void;
-    projectData: unknown;
-    getSelectedTimelineObjects: VoidHandler;
-    setOnionSkinOptions: VoidHandler;
-    getOnionSkinOptions: () => unknown;
-    setFocusObject: VoidHandler;
-    addTweenKeyframe: VoidHandler;
-    onRef: (instance: unknown) => void;
-    dragSoundOntoTimeline: VoidHandler;
-    getToolSetting: (name: string) => unknown;
-    setToolSetting: (name: string, value: unknown) => void;
+    project: any; // Wick Engine project instance (engine API)
+    projectDidChange: (options: { actionName: string; [key: string]: unknown }) => void;
+    projectData: WickProject;
+    getSelectedTimelineObjects: () => TimelineObject[];
+    setOnionSkinOptions: (options: OnionSkinOptions) => void;
+    getOnionSkinOptions: () => OnionSkinOptions;
+    setFocusObject: (object: WickClip | WickProject) => void;
+    addTweenKeyframe: (frame: number) => void;
+    onRef: (instance: TimelineInstance | null) => void;
+    dragSoundOntoTimeline: (uuid: string, x: number, y: number, commit: boolean) => void;
+    getToolSetting: (name: string) => string | number | boolean;
+    setToolSetting: (name: string, value: string | number | boolean) => void;
     getSelectionType: MobileInspectorProps["getSelectionType"];
     getAllSoundAssets: MobileInspectorProps["getAllSoundAssets"];
     getAllSelectionAttributes: MobileInspectorProps["getAllSelectionAttributes"];
@@ -83,7 +92,7 @@ interface MobileContainerProps {
     createAssets: MobileAssetLibraryProps["createAssets"];
     importProjectAsWickFile: MobileAssetLibraryProps["importProjectAsWickFile"];
     createImageFromAsset: MobileAssetLibraryProps["createImageFromAsset"];
-    toast: (...args: unknown[]) => void;
+    toast: (message: string, type?: ToastType, options?: ToastOptions) => void;
     deleteSelectedObjects: MobileAssetLibraryProps["deleteSelectedObjects"];
     addSoundToActiveFrame: MobileAssetLibraryProps["addSoundToActiveFrame"];
 }

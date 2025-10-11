@@ -113,8 +113,8 @@ interface MobileInspectorProps {
     getAllSoundAssets: () => AssetLike[];
     getClipAnimationTypes: () => ClipAnimationOption[];
     editorActions: EditorActionsMap;
-    getToolSetting?: (name: string) => unknown;
-    setToolSetting?: (name: string, value: unknown) => void;
+    getToolSetting?: (name: string) => string | number | boolean;
+    setToolSetting?: (name: string, value: string | number | boolean) => void;
     selectionIsScriptable?: () => boolean;
     project?: unknown;
     script?: unknown;

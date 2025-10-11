@@ -24,6 +24,7 @@ import Asset from './Asset/Asset';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import WickInput from 'Editor/Util/WickInput/WickInput';
 import ToolIcon from 'Editor/Util/ToolIcon/ToolIcon';
+import type { ToastType, ToastOptions } from 'Editor/types';
 
 import './_mobileassetlibrary.scss';
 
@@ -49,7 +50,7 @@ interface MobileAssetLibraryProps {
   deleteSelectedObjects: () => void;
   addSoundToActiveFrame: (sound: any) => void;
   projectData?: unknown;
-  toast?: (...args: unknown[]) => void;
+  toast?: (message: string, type?: ToastType, options?: ToastOptions) => void;
 }
 
 interface MobileAssetLibraryState {

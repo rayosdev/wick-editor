@@ -26,6 +26,12 @@ import {
 } from "react-dnd";
 
 import DragDropTypes from "Editor/DragDropTypes";
+import type {
+    WickProject,
+    WickClip,
+    TimelineObject,
+    OnionSkinOptions,
+} from "Editor/types";
 
 import "./_timeline.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -49,13 +55,13 @@ import iconGapFillExtendFrames from "resources/timeline-icons/gapFillExtendFrame
 
 interface TimelineOwnProps {
     project: any;
-    projectDidChange: (options: { actionName: string;[key: string]: unknown }) => void;
-    projectData: unknown;
-    getSelectedTimelineObjects: (...args: unknown[]) => unknown;
-    setOnionSkinOptions: (...args: unknown[]) => void;
-    getOnionSkinOptions: () => unknown;
-    setFocusObject: (...args: unknown[]) => void;
-    addTweenKeyframe: (...args: unknown[]) => void;
+    projectDidChange: (options: { actionName: string; [key: string]: unknown }) => void;
+    projectData: WickProject;
+    getSelectedTimelineObjects: () => TimelineObject[];
+    setOnionSkinOptions: (options: OnionSkinOptions) => void;
+    getOnionSkinOptions: () => OnionSkinOptions;
+    setFocusObject: (object: WickClip | WickProject) => void;
+    addTweenKeyframe: (frame: number) => void;
     onRef?: (instance: Timeline | null) => void;
     dragSoundOntoTimeline: (uuid: string, x: number, y: number, commit: boolean) => void;
 }
