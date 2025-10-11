@@ -11,13 +11,13 @@ interface OutlinerDropdownProps {
   toggle: () => void;
 }
 
-const OutlinerDropdown: React.FC<OutlinerDropdownProps> = ({ 
-  collapsed, 
-  empty, 
-  toggle 
+const OutlinerDropdown: React.FC<OutlinerDropdownProps> = ({
+  collapsed,
+  empty,
+  toggle
 }) => {
   const collapsedClass = collapsed ? "collapsed" : "expanded";
-  
+
   return empty ? (
     <img
       className="outliner-dropdown-icon empty"

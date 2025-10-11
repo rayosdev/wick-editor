@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
 
@@ -34,37 +34,45 @@ interface MobileInspectorNumericInputProps {
   divider?: boolean;
 }
 
-class MobileInspectorNumericInput extends Component<MobileInspectorNumericInputProps> {
+const MobileInspectorNumericInput: React.FC<MobileInspectorNumericInputProps> = ({ 
+  tooltip,
+  val,
+  onChange,
+  icon,
+  iconAlt,
+  id,
+  type
+}) => {
+  const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
+  const inputId = id ?? `${idLabel}-input-mobile`;
+  const inputType = type ?? "numeric";
 
-  render(): JSX.Element {
-    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
-    const inputId = this.props.id ?? idLabel + "-input-mobile";
-    const inputType = this.props.type ?? "numeric";
+  const renderIdentifier = icon ? (
+    <img src={icon} alt={iconAlt} className="mobile-inspector-row-icon" />
+  ) : (
+    <label htmlFor={`${idLabel}-input-mobile`} className="mobile-inspector-row-identifier">
+      {tooltip}
+    </label>
+  );
+  
+  return (
+    <div className="mobile-inspector-row">
+      {/* Identifier */}
+      {renderIdentifier}
 
-    const renderIdentifier = (this.props.icon) ? <img src={this.props.icon} alt={this.props.iconAlt} className="mobile-inspector-row-icon"></img>
-      : <label htmlFor={idLabel + "-input-mobile"} className="mobile-inspector-row-identifier">
-        {this.props.tooltip}
-      </label>
-    return (
-      <div className="mobile-inspector-row">
-        {/* Identifier */}
-        {renderIdentifier}
-
-        {/* Input */}
-        <div className="mobile-inspector-small-input-container">
-          <MobileInspectorInput
-            inputProps={{ id: inputId }}
-            input={
-              {
-                type: inputType,
-                value: this.props.val,
-                onChange: this.props.onChange
-              }
-            } />
-        </div>
+      {/* Input */}
+      <div className="mobile-inspector-small-input-container">
+        <MobileInspectorInput
+          inputProps={{ id: inputId }}
+          input={{
+            type: inputType,
+            value: val,
+            onChange: onChange
+          }}
+        />
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-export default MobileInspectorNumericInput
+export default MobileInspectorNumericInput;

@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 import InspectorInput from 'Editor/Panels/Inspector/InspectorRow/InspectorInput/InspectorInput';
 
@@ -31,32 +31,36 @@ interface InspectorNumericInputProps {
   type?: string;
 }
 
-class InspectorNumericInput extends Component<InspectorNumericInputProps> {
-  render(): JSX.Element {
-    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
-    const inputId = this.props.id ?? idLabel + "-input";
-    return (
-      <div className="inspector-row">
-        {/* Identifier */}
-        <label htmlFor={inputId} className="inspector-row-identifier">
-          {this.props.tooltip}
-        </label>
+const InspectorNumericInput: React.FC<InspectorNumericInputProps> = ({ 
+  tooltip,
+  val,
+  onChange,
+  id,
+  type
+}) => {
+  const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
+  const inputId = id ?? `${idLabel}-input`;
+  
+  return (
+    <div className="inspector-row">
+      {/* Identifier */}
+      <label htmlFor={inputId} className="inspector-row-identifier">
+        {tooltip}
+      </label>
 
-        {/* Input */}
-        <div className="inspector-large-input-container">
-          <InspectorInput
-            inputProps={{ id: inputId }}
-            input={
-              {
-                type: this.props.type ?? "numeric",
-                value: this.props.val,
-                onChange: this.props.onChange
-              }
-            } />
-        </div>
+      {/* Input */}
+      <div className="inspector-large-input-container">
+        <InspectorInput
+          inputProps={{ id: inputId }}
+          input={{
+            type: type ?? "numeric",
+            value: val,
+            onChange: onChange
+          }}
+        />
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-export default InspectorNumericInput
+export default InspectorNumericInput;

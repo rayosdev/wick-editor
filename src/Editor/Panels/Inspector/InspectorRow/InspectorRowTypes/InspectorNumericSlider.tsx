@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component, type InputHTMLAttributes } from 'react';
+import React, { type InputHTMLAttributes } from 'react';
 
 import InspectorInput from 'Editor/Panels/Inspector/InspectorRow/InspectorInput/InspectorInput';
 
@@ -32,44 +32,46 @@ interface InspectorNumericSliderProps {
   id?: string;
 }
 
-class InspectorNumericSlider extends Component<InspectorNumericSliderProps> {
-  render(): JSX.Element {
-    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
-    return (
-      <div className="inspector-row">
-        {/* Identifier */}
-        <label htmlFor={idLabel + "-input"} className="inspector-row-identifier">
-          {this.props.tooltip}
-        </label>
+const InspectorNumericSlider: React.FC<InspectorNumericSliderProps> = ({ 
+  tooltip,
+  val,
+  onChange,
+  inputProps
+}) => {
+  const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
+  
+  return (
+    <div className="inspector-row">
+      {/* Identifier */}
+      <label htmlFor={`${idLabel}-input`} className="inspector-row-identifier">
+        {tooltip}
+      </label>
 
-        {/* Input */}
-        <div className="inspector-small-input-container">
-          <InspectorInput
-            inputProps={{ id: idLabel + "-input" }}
-            input={
-              {
-                type: "numeric",
-                value: this.props.val,
-                onChange: this.props.onChange
-              }
-            } />
-        </div>
-
-        {/* Slider */}
-        <div className="inspector-medium-input-container">
-          <InspectorInput
-            inputProps={{ ...this.props.inputProps, id: idLabel + "-input" }}
-            input={
-              {
-                type: "slider",
-                value: this.props.val,
-                onChange: this.props.onChange
-              }
-            } />
-        </div>
+      {/* Input */}
+      <div className="inspector-small-input-container">
+        <InspectorInput
+          inputProps={{ id: `${idLabel}-input` }}
+          input={{
+            type: "numeric",
+            value: val,
+            onChange: onChange
+          }}
+        />
       </div>
-    );
-  }
-}
 
-export default InspectorNumericSlider
+      {/* Slider */}
+      <div className="inspector-medium-input-container">
+        <InspectorInput
+          inputProps={{ ...inputProps, id: `${idLabel}-input` }}
+          input={{
+            type: "slider",
+            value: val,
+            onChange: onChange
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default InspectorNumericSlider;

@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 import InspectorInput from 'Editor/Panels/Inspector/InspectorRow/InspectorInput/InspectorInput';
 
@@ -39,33 +39,37 @@ interface InspectorSelectorProps {
   isSearchable?: boolean;
 }
 
-class InspectorSelector extends Component<InspectorSelectorProps> {
-  render(): JSX.Element {
-    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
-    return (
-      <div className="inspector-row">
-        {/* Identifier */}
-        <label htmlFor={idLabel + "-input"} className="inspector-row-identifier">
-          {this.props.tooltip}
-        </label>
+const InspectorSelector: React.FC<InspectorSelectorProps> = ({ 
+  tooltip,
+  value,
+  onChange,
+  options,
+  className
+}) => {
+  const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
+  
+  return (
+    <div className="inspector-row">
+      {/* Identifier */}
+      <label htmlFor={`${idLabel}-input`} className="inspector-row-identifier">
+        {tooltip}
+      </label>
 
-        {/* Input */}
-        <div className="inspector-large-input-container">
-          <InspectorInput
-            inputProps={{ id: idLabel + "-input" }}
-            input={
-              {
-                type: "select",
-                value: this.props.value,
-                onChange: this.props.onChange,
-                options: this.props.options,
-                className: this.props.className,
-              }
-            } />
-        </div>
+      {/* Input */}
+      <div className="inspector-large-input-container">
+        <InspectorInput
+          inputProps={{ id: `${idLabel}-input` }}
+          input={{
+            type: "select",
+            value: value,
+            onChange: onChange,
+            options: options,
+            className: className,
+          }}
+        />
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-export default InspectorSelector
+export default InspectorSelector;

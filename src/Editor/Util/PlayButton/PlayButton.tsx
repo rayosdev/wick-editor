@@ -34,11 +34,11 @@ interface PlayButtonProps {
  * PlayButton component - toggles between play and pause icons
  * Used throughout the editor for animation playback controls
  */
-const PlayButton: React.FC<PlayButtonProps> = ({ 
-  id, 
-  className, 
-  playing, 
-  action 
+const PlayButton: React.FC<PlayButtonProps> = ({
+  id,
+  className,
+  playing,
+  action
 }) => {
   return (
     <input

@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 import InspectorInput from '../InspectorInput/InspectorInput';
 
@@ -29,32 +29,33 @@ interface InspectorCheckboxProps {
   onChange: (checked: boolean) => void;
 }
 
-class InspectorCheckbox extends Component<InspectorCheckboxProps> {
-  render(): JSX.Element {
-    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
-    return (
-      <div className="inspector-row">
-        {/* Identifier */}
-        <label htmlFor={idLabel + "-input"} className="inspector-row-identifier">
-          {this.props.tooltip}
-        </label>
+const InspectorCheckbox: React.FC<InspectorCheckboxProps> = ({ 
+  tooltip, 
+  checked, 
+  onChange 
+}) => {
+  const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
+  
+  return (
+    <div className="inspector-row">
+      {/* Identifier */}
+      <label htmlFor={`${idLabel}-input`} className="inspector-row-identifier">
+        {tooltip}
+      </label>
 
-        {/* Checkbox */}
-        <div className="inspector-small-input-container">
-          <InspectorInput
-            inputProps={{ id: idLabel + "-input" }}
-            input={
-              {
-                type: "checkbox",
-                checked: this.props.checked,
-                onChange: this.props.onChange
-              }
-            }
-          />
-        </div>
+      {/* Checkbox */}
+      <div className="inspector-small-input-container">
+        <InspectorInput
+          inputProps={{ id: `${idLabel}-input` }}
+          input={{
+            type: "checkbox",
+            checked: checked,
+            onChange: onChange
+          }}
+        />
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-export default InspectorCheckbox
+export default InspectorCheckbox;

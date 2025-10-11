@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 import InspectorInput from 'Editor/Panels/Inspector/InspectorRow/InspectorInput/InspectorInput';
 
@@ -32,33 +32,38 @@ interface InspectorTextInputProps {
   id?: string;
 }
 
-class InspectorTextInput extends Component<InspectorTextInputProps> {
-  render(): JSX.Element {
-    const idLabel = (this.props.id || this.props.tooltip.replace(/\s+/g, '-').toLowerCase());
-    return (
-      <div className="inspector-row">
-        {/* Identifier */}
-        <label htmlFor={idLabel + "-input"} className="inspector-row-identifier">
-          {this.props.tooltip}
-        </label>
+const InspectorTextInput: React.FC<InspectorTextInputProps> = ({ 
+  tooltip,
+  val,
+  onChange,
+  readOnly,
+  placeholder,
+  id
+}) => {
+  const idLabel = id || tooltip.replace(/\s+/g, '-').toLowerCase();
+  
+  return (
+    <div className="inspector-row">
+      {/* Identifier */}
+      <label htmlFor={`${idLabel}-input`} className="inspector-row-identifier">
+        {tooltip}
+      </label>
 
-        {/* Input */}
-        <div className="inspector-large-input-container">
-          <InspectorInput
-            inputProps={{ id: idLabel + "-input" }}
-            input={
-              {
-                type: "text",
-                value: this.props.val,
-                onChange: this.props.onChange,
-                readOnly: this.props.readOnly,
-                placeholder: this.props.placeholder,
-              }
-            } />
-        </div>
+      {/* Input */}
+      <div className="inspector-large-input-container">
+        <InspectorInput
+          inputProps={{ id: `${idLabel}-input` }}
+          input={{
+            type: "text",
+            value: val,
+            onChange: onChange,
+            readOnly: readOnly,
+            placeholder: placeholder,
+          }}
+        />
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-export default InspectorTextInput
+export default InspectorTextInput;

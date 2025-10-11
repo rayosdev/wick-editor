@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
 
@@ -34,48 +34,56 @@ interface MobileInspectorNumericSliderProps {
   divider?: boolean;
 }
 
-class MobileInspectorNumericSlider extends Component<MobileInspectorNumericSliderProps> {
-  render(): JSX.Element {
-    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
-    const inputId = this.props.id ?? idLabel + "-input-mobile";
-    const renderIdentifier = (this.props.icon) ? <img src={this.props.icon} alt={this.props.iconAlt} className="mobile-inspector-row-icon"></img>
-      : <label htmlFor={idLabel + "-input-mobile"} className="mobile-inspector-row-identifier">
-        {this.props.tooltip}
-      </label>
+const MobileInspectorNumericSlider: React.FC<MobileInspectorNumericSliderProps> = ({ 
+  tooltip,
+  val,
+  onChange,
+  icon,
+  iconAlt,
+  inputProps,
+  id
+}) => {
+  const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
+  const inputId = id ?? `${idLabel}-input-mobile`;
+  
+  const renderIdentifier = icon ? (
+    <img src={icon} alt={iconAlt} className="mobile-inspector-row-icon" />
+  ) : (
+    <label htmlFor={`${idLabel}-input-mobile`} className="mobile-inspector-row-identifier">
+      {tooltip}
+    </label>
+  );
 
-    return (
-      <div className="mobile-inspector-row">
-        {/* Identifier */}
-        {renderIdentifier}
+  return (
+    <div className="mobile-inspector-row">
+      {/* Identifier */}
+      {renderIdentifier}
 
-        {/* Input */}
-        <div className="mobile-inspector-small-input-container">
-          <MobileInspectorInput
-            inputProps={{ id: inputId }}
-            input={
-              {
-                type: "numeric",
-                value: this.props.val,
-                onChange: this.props.onChange
-              }
-            } />
-        </div>
-
-        {/* Slider */}
-        <div className="mobile-inspector-small-input-container">
-          <MobileInspectorInput
-            inputProps={{ ...this.props.inputProps, id: inputId }}
-            input={
-              {
-                type: "slider",
-                value: this.props.val,
-                onChange: this.props.onChange
-              }
-            } />
-        </div>
+      {/* Input */}
+      <div className="mobile-inspector-small-input-container">
+        <MobileInspectorInput
+          inputProps={{ id: inputId }}
+          input={{
+            type: "numeric",
+            value: val,
+            onChange: onChange
+          }}
+        />
       </div>
-    );
-  }
-}
 
-export default MobileInspectorNumericSlider
+      {/* Slider */}
+      <div className="mobile-inspector-small-input-container">
+        <MobileInspectorInput
+          inputProps={{ ...inputProps, id: inputId }}
+          input={{
+            type: "slider",
+            value: val,
+            onChange: onChange
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default MobileInspectorNumericSlider;

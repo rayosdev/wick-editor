@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
 
@@ -40,34 +40,40 @@ interface MobileInspectorSelectorProps {
   isSearchable?: boolean;
 }
 
-class MobileInspectorSelector extends Component<MobileInspectorSelectorProps> {
-  render(): JSX.Element {
-    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
-    return (
-      <div className="mobile-inspector-row">
-        {/* Identifier */}
-        <label htmlFor={idLabel + "-input-mobile"} className="mobile-inspector-row-identifier">
-          {this.props.tooltip}
-        </label>
+const MobileInspectorSelector: React.FC<MobileInspectorSelectorProps> = ({ 
+  tooltip,
+  value,
+  onChange,
+  options,
+  className,
+  type,
+  isSearchable
+}) => {
+  const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
+  
+  return (
+    <div className="mobile-inspector-row">
+      {/* Identifier */}
+      <label htmlFor={`${idLabel}-input-mobile`} className="mobile-inspector-row-identifier">
+        {tooltip}
+      </label>
 
-        {/* Input */}
-        <div className="mobile-inspector-large-input-container">
-          <MobileInspectorInput
-            inputProps={{ id: idLabel + "-input-mobile" }}
-            input={
-              {
-                type: this.props.type ?? "select",
-                value: this.props.value,
-                onChange: this.props.onChange,
-                options: this.props.options,
-                className: this.props.className,
-                isSearchable: this.props.isSearchable,
-              }
-            } />
-        </div>
+      {/* Input */}
+      <div className="mobile-inspector-large-input-container">
+        <MobileInspectorInput
+          inputProps={{ id: `${idLabel}-input-mobile` }}
+          input={{
+            type: type ?? "select",
+            value: value,
+            onChange: onChange,
+            options: options,
+            className: className,
+            isSearchable: isSearchable,
+          }}
+        />
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-export default MobileInspectorSelector
+export default MobileInspectorSelector;

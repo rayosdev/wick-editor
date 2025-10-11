@@ -27,9 +27,9 @@ interface InspectorImagePreviewProps {
   id?: string;
 }
 
-const InspectorImagePreview: React.FC<InspectorImagePreviewProps> = ({ 
-  icon, 
-  src 
+const InspectorImagePreview: React.FC<InspectorImagePreviewProps> = ({
+  icon,
+  src
 }) => {
   return (
     <InspectorPreview

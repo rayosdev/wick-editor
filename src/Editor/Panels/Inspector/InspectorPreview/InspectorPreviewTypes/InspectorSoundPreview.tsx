@@ -27,9 +27,9 @@ interface InspectorSoundPreviewProps {
   id?: string;
 }
 
-const InspectorSoundPreview: React.FC<InspectorSoundPreviewProps> = ({ 
-  icon, 
-  src 
+const InspectorSoundPreview: React.FC<InspectorSoundPreviewProps> = ({
+  icon,
+  src
 }) => {
   return (
     <InspectorPreview

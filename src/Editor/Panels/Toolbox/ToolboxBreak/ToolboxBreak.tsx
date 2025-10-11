@@ -28,10 +28,10 @@ interface ToolboxBreakProps {
 }
 
 const ToolboxBreak: React.FC<ToolboxBreakProps> = ({ vertical, className }) => {
-  const breakClassName = vertical 
-    ? "toolbox-break-vertical" 
+  const breakClassName = vertical
+    ? "toolbox-break-vertical"
     : className || "toolbox-break";
-  
+
   return <div className={breakClassName}></div>;
 };
 

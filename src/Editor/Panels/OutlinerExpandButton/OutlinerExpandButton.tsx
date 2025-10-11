@@ -11,9 +11,9 @@ interface OutlinerExpandButtonProps {
   toggleOutliner: (e?: React.MouseEvent) => void;
 }
 
-const OutlinerExpandButton: React.FC<OutlinerExpandButtonProps> = ({ 
-  expanded, 
-  toggleOutliner 
+const OutlinerExpandButton: React.FC<OutlinerExpandButtonProps> = ({
+  expanded,
+  toggleOutliner
 }) => {
   return (
     <ActionButton

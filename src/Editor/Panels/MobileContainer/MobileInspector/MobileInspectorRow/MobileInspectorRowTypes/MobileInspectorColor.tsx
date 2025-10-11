@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
 
@@ -36,39 +36,46 @@ interface MobileInspectorColorProps {
   divider?: boolean;
 }
 
-class MobileInspectorColor extends Component<MobileInspectorColorProps> {
-  render(): JSX.Element {
-    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
-    return (
-      <div className="mobile-inspector-row">
-        {/* Identifier */}
-        <label htmlFor={idLabel + "-input-mobile"} className="mobile-inspector-row-identifier mobile-inspector-row-identifier-color">
-          {this.props.tooltip}
-        </label>
+const MobileInspectorColor: React.FC<MobileInspectorColorProps> = ({ 
+  tooltip,
+  val,
+  onChange,
+  id,
+  stroke,
+  colorPickerType,
+  changeColorPickerType,
+  updateLastColors,
+  lastColorsUsed
+}) => {
+  const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
+  
+  return (
+    <div className="mobile-inspector-row">
+      {/* Identifier */}
+      <label htmlFor={`${idLabel}-input-mobile`} className="mobile-inspector-row-identifier mobile-inspector-row-identifier-color">
+        {tooltip}
+      </label>
 
-        {/* Input */}
-        <div className="mobile-inspector-small-input-container">
-          <MobileInspectorInput
-            inputProps={{ id: idLabel + "-input-mobile" }}
-            input={
-              {
-                type: "color",
-                color: this.props.val,
-                onChange: this.props.onChange,
-                id: this.props.id,
-                stroke: !this.props.stroke ? false : this.props.stroke,
-                placement: "left",
-                colorPickerType: this.props.colorPickerType,
-                changeColorPickerType: this.props.changeColorPickerType,
-                updateLastColors: this.props.updateLastColors,
-                lastColorsUsed: this.props.lastColorsUsed,
-              }
-            }
-          />
-        </div>
+      {/* Input */}
+      <div className="mobile-inspector-small-input-container">
+        <MobileInspectorInput
+          inputProps={{ id: `${idLabel}-input-mobile` }}
+          input={{
+            type: "color",
+            color: val,
+            onChange: onChange,
+            id: id,
+            stroke: !stroke ? false : stroke,
+            placement: "left",
+            colorPickerType: colorPickerType,
+            changeColorPickerType: changeColorPickerType,
+            updateLastColors: updateLastColors,
+            lastColorsUsed: lastColorsUsed,
+          }}
+        />
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-export default MobileInspectorColor
+export default MobileInspectorColor;

@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 //import InspectorRow from '../InspectorRow';
 import InspectorInput from '../InspectorInput/InspectorInput';
@@ -34,50 +34,54 @@ interface InspectorDualNumericInputProps {
   id?: string;
 }
 
-class InspectorDualNumericInput extends Component<InspectorDualNumericInputProps> {
-  render(): JSX.Element {
-    const idLabel1 = this.props.tooltip1.replace(/\s+/g, '-').toLowerCase();
-    const idLabel2 = this.props.tooltip2.replace(/\s+/g, '-').toLowerCase();
-    return (
-      <div className="inspector-row">
-        {/* Identifier1 */}
-        <label htmlFor={idLabel1 + "-input"} className="inspector-row-identifier">
-          {this.props.tooltip1}
-        </label>
+const InspectorDualNumericInput: React.FC<InspectorDualNumericInputProps> = ({ 
+  tooltip1,
+  tooltip2,
+  val1,
+  val2,
+  onChange1,
+  onChange2
+}) => {
+  const idLabel1 = tooltip1.replace(/\s+/g, '-').toLowerCase();
+  const idLabel2 = tooltip2.replace(/\s+/g, '-').toLowerCase();
+  
+  return (
+    <div className="inspector-row">
+      {/* Identifier1 */}
+      <label htmlFor={`${idLabel1}-input`} className="inspector-row-identifier">
+        {tooltip1}
+      </label>
 
-        {/* Input1 */}
-        <div className="inspector-small-input-container">
-          <InspectorInput
-            inputProps={{ id: idLabel1 + "-input" }}
-            input={
-              {
-                type: "numeric",
-                value: this.props.val1,
-                onChange: this.props.onChange1
-              }
-            } />
-        </div>
-
-        {/* Identifier2 */}
-        <label htmlFor={idLabel2 + "-input"} className="inspector-row-identifier">
-          {this.props.tooltip2}
-        </label>
-
-        {/* Input2 */}
-        <div className="inspector-small-input-container">
-          <InspectorInput
-            inputProps={{ id: idLabel2 + "-input" }}
-            input={
-              {
-                type: "numeric",
-                value: this.props.val2,
-                onChange: this.props.onChange2
-              }
-            } />
-        </div>
+      {/* Input1 */}
+      <div className="inspector-small-input-container">
+        <InspectorInput
+          inputProps={{ id: `${idLabel1}-input` }}
+          input={{
+            type: "numeric",
+            value: val1,
+            onChange: onChange1
+          }}
+        />
       </div>
-    );
-  }
-}
 
-export default InspectorDualNumericInput
+      {/* Identifier2 */}
+      <label htmlFor={`${idLabel2}-input`} className="inspector-row-identifier">
+        {tooltip2}
+      </label>
+
+      {/* Input2 */}
+      <div className="inspector-small-input-container">
+        <InspectorInput
+          inputProps={{ id: `${idLabel2}-input` }}
+          input={{
+            type: "numeric",
+            value: val2,
+            onChange: onChange2
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default InspectorDualNumericInput;

@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
 
@@ -29,32 +29,33 @@ interface MobileInspectorCheckboxProps {
   onChange: (checked: boolean) => void;
 }
 
-class InspectorCheckbox extends Component<MobileInspectorCheckboxProps> {
-  render(): JSX.Element {
-    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
-    return (
-      <div className="mobile-inspector-row">
-        {/* Identifier */}
-        <label htmlFor={idLabel + "-input-mobile"} className="mobile-inspector-row-identifier">
-          {this.props.tooltip}
-        </label>
+const InspectorCheckbox: React.FC<MobileInspectorCheckboxProps> = ({ 
+  tooltip, 
+  checked, 
+  onChange 
+}) => {
+  const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
+  
+  return (
+    <div className="mobile-inspector-row">
+      {/* Identifier */}
+      <label htmlFor={`${idLabel}-input-mobile`} className="mobile-inspector-row-identifier">
+        {tooltip}
+      </label>
 
-        {/* Checkbox */}
-        <div className="mobile-inspector-small-input-container">
-          <MobileInspectorInput
-            inputProps={{ id: idLabel + "-input-mobile" }}
-            input={
-              {
-                type: "checkbox",
-                checked: this.props.checked,
-                onChange: this.props.onChange
-              }
-            }
-          />
-        </div>
+      {/* Checkbox */}
+      <div className="mobile-inspector-small-input-container">
+        <MobileInspectorInput
+          inputProps={{ id: `${idLabel}-input-mobile` }}
+          input={{
+            type: "checkbox",
+            checked: checked,
+            onChange: onChange
+          }}
+        />
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-export default InspectorCheckbox
+export default InspectorCheckbox;

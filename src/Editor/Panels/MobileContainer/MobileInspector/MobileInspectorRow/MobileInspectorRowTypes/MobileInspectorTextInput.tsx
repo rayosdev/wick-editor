@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
 
@@ -33,35 +33,40 @@ interface MobileInspectorTextInputProps {
   divider?: boolean;
 }
 
-class MobileInspectorTextInput extends Component<MobileInspectorTextInputProps> {
-  render(): JSX.Element {
-    const idLabel = this.props.tooltip.replace(/\s+/g, '-').toLowerCase();
-    const inputId = this.props.id ?? idLabel + "-input-mobile";
-    const handleChange = this.props.onChange ?? (() => { });
-    return (
-      <div className="mobile-inspector-row">
-        {/* Identifier */}
-        <label htmlFor={idLabel + "-input-mobile"} className="mobile-inspector-row-identifier">
-          {this.props.tooltip}
-        </label>
+const MobileInspectorTextInput: React.FC<MobileInspectorTextInputProps> = ({ 
+  tooltip,
+  val,
+  onChange,
+  readOnly,
+  placeholder,
+  id
+}) => {
+  const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
+  const inputId = id ?? `${idLabel}-input-mobile`;
+  const handleChange = onChange ?? (() => { });
+  
+  return (
+    <div className="mobile-inspector-row">
+      {/* Identifier */}
+      <label htmlFor={`${idLabel}-input-mobile`} className="mobile-inspector-row-identifier">
+        {tooltip}
+      </label>
 
-        {/* Input */}
-        <div className="inspector-large-input-container">
-          <MobileInspectorInput
-            inputProps={{ id: inputId }}
-            input={
-              {
-                type: "text",
-                value: this.props.val,
-                onChange: handleChange,
-                readOnly: this.props.readOnly,
-                placeholder: this.props.placeholder,
-              }
-            } />
-        </div>
+      {/* Input */}
+      <div className="inspector-large-input-container">
+        <MobileInspectorInput
+          inputProps={{ id: inputId }}
+          input={{
+            type: "text",
+            value: val,
+            onChange: handleChange,
+            readOnly: readOnly,
+            placeholder: placeholder,
+          }}
+        />
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-export default MobileInspectorTextInput
+export default MobileInspectorTextInput;
