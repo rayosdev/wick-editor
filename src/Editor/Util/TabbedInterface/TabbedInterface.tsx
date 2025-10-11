@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component, ReactNode } from "react";
+import React, { useState, ReactNode } from "react";
 
 import "./_tabbedinterface.scss";
 
@@ -32,10 +32,6 @@ interface TabbedInterfaceProps {
   onTabSelect?: (name: string) => void;
 }
 
-interface TabbedInterfaceState {
-  selectedTab: string;
-}
-
 /**
  * TabbedInterface - A component that renders a tabbed interface with selectable tabs.
  * @param props - Component props
@@ -44,42 +40,41 @@ interface TabbedInterfaceState {
  * @param props.onTabSelect - Optional callback when a tab is selected
  * @returns JSX.Element
  */
-class TabbedInterface extends Component<TabbedInterfaceProps, TabbedInterfaceState> {
-  constructor(props: TabbedInterfaceProps) {
-    super(props);
-
-    this.state = {
-      selectedTab: this.props.tabNames[0] || '',
-    };
-  }
+const TabbedInterface: React.FC<TabbedInterfaceProps> = ({
+  tabNames,
+  children,
+  className,
+  tabClassName,
+  bodyClassName,
+  onTabSelect
+}) => {
+  const [selectedTab, setSelectedTab] = useState(tabNames[0] || '');
 
   // Selects the tab of the given name.
-  selectTab = (name: string): void => {
-    this.setState({
-      selectedTab: name,
-    });
+  const selectTab = (name: string): void => {
+    setSelectedTab(name);
 
-    if (this.props.onTabSelect) {
-      this.props.onTabSelect(name);
+    if (onTabSelect) {
+      onTabSelect(name);
     }
   };
 
   /**
    * Renders the selectable tab bar.
    */
-  renderTabs = (): JSX.Element => {
+  const renderTabs = (): JSX.Element => {
     return (
       <div role="tablist" className="tabbed-interface-main-tab-container">
-        {this.props.tabNames.map((tab, i) => (
+        {tabNames.map((tab, i) => (
           <button
             key={`tab-${tab}-${i}`}
             className={classNames(
               "tabbed-interface-main-tab",
-              this.props.tabClassName,
-              { selected: this.state.selectedTab === tab }
+              tabClassName,
+              { selected: selectedTab === tab }
             )}
             onClick={() => {
-              this.selectTab(tab);
+              selectTab(tab);
             }}
           >
             {tab}
@@ -89,25 +84,23 @@ class TabbedInterface extends Component<TabbedInterfaceProps, TabbedInterfaceSta
     );
   };
 
-  render(): JSX.Element {
-    return (
-      <div className={classNames("tabbed-interface", this.props.className)}>
-        {this.renderTabs()}
-        <div
-          className={classNames(
-            "tabbed-interface-body",
-            this.props.bodyClassName
-          )}
-        >
-          {
-            this.props.children[
-              this.props.tabNames.indexOf(this.state.selectedTab)
-            ]
-          }
-        </div>
+  return (
+    <div className={classNames("tabbed-interface", className)}>
+      {renderTabs()}
+      <div
+        className={classNames(
+          "tabbed-interface-body",
+          bodyClassName
+        )}
+      >
+        {
+          children[
+            tabNames.indexOf(selectedTab)
+          ]
+        }
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
 export default TabbedInterface;

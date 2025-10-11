@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component, ReactNode } from "react";
+import React, { useState, ReactNode } from "react";
 
 import "./_mobiletabbedinterface.scss";
 
@@ -39,10 +39,6 @@ interface MobileTabbedInterfaceProps {
   onTabSelect?: (label: string) => void;
 }
 
-interface MobileTabbedInterfaceState {
-  selectedTab: string;
-}
-
 /**
  * MobileTabbedInterface - A mobile-optimized tabbed interface with icons.
  * @param props - Component props
@@ -51,55 +47,54 @@ interface MobileTabbedInterfaceState {
  * @param props.onTabSelect - Optional callback when a tab is selected
  * @returns JSX.Element
  */
-class MobileTabbedInterface extends Component<MobileTabbedInterfaceProps, MobileTabbedInterfaceState> {
-  constructor(props: MobileTabbedInterfaceProps) {
-    super(props);
-
-    this.state = {
-      selectedTab: this.props.tabs[0]?.label || '',
-    };
-  }
+const MobileTabbedInterface: React.FC<MobileTabbedInterfaceProps> = ({
+  tabs,
+  children,
+  className,
+  tabClassName,
+  bodyClassName,
+  onTabSelect
+}) => {
+  const [selectedTab, setSelectedTab] = useState(tabs[0]?.label || '');
 
   // Selects the tab of the given label.
-  selectTab = (label: string): void => {
-    this.setState({
-      selectedTab: label,
-    });
+  const selectTab = (label: string): void => {
+    setSelectedTab(label);
 
-    if (this.props.onTabSelect) {
-      this.props.onTabSelect(label);
+    if (onTabSelect) {
+      onTabSelect(label);
     }
   };
 
   /**
    * Renders the selectable tab bar.
    */
-  renderTabs = (): JSX.Element => {
+  const renderTabs = (): JSX.Element => {
     return (
       <div
         role="tablist"
         className="mobile-tabbed-interface-main-tab-container"
       >
-        {this.props.tabs.map((tab, i) => (
+        {tabs.map((tab, i) => (
           <button
             key={`tab-${tab.label}-${i}`}
             className={classNames(
               "mobile-tabbed-interface-main-tab",
-              "mobile-" + tab.label + "-tab",
-              this.props.tabClassName,
-              { selected: this.state.selectedTab === tab.label }
+              `mobile-${tab.label}-tab`,
+              tabClassName,
+              { selected: selectedTab === tab.label }
             )}
             onClick={() => {
-              this.selectTab(tab.label);
+              selectTab(tab.label);
             }}
           >
             <img
               className={classNames(
                 "mobile-tabbed-interface-icon",
-                "mobile-" + tab.label + "-tab-icon"
+                `mobile-${tab.label}-tab-icon`
               )}
               src={
-                this.state.selectedTab === tab.label ? tab.iconActive : tab.icon
+                selectedTab === tab.label ? tab.iconActive : tab.icon
               }
               alt={tab.alt}
             ></img>
@@ -109,29 +104,27 @@ class MobileTabbedInterface extends Component<MobileTabbedInterfaceProps, Mobile
     );
   };
 
-  render(): JSX.Element {
-    return (
+  return (
+    <div
+      className={classNames("mobile-tabbed-interface", className)}
+    >
+      {renderTabs()}
       <div
-        className={classNames("mobile-tabbed-interface", this.props.className)}
+        className={classNames(
+          "mobile-tabbed-interface-body",
+          bodyClassName
+        )}
       >
-        {this.renderTabs()}
-        <div
-          className={classNames(
-            "mobile-tabbed-interface-body",
-            this.props.bodyClassName
-          )}
-        >
-          {
-            this.props.children[
-              this.props.tabs
-                .map((tab) => tab.label)
-                .indexOf(this.state.selectedTab)
-            ]
-          }
-        </div>
+        {
+          children[
+            tabs
+              .map((tab) => tab.label)
+              .indexOf(selectedTab)
+          ]
+        }
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
 export default MobileTabbedInterface;
