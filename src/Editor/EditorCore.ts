@@ -779,8 +779,16 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Updates the Wick Project settings with new values passed in as an object. Will make no changes if input is invalid or the same as the previous settings.
    * @param {object} newSettings an object containing all of the settings to update within the project. Accepts valid project settings such as 'name', 'width', 'height', 'framerate', and 'backgroundColor'.
    */
-  updateProjectSettings = (newSettings: Partial<Record<string, unknown>>): void => {
-    const validKeys = ["name", "width", "height", "backgroundColor", "framerate"];
+  updateProjectSettings = (
+    newSettings: Partial<Record<string, unknown>>
+  ): void => {
+    const validKeys = [
+      "name",
+      "width",
+      "height",
+      "backgroundColor",
+      "framerate",
+    ];
     let updated = false;
 
     Object.keys(newSettings).forEach((key) => {
@@ -840,7 +848,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       dropPoint = paper.view.viewToProject(new window.paper.Point(x, y));
     }
 
-  const obj = window.Wick.ObjectCache.getObjectByUUID(uuid);
+    const obj = window.Wick.ObjectCache.getObjectByUUID(uuid);
 
     if (obj instanceof window.Wick.ImageAsset) {
       this.project.createImagePathFromAsset(
