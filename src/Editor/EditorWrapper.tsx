@@ -6,8 +6,7 @@ import ErrorPage from "./Util/ErrorPage";
 import ModalHandler from "./Modals/ModalHandler/ModalHandler";
 import { attachConsoleListener } from "./Util/consoleListener";
 import type { HotKeyMap } from "Editor/types/hotkeys";
-
-type AnyFunction = (...args: unknown[]) => unknown;
+import type { WarningModalInfo } from "./types/EditorCore.types";
 
 type ConsoleLogEntry = {
     id: string;
@@ -16,16 +15,9 @@ type ConsoleLogEntry = {
     timestamp: number;
 };
 
-type ConsoleListenerEntry = ConsoleLogEntry | { type: "clear" };
+type ConsoleClearEntry = { type: "clear" };
 
-type WarningModalInfo = {
-    description: string;
-    title: string;
-    acceptText: string;
-    cancelText: string;
-    acceptAction: AnyFunction;
-    cancelAction: AnyFunction;
-};
+type ConsoleListenerEntry = ConsoleLogEntry | ConsoleClearEntry;
 
 type ProjectLike = {
     name?: string;
@@ -37,8 +29,8 @@ type EditorLikeState = {
     warningModalInfo: WarningModalInfo;
     renderProgress: number;
     renderStatusMessage: string;
-    renderType: "video" | "gif" | "image sequence";
-    customHotKeys: Record<string, unknown>;
+    renderType: string;
+    customHotKeys: Record<string, string>;
     previewPlaying: boolean;
     project: ProjectLike;
     colorPickerType: string;
@@ -53,8 +45,8 @@ type EditorLike = {
     hotKeyInterface: {
         createHandlerGroups: () => unknown;
     };
-    autoSaveProject: (callback: AnyFunction) => void;
-    toast: AnyFunction;
+    autoSaveProject: (callback: () => void) => void;
+    toast: (message: string, type?: string, options?: unknown) => void;
     getKeyMap: (fullKeyMap?: boolean) => HotKeyMap;
     getKeyHandlers: (
         fullKeyHandlers?: boolean
@@ -63,25 +55,25 @@ type EditorLike = {
     openModal: (name: string, options?: unknown) => void;
     closeActiveModal: () => void;
     queueModal: (name: string) => void;
-    openWarningModal: (info: unknown) => void;
+    openWarningModal: (info: WarningModalInfo) => void;
     createClipFromSelection: (name: string) => void;
     createButtonFromSelection: (name: string) => void;
     createAnimationFromSelection: (name: string) => void;
-    updateProjectSettings: AnyFunction;
+    updateProjectSettings: (settings: unknown) => void;
     exportProjectAsAnimatedGIF: () => void;
     exportProjectAsVideo: () => void;
     exportProjectAsStandaloneZip: () => void;
     exportProjectAsStandaloneHTML: () => void;
     exportProjectAsImageSequence: () => void;
     exportProjectAsAudioTrack: () => void;
-    loadAutosavedProject: AnyFunction;
-    clearAutoSavedProject: AnyFunction;
-    addCustomHotKeys: AnyFunction;
+    loadAutosavedProject: (callback: () => void) => void;
+    clearAutoSavedProject: (callback: () => void) => void;
+    addCustomHotKeys: (keys: Record<string, string>) => void;
     resetCustomHotKeys: () => void;
     importFileAsAsset: (file: unknown) => void;
     changeColorPickerType: (type: string) => void;
     updateLastColors: (color: string) => void;
-    createCombinedHotKeyMap: AnyFunction;
+    createCombinedHotKeyMap: () => unknown;
     getToolSetting: (setting: string) => unknown;
     setToolSetting: (setting: string, value: unknown) => void;
     getToolSettingRestrictions: (setting: string) => unknown;
@@ -174,7 +166,7 @@ function EditorWrapper({ editor, children }: EditorWrapperProps) {
             fallback={ErrorPage}
             processError={(_error, _errorInfo) => {
                 editor.autoSaveProject(() => {
-                    return "Project Autosaved";
+                    editor.toast("Project Autosaved", "info");
                 });
             }}
         >
@@ -219,11 +211,11 @@ function EditorWrapper({ editor, children }: EditorWrapperProps) {
                     clearAutoSavedProject={editor.clearAutoSavedProject}
                     renderProgress={editor.state.renderProgress}
                     renderStatusMessage={editor.state.renderStatusMessage}
-                    renderType={editor.state.renderType}
+                    renderType={editor.state.renderType as any}
                     addCustomHotKeys={editor.addCustomHotKeys}
                     resetCustomHotKeys={editor.resetCustomHotKeys}
                     customHotKeys={editor.state.customHotKeys}
-                    keyMap={editor.getKeyMap(true)}
+                    keyMap={editor.getKeyMap(true) as HotKeyMap}
                     keyMapGroups={editor.hotKeyInterface.createHandlerGroups()}
                     importFileAsAsset={editor.importFileAsAsset}
                     colorPickerType={editor.state.colorPickerType}
