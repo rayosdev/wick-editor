@@ -70,9 +70,11 @@ export type {
   // File System
   LocalFileEntry,
   SavedProject,
+  ProjectFileEntry,
 
   // Asset Library
   BuiltinPreview,
+  BuiltinLibraryPreview,
   AssetLibraryItem,
 
   // Console & Logging
@@ -87,6 +89,9 @@ export type {
   // Modals & UI State
   ModalName,
   WarningModalInfo,
+  WarningModalInfoBase,
+  SavedProjectsWarningInfo,
+  GeneralWarningInfo,
 
   // Color Picker
   ColorPickerType,
@@ -121,6 +126,13 @@ export type {
 
   // Action History
   ActionOptions,
+} from "./editor.types";
+
+// Export type guards from editor.types
+export {
+  isGeneralWarningInfo,
+  isLocalFileEntry,
+  isSavedProject,
 } from "./editor.types";
 
 // Selection Interface Types

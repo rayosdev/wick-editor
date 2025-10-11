@@ -22,6 +22,10 @@ import type { HotKeyMap } from "Editor/types/hotkeys";
 import type {
   ProjectSettings,
   CustomHotKeys,
+  WarningModalInfo,
+  LocalFileEntry,
+  WickAsset,
+  ToolSettingRestrictions,
 } from "../../types";
 
 import MakeInteractive from '../MakeInteractive/MakeInteractive';
@@ -47,18 +51,18 @@ interface ModalHandlerProps {
   createClipFromSelection: (name: string) => void;
   createButtonFromSelection: (name: string) => void;
   createAnimationFromSelection: (name: string) => void;
-  openWarningModal: (info: any) => void; // Different components expect different WarningInfo shapes
-  warningModalInfo: any; // GeneralWarning expects different shape than SavedProjects provides
+  openWarningModal: (info: WarningModalInfo) => void;
+  warningModalInfo: WarningModalInfo | null;
   exportProjectAsVideo: () => void;
   renderProgress: number;
   renderType: "video" | "gif" | "image sequence"; // Subset of RenderType used by ExportMedia
   renderStatusMessage: string;
-  project: any; // Wick Engine project instance
+  project: any; // Wick Engine project instance - no TypeScript definitions available
   updateProjectSettings: (settings: Partial<ProjectSettings>) => void;
   addCustomHotKeys: (keys: CustomHotKeys) => void;
   resetCustomHotKeys: () => void;
   keyMap: HotKeyMap;
-  keyMapGroups: any; // EditorWrapper provides HotKeyConfig[], not HotKeyMapGroups (Record<string, string[]>)
+  keyMapGroups: any; // TODO: Investigate actual type from editor.hotKeyInterface.createHandlerGroups()
   customHotKeys: CustomHotKeys;
   colorPickerType: string;
   changeColorPickerType: (type: string) => void;
@@ -68,17 +72,17 @@ interface ModalHandlerProps {
   createCombinedHotKeyMap: () => HotKeyMap;
   getToolSetting: (setting: string) => string | number | boolean;
   setToolSetting: (setting: string, value: string | number | boolean) => void;
-  getToolSettingRestrictions: (setting: string) => any; // EditorWrapper provides ToolSettingRestrictions, not ToolSettingRestrictionsMap
-  importFileAsAsset: (file: any) => void; // EditorWrapper: (file: File), BuiltinLibrary: (file: Blob)
-  builtinPreviews: any; // EditorWrapper provides Map<string, BuiltinPreview>, not Record
-  addFileToBuiltinPreviews: (file: any) => void; // EditorWrapper provides (file: File), BuiltinLibrary expects (filename: string, blob: Blob)
-  isAssetInLibrary: (asset: any) => boolean; // EditorWrapper provides (asset: WickAsset), BuiltinLibrary expects (filename: string)
+  getToolSettingRestrictions: (setting: string) => ToolSettingRestrictions;
+  importFileAsAsset: (file: File) => void; // EditorWrapper provides File, BuiltinLibrary casts to Blob
+  builtinPreviews: unknown; // EditorWrapper: Map<string, BuiltinPreview>, BuiltinLibrary: Record<string, BuiltinLibraryPreview>
+  addFileToBuiltinPreviews: (file: File) => void; // EditorWrapper signature, BuiltinLibrary expects (filename: string, blob: Blob)
+  isAssetInLibrary: (asset: WickAsset) => boolean; // EditorWrapper signature, BuiltinLibrary expects (filename: string)
   editorVersion: string;
   openProjectFileDialog: () => void;
   openNewProjectConfirmation: () => void;
-  localSavedFiles: any[]; // EditorWrapper provides LocalFileEntry[], SavedProjects expects SavedProject[]
-  loadLocalWickFile: (file: any) => void; // EditorWrapper provides (file: LocalFileEntry), SavedProjects expects (file: SavedProject)
-  deleteLocalWickFile: (file: any) => void; // EditorWrapper provides (file: LocalFileEntry), SavedProjects expects (file: SavedProject)
+  localSavedFiles: LocalFileEntry[]; // EditorWrapper type, SavedProjects expects SavedProject[]
+  loadLocalWickFile: (file: LocalFileEntry) => void; // EditorWrapper type, SavedProjects expects SavedProject
+  deleteLocalWickFile: (file: LocalFileEntry) => void; // EditorWrapper type, SavedProjects expects SavedProject
   reloadSavedWickFiles: () => void;
   getRenderSize: () => string;
   loadAutosavedProject: (callback: () => void) => void;
@@ -139,7 +143,17 @@ class ModalHandler extends Component<ModalHandlerProps> {
         <GeneralWarning
           toggle={this.props.closeActiveModal}
           open={this.props.activeModalName === 'GeneralWarning'}
-          info={this.props.warningModalInfo || {}}
+          info={this.props.warningModalInfo as any || {
+            title: '',
+            description: '',
+            acceptText: '',
+            acceptIcon: '',
+            acceptAction: () => { },
+            cancelText: '',
+            cancelIcon: '',
+            cancelAction: () => { },
+            finalAction: () => { },
+          }}
         />
         <ExportMedia
           toggle={this.props.closeActiveModal}
@@ -174,10 +188,10 @@ class ModalHandler extends Component<ModalHandlerProps> {
           toggle={this.props.closeActiveModal}
           open={this.props.activeModalName === 'BuiltinLibrary'}
           project={this.props.project}
-          importFileAsAsset={this.props.importFileAsAsset}
-          builtinPreviews={this.props.builtinPreviews}
-          addFileToBuiltinPreviews={this.props.addFileToBuiltinPreviews}
-          isAssetInLibrary={this.props.isAssetInLibrary}
+          importFileAsAsset={this.props.importFileAsAsset as any}
+          builtinPreviews={this.props.builtinPreviews as any}
+          addFileToBuiltinPreviews={this.props.addFileToBuiltinPreviews as any}
+          isAssetInLibrary={this.props.isAssetInLibrary as any}
         />
         <EditorInfo
           openModal={this.props.openModal}
@@ -200,11 +214,11 @@ class ModalHandler extends Component<ModalHandlerProps> {
         <SavedProjects
           toggle={this.props.closeActiveModal}
           open={this.props.activeModalName === 'SavedProjects'}
-          localSavedFiles={this.props.localSavedFiles}
-          loadLocalWickFile={this.props.loadLocalWickFile}
-          deleteLocalWickFile={this.props.deleteLocalWickFile}
+          localSavedFiles={this.props.localSavedFiles as any}
+          loadLocalWickFile={this.props.loadLocalWickFile as any}
+          deleteLocalWickFile={this.props.deleteLocalWickFile as any}
           reloadSavedWickFiles={this.props.reloadSavedWickFiles}
-          openWarningModal={this.props.openWarningModal}
+          openWarningModal={this.props.openWarningModal as any}
         />
         <SimpleProjectSettings
           updateProjectSettings={this.props.updateProjectSettings}

@@ -101,19 +101,63 @@ export interface SavedProject {
   size?: string;
 }
 
-export interface WarningModalInfo {
+// Warning Modal Info - Base interface
+export interface WarningModalInfoBase {
   title: string;
   description: string;
+  acceptText: string;
   acceptAction: () => void;
   cancelAction: () => void;
-  acceptText: string;
-  canceltText: string;
+}
+
+// SavedProjects version (has typo in original: canceltText)
+export interface SavedProjectsWarningInfo extends WarningModalInfoBase {
+  canceltText: string; // Note: typo in original component
+}
+
+// GeneralWarning version (has icons and finalAction)
+export interface GeneralWarningInfo extends WarningModalInfoBase {
+  cancelText: string;
+  acceptIcon: string;
+  cancelIcon: string;
+  finalAction: () => void;
+}
+
+// Union type for all warning modal variants
+export type WarningModalInfo = SavedProjectsWarningInfo | GeneralWarningInfo;
+
+// Type guard to check if it's GeneralWarningInfo
+export function isGeneralWarningInfo(
+  info: WarningModalInfo
+): info is GeneralWarningInfo {
+  return "acceptIcon" in info && "cancelIcon" in info && "finalAction" in info;
+}
+
+// Union type for file entries (EditorWrapper uses LocalFileEntry, SavedProjects uses SavedProject)
+export type ProjectFileEntry = LocalFileEntry | SavedProject;
+
+// Type guards for file entries
+export function isLocalFileEntry(
+  file: ProjectFileEntry
+): file is LocalFileEntry {
+  return "handle" in file && "lastModified" in file;
+}
+
+export function isSavedProject(file: ProjectFileEntry): file is SavedProject {
+  return "name" in file && !("handle" in file);
 }
 
 // ============================================================================
 // Asset Library
 // ============================================================================
 
+// BuiltinLibrary component version
+export interface BuiltinLibraryPreview {
+  blob: Blob;
+  src?: string;
+}
+
+// Editor-level version (different structure!)
 export interface BuiltinPreview {
   name: string;
   thumbnail?: string;
@@ -174,15 +218,6 @@ export type ModalName =
   | "WarningModal"
   | "HotKeySettings"
   | null;
-
-export interface WarningModalInfo {
-  title: string;
-  description: string;
-  acceptText: string;
-  cancelText?: string;
-  onAccept: () => void;
-  onCancel?: () => void;
-}
 
 // ============================================================================
 // Color Picker
