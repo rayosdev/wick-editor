@@ -26,6 +26,7 @@ import type {
   LocalFileEntry,
   WickAsset,
   ToolSettingRestrictions,
+  ColorPickerType,
 } from "../../types";
 
 import MakeInteractive from '../MakeInteractive/MakeInteractive';
@@ -43,6 +44,9 @@ import MobileMenu from '../MobileMenu/MobileMenu';
 import SavedProjects from '../SavedProjects/SavedProjects';
 import SimpleProjectSettings from '../SimpleProjectSettings/SimpleProjectSettings';
 import SupportUs from '../SupportUs/SupportUs';
+
+// Tool settings can return various types including WickColor objects
+type ToolSettingValue = string | number | boolean | { rgba: string };
 
 interface ModalHandlerProps {
   activeModalName: string | null;
@@ -64,14 +68,14 @@ interface ModalHandlerProps {
   keyMap: HotKeyMap;
   keyMapGroups: any; // TODO: Investigate actual type from editor.hotKeyInterface.createHandlerGroups()
   customHotKeys: CustomHotKeys;
-  colorPickerType: string;
-  changeColorPickerType: (type: string) => void;
+  colorPickerType: ColorPickerType;
+  changeColorPickerType: (type: ColorPickerType) => void;
   updateLastColors: (color: string) => void;
   lastColorsUsed: string[];
   toast: (message: string) => void;
   createCombinedHotKeyMap: () => HotKeyMap;
-  getToolSetting: (setting: string) => string | number | boolean;
-  setToolSetting: (setting: string, value: string | number | boolean) => void;
+  getToolSetting: (setting: string) => ToolSettingValue;
+  setToolSetting: (setting: string, value: ToolSettingValue) => void;
   getToolSettingRestrictions: (setting: string) => ToolSettingRestrictions;
   importFileAsAsset: (file: File) => void; // EditorWrapper provides File, BuiltinLibrary casts to Blob
   builtinPreviews: unknown; // EditorWrapper: Map<string, BuiltinPreview>, BuiltinLibrary: Record<string, BuiltinLibraryPreview>

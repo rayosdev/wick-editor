@@ -229,15 +229,15 @@ function EditorWrapper({ editor, children }: EditorWrapperProps) {
                     keyMap={editor.getKeyMap(true) as HotKeyMap}
                     keyMapGroups={editor.hotKeyInterface.createHandlerGroups()}
                     importFileAsAsset={editor.importFileAsAsset}
-                    colorPickerType={editor.state.colorPickerType as string}
-                    changeColorPickerType={editor.changeColorPickerType as (type: string) => void}
+                    colorPickerType={editor.state.colorPickerType}
+                    changeColorPickerType={editor.changeColorPickerType}
                     updateLastColors={editor.updateLastColors}
                     lastColorsUsed={editor.state.lastColorsUsed}
                     editorVersion={editor.editorVersion ?? ""}
                     toast={editor.toast}
                     createCombinedHotKeyMap={editor.createCombinedHotKeyMap}
                     getToolSetting={editor.getToolSetting}
-                    setToolSetting={editor.setToolSetting}
+                    setToolSetting={editor.setToolSetting as any} // EditorCore accepts primitives, but SettingsModal can pass WickColor objects
                     getToolSettingRestrictions={editor.getToolSettingRestrictions}
                     exportProjectAsImageSVG={editor.exportProjectAsImageSVG}
                     builtinPreviews={editor.builtinPreviews}

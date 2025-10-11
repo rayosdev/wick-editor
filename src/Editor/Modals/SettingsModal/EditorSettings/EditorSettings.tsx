@@ -21,6 +21,7 @@ import { Component } from 'react';
 
 import './_editorsettings.scss';
 import WickInput from 'Editor/Util/WickInput/WickInput';
+import type { ColorPickerType, ToolSettingRestrictions } from 'Editor/types';
 
 import iconBackwards from 'resources/timeline-icons/backwards.svg';
 import iconForwards from 'resources/timeline-icons/forwards.svg';
@@ -29,14 +30,10 @@ interface WickColor {
   rgba: string;
 }
 
-interface ColorPickerType {
-  type: string;
-}
-
 interface EditorSettingsProps {
-  getToolSetting: (setting: string) => any;
-  setToolSetting: (setting: string, value: any) => void;
-  getToolSettingRestrictions: (setting: string) => { options: string[] };
+  getToolSetting: (setting: string) => string | number | boolean | WickColor;
+  setToolSetting: (setting: string, value: string | number | boolean | WickColor) => void;
+  getToolSettingRestrictions: (setting: string) => ToolSettingRestrictions;
   colorPickerType: ColorPickerType;
   changeColorPickerType: (type: ColorPickerType) => void;
   updateLastColors: (color: string) => void;
@@ -58,7 +55,7 @@ class EditorSettings extends Component<EditorSettingsProps> {
 
   render(): JSX.Element {
     const optionsLabels: Array<{ label: string; value: string }> = [];
-    const options = this.props.getToolSettingRestrictions('onionSkinStyle').options;
+    const options = this.props.getToolSettingRestrictions('onionSkinStyle').options || [];
     for (let i = 0; i < options.length; i++) {
       const option = options[i];
       if (option) {

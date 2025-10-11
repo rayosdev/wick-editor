@@ -19,6 +19,12 @@
 
 import { Component } from "react";
 import type { HotKeyMap } from "Editor/types/hotkeys";
+import type {
+  CustomHotKeys,
+  ProjectSettings as ProjectSettingsType,
+  ColorPickerType,
+  ToolSettingRestrictions
+} from "Editor/types";
 import WickModal from "Editor/Modals/WickModal/WickModal";
 import TabbedInterface from "Editor/Util/TabbedInterface/TabbedInterface";
 import ProjectSettings from "./ProjectSettings/ProjectSettings";
@@ -29,26 +35,35 @@ import "./_settingsmodal.scss";
 
 import classNames from "classnames";
 
+// Hotkey groups structure from editor.hotKeyInterface.createHandlerGroups()
+type KeyMapGroup = {
+  name: string;
+  actions: HotKeyMap;
+};
+
+// Tool settings can return various types including WickColor objects
+type ToolSettingValue = string | number | boolean | { rgba: string };
+
 interface SettingsModalProps {
   open: boolean;
   toggle: () => void;
   isMobile?: boolean;
-  project: any;
-  updateProjectSettings: (settings: any) => void;
-  colorPickerType: any;
-  changeColorPickerType: (type: any) => void;
+  project: any; // Wick Engine project instance - no TypeScript definitions available
+  updateProjectSettings: (settings: Partial<ProjectSettingsType>) => void;
+  colorPickerType: ColorPickerType;
+  changeColorPickerType: (type: ColorPickerType) => void;
   updateLastColors: (color: string) => void;
   lastColorsUsed: string[];
-  addCustomHotKeys: (keys: any) => void;
+  addCustomHotKeys: (keys: CustomHotKeys) => void;
   resetCustomHotKeys: () => void;
-  customHotKeys: any;
+  customHotKeys: CustomHotKeys;
   keyMap: HotKeyMap;
-  keyMapGroups?: any;
+  keyMapGroups?: KeyMapGroup[];
   toast?: (message: string) => void;
-  createCombinedHotKeyMap?: () => any;
-  getToolSetting: (setting: string) => any;
-  setToolSetting: (setting: string, value: any) => void;
-  getToolSettingRestrictions: (setting: string) => any;
+  createCombinedHotKeyMap?: () => HotKeyMap;
+  getToolSetting: (setting: string) => ToolSettingValue;
+  setToolSetting: (setting: string, value: ToolSettingValue) => void;
+  getToolSettingRestrictions: (setting: string) => ToolSettingRestrictions;
 }
 
 /**
