@@ -69427,8 +69427,11 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       }
     }
     _getSelectableLayers() {
-      var self = this;
-      return this.paper.project.layers.filter((layer) => {
+      var project = this.paper && this.paper.project;
+      if (!project || !project.layers) {
+        return [];
+      }
+      return project.layers.filter((layer) => {
         return !layer.locked;
       });
     }
