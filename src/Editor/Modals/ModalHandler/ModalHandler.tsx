@@ -22,7 +22,7 @@ import type { HotKeyMap } from "Editor/types/hotkeys";
 import type {
   ProjectSettings,
   CustomHotKeys,
-} from "Editor/types";
+} from "../../types";
 
 import MakeInteractive from '../MakeInteractive/MakeInteractive';
 import AutosaveWarning from '../AutosaveWarning/AutosaveWarning';
@@ -47,8 +47,8 @@ interface ModalHandlerProps {
   createClipFromSelection: (name: string) => void;
   createButtonFromSelection: (name: string) => void;
   createAnimationFromSelection: (name: string) => void;
-  openWarningModal: (info: any) => void; // TODO: WarningModalInfo type mismatch with SavedProjects
-  warningModalInfo: any; // TODO: WarningModalInfo | null type mismatch
+  openWarningModal: (info: any) => void; // Different components expect different WarningInfo shapes
+  warningModalInfo: any; // GeneralWarning expects different shape than SavedProjects provides
   exportProjectAsVideo: () => void;
   renderProgress: number;
   renderType: "video" | "gif" | "image sequence"; // Subset of RenderType used by ExportMedia
@@ -58,7 +58,7 @@ interface ModalHandlerProps {
   addCustomHotKeys: (keys: CustomHotKeys) => void;
   resetCustomHotKeys: () => void;
   keyMap: HotKeyMap;
-  keyMapGroups: any; // TODO: Define HotKeyMapGroups type
+  keyMapGroups: any; // EditorWrapper provides HotKeyConfig[], not HotKeyMapGroups (Record<string, string[]>)
   customHotKeys: CustomHotKeys;
   colorPickerType: string;
   changeColorPickerType: (type: string) => void;
@@ -68,17 +68,17 @@ interface ModalHandlerProps {
   createCombinedHotKeyMap: () => HotKeyMap;
   getToolSetting: (setting: string) => string | number | boolean;
   setToolSetting: (setting: string, value: string | number | boolean) => void;
-  getToolSettingRestrictions: (setting: string) => any; // TODO: ToolSettingRestrictions return type
-  importFileAsAsset: (file: any) => void; // TODO: File vs Blob mismatch with BuiltinLibrary
-  builtinPreviews: any; // TODO: BuiltinPreview[] vs Record<string, BuiltinPreview> mismatch
-  addFileToBuiltinPreviews: (file: any) => void; // TODO: (file: File) vs (filename: string, blob: Blob) mismatch
-  isAssetInLibrary: (asset: any) => boolean; // TODO: WickAsset vs string mismatch
+  getToolSettingRestrictions: (setting: string) => any; // EditorWrapper provides ToolSettingRestrictions, not ToolSettingRestrictionsMap
+  importFileAsAsset: (file: any) => void; // EditorWrapper: (file: File), BuiltinLibrary: (file: Blob)
+  builtinPreviews: any; // EditorWrapper provides Map<string, BuiltinPreview>, not Record
+  addFileToBuiltinPreviews: (file: any) => void; // EditorWrapper provides (file: File), BuiltinLibrary expects (filename: string, blob: Blob)
+  isAssetInLibrary: (asset: any) => boolean; // EditorWrapper provides (asset: WickAsset), BuiltinLibrary expects (filename: string)
   editorVersion: string;
   openProjectFileDialog: () => void;
   openNewProjectConfirmation: () => void;
-  localSavedFiles: any[]; // TODO: LocalFileEntry[] vs SavedProject[] mismatch
-  loadLocalWickFile: (file: any) => void; // TODO: LocalFileEntry vs SavedProject mismatch
-  deleteLocalWickFile: (file: any) => void; // TODO: LocalFileEntry vs SavedProject mismatch
+  localSavedFiles: any[]; // EditorWrapper provides LocalFileEntry[], SavedProjects expects SavedProject[]
+  loadLocalWickFile: (file: any) => void; // EditorWrapper provides (file: LocalFileEntry), SavedProjects expects (file: SavedProject)
+  deleteLocalWickFile: (file: any) => void; // EditorWrapper provides (file: LocalFileEntry), SavedProjects expects (file: SavedProject)
   reloadSavedWickFiles: () => void;
   getRenderSize: () => string;
   loadAutosavedProject: (callback: () => void) => void;
@@ -139,7 +139,7 @@ class ModalHandler extends Component<ModalHandlerProps> {
         <GeneralWarning
           toggle={this.props.closeActiveModal}
           open={this.props.activeModalName === 'GeneralWarning'}
-          info={this.props.warningModalInfo}
+          info={this.props.warningModalInfo || {}}
         />
         <ExportMedia
           toggle={this.props.closeActiveModal}

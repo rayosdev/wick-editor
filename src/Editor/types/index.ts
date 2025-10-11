@@ -61,6 +61,7 @@ export type {
   ToolSettings,
   ToolSettingKey,
   ToolSettingRestrictions,
+  ToolSettingRestrictionsMap,
   ToolType,
 
   // Project Settings
@@ -68,6 +69,7 @@ export type {
 
   // File System
   LocalFileEntry,
+  SavedProject,
 
   // Asset Library
   BuiltinPreview,
@@ -95,6 +97,8 @@ export type {
   // Keyboard & Hotkeys
   CustomHotKeys,
   HotKeyConfig,
+  HotKeyMap,
+  HotKeyMapGroups,
 
   // Inspector Panel
   InspectorData,

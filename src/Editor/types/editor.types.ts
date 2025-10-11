@@ -53,6 +53,11 @@ export interface ToolSettingRestrictions {
   options?: string[];
 }
 
+export type ToolSettingRestrictionsMap = Record<
+  string,
+  ToolSettingRestrictions
+>;
+
 export type ToolType =
   | "cursor"
   | "brush"
@@ -88,6 +93,21 @@ export interface LocalFileEntry {
   handle: FileSystemFileHandle;
   name: string;
   lastModified: number;
+}
+
+export interface SavedProject {
+  name: string;
+  date?: string;
+  size?: string;
+}
+
+export interface WarningModalInfo {
+  title: string;
+  description: string;
+  acceptAction: () => void;
+  cancelAction: () => void;
+  acceptText: string;
+  canceltText: string;
 }
 
 // ============================================================================
@@ -196,6 +216,10 @@ export interface HotKeyConfig {
   keys: string;
   category: string;
 }
+
+export type HotKeyMap = Record<string, string>;
+
+export type HotKeyMapGroups = Record<string, string[]>;
 
 // ============================================================================
 // Inspector Panel
