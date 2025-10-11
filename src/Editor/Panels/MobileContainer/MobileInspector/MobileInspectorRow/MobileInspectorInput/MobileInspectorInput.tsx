@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 import '../_mobileinspectorrow.scss';
 
@@ -28,14 +28,12 @@ interface MobileInspectorInputProps {
   input?: any;
 }
 
-class MobileInspectorInput extends Component<MobileInspectorInputProps> {
-  render(): JSX.Element {
-    return (
-      <div className="inspector-input-element">
-        <WickInput {...this.props.inputProps} {...this.props.input} />
-      </div>
-    );
-  }
-}
+const MobileInspectorInput: React.FC<MobileInspectorInputProps> = ({ inputProps, input }) => {
+  return (
+    <div className="inspector-input-element">
+      <WickInput {...inputProps} {...input} />
+    </div>
+  );
+};
 
-export default MobileInspectorInput
+export default MobileInspectorInput;

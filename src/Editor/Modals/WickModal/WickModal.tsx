@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component, ReactNode } from "react";
+import React, { ReactNode, useEffect } from "react";
 import Modal from "react-modal";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
@@ -39,16 +39,15 @@ interface WickModalProps {
  * WickModal component provides a standardized modal wrapper for the editor.
  * Includes close button, optional icon, and customizable styling.
  */
-class WickModal extends Component<WickModalProps> {
-  renderIcon(): JSX.Element {
-    return (
-      <div id="modal-icon-container">
-        <ToolIcon name={this.props.icon} />
-      </div>
-    );
-  }
-
-  componentDidMount(): void {
+const WickModal: React.FC<WickModalProps> = ({
+  open,
+  toggle,
+  className,
+  overlayClassName,
+  icon,
+  children
+}) => {
+  useEffect(() => {
     // Use #root as the app element so react-modal doesn't try to toggle aria-hidden on <body>
     try {
       const root = document.getElementById("root");
@@ -58,36 +57,42 @@ class WickModal extends Component<WickModalProps> {
     } catch (e) {
       // No-op in non-DOM environments
     }
-  }
+  }, []);
 
-  render(): JSX.Element {
+  const renderIcon = (): JSX.Element => {
     return (
-      <Modal
-        isOpen={this.props.open}
-        toggle={() => {
-          this.props.toggle();
-        }}
-        onRequestClose={this.props.toggle}
-        className={classNames("modal-body", this.props.className)}
-        overlayClassName={classNames(
-          "modal-overlay",
-          this.props.overlayClassName
-        )}
-      >
-        <div id="modal-close-icon-container">
-          <ActionButton
-            color="tool"
-            icon="cancel-white"
-            action={this.props.toggle}
-          />
-        </div>
-        <div className="modal-generic-container">
-          {this.props.icon && this.renderIcon()}
-          {this.props.children}
-        </div>
-      </Modal>
+      <div id="modal-icon-container">
+        <ToolIcon name={icon} />
+      </div>
     );
-  }
-}
+  };
+
+  return (
+    <Modal
+      isOpen={open}
+      toggle={() => {
+        toggle();
+      }}
+      onRequestClose={toggle}
+      className={classNames("modal-body", className)}
+      overlayClassName={classNames(
+        "modal-overlay",
+        overlayClassName
+      )}
+    >
+      <div id="modal-close-icon-container">
+        <ActionButton
+          color="tool"
+          icon="cancel-white"
+          action={toggle}
+        />
+      </div>
+      <div className="modal-generic-container">
+        {icon && renderIcon()}
+        {children}
+      </div>
+    </Modal>
+  );
+};
 
 export default WickModal;

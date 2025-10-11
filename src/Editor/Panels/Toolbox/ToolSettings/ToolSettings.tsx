@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from "react";
+import React, { useMemo } from "react";
 
 import ToolSettingsInput from "./ToolSettingsInput/ToolSettingsInput";
 import PopupMenu from "Editor/Util/PopupMenu/PopupMenu";
@@ -36,146 +36,70 @@ interface ToolSettingsProps {
     previewPlaying?: boolean;
 }
 
-class ToolSettings extends Component<ToolSettingsProps> {
-    private readonly settingsFunctions: Record<string, () => JSX.Element>;
+const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
+    const {
+        renderSize,
+        isMobile,
+        activeTool,
+        getToolSetting: getToolSettingProp,
+        setToolSetting: setToolSettingProp,
+        getToolSettingRestrictions,
+        toggleBrushModes,
+        showBrushModes,
+        previewPlaying
+    } = props;
 
-    constructor(props: ToolSettingsProps) {
-        super(props);
-
-        this.settingsFunctions = {
-            cursor: this.renderCursorSettings,
-            brush: this.renderBrushSettings,
-            pencil: this.renderPencilSettings,
-            eraser: this.renderEraserSettings,
-            rectangle: this.renderRectangleSettings,
-            ellipse: this.renderEllipseSettings,
-            line: this.renderLineSettings,
-            text: this.renderTextSettings,
-            fillbucket: this.renderFillbucketSettings,
-        };
-    }
-
-    render(): JSX.Element {
-        return <div id="settings-panel-container">{this.renderSettings()}</div>;
-    }
-
-    private renderSettings = (): JSX.Element => {
-        const renderer = this.settingsFunctions[this.props.activeTool];
-        if (renderer) {
-            return renderer();
-        }
-
-        return <div className="default" />;
+    const getToolSetting = (setting: string): any => {
+        return getToolSettingProp(setting);
     };
 
-    private renderCursorSettings = (): JSX.Element => {
+    const setToolSetting = (setting: string, newValue: any): void => {
+        setToolSettingProp(setting, newValue);
+    };
+
+    const renderCursorSettings = (): JSX.Element => {
         return <div className="settings-input-container" />;
     };
 
-    private renderBrushSettings = (): JSX.Element => {
-        return (
-            <div className="settings-input-container">
-                {this.renderBrushSize()}
-                {this.renderBrushSmoothing()}
-                {this.renderEnablePressure()}
-                {this.renderEnableRelativeBrushSize()}
-                {this.renderBrushMode()}
-            </div>
-        );
-    };
-
-    private renderPencilSettings = (): JSX.Element => {
-        return (
-            <div className="settings-input-container">
-                {this.renderStrokeWidth()}
-            </div>
-        );
-    };
-
-    private renderEraserSettings = (): JSX.Element => {
-        return (
-            <div className="settings-input-container">
-                {this.renderEraserSize()}
-            </div>
-        );
-    };
-
-    private renderRectangleSettings = (): JSX.Element => {
-        return (
-            <div className="settings-input-container">
-                {this.renderStrokeWidth()}
-                {this.renderCornerRadius()}
-            </div>
-        );
-    };
-
-    private renderEllipseSettings = (): JSX.Element => {
-        return (
-            <div className="settings-input-container">
-                {this.renderStrokeWidth()}
-            </div>
-        );
-    };
-
-    private renderLineSettings = (): JSX.Element => {
-        return (
-            <div className="settings-input-container">
-                {this.renderStrokeWidth()}
-            </div>
-        );
-    };
-
-    private renderTextSettings = (): JSX.Element => {
-        return <div className="settings-input-container" />;
-    };
-
-    private renderFillbucketSettings = (): JSX.Element => {
-        return (
-            <div className="settings-input-container">
-                {this.renderGapFillAmount()}
-            </div>
-        );
-    };
-
-    private renderEnablePressure = (): JSX.Element => {
+    const renderEnablePressure = (): JSX.Element => {
         return (
             <ToolSettingsInput
-                renderSize={this.props.renderSize}
+                renderSize={renderSize}
                 name="Enable Pressure"
                 icon="brushpressure"
                 type="checkbox"
-                value={this.getToolSetting("pressureEnabled")}
+                value={getToolSetting("pressureEnabled")}
                 onChange={() =>
-                    this.setToolSetting(
+                    setToolSetting(
                         "pressureEnabled",
-                        !this.getToolSetting("pressureEnabled")
+                        !getToolSetting("pressureEnabled")
                     )
                 }
             />
         );
     };
 
-    private renderEnableRelativeBrushSize = (): JSX.Element => {
+    const renderEnableRelativeBrushSize = (): JSX.Element => {
         return (
             <ToolSettingsInput
-                renderSize={this.props.renderSize}
+                renderSize={renderSize}
                 name="Relative Brush Size"
                 icon="brushrelativesize"
                 type="checkbox"
-                value={this.getToolSetting("relativeBrushSize")}
+                value={getToolSetting("relativeBrushSize")}
                 onChange={() =>
-                    this.setToolSetting(
+                    setToolSetting(
                         "relativeBrushSize",
-                        !this.getToolSetting("relativeBrushSize")
+                        !getToolSetting("relativeBrushSize")
                     )
                 }
             />
         );
     };
 
-    private renderBrushMode = (): JSX.Element => {
+    const renderBrushMode = (): JSX.Element => {
         let brushModeIcon = "brushmodenone";
-        const brushMode = this.props.getToolSetting("brushMode");
+        const brushMode = getToolSettingProp("brushMode");
 
         if (brushMode === "inside") {
             brushModeIcon = "brushmodeinside";
@@ -186,45 +110,45 @@ class ToolSettings extends Component<ToolSettingsProps> {
         return (
             <div id="brush-modes-popover-button">
                 <ToolSettingsInput
-                    renderSize={this.props.renderSize}
+                    renderSize={renderSize}
                     name="Brush Modes"
                     icon={brushModeIcon}
                     type="checkbox"
-                    value={this.props.showBrushModes}
-                    onChange={this.props.toggleBrushModes}
+                    value={showBrushModes}
+                    onChange={toggleBrushModes}
                 />
                 <PopupMenu
-                    mobile={this.props.isMobile}
-                    isOpen={this.props.showBrushModes && !this.props.previewPlaying}
-                    toggle={this.props.toggleBrushModes}
+                    mobile={isMobile}
+                    isOpen={showBrushModes && !previewPlaying}
+                    toggle={toggleBrushModes}
                     target="brush-modes-popover-button"
                     className={"more-canvas-actions-popover"}
                 >
                     <div className="brush-modes-widget">
                         <div className="actions-container">
                             <ToolSettingsInput
-                                renderSize={this.props.renderSize}
+                                renderSize={renderSize}
                                 name="None"
                                 icon="brushmodenone"
                                 type="checkbox"
-                                value={this.props.getToolSetting("brushMode") === "none"}
-                                onChange={() => this.props.setToolSetting("brushMode", "none")}
+                                value={getToolSettingProp("brushMode") === "none"}
+                                onChange={() => setToolSettingProp("brushMode", "none")}
                             />
                             <ToolSettingsInput
-                                renderSize={this.props.renderSize}
+                                renderSize={renderSize}
                                 name="Inside"
                                 icon="brushmodeinside"
                                 type="checkbox"
-                                value={this.props.getToolSetting("brushMode") === "inside"}
-                                onChange={() => this.props.setToolSetting("brushMode", "inside")}
+                                value={getToolSettingProp("brushMode") === "inside"}
+                                onChange={() => setToolSettingProp("brushMode", "inside")}
                             />
                             <ToolSettingsInput
-                                renderSize={this.props.renderSize}
+                                renderSize={renderSize}
                                 name="Outside"
                                 icon="brushmodeoutside"
                                 type="checkbox"
-                                value={this.props.getToolSetting("brushMode") === "outside"}
-                                onChange={() => this.props.setToolSetting("brushMode", "outside")}
+                                value={getToolSettingProp("brushMode") === "outside"}
+                                onChange={() => setToolSettingProp("brushMode", "outside")}
                             />
                         </div>
                     </div>
@@ -233,111 +157,191 @@ class ToolSettings extends Component<ToolSettingsProps> {
         );
     };
 
-    private renderCornerRadius = (): JSX.Element => {
+    const renderCornerRadius = (): JSX.Element => {
         return (
             <ToolSettingsInput
-                renderSize={this.props.renderSize}
-                isMobile={this.props.isMobile}
+                renderSize={renderSize}
+                isMobile={isMobile}
                 name="Corner Radius"
                 icon="cornerradius"
                 type="numeric"
-                value={this.getToolSetting("cornerRadius")}
-                onChange={(val) => this.setToolSetting("cornerRadius", val)}
-                inputRestrictions={this.props.getToolSettingRestrictions(
+                value={getToolSetting("cornerRadius")}
+                onChange={(val) => setToolSetting("cornerRadius", val)}
+                inputRestrictions={getToolSettingRestrictions(
                     "cornerRadius"
                 )}
             />
         );
     };
 
-    private renderBrushSmoothing = (): JSX.Element => {
+    const renderBrushSmoothing = (): JSX.Element => {
         return (
             <ToolSettingsInput
-                renderSize={this.props.renderSize}
-                isMobile={this.props.isMobile}
+                renderSize={renderSize}
+                isMobile={isMobile}
                 name="Brush Smoothing"
                 icon="brushsmoothness"
                 type="numeric"
-                value={this.getToolSetting("brushStabilizerWeight")}
-                onChange={(val) => this.setToolSetting("brushStabilizerWeight", val)}
-                inputRestrictions={this.props.getToolSettingRestrictions(
+                value={getToolSetting("brushStabilizerWeight")}
+                onChange={(val) => setToolSetting("brushStabilizerWeight", val)}
+                inputRestrictions={getToolSettingRestrictions(
                     "brushStabilizerWeight"
                 )}
             />
         );
     };
 
-    private renderEraserSize = (): JSX.Element => {
+    const renderEraserSize = (): JSX.Element => {
         return (
             <ToolSettingsInput
-                renderSize={this.props.renderSize}
-                isMobile={this.props.isMobile}
+                renderSize={renderSize}
+                isMobile={isMobile}
                 name="Eraser Size"
                 icon="eraser"
                 type="numeric"
-                value={this.getToolSetting("eraserSize")}
-                onChange={(val) => this.setToolSetting("eraserSize", val)}
-                inputRestrictions={this.props.getToolSettingRestrictions(
+                value={getToolSetting("eraserSize")}
+                onChange={(val) => setToolSetting("eraserSize", val)}
+                inputRestrictions={getToolSettingRestrictions(
                     "eraserSize"
                 )}
             />
         );
     };
 
-    private renderStrokeWidth = (): JSX.Element => {
+    const renderStrokeWidth = (): JSX.Element => {
         return (
             <ToolSettingsInput
-                renderSize={this.props.renderSize}
-                isMobile={this.props.isMobile}
+                renderSize={renderSize}
+                isMobile={isMobile}
                 name="Stroke Width"
                 icon="strokewidth"
                 type="numeric"
-                value={this.getToolSetting("strokeWidth")}
-                onChange={(val) => this.setToolSetting("strokeWidth", val)}
-                inputRestrictions={this.props.getToolSettingRestrictions(
+                value={getToolSetting("strokeWidth")}
+                onChange={(val) => setToolSetting("strokeWidth", val)}
+                inputRestrictions={getToolSettingRestrictions(
                     "strokeWidth"
                 )}
             />
         );
     };
 
-    private renderBrushSize = (): JSX.Element => {
+    const renderBrushSize = (): JSX.Element => {
         return (
             <ToolSettingsInput
-                renderSize={this.props.renderSize}
-                isMobile={this.props.isMobile}
+                renderSize={renderSize}
+                isMobile={isMobile}
                 name="Brush Size"
                 icon="brushsize"
                 type="numeric"
-                value={this.getToolSetting("brushSize")}
-                onChange={(val) => this.setToolSetting("brushSize", val)}
-                inputRestrictions={this.props.getToolSettingRestrictions("brushSize")}
+                value={getToolSetting("brushSize")}
+                onChange={(val) => setToolSetting("brushSize", val)}
+                inputRestrictions={getToolSettingRestrictions("brushSize")}
             />
         );
     };
 
-    private renderGapFillAmount = (): JSX.Element => {
+    const renderGapFillAmount = (): JSX.Element => {
         return (
             <ToolSettingsInput
                 name="Gap Fill Amount"
                 icon="gapfillamount"
                 type="numeric"
-                value={this.getToolSetting("gapFillAmount")}
-                onChange={(val) => this.setToolSetting("gapFillAmount", val)}
-                inputRestrictions={this.props.getToolSettingRestrictions(
+                value={getToolSetting("gapFillAmount")}
+                onChange={(val) => setToolSetting("gapFillAmount", val)}
+                inputRestrictions={getToolSettingRestrictions(
                     "gapFillAmount"
                 )}
             />
         );
     };
 
-    private getToolSetting = (setting: string): any => {
-        return this.props.getToolSetting(setting);
+    const renderBrushSettings = (): JSX.Element => {
+        return (
+            <div className="settings-input-container">
+                {renderBrushSize()}
+                {renderBrushSmoothing()}
+                {renderEnablePressure()}
+                {renderEnableRelativeBrushSize()}
+                {renderBrushMode()}
+            </div>
+        );
     };
 
-    private setToolSetting = (setting: string, newValue: any): void => {
-        this.props.setToolSetting(setting, newValue);
+    const renderPencilSettings = (): JSX.Element => {
+        return (
+            <div className="settings-input-container">
+                {renderStrokeWidth()}
+            </div>
+        );
     };
-}
+
+    const renderEraserSettings = (): JSX.Element => {
+        return (
+            <div className="settings-input-container">
+                {renderEraserSize()}
+            </div>
+        );
+    };
+
+    const renderRectangleSettings = (): JSX.Element => {
+        return (
+            <div className="settings-input-container">
+                {renderStrokeWidth()}
+                {renderCornerRadius()}
+            </div>
+        );
+    };
+
+    const renderEllipseSettings = (): JSX.Element => {
+        return (
+            <div className="settings-input-container">
+                {renderStrokeWidth()}
+            </div>
+        );
+    };
+
+    const renderLineSettings = (): JSX.Element => {
+        return (
+            <div className="settings-input-container">
+                {renderStrokeWidth()}
+            </div>
+        );
+    };
+
+    const renderTextSettings = (): JSX.Element => {
+        return <div className="settings-input-container" />;
+    };
+
+    const renderFillbucketSettings = (): JSX.Element => {
+        return (
+            <div className="settings-input-container">
+                {renderGapFillAmount()}
+            </div>
+        );
+    };
+
+    const settingsFunctions = useMemo(() => ({
+        cursor: renderCursorSettings,
+        brush: renderBrushSettings,
+        pencil: renderPencilSettings,
+        eraser: renderEraserSettings,
+        rectangle: renderRectangleSettings,
+        ellipse: renderEllipseSettings,
+        line: renderLineSettings,
+        text: renderTextSettings,
+        fillbucket: renderFillbucketSettings,
+    }), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const renderSettings = (): JSX.Element => {
+        const renderer = settingsFunctions[activeTool as keyof typeof settingsFunctions];
+        if (renderer) {
+            return renderer();
+        }
+
+        return <div className="default" />;
+    };
+
+    return <div id="settings-panel-container">{renderSettings()}</div>;
+};
 
 export default ToolSettings;

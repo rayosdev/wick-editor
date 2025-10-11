@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 import ScriptWindowRow from './ScriptWindowRow/ScriptWindowRow';
 import './_inspectorscriptwindow.scss';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
@@ -30,37 +30,40 @@ interface InspectorScriptWindowProps {
   editScript: (name: string) => void;
 }
 
-class InspectorScriptWindow extends Component<InspectorScriptWindowProps> {
-  renderScriptRow = (scriptobj: ScriptObject, i: number): JSX.Element => {
+const InspectorScriptWindow: React.FC<InspectorScriptWindowProps> = ({
+  scriptInfoInterface,
+  script,
+  deleteScript,
+  editScript
+}) => {
+  const renderScriptRow = (scriptobj: ScriptObject, i: number): JSX.Element => {
     return (
       <ScriptWindowRow
-        scriptInfoInterface={this.props.scriptInfoInterface}
+        scriptInfoInterface={scriptInfoInterface}
         key={i}
         name={scriptobj.name}
-        deleteScript={() => { this.props.deleteScript(this.props.script, scriptobj.name) }}
-        editScript={() => { this.props.editScript(scriptobj.name) }} />
+        deleteScript={() => { deleteScript(script, scriptobj.name) }}
+        editScript={() => { editScript(scriptobj.name) }} />
     );
-  }
+  };
 
-  render(): JSX.Element {
-    return (
-      <div className="inspector-script-window-container">
-        <div className="inspector-script-window-header">
-          Scripts
-        </div>
-        <div className="inspector-script-window-body">
-          {this.props.script.scripts.map(this.renderScriptRow)}
-          <div className="inspector-script-window-row-container">
-            <ActionButton
-              color="inspector"
-              text="+ add script"
-              action={() => this.props.editScript("add")}
-            />
-          </div>
+  return (
+    <div className="inspector-script-window-container">
+      <div className="inspector-script-window-header">
+        Scripts
+      </div>
+      <div className="inspector-script-window-body">
+        {script.scripts.map(renderScriptRow)}
+        <div className="inspector-script-window-row-container">
+          <ActionButton
+            color="inspector"
+            text="+ add script"
+            action={() => editScript("add")}
+          />
         </div>
       </div>
-    )
-  }
-}
+    </div>
+  );
+};
 
-export default InspectorScriptWindow
+export default InspectorScriptWindow;
