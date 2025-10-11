@@ -726,35 +726,35 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Moves the selected objects down 10 pixels.
    */
-  nudgeSelectionDownMore: AnyFunction = () => {
+  nudgeSelectionDownMore = (): void => {
     this.nudgeSelection(0, 10);
   };
 
   /**
    * Moves the selected objects right 10 pixels.
    */
-  nudgeSelectionRightMore: AnyFunction = () => {
+  nudgeSelectionRightMore = (): void => {
     this.nudgeSelection(10, 0);
   };
 
   /**
    * Moves the selected objects left 10 pixels.
    */
-  nudgeSelectionLeftMore: AnyFunction = () => {
+  nudgeSelectionLeftMore = (): void => {
     this.nudgeSelection(-10, 0);
   };
 
   /**
    * Finish the current nudging operation
    */
-  finishNudgingObject: AnyFunction = () => {
+  finishNudgingObject = (): void => {
     this.projectDidChange({ actionName: "Nudge Elements" });
   };
 
   /**
    * Perform a boolean unite on the selected paths.
    */
-  booleanUnite: AnyFunction = () => {
+  booleanUnite = (): void => {
     this.project.doBooleanOperationOnSelection("unite");
     this.projectDidChange({ actionName: "Boolean Unite" });
   };
@@ -762,7 +762,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Perform a boolean subtraction on the selected paths.
    */
-  booleanSubtract: AnyFunction = () => {
+  booleanSubtract = (): void => {
     this.project.doBooleanOperationOnSelection("subtract");
     this.projectDidChange({ actionName: "Boolean Subtract" });
   };
@@ -770,7 +770,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Perform a boolean intersection on the selected paths.
    */
-  booleanIntersect: AnyFunction = () => {
+  booleanIntersect = (): void => {
     this.project.doBooleanOperationOnSelection("intersect");
     this.projectDidChange({ actionName: "Boolean Intersect" });
   };
@@ -779,16 +779,17 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Updates the Wick Project settings with new values passed in as an object. Will make no changes if input is invalid or the same as the previous settings.
    * @param {object} newSettings an object containing all of the settings to update within the project. Accepts valid project settings such as 'name', 'width', 'height', 'framerate', and 'backgroundColor'.
    */
-  updateProjectSettings: AnyFunction = (newSettings) => {
-    let validKeys = ["name", "width", "height", "backgroundColor", "framerate"];
+  updateProjectSettings = (newSettings: Partial<Record<string, unknown>>): void => {
+    const validKeys = ["name", "width", "height", "backgroundColor", "framerate"];
     let updated = false;
 
     Object.keys(newSettings).forEach((key) => {
-      if (validKeys.indexOf(key) === -1) return;
+      if (!validKeys.includes(key)) return;
 
-      let oldVal = this.project[key];
-      if (oldVal !== newSettings[key]) {
-        this.project[key] = newSettings[key];
+      const newValue = newSettings[key];
+      const oldValue = this.project[key];
+      if (oldValue !== newValue) {
+        this.project[key] = newValue;
         updated = true;
       }
     });
@@ -801,7 +802,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Sets the project focus to the timeline of the currently selected clip.
    */
-  focusTimelineOfSelectedObject: AnyFunction = () => {
+  focusTimelineOfSelectedObject = (): void => {
     this.project.focusTimelineOfSelectedClip();
     this.projectDidChange({ actionName: "Focus Selected Object Timeline" });
   };
@@ -809,7 +810,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Sets the project focus to the parent timeline of the currently selected clip.
    */
-  focusTimelineOfParentClip: AnyFunction = () => {
+  focusTimelineOfParentClip = (): void => {
     this.project.focusTimelineOfParentClip();
     this.projectDidChange({ actionName: "Focus Timeline of Parent Clip" });
   };
@@ -821,7 +822,12 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {number} y - The y location of the image after creation in relation to the window.
    * @param {boolean} isCanvasSpace - If not set to true, x and y will be converted from screen space to canvas space
    */
-  createImageFromAsset: AnyFunction = (uuid, x, y, isCanvasSpace) => {
+  createImageFromAsset = (
+    uuid: string,
+    x: number,
+    y: number,
+    isCanvasSpace?: boolean
+  ): void => {
     // convert screen position to wick project position
     let paper = this.project.view.paper;
     let dropPoint = new paper.Point();
@@ -834,7 +840,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       dropPoint = paper.view.viewToProject(new window.paper.Point(x, y));
     }
 
-    let obj = window.Wick.ObjectCache.getObjectByUUID(uuid);
+  const obj = window.Wick.ObjectCache.getObjectByUUID(uuid);
 
     if (obj instanceof window.Wick.ImageAsset) {
       this.project.createImagePathFromAsset(
@@ -875,8 +881,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Creates an instance of the selected asset at the center of the canvas
    */
-  createInstanceOfSelectedAsset: AnyFunction = () => {
-    let uuid = this.project.selection.getSelectedObject().uuid;
+  createInstanceOfSelectedAsset = (): void => {
+    const uuid = this.project.selection.getSelectedObject().uuid;
     this.createImageFromAsset(
       uuid,
       this.project.width / 2,
@@ -892,12 +898,17 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {number} y - The y location of the image after creation in relation to the window.
    * @param {boolean} drop - If true, will drop the asset with the uuid onto the hovered frame, modifying the frame.
    */
-  dragSoundOntoTimeline: AnyFunction = (uuid, x, y, drop) => {
+  dragSoundOntoTimeline = (
+    uuid: string,
+    x: number,
+    y: number,
+    drop: boolean
+  ): void => {
     this.project.guiElement.dragAssetAtPosition(uuid, x, y, drop);
   };
 
-  addSoundToActiveFrame: AnyFunction = (soundAsset) => {
-    let frame = this.project.activeFrame;
+  addSoundToActiveFrame = (soundAsset: unknown): void => {
+    const frame = this.project.activeFrame;
     if (frame !== null) {
       frame.sound = soundAsset;
       this.projectDidChange({ actionName: "Add Sound to Active Frame" });
@@ -933,7 +944,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {string} filename - name of file
    * @param {File} file - file to add
    */
-  addFileToBuiltinPreviews: AnyFunction = (filename, file) => {
+  addFileToBuiltinPreviews = (filename: string, file: File): void => {
     this.builtinPreviews[filename] = { blob: file };
 
     let reader = new FileReader();
