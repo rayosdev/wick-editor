@@ -21,6 +21,7 @@
 The current strategy focused on **renaming files** (`.jsx` → `.tsx`) but didn't address **type quality**. This created a false sense of completion.
 
 ### What We Have Now:
+
 ```typescript
 // ❌ Technically TypeScript, but not actually type-safe
 importFileAsAsset: (file: unknown) => void;
@@ -30,6 +31,7 @@ getSelectedTimelineObjects: (...args: unknown[]) => unknown;
 ```
 
 ### What We Need:
+
 ```typescript
 // ✅ Proper TypeScript with actual type safety
 importFileAsAsset: (file: File | WickAsset) => void;
@@ -43,10 +45,12 @@ getSelectedTimelineObjects: () => TimelineObject[];
 ## New 3-Phase Strategy
 
 ### Phase 1: Type System Foundation (PRIORITY)
+
 **Goal**: Define core types that everything depends on  
 **Time**: 1-2 weeks
 
 #### 1.1 Create Core Type Definitions
+
 Create `src/Editor/types/core.types.ts`:
 
 ```typescript
@@ -84,7 +88,7 @@ export interface WickFrame {
 export interface WickAsset {
   uuid: string;
   name: string;
-  type: 'image' | 'sound' | 'clip';
+  type: "image" | "sound" | "clip";
   src: string;
 }
 
@@ -140,7 +144,7 @@ export interface Transformation {
   opacity: number;
 }
 
-export type EasingType = 'linear' | 'easeIn' | 'easeOut' | 'easeInOut';
+export type EasingType = "linear" | "easeIn" | "easeOut" | "easeInOut";
 
 // Selection Types
 export type TimelineObject = WickFrame | WickTween;
@@ -150,10 +154,16 @@ export type SelectableObject = CanvasObject | TimelineObject | WickAsset;
 ```
 
 #### 1.2 Create Editor Type Definitions
+
 Create `src/Editor/types/editor.types.ts`:
 
 ```typescript
-import { WickProject, WickAsset, CanvasObject, TimelineObject } from './core.types';
+import {
+  WickProject,
+  WickAsset,
+  CanvasObject,
+  TimelineObject,
+} from "./core.types";
 
 // Tool Settings
 export interface ToolSettings {
@@ -211,13 +221,20 @@ export interface AssetLibraryItem extends WickAsset {
 // Console Logs
 export interface ConsoleLogEntry {
   id: string;
-  method: 'log' | 'warn' | 'error' | 'info';
+  method: "log" | "warn" | "error" | "info";
   data: unknown[];
   timestamp: number;
 }
 
 // Render Types
-export type RenderType = 'gif' | 'video' | 'zip' | 'html' | 'image-sequence' | 'audio' | 'svg';
+export type RenderType =
+  | "gif"
+  | "video"
+  | "zip"
+  | "html"
+  | "image-sequence"
+  | "audio"
+  | "svg";
 
 export interface RenderOptions {
   type: RenderType;
@@ -227,6 +244,7 @@ export interface RenderOptions {
 ```
 
 #### 1.3 Create Selection Interface Types
+
 Create `src/Editor/types/selection.types.ts`:
 
 ```typescript
@@ -240,7 +258,7 @@ import {
   CanvasObject,
   TimelineObject,
   ScriptableObject,
-} from './core.types';
+} from "./core.types";
 
 export interface SelectionInterface {
   // Getters
@@ -255,20 +273,25 @@ export interface SelectionInterface {
   getSelectedSoundAssets(): WickAsset[];
   getSelectedImageAssets(): WickAsset[];
   getSelectedScriptableObject(): ScriptableObject | null;
-  
+
   // Setters
   selectObject(object: CanvasObject | TimelineObject | WickAsset): void;
   selectObjects(objects: (CanvasObject | TimelineObject | WickAsset)[]): void;
   deselectObjects(objects: (CanvasObject | TimelineObject | WickAsset)[]): void;
   deselectAll(): void;
-  
+
   // Checks
   isObjectSelected(object: CanvasObject | TimelineObject | WickAsset): boolean;
-  
+
   // Attributes
-  getSelectionAttribute(attributeName: string): string | number | boolean | null;
-  setSelectionAttribute(attribute: string, newValue: string | number | boolean): void;
-  
+  getSelectionAttribute(
+    attributeName: string
+  ): string | number | boolean | null;
+  setSelectionAttribute(
+    attribute: string,
+    newValue: string | number | boolean
+  ): void;
+
   // Movement
   moveSelection(target: WickFrame | WickLayer, index: number): void;
 }
@@ -285,12 +308,14 @@ export interface SelectionInterface {
 ---
 
 ### Phase 2: Replace `unknown` Types (CURRENT PRIORITY)
+
 **Goal**: Eliminate all `unknown` types with proper definitions  
 **Time**: 2-3 weeks
 
 #### Priority Order:
 
 **2.1 Core Editor (Week 1)**
+
 - `src/Editor/EditorCore.ts` - **60+ instances** of `unknown`
   - Selection methods
   - Tool settings
@@ -298,21 +323,25 @@ export interface SelectionInterface {
   - Asset handling
 
 **2.2 Editor Wrapper & Props (Week 1)**
+
 - `src/Editor/EditorWrapper.tsx` - Props interface
 - `src/Editor/Editor.jsx` - Main component (still `.jsx`!)
 
 **2.3 Major Panels (Week 2)**
+
 - `src/Editor/Panels/Timeline/Timeline.tsx`
 - `src/Editor/Panels/Inspector/Inspector.jsx` (convert to `.tsx`)
 - `src/Editor/Panels/Canvas/Canvas.jsx` (convert to `.tsx`)
 - `src/Editor/Panels/Outliner/Outliner.jsx` (convert to `.tsx`)
 
 **2.4 Modal & Popouts (Week 2-3)**
+
 - `src/Editor/Modals/ModalHandler/ModalHandler.tsx`
 - `src/Editor/PopOuts/WickCodeEditor/WickCodeEditor.tsx`
 - `src/Editor/PopOuts/WickCodeEditor/ConsolePanel.tsx`
 
 **2.5 Remaining Components (Week 3)**
+
 - Asset Library
 - Toolbox
 - Menu Bar
@@ -321,32 +350,21 @@ export interface SelectionInterface {
 ---
 
 ### Phase 3: Convert Remaining `.jsx` Files (2-3 weeks)
+
 **Goal**: Complete file extension conversion with proper types from day one
 
 #### Files to Convert (17 total):
 
 **High Priority** (Core functionality):
+
 1. `src/index.jsx` → `src/index.tsx`
 2. `src/Editor/Editor.jsx` → `src/Editor/Editor.tsx`
 3. `src/Editor/EditorCore.jsx` → Already done ✅
 4. `src/Editor/EditorWrapper.jsx` → Already done ✅
 
-**Medium Priority** (Main panels):
-5. `src/Editor/Panels/Canvas/Canvas.jsx`
-6. `src/Editor/Panels/Timeline/Timeline.jsx` → Already done ✅
-7. `src/Editor/Panels/Inspector/Inspector.jsx`
-8. `src/Editor/Panels/AssetLibrary/AssetLibrary.jsx`
-9. `src/Editor/Panels/Toolbox/Toolbox.jsx`
-10. `src/Editor/Panels/MenuBar/MenuBar.jsx`
-11. `src/Editor/Panels/Outliner/Outliner.jsx`
+**Medium Priority** (Main panels): 5. `src/Editor/Panels/Canvas/Canvas.jsx` 6. `src/Editor/Panels/Timeline/Timeline.jsx` → Already done ✅ 7. `src/Editor/Panels/Inspector/Inspector.jsx` 8. `src/Editor/Panels/AssetLibrary/AssetLibrary.jsx` 9. `src/Editor/Panels/Toolbox/Toolbox.jsx` 10. `src/Editor/Panels/MenuBar/MenuBar.jsx` 11. `src/Editor/Panels/Outliner/Outliner.jsx`
 
-**Lower Priority** (Supporting components):
-12. `src/Editor/Panels/Outliner/OutlinerObject/OutlinerObject.jsx`
-13. `src/Editor/Panels/Toolbox/ToolSettings/ToolSettings.jsx`
-14. `src/Editor/Panels/MobileContainer/MobileContainer.jsx`
-15. `src/Editor/Panels/MobileContainer/MobileInspector/MobileInspector.jsx` → Already done ✅
-16. `src/Editor/PopOuts/WickCodeEditor/WickCodeEditor.jsx` → Already done ✅
-17. `src/Editor/PopOuts/WickCodeEditor/ConsolePanel.jsx` → Already done ✅
+**Lower Priority** (Supporting components): 12. `src/Editor/Panels/Outliner/OutlinerObject/OutlinerObject.jsx` 13. `src/Editor/Panels/Toolbox/ToolSettings/ToolSettings.jsx` 14. `src/Editor/Panels/MobileContainer/MobileContainer.jsx` 15. `src/Editor/Panels/MobileContainer/MobileInspector/MobileInspector.jsx` → Already done ✅ 16. `src/Editor/PopOuts/WickCodeEditor/WickCodeEditor.jsx` → Already done ✅ 17. `src/Editor/PopOuts/WickCodeEditor/ConsolePanel.jsx` → Already done ✅
 
 ---
 
@@ -364,23 +382,23 @@ interface ComponentProps {
 }
 
 // Step 2: Convert to functional component with typed props
-const Component: React.FC<ComponentProps> = ({ 
-  project, 
+const Component: React.FC<ComponentProps> = ({
+  project,
   onProjectChange,
-  selectedObjects 
+  selectedObjects
 }) => {
   // Step 3: Type all state
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [tool, setTool] = useState<ToolType>('brush');
-  
+
   // Step 4: Type all refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
+
   // Step 5: Type all callbacks
   const handleClick = (event: React.MouseEvent<HTMLDivElement>): void => {
     // ...
   };
-  
+
   return (/* JSX */);
 };
 
@@ -398,10 +416,12 @@ const thing = data as unknown as SpecificType;
 
 // ✅ DO THIS instead - type guards
 function isWickClip(obj: unknown): obj is WickClip {
-  return typeof obj === 'object' && 
-         obj !== null && 
-         'timeline' in obj &&
-         'identifier' in obj;
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "timeline" in obj &&
+    "identifier" in obj
+  );
 }
 
 if (isWickClip(selectedObject)) {
@@ -434,12 +454,12 @@ if (isWickClip(selectedObject)) {
 
 ## Timeline
 
-| Phase | Duration | Goal |
-|-------|----------|------|
-| **Phase 1** | 1-2 weeks | Type foundations |
-| **Phase 2** | 2-3 weeks | Replace `unknown` |
+| Phase       | Duration  | Goal                 |
+| ----------- | --------- | -------------------- |
+| **Phase 1** | 1-2 weeks | Type foundations     |
+| **Phase 2** | 2-3 weeks | Replace `unknown`    |
 | **Phase 3** | 2-3 weeks | Convert `.jsx` files |
-| **Total** | 5-8 weeks | Full type safety |
+| **Total**   | 5-8 weeks | Full type safety     |
 
 ---
 

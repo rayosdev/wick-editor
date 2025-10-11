@@ -40,7 +40,6 @@ The `// @ts-nocheck` directive at the top of files tells TypeScript to **skip ty
 1. **`src/Editor/Panels/MenuBar/MenuBarIconButton/MenuBarIconButton.tsx`**
    - Reason: Unused React import (legacy pattern)
    - Work needed: Remove `import React` line (react-jsx handles it)
-   
 2. **`src/Editor/Panels/MenuBar/MenuBarIconButton/MenuBarIconButtonComponent.tsx`**
    - Reason: Unused React import (legacy pattern)
    - Work needed: Remove `import React` line (react-jsx handles it)
@@ -54,7 +53,6 @@ The `// @ts-nocheck` directive at the top of files tells TypeScript to **skip ty
 1. **`tests/canvas-interactions.spec.ts`**
    - Reason: Unused variables in test setup
    - Work needed: Remove unused `initialCenter` and `page` variables
-   
 2. **`tests/debug.spec.ts`**
    - Reason: Missing type annotations for arrays
    - Work needed: Add types like `any[]` or `Error[]` to array declarations
@@ -66,12 +64,14 @@ The `// @ts-nocheck` directive at the top of files tells TypeScript to **skip ty
 ### Step 1: Choose a File
 
 Start with files that are:
+
 - Small and focused (< 100 lines)
 - Have clear inputs/outputs
 - Low dependencies on other files
 - Used frequently (high value)
 
 **Recommended starting points:**
+
 - Utility functions in `src/Editor/Util/`
 - Helper files that export pure functions
 - Small React components with minimal props
@@ -79,6 +79,7 @@ Start with files that are:
 ### Step 2: Remove `@ts-nocheck`
 
 Delete the first line:
+
 ```typescript
 // @ts-nocheck - TODO: Remove when converting to proper TypeScript
 ```
@@ -86,6 +87,7 @@ Delete the first line:
 ### Step 3: Fix Type Errors
 
 Run type checking to see what needs fixing:
+
 ```bash
 npx tsc --noEmit
 ```
@@ -93,15 +95,17 @@ npx tsc --noEmit
 Common patterns:
 
 #### Unused Imports
+
 ```typescript
 // ❌ Before (with @ts-nocheck)
-import React from 'react';
+import React from "react";
 
 // ✅ After (removed - react-jsx handles it)
 // No React import needed for JSX!
 ```
 
 #### Function Parameters
+
 ```typescript
 // ❌ Before
 function doSomething(value) {
@@ -115,10 +119,15 @@ function doSomething(value: number): number {
 ```
 
 #### React Props
+
 ```typescript
 // ❌ Before
 function MyComponent({ name, age }) {
-  return <div>{name} is {age}</div>;
+  return (
+    <div>
+      {name} is {age}
+    </div>
+  );
 }
 
 // ✅ After
@@ -128,11 +137,16 @@ interface MyComponentProps {
 }
 
 function MyComponent({ name, age }: MyComponentProps) {
-  return <div>{name} is {age}</div>;
+  return (
+    <div>
+      {name} is {age}
+    </div>
+  );
 }
 ```
 
 #### Array Types
+
 ```typescript
 // ❌ Before
 const errors = [];
@@ -164,6 +178,7 @@ If all pass ✅, you're done with that file!
 ### Step 5: Commit
 
 Make small, focused commits:
+
 ```bash
 git add src/Editor/Util/SomeFile.ts
 git commit -m "Convert SomeFile to TypeScript (remove @ts-nocheck)"
@@ -196,12 +211,14 @@ Repeat for `MenuBarIconButtonComponent.tsx`
 ### 2. Test Files
 
 **tests/canvas-interactions.spec.ts**
+
 ```typescript
 // Delete unused variables at lines 156 and 180
 // Or use them in your test
 ```
 
 **tests/debug.spec.ts**
+
 ```typescript
 // Change:
 const errors = [];
@@ -217,22 +234,27 @@ const logs: any[] = [];
 ## Benefits of This Approach
 
 ### ✅ No Big Bang Migration
+
 - Convert files at your own pace
 - No pressure to do everything at once
 - Can pause and resume anytime
 
 ### ✅ Strict Mode from Day 1
+
 - All **new** `.ts`/`.tsx` files get strict type checking
 - Catch bugs early in new code
 - Existing code protected by `@ts-nocheck`
 
 ### ✅ Clear Progress Tracking
+
 - Grep for `@ts-nocheck` to see remaining work:
+
 ```bash
 grep -r "@ts-nocheck" src/ tests/
 ```
 
 ### ✅ Zero Risk
+
 - Existing files with `@ts-nocheck` work exactly as before
 - Can't accidentally break working code
 - TypeScript errors don't block builds (Vite uses esbuild)
@@ -249,10 +271,10 @@ grep -r "@ts-nocheck" src/ tests/ | wc -l
 # Result: 4 files
 ```
 
-| Category | Total Files | With @ts-nocheck | Converted | % Complete |
-|----------|-------------|------------------|-----------|------------|
-| Source Files | ~500 | 2 | ~498 | ~99.6% |
-| Test Files | ~5 | 2 | ~3 | ~60% |
+| Category     | Total Files | With @ts-nocheck | Converted | % Complete |
+| ------------ | ----------- | ---------------- | --------- | ---------- |
+| Source Files | ~500        | 2                | ~498      | ~99.6%     |
+| Test Files   | ~5          | 2                | ~3        | ~60%       |
 
 **Note**: Most files are already `.js`/`.jsx` and aren't type-checked yet. The above shows only `.ts`/`.tsx` files.
 
@@ -268,13 +290,13 @@ With strict mode enabled, new TypeScript files automatically get:
 
 ```json
 {
-  "strict": true,                           // All strict checks
-  "noUnusedLocals": true,                   // Catch unused variables
-  "noUnusedParameters": true,               // Catch unused parameters
-  "noFallthroughCasesInSwitch": true,       // Prevent switch bugs
-  "noUncheckedIndexedAccess": true,         // Array safety
-  "jsx": "react-jsx",                       // Modern JSX (no React import)
-  "moduleResolution": "bundler"             // Optimized for Vite
+  "strict": true, // All strict checks
+  "noUnusedLocals": true, // Catch unused variables
+  "noUnusedParameters": true, // Catch unused parameters
+  "noFallthroughCasesInSwitch": true, // Prevent switch bugs
+  "noUncheckedIndexedAccess": true, // Array safety
+  "jsx": "react-jsx", // Modern JSX (no React import)
+  "moduleResolution": "bundler" // Optimized for Vite
 }
 ```
 
