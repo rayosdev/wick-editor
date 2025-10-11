@@ -110,7 +110,10 @@ export type {
   ToastOptions,
 
   // Script Info Interface
+  ScriptObject,
+  Script,
   ScriptInfoInterface,
+  ScriptWindowScriptInfoInterface,
 
   // Action History
   ActionOptions,

@@ -258,12 +258,25 @@ export interface ToastOptions {
 // Script Info Interface
 // ============================================================================
 
+export interface ScriptObject {
+  name: string;
+}
+
+export interface Script {
+  scripts: ScriptObject[];
+}
+
 export interface ScriptInfoInterface {
   projectReference: WickProject;
   scriptOwnerReference: CanvasObject | TimelineObject;
   updateScript: (newSrc: string) => void;
   scriptSrc: string;
   scriptName: string;
+}
+
+export interface ScriptWindowScriptInfoInterface {
+  scriptsByType: Record<string, string[]>;
+  scriptTypeColors: Record<string, string>;
 }
 
 // ============================================================================

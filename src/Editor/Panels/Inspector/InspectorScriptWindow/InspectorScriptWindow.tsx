@@ -21,17 +21,10 @@ import { Component } from 'react';
 import ScriptWindowRow from './ScriptWindowRow/ScriptWindowRow';
 import './_inspectorscriptwindow.scss';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
-
-interface ScriptObject {
-  name: string;
-}
-
-interface Script {
-  scripts: ScriptObject[];
-}
+import type { Script, ScriptWindowScriptInfoInterface, ScriptObject } from 'Editor/types';
 
 interface InspectorScriptWindowProps {
-  scriptInfoInterface: any;
+  scriptInfoInterface: ScriptWindowScriptInfoInterface;
   script: Script;
   deleteScript: (script: Script, name: string) => void;
   editScript: (name: string) => void;

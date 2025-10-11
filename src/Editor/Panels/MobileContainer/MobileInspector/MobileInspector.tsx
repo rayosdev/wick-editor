@@ -23,6 +23,11 @@ import "./_mobileinspector.scss";
 import "../../Inspector/_inspectorselector.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 
+import type {
+    Script,
+    ScriptWindowScriptInfoInterface,
+} from "Editor/types";
+
 import MobileInspectorNumericSlider from "./MobileInspectorRow/MobileInspectorRowTypes/MobileInspectorNumericSlider";
 import MobileInspectorTextInput from "./MobileInspectorRow/MobileInspectorRowTypes/MobileInspectorTextInput";
 import MobileInspectorNumericInput from "./MobileInspectorRow/MobileInspectorRowTypes/MobileInspectorNumericInput";
@@ -116,9 +121,9 @@ interface MobileInspectorProps {
     getToolSetting?: (name: string) => string | number | boolean;
     setToolSetting?: (name: string, value: string | number | boolean) => void;
     selectionIsScriptable?: () => boolean;
-    project?: unknown;
-    script?: unknown;
-    scriptInfoInterface?: unknown;
+    project?: any; // Wick Engine project instance (not used in MobileInspector)
+    script?: Script;
+    scriptInfoInterface?: ScriptWindowScriptInfoInterface;
     deleteScript?: AnyFunction;
     editScript?: AnyFunction;
     [key: string]: any;

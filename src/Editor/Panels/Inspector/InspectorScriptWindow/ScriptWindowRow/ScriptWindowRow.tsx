@@ -20,6 +20,7 @@
 import { Component } from 'react';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import './_scriptwindowrow.scss';
+import type { ScriptWindowScriptInfoInterface } from 'Editor/types';
 
 // https://flaviocopes.com/how-to-uppercase-first-letter-javascript/
 const capitalize = (s: string): string => {
@@ -27,14 +28,9 @@ const capitalize = (s: string): string => {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-interface ScriptInfoInterface {
-  scriptsByType: Record<string, string[]>;
-  scriptTypeColors: Record<string, string>;
-}
-
 interface ScriptWindowRowProps {
   name: string;
-  scriptInfoInterface: ScriptInfoInterface;
+  scriptInfoInterface: ScriptWindowScriptInfoInterface;
   editScript: (e?: React.MouseEvent) => void;
   deleteScript: (e?: React.MouseEvent) => void;
 }

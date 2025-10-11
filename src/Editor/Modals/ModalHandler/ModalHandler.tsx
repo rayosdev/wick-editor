@@ -19,6 +19,10 @@
 
 import { Component } from 'react';
 import type { HotKeyMap } from "Editor/types/hotkeys";
+import type {
+  ProjectSettings,
+  CustomHotKeys,
+} from "Editor/types";
 
 import MakeInteractive from '../MakeInteractive/MakeInteractive';
 import AutosaveWarning from '../AutosaveWarning/AutosaveWarning';
@@ -43,42 +47,42 @@ interface ModalHandlerProps {
   createClipFromSelection: (name: string) => void;
   createButtonFromSelection: (name: string) => void;
   createAnimationFromSelection: (name: string) => void;
-  openWarningModal: (info: any) => void;
-  warningModalInfo: any;
+  openWarningModal: (info: any) => void; // TODO: WarningModalInfo type mismatch with SavedProjects
+  warningModalInfo: any; // TODO: WarningModalInfo | null type mismatch
   exportProjectAsVideo: () => void;
   renderProgress: number;
-  renderType: "video" | "gif" | "image sequence";
+  renderType: "video" | "gif" | "image sequence"; // Subset of RenderType used by ExportMedia
   renderStatusMessage: string;
-  project: any;
-  updateProjectSettings: (settings: any) => void;
-  addCustomHotKeys: (keys: any) => void;
+  project: any; // Wick Engine project instance
+  updateProjectSettings: (settings: Partial<ProjectSettings>) => void;
+  addCustomHotKeys: (keys: CustomHotKeys) => void;
   resetCustomHotKeys: () => void;
   keyMap: HotKeyMap;
-  keyMapGroups: any;
-  customHotKeys: any;
+  keyMapGroups: any; // TODO: Define HotKeyMapGroups type
+  customHotKeys: CustomHotKeys;
   colorPickerType: string;
   changeColorPickerType: (type: string) => void;
   updateLastColors: (color: string) => void;
   lastColorsUsed: string[];
   toast: (message: string) => void;
-  createCombinedHotKeyMap: () => any;
-  getToolSetting: (setting: string) => any;
-  setToolSetting: (setting: string, value: any) => void;
-  getToolSettingRestrictions: (setting: string) => any;
-  importFileAsAsset: (file: any) => void;
-  builtinPreviews: any;
-  addFileToBuiltinPreviews: (file: any) => void;
-  isAssetInLibrary: (asset: any) => boolean;
+  createCombinedHotKeyMap: () => HotKeyMap;
+  getToolSetting: (setting: string) => string | number | boolean;
+  setToolSetting: (setting: string, value: string | number | boolean) => void;
+  getToolSettingRestrictions: (setting: string) => any; // TODO: ToolSettingRestrictions return type
+  importFileAsAsset: (file: any) => void; // TODO: File vs Blob mismatch with BuiltinLibrary
+  builtinPreviews: any; // TODO: BuiltinPreview[] vs Record<string, BuiltinPreview> mismatch
+  addFileToBuiltinPreviews: (file: any) => void; // TODO: (file: File) vs (filename: string, blob: Blob) mismatch
+  isAssetInLibrary: (asset: any) => boolean; // TODO: WickAsset vs string mismatch
   editorVersion: string;
   openProjectFileDialog: () => void;
   openNewProjectConfirmation: () => void;
-  localSavedFiles: any[];
-  loadLocalWickFile: (file: any) => void;
-  deleteLocalWickFile: (file: any) => void;
+  localSavedFiles: any[]; // TODO: LocalFileEntry[] vs SavedProject[] mismatch
+  loadLocalWickFile: (file: any) => void; // TODO: LocalFileEntry vs SavedProject mismatch
+  deleteLocalWickFile: (file: any) => void; // TODO: LocalFileEntry vs SavedProject mismatch
   reloadSavedWickFiles: () => void;
   getRenderSize: () => string;
-  loadAutosavedProject: any;
-  clearAutoSavedProject: any;
+  loadAutosavedProject: (callback: () => void) => void;
+  clearAutoSavedProject: (callback: () => void) => void;
   queueModal: (name: string) => void;
   exportProjectAsGif: () => void;
   exportProjectAsStandaloneZip: () => void;
