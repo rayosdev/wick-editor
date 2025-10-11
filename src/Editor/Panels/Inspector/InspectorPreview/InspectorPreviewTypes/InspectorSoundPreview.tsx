@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 import InspectorPreview from 'Editor/Panels/Inspector/InspectorPreview/InspectorPreview';
 
@@ -27,21 +27,20 @@ interface InspectorSoundPreviewProps {
   id?: string;
 }
 
-class InspectorSoundPreview extends Component<InspectorSoundPreviewProps> {
-  render(): JSX.Element {
-    return (
-      <InspectorPreview
-        icon={this.props.icon}
-        preview={true}
-        info={
-          {
-            type: "sound",
-            src: this.props.src
-          }
-        }
-      />
-    )
-  }
-}
+const InspectorSoundPreview: React.FC<InspectorSoundPreviewProps> = ({ 
+  icon, 
+  src 
+}) => {
+  return (
+    <InspectorPreview
+      icon={icon}
+      preview={true}
+      info={{
+        type: "sound",
+        src: src
+      }}
+    />
+  );
+};
 
-export default InspectorSoundPreview
+export default InspectorSoundPreview;

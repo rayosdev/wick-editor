@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import React from 'react';
 
 import './_outlinerdropdown.scss';
 
@@ -11,30 +11,32 @@ interface OutlinerDropdownProps {
   toggle: () => void;
 }
 
-class OutlinerDropdown extends Component<OutlinerDropdownProps> {
-  render(): JSX.Element {
-    const collapsed = this.props.collapsed ? "collapsed" : "expanded";
-    return (
-      this.props.empty ?
-        <img
-          className="outliner-dropdown-icon empty"
-          alt="dropdown-icon"
-          src={emptyDropdownIcon}
-        />
-        :
-        <input
-          type="image"
-          className={"outliner-dropdown-icon " + collapsed}
-          alt="dropdown-icon"
-          src={dropdownIcon}
-          onClick={(e) => {
-            e.stopPropagation();
-            this.props.toggle();
-          }}
-        />
-    );
-  }
-}
+const OutlinerDropdown: React.FC<OutlinerDropdownProps> = ({ 
+  collapsed, 
+  empty, 
+  toggle 
+}) => {
+  const collapsedClass = collapsed ? "collapsed" : "expanded";
+  
+  return empty ? (
+    <img
+      className="outliner-dropdown-icon empty"
+      alt="dropdown-icon"
+      src={emptyDropdownIcon}
+    />
+  ) : (
+    <input
+      type="image"
+      className={`outliner-dropdown-icon ${collapsedClass}`}
+      alt="dropdown-icon"
+      src={dropdownIcon}
+      onClick={(e) => {
+        e.stopPropagation();
+        toggle();
+      }}
+    />
+  );
+};
 
 export default OutlinerDropdown;
 

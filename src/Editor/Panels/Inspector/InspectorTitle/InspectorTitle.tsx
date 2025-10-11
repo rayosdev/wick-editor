@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 import './_inspectortitle.scss';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -26,24 +26,21 @@ interface InspectorTitleProps {
   type?: string;
 }
 
-class InspectorTitle extends Component<InspectorTitleProps> {
-
-  renderSelectionType = (): JSX.Element => {
+const InspectorTitle: React.FC<InspectorTitleProps> = ({ title, type }) => {
+  const renderSelectionType = (): JSX.Element => {
     return (
       <div className="inspector-title-selection-type">
-        {this.props.title}
+        {title}
       </div>
-    )
-  }
+    );
+  };
 
-  render(): JSX.Element {
-    return (
-      <div className="inspector-title">
-        <div className="inspector-title-name">Inspector</div>
-        {this.props.type && this.props.title && this.renderSelectionType()}
-      </div>
-    )
-  }
-}
+  return (
+    <div className="inspector-title">
+      <div className="inspector-title-name">Inspector</div>
+      {type && title && renderSelectionType()}
+    </div>
+  );
+};
 
-export default InspectorTitle
+export default InspectorTitle;

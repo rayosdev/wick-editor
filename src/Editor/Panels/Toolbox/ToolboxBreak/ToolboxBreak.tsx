@@ -18,7 +18,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 import './_toolboxbreak.scss';
 
@@ -27,12 +27,12 @@ interface ToolboxBreakProps {
   className?: string;
 }
 
-class ToolboxBreak extends Component<ToolboxBreakProps> {
-  render(): JSX.Element {
-    return (
-      <div className={this.props.vertical ? "toolbox-break-vertical" : this.props.className ? this.props.className : "toolbox-break"}></div>
-    )
-  }
-}
+const ToolboxBreak: React.FC<ToolboxBreakProps> = ({ vertical, className }) => {
+  const breakClassName = vertical 
+    ? "toolbox-break-vertical" 
+    : className || "toolbox-break";
+  
+  return <div className={breakClassName}></div>;
+};
 
-export default ToolboxBreak
+export default ToolboxBreak;

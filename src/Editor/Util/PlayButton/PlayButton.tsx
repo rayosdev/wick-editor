@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 import './_playbutton.scss'
 
 import iconPlay from 'resources/action-icons/play.png';
@@ -34,21 +34,24 @@ interface PlayButtonProps {
  * PlayButton component - toggles between play and pause icons
  * Used throughout the editor for animation playback controls
  */
-class PlayButton extends Component<PlayButtonProps> {
-  render(): JSX.Element {
-    return (
-      <input
-        data-tip
-        id={this.props.id}
-        data-for={this.props.id}
-        type="image"
-        className={"play-icon " + this.props.className}
-        alt={"playing button"}
-        src={(this.props.playing ? iconPause : iconPlay)}
-        onClick={this.props.action}
-        />
-    )
-  }
-}
+const PlayButton: React.FC<PlayButtonProps> = ({ 
+  id, 
+  className, 
+  playing, 
+  action 
+}) => {
+  return (
+    <input
+      data-tip
+      id={id}
+      data-for={id}
+      type="image"
+      className={`play-icon ${className || ''}`}
+      alt="playing button"
+      src={playing ? iconPause : iconPlay}
+      onClick={action}
+    />
+  );
+};
 
-export default PlayButton
+export default PlayButton;

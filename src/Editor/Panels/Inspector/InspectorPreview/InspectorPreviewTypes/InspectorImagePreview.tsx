@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 
 import InspectorPreview from 'Editor/Panels/Inspector/InspectorPreview/InspectorPreview';
 
@@ -27,21 +27,20 @@ interface InspectorImagePreviewProps {
   id?: string;
 }
 
-class InspectorImagePreview extends Component<InspectorImagePreviewProps> {
-  render(): JSX.Element {
-    return (
-      <InspectorPreview
-        icon={this.props.icon}
-        preview={true}
-        info={
-          {
-            type: "image",
-            src: this.props.src
-          }
-        }
-      />
-    )
-  }
-}
+const InspectorImagePreview: React.FC<InspectorImagePreviewProps> = ({ 
+  icon, 
+  src 
+}) => {
+  return (
+    <InspectorPreview
+      icon={icon}
+      preview={true}
+      info={{
+        type: "image",
+        src: src
+      }}
+    />
+  );
+};
 
-export default InspectorImagePreview
+export default InspectorImagePreview;

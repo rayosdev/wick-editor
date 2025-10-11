@@ -1,4 +1,4 @@
-import { Component } from "react";
+import React from "react";
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
@@ -11,24 +11,25 @@ interface OutlinerExpandButtonProps {
   toggleOutliner: (e?: React.MouseEvent) => void;
 }
 
-class OutlinerExpandButton extends Component<OutlinerExpandButtonProps> {
-  render(): JSX.Element {
-    return (
-      <ActionButton
-        color="tool"
-        isActive={() => false}
-        id="outliner-toggle"
-        tooltip={this.props.expanded ? "Hide Outliner" : "Show Outliner"}
-        action={this.props.toggleOutliner}
-        tooltipPlace="left"
-        icon="outliner"
-        className="outliner-expand-button"
-        iconClassName={classNames("outliner-toggle-icon", {
-          "outliner-expand-button-closed": !this.props.expanded,
-        })}
-      />
-    );
-  }
-}
+const OutlinerExpandButton: React.FC<OutlinerExpandButtonProps> = ({ 
+  expanded, 
+  toggleOutliner 
+}) => {
+  return (
+    <ActionButton
+      color="tool"
+      isActive={() => false}
+      id="outliner-toggle"
+      tooltip={expanded ? "Hide Outliner" : "Show Outliner"}
+      action={toggleOutliner}
+      tooltipPlace="left"
+      icon="outliner"
+      className="outliner-expand-button"
+      iconClassName={classNames("outliner-toggle-icon", {
+        "outliner-expand-button-closed": !expanded,
+      })}
+    />
+  );
+};
 
 export default OutlinerExpandButton;

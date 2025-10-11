@@ -1,4 +1,4 @@
-import { Component } from "react";
+import React from "react";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
 import "../_outliner.scss";
@@ -12,29 +12,30 @@ interface OutlinerLayerButtonsProps {
   on?: boolean;
 }
 
-class OutlinerLayerButtons extends Component<OutlinerLayerButtonsProps> {
-  render(): JSX.Element {
-    return (
-      <ActionButton
-        color="tool"
-        id={this.props.tooltip + "widget"}
-        className="widget"
-        action={() => {
-          //e.stopPropagation();
-          this.props.onClick();
-        }}
-        tooltip={this.props.tooltip}
-        tooltipPlace="left"
-        buttonClassName="no-bg"
-        icon={this.props.icon}
-        iconClassName={classNames(
-          this.props.on === undefined || this.props.on
-            ? "widget-on"
-            : "widget-off"
-        )}
-      />
-    );
-  }
-}
+const OutlinerLayerButtons: React.FC<OutlinerLayerButtonsProps> = ({
+  tooltip,
+  onClick,
+  icon,
+  on,
+}) => {
+  return (
+    <ActionButton
+      color="tool"
+      id={`${tooltip}widget`}
+      className="widget"
+      action={() => {
+        //e.stopPropagation();
+        onClick();
+      }}
+      tooltip={tooltip}
+      tooltipPlace="left"
+      buttonClassName="no-bg"
+      icon={icon}
+      iconClassName={classNames(
+        on === undefined || on ? "widget-on" : "widget-off"
+      )}
+    />
+  );
+};
 
 export default OutlinerLayerButtons;
