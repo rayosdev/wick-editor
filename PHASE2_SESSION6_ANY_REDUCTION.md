@@ -66,12 +66,15 @@ export interface GeneralWarningInfo extends WarningModalInfoBase {
 export type WarningModalInfo = SavedProjectsWarningInfo | GeneralWarningInfo;
 
 // Type guard
-export function isGeneralWarningInfo(info: WarningModalInfo): info is GeneralWarningInfo {
-  return 'acceptIcon' in info && 'cancelIcon' in info && 'finalAction' in info;
+export function isGeneralWarningInfo(
+  info: WarningModalInfo
+): info is GeneralWarningInfo {
+  return "acceptIcon" in info && "cancelIcon" in info && "finalAction" in info;
 }
 ```
 
 **Benefits**:
+
 - Type-safe warning modal handling
 - Proper IntelliSense support
 - Runtime type checking available
@@ -90,12 +93,14 @@ export function isGeneralWarningInfo(info: WarningModalInfo): info is GeneralWar
 export type ProjectFileEntry = LocalFileEntry | SavedProject;
 
 // Type guards
-export function isLocalFileEntry(file: ProjectFileEntry): file is LocalFileEntry {
-  return 'handle' in file && 'lastModified' in file;
+export function isLocalFileEntry(
+  file: ProjectFileEntry
+): file is LocalFileEntry {
+  return "handle" in file && "lastModified" in file;
 }
 
 export function isSavedProject(file: ProjectFileEntry): file is SavedProject {
-  return 'name' in file && !('handle' in file);
+  return "name" in file && !("handle" in file);
 }
 ```
 
@@ -125,6 +130,7 @@ export interface BuiltinPreview {
 ```
 
 **Benefits**:
+
 - Clear distinction between the two uses
 - No confusion about which type to use
 - Documents the architectural difference
@@ -144,6 +150,7 @@ interface ModalHandlerProps {
 ```
 
 **Why `unknown` instead of union type**:
+
 - EditorWrapper provides `Map<string, BuiltinPreview>`
 - BuiltinLibrary expects `Record<string, BuiltinLibraryPreview>`
 - These have different structures (Map vs Record, different preview shapes)
@@ -155,16 +162,19 @@ interface ModalHandlerProps {
 ### 5. Fixed Specific Types Where Possible
 
 **Before**:
+
 ```typescript
 getToolSettingRestrictions: (setting: string) => any;
 ```
 
 **After**:
+
 ```typescript
 getToolSettingRestrictions: (setting: string) => ToolSettingRestrictions;
 ```
 
 **Benefits**:
+
 - Proper return type from EditorWrapper
 - Type-safe usage in child components
 - IntelliSense shows available properties
@@ -175,20 +185,20 @@ getToolSettingRestrictions: (setting: string) => ToolSettingRestrictions;
 
 ### Types Now Used:
 
-| Prop | Type | Notes |
-|------|------|-------|
-| `openWarningModal` | `(info: WarningModalInfo) => void` | Union type ✅ |
-| `warningModalInfo` | `WarningModalInfo \| null` | Union type ✅ |
-| `project` | `any` | Wick Engine (no TS defs) ⚠️ |
-| `keyMapGroups` | `any` | TODO: investigate actual type 🔧 |
-| `getToolSettingRestrictions` | `(setting: string) => ToolSettingRestrictions` | Proper type ✅ |
-| `importFileAsAsset` | `(file: File) => void` | EditorWrapper signature ✅ |
-| `builtinPreviews` | `unknown` | Polymorphic (Map vs Record) ⚠️ |
-| `addFileToBuiltinPreviews` | `(file: File) => void` | EditorWrapper signature ✅ |
-| `isAssetInLibrary` | `(asset: WickAsset) => boolean` | EditorWrapper signature ✅ |
-| `localSavedFiles` | `LocalFileEntry[]` | EditorWrapper type ✅ |
-| `loadLocalWickFile` | `(file: LocalFileEntry) => void` | EditorWrapper type ✅ |
-| `deleteLocalWickFile` | `(file: LocalFileEntry) => void` | EditorWrapper type ✅ |
+| Prop                         | Type                                           | Notes                            |
+| ---------------------------- | ---------------------------------------------- | -------------------------------- |
+| `openWarningModal`           | `(info: WarningModalInfo) => void`             | Union type ✅                    |
+| `warningModalInfo`           | `WarningModalInfo \| null`                     | Union type ✅                    |
+| `project`                    | `any`                                          | Wick Engine (no TS defs) ⚠️      |
+| `keyMapGroups`               | `any`                                          | TODO: investigate actual type 🔧 |
+| `getToolSettingRestrictions` | `(setting: string) => ToolSettingRestrictions` | Proper type ✅                   |
+| `importFileAsAsset`          | `(file: File) => void`                         | EditorWrapper signature ✅       |
+| `builtinPreviews`            | `unknown`                                      | Polymorphic (Map vs Record) ⚠️   |
+| `addFileToBuiltinPreviews`   | `(file: File) => void`                         | EditorWrapper signature ✅       |
+| `isAssetInLibrary`           | `(asset: WickAsset) => boolean`                | EditorWrapper signature ✅       |
+| `localSavedFiles`            | `LocalFileEntry[]`                             | EditorWrapper type ✅            |
+| `loadLocalWickFile`          | `(file: LocalFileEntry) => void`               | EditorWrapper type ✅            |
+| `deleteLocalWickFile`        | `(file: LocalFileEntry) => void`               | EditorWrapper type ✅            |
 
 ### Remaining `any` Usage:
 
@@ -204,14 +214,15 @@ Some props are cast to `any` where passed to child components because the child 
 
 ```typescript
 <SavedProjects
-  localSavedFiles={this.props.localSavedFiles as any}  // LocalFileEntry[] → SavedProject[]
-  loadLocalWickFile={this.props.loadLocalWickFile as any}  // (LocalFileEntry) → (SavedProject)
-  deleteLocalWickFile={this.props.deleteLocalWickFile as any}  // (LocalFileEntry) → (SavedProject)
-  openWarningModal={this.props.openWarningModal as any}  // Union type → specific variant
+  localSavedFiles={this.props.localSavedFiles as any} // LocalFileEntry[] → SavedProject[]
+  loadLocalWickFile={this.props.loadLocalWickFile as any} // (LocalFileEntry) → (SavedProject)
+  deleteLocalWickFile={this.props.deleteLocalWickFile as any} // (LocalFileEntry) → (SavedProject)
+  openWarningModal={this.props.openWarningModal as any} // Union type → specific variant
 />
 ```
 
 **Why this is acceptable**:
+
 - **Contained scope**: `as any` only at the boundary, not in the interface
 - **Documented**: Clear comments explain the mismatch
 - **Type-safe elsewhere**: EditorWrapper and ModalHandler props are properly typed
@@ -222,6 +233,7 @@ Some props are cast to `any` where passed to child components because the child 
 ## 🔍 Comparison: Before vs After
 
 ### Before (Session 5):
+
 ```typescript
 interface ModalHandlerProps {
   openWarningModal: (info: any) => void;
@@ -239,18 +251,19 @@ interface ModalHandlerProps {
 ```
 
 ### After (Session 6):
+
 ```typescript
 interface ModalHandlerProps {
-  openWarningModal: (info: WarningModalInfo) => void;  // Union type ✅
-  warningModalInfo: WarningModalInfo | null;  // Union type ✅
-  getToolSettingRestrictions: (setting: string) => ToolSettingRestrictions;  // Proper type ✅
-  importFileAsAsset: (file: File) => void;  // Specific type ✅
-  builtinPreviews: unknown;  // Better than any ⚠️
-  addFileToBuiltinPreviews: (file: File) => void;  // Specific type ✅
-  isAssetInLibrary: (asset: WickAsset) => boolean;  // Specific type ✅
-  localSavedFiles: LocalFileEntry[];  // Specific type ✅
-  loadLocalWickFile: (file: LocalFileEntry) => void;  // Specific type ✅
-  deleteLocalWickFile: (file: LocalFileEntry) => void;  // Specific type ✅
+  openWarningModal: (info: WarningModalInfo) => void; // Union type ✅
+  warningModalInfo: WarningModalInfo | null; // Union type ✅
+  getToolSettingRestrictions: (setting: string) => ToolSettingRestrictions; // Proper type ✅
+  importFileAsAsset: (file: File) => void; // Specific type ✅
+  builtinPreviews: unknown; // Better than any ⚠️
+  addFileToBuiltinPreviews: (file: File) => void; // Specific type ✅
+  isAssetInLibrary: (asset: WickAsset) => boolean; // Specific type ✅
+  localSavedFiles: LocalFileEntry[]; // Specific type ✅
+  loadLocalWickFile: (file: LocalFileEntry) => void; // Specific type ✅
+  deleteLocalWickFile: (file: LocalFileEntry) => void; // Specific type ✅
   // 2 any types + 1 unknown in interface
   // Casts at component boundaries (documented & contained)
 }
@@ -265,6 +278,7 @@ interface ModalHandlerProps {
 ### 1. IntelliSense Now Works
 
 With `WarningModalInfo` union type:
+
 - Autocomplete shows all available fields
 - TypeScript suggests `isGeneralWarningInfo()` type guard
 - Compiler catches typos in property names
@@ -272,6 +286,7 @@ With `WarningModalInfo` union type:
 ### 2. Refactoring is Safer
 
 If someone changes `ToolSettingRestrictions`, TypeScript will:
+
 - Flag all usages that need updating
 - Show exactly what needs to change
 - Prevent runtime errors
@@ -279,6 +294,7 @@ If someone changes `ToolSettingRestrictions`, TypeScript will:
 ### 3. Documentation is Built-In
 
 Types serve as documentation:
+
 - `LocalFileEntry` shows it needs `handle` and `lastModified`
 - `WarningModalInfo` shows the two possible shapes
 - Function signatures show exact requirements
@@ -290,17 +306,19 @@ Types serve as documentation:
 ### High Priority:
 
 1. **Investigate `keyMapGroups`**:
+
    - Find actual return type of `editor.hotKeyInterface.createHandlerGroups()`
    - Replace `any` with proper type
 
 2. **Create adapter functions**:
+
    ```typescript
    // Convert LocalFileEntry to SavedProject
    function toSavedProject(entry: LocalFileEntry): SavedProject {
      return {
        name: entry.name,
        date: new Date(entry.lastModified).toISOString(),
-       size: '...',
+       size: "...",
      };
    }
    ```
@@ -312,6 +330,7 @@ Types serve as documentation:
 ### Medium Priority:
 
 4. **Add Wick Engine type stubs**:
+
    ```typescript
    interface WickProject {
      name: string;
@@ -332,6 +351,7 @@ Types serve as documentation:
 ### 1. Union Types Are Powerful
 
 When you have a fixed set of alternatives, union types provide:
+
 - Complete type safety
 - Exhaustive checking
 - Self-documenting code
@@ -339,6 +359,7 @@ When you have a fixed set of alternatives, union types provide:
 ### 2. `unknown` > `any`
 
 When data is truly dynamic:
+
 - `unknown` forces you to check before using
 - `any` allows unsafe operations
 - `unknown` is more honest about uncertainty
@@ -346,6 +367,7 @@ When data is truly dynamic:
 ### 3. Strategic Casts Are OK
 
 `as any` is acceptable when:
+
 - Used at well-defined boundaries
 - Documented with comments
 - Type-safe on both sides of the boundary
@@ -354,6 +376,7 @@ When data is truly dynamic:
 ### 4. Type Guards Are Valuable
 
 Runtime type checking with type guards:
+
 - Safely narrows union types
 - Provides IntelliSense after the check
 - Documents the differences between variants
@@ -363,17 +386,20 @@ Runtime type checking with type guards:
 ## 📊 Statistics
 
 ### Type Improvements:
+
 - **10 `any`** → **2 `any` + 1 `unknown`** in ModalHandlerProps
 - **70% reduction** in `any` usage
 - **6 new types/interfaces** created
 - **3 type guards** added
 
 ### Files Modified:
+
 1. `src/Editor/types/editor.types.ts` (+40 lines)
 2. `src/Editor/types/index.ts` (+6 exports)
 3. `src/Editor/Modals/ModalHandler/ModalHandler.tsx` (improved types)
 
 ### Compilation:
+
 - **0 TypeScript errors** ✅
 - All existing functionality preserved
 - Better type safety throughout
@@ -396,9 +422,9 @@ The result is **better type safety**, **better IntelliSense**, and **better docu
 **Status**: ✅ Complete  
 **TypeScript Errors**: 0  
 **`any` Reduction**: 70%  
-**Type Safety**: Significantly improved  
+**Type Safety**: Significantly improved
 
 ---
 
-*Document created: January 2025*  
-*Related: Session 5 (ModalHandler type investigation)*
+_Document created: January 2025_  
+_Related: Session 5 (ModalHandler type investigation)_
