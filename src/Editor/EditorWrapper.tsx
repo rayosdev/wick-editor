@@ -6,11 +6,27 @@ import ErrorPage from "./Util/ErrorPage";
 import ModalHandler from "./Modals/ModalHandler/ModalHandler";
 import { attachConsoleListener } from "./Util/consoleListener";
 import type { HotKeyMap } from "Editor/types/hotkeys";
-import type { WarningModalInfo } from "./types/EditorCore.types";
+import type {
+    WickProject,
+    WickAsset,
+    WarningModalInfo,
+    ModalName,
+    ProjectSettings,
+    CustomHotKeys,
+    ColorPickerType,
+    RenderType,
+    LocalFileEntry,
+    BuiltinPreview,
+    ToastType,
+    ToastOptions,
+    ToolSettingRestrictions,
+    HotKeyConfig,
+} from "./types";
 
+// Note: consoleListener.js uses looser types than our strict types
 type ConsoleLogEntry = {
     id: string;
-    method: string;
+    method: string; // Could be 'log' | 'warn' | 'error' | 'info' | 'debug' but consoleListener uses string
     data: unknown[];
     timestamp: number;
 };
@@ -19,47 +35,42 @@ type ConsoleClearEntry = { type: "clear" };
 
 type ConsoleListenerEntry = ConsoleLogEntry | ConsoleClearEntry;
 
-type ProjectLike = {
-    name?: string;
-    [key: string]: unknown;
-};
-
 type EditorLikeState = {
-    activeModalName: string | null;
+    activeModalName: ModalName;
     warningModalInfo: WarningModalInfo;
     renderProgress: number;
     renderStatusMessage: string;
-    renderType: string;
-    customHotKeys: Record<string, string>;
+    renderType: RenderType;
+    customHotKeys: CustomHotKeys;
     previewPlaying: boolean;
-    project: ProjectLike;
-    colorPickerType: string;
+    project: WickProject;
+    colorPickerType: ColorPickerType;
     lastColorsUsed: string[];
     renderSize?: string;
-    localSavedFiles: unknown[];
+    localSavedFiles: LocalFileEntry[];
 };
 
 type EditorLike = {
-    project: ProjectLike;
+    project: WickProject;
     state: EditorLikeState;
     hotKeyInterface: {
-        createHandlerGroups: () => unknown;
+        createHandlerGroups: () => HotKeyConfig[];
     };
     autoSaveProject: (callback: () => void) => void;
-    toast: (message: string, type?: string, options?: unknown) => void;
+    toast: (message: string, type?: ToastType, options?: ToastOptions) => void;
     getKeyMap: (fullKeyMap?: boolean) => HotKeyMap;
     getKeyHandlers: (
         fullKeyHandlers?: boolean
     ) => GlobalHotKeysProps["handlers"];
     getRenderSize: () => string;
-    openModal: (name: string, options?: unknown) => void;
+    openModal: (name: ModalName, options?: Record<string, unknown>) => void;
     closeActiveModal: () => void;
-    queueModal: (name: string) => void;
+    queueModal: (name: ModalName) => void;
     openWarningModal: (info: WarningModalInfo) => void;
     createClipFromSelection: (name: string) => void;
     createButtonFromSelection: (name: string) => void;
     createAnimationFromSelection: (name: string) => void;
-    updateProjectSettings: (settings: unknown) => void;
+    updateProjectSettings: (settings: ProjectSettings) => void;
     exportProjectAsAnimatedGIF: () => void;
     exportProjectAsVideo: () => void;
     exportProjectAsStandaloneZip: () => void;
@@ -68,19 +79,19 @@ type EditorLike = {
     exportProjectAsAudioTrack: () => void;
     loadAutosavedProject: (callback: () => void) => void;
     clearAutoSavedProject: (callback: () => void) => void;
-    addCustomHotKeys: (keys: Record<string, string>) => void;
+    addCustomHotKeys: (keys: CustomHotKeys) => void;
     resetCustomHotKeys: () => void;
-    importFileAsAsset: (file: unknown) => void;
-    changeColorPickerType: (type: string) => void;
+    importFileAsAsset: (file: File) => void;
+    changeColorPickerType: (type: ColorPickerType) => void;
     updateLastColors: (color: string) => void;
-    createCombinedHotKeyMap: () => unknown;
-    getToolSetting: (setting: string) => unknown;
-    setToolSetting: (setting: string, value: unknown) => void;
-    getToolSettingRestrictions: (setting: string) => unknown;
+    createCombinedHotKeyMap: () => HotKeyMap;
+    getToolSetting: (setting: string) => string | number | boolean;
+    setToolSetting: (setting: string, value: string | number | boolean) => void;
+    getToolSettingRestrictions: (setting: string) => ToolSettingRestrictions;
     exportProjectAsImageSVG: () => void;
-    builtinPreviews: unknown;
-    addFileToBuiltinPreviews: (file: unknown) => void;
-    isAssetInLibrary: (asset: unknown) => boolean;
+    builtinPreviews: Map<string, BuiltinPreview>;
+    addFileToBuiltinPreviews: (file: File) => void;
+    isAssetInLibrary: (asset: WickAsset) => boolean;
     openProjectFileDialog: () => void;
     openNewProjectConfirmation: () => void;
     setConsoleLogs: (
@@ -88,8 +99,8 @@ type EditorLike = {
             | ConsoleLogEntry[]
             | ((previous: ConsoleLogEntry[]) => ConsoleLogEntry[])
     ) => void;
-    loadLocalWickFile: (file: unknown) => void;
-    deleteLocalWickFile: (file: unknown) => void;
+    loadLocalWickFile: (file: LocalFileEntry) => void;
+    deleteLocalWickFile: (file: LocalFileEntry) => void;
     reloadSavedWickFiles: () => void;
     editorVersion?: string;
 };
@@ -190,10 +201,10 @@ function EditorWrapper({ editor, children }: EditorWrapperProps) {
             <div id="editor" className="theme-default">
                 <ModalHandler
                     getRenderSize={editor.getRenderSize}
-                    activeModalName={editor.state.activeModalName}
-                    openModal={editor.openModal}
+                    activeModalName={editor.state.activeModalName as string | null}
+                    openModal={editor.openModal as (name: string) => void}
                     closeActiveModal={editor.closeActiveModal}
-                    queueModal={editor.queueModal}
+                    queueModal={editor.queueModal as (name: string) => void}
                     project={editor.project}
                     createClipFromSelection={editor.createClipFromSelection}
                     createButtonFromSelection={editor.createButtonFromSelection}
@@ -218,8 +229,8 @@ function EditorWrapper({ editor, children }: EditorWrapperProps) {
                     keyMap={editor.getKeyMap(true) as HotKeyMap}
                     keyMapGroups={editor.hotKeyInterface.createHandlerGroups()}
                     importFileAsAsset={editor.importFileAsAsset}
-                    colorPickerType={editor.state.colorPickerType}
-                    changeColorPickerType={editor.changeColorPickerType}
+                    colorPickerType={editor.state.colorPickerType as string}
+                    changeColorPickerType={editor.changeColorPickerType as (type: string) => void}
                     updateLastColors={editor.updateLastColors}
                     lastColorsUsed={editor.state.lastColorsUsed}
                     editorVersion={editor.editorVersion ?? ""}
