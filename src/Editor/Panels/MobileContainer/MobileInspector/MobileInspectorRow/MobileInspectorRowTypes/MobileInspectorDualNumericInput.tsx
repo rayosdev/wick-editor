@@ -41,7 +41,7 @@ interface MobileInspectorDualNumericInputProps {
   divider?: boolean;
 }
 
-const MobileInspectorDualNumericInput: React.FC<MobileInspectorDualNumericInputProps> = ({ 
+const MobileInspectorDualNumericInput: React.FC<MobileInspectorDualNumericInputProps> = ({
   tooltip1,
   tooltip2,
   val1,
@@ -68,7 +68,7 @@ const MobileInspectorDualNumericInput: React.FC<MobileInspectorDualNumericInputP
       {tooltip1}
     </label>
   );
-  
+
   const render2Identifier = icon2 ? (
     <img src={icon2} alt={iconAlt2} className="mobile-inspector-row-icon" />
   ) : (

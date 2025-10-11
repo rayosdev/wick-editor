@@ -29,13 +29,13 @@ interface MobileInspectorCheckboxProps {
   onChange: (checked: boolean) => void;
 }
 
-const InspectorCheckbox: React.FC<MobileInspectorCheckboxProps> = ({ 
-  tooltip, 
-  checked, 
-  onChange 
+const InspectorCheckbox: React.FC<MobileInspectorCheckboxProps> = ({
+  tooltip,
+  checked,
+  onChange
 }) => {
   const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
-  
+
   return (
     <div className="mobile-inspector-row">
       {/* Identifier */}

@@ -32,7 +32,7 @@ interface InspectorTextInputProps {
   id?: string;
 }
 
-const InspectorTextInput: React.FC<InspectorTextInputProps> = ({ 
+const InspectorTextInput: React.FC<InspectorTextInputProps> = ({
   tooltip,
   val,
   onChange,
@@ -41,7 +41,7 @@ const InspectorTextInput: React.FC<InspectorTextInputProps> = ({
   id
 }) => {
   const idLabel = id || tooltip.replace(/\s+/g, '-').toLowerCase();
-  
+
   return (
     <div className="inspector-row">
       {/* Identifier */}

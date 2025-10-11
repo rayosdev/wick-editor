@@ -32,14 +32,14 @@ interface InspectorNumericSliderProps {
   id?: string;
 }
 
-const InspectorNumericSlider: React.FC<InspectorNumericSliderProps> = ({ 
+const InspectorNumericSlider: React.FC<InspectorNumericSliderProps> = ({
   tooltip,
   val,
   onChange,
   inputProps
 }) => {
   const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
-  
+
   return (
     <div className="inspector-row">
       {/* Identifier */}

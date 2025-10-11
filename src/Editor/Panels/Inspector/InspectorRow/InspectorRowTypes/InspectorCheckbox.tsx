@@ -29,13 +29,13 @@ interface InspectorCheckboxProps {
   onChange: (checked: boolean) => void;
 }
 
-const InspectorCheckbox: React.FC<InspectorCheckboxProps> = ({ 
-  tooltip, 
-  checked, 
-  onChange 
+const InspectorCheckbox: React.FC<InspectorCheckboxProps> = ({
+  tooltip,
+  checked,
+  onChange
 }) => {
   const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
-  
+
   return (
     <div className="inspector-row">
       {/* Identifier */}

@@ -34,7 +34,7 @@ interface MobileInspectorNumericInputProps {
   divider?: boolean;
 }
 
-const MobileInspectorNumericInput: React.FC<MobileInspectorNumericInputProps> = ({ 
+const MobileInspectorNumericInput: React.FC<MobileInspectorNumericInputProps> = ({
   tooltip,
   val,
   onChange,
@@ -54,7 +54,7 @@ const MobileInspectorNumericInput: React.FC<MobileInspectorNumericInputProps> = 
       {tooltip}
     </label>
   );
-  
+
   return (
     <div className="mobile-inspector-row">
       {/* Identifier */}

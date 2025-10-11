@@ -40,7 +40,7 @@ interface MobileInspectorSelectorProps {
   isSearchable?: boolean;
 }
 
-const MobileInspectorSelector: React.FC<MobileInspectorSelectorProps> = ({ 
+const MobileInspectorSelector: React.FC<MobileInspectorSelectorProps> = ({
   tooltip,
   value,
   onChange,
@@ -50,7 +50,7 @@ const MobileInspectorSelector: React.FC<MobileInspectorSelectorProps> = ({
   isSearchable
 }) => {
   const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
-  
+
   return (
     <div className="mobile-inspector-row">
       {/* Identifier */}

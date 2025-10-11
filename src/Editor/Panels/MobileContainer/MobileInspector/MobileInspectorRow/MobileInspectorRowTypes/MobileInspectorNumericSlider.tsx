@@ -34,7 +34,7 @@ interface MobileInspectorNumericSliderProps {
   divider?: boolean;
 }
 
-const MobileInspectorNumericSlider: React.FC<MobileInspectorNumericSliderProps> = ({ 
+const MobileInspectorNumericSlider: React.FC<MobileInspectorNumericSliderProps> = ({
   tooltip,
   val,
   onChange,
@@ -45,7 +45,7 @@ const MobileInspectorNumericSlider: React.FC<MobileInspectorNumericSliderProps> 
 }) => {
   const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
   const inputId = id ?? `${idLabel}-input-mobile`;
-  
+
   const renderIdentifier = icon ? (
     <img src={icon} alt={iconAlt} className="mobile-inspector-row-icon" />
   ) : (

@@ -33,7 +33,7 @@ interface MobileInspectorTextInputProps {
   divider?: boolean;
 }
 
-const MobileInspectorTextInput: React.FC<MobileInspectorTextInputProps> = ({ 
+const MobileInspectorTextInput: React.FC<MobileInspectorTextInputProps> = ({
   tooltip,
   val,
   onChange,
@@ -44,7 +44,7 @@ const MobileInspectorTextInput: React.FC<MobileInspectorTextInputProps> = ({
   const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
   const inputId = id ?? `${idLabel}-input-mobile`;
   const handleChange = onChange ?? (() => { });
-  
+
   return (
     <div className="mobile-inspector-row">
       {/* Identifier */}

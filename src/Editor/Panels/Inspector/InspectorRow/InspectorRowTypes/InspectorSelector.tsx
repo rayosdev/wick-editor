@@ -39,7 +39,7 @@ interface InspectorSelectorProps {
   isSearchable?: boolean;
 }
 
-const InspectorSelector: React.FC<InspectorSelectorProps> = ({ 
+const InspectorSelector: React.FC<InspectorSelectorProps> = ({
   tooltip,
   value,
   onChange,
@@ -47,7 +47,7 @@ const InspectorSelector: React.FC<InspectorSelectorProps> = ({
   className
 }) => {
   const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
-  
+
   return (
     <div className="inspector-row">
       {/* Identifier */}
