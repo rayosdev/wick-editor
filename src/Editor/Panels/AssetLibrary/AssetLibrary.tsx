@@ -25,6 +25,7 @@ import type { AssetData } from "./Asset/Asset";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import WickInput from "Editor/Util/WickInput/WickInput";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
+import type { WickProject, ToastType, ToastOptions } from "Editor/types";
 
 import "./_assetlibrary.scss";
 
@@ -34,7 +35,7 @@ type AssetLibraryItem = AssetData & {
 
 interface AssetLibraryProps {
     assets?: AssetLibraryItem[] | null;
-    projectData?: unknown;
+    projectData?: WickProject;
     openImportAssetFileDialog: () => void;
     openModal: (modalName: string) => void;
     selectObjects: (objects: AssetData[]) => void;
@@ -42,7 +43,7 @@ interface AssetLibraryProps {
     isObjectSelected: (asset: AssetData) => boolean;
     createAssets: (
         files: File[],
-        data: unknown[],
+        data: unknown[], // Asset data from files (mixed types)
         options?: {
             create?: boolean;
             location?: { x: number; y: number } | null;
@@ -57,7 +58,7 @@ interface AssetLibraryProps {
     ) => void;
     deleteSelectedObjects: () => void;
     addSoundToActiveFrame: (asset: AssetData) => void;
-    toast?: (...args: unknown[]) => void; // reserved for future use
+    toast?: (message: string, type?: ToastType, options?: ToastOptions) => void;
 }
 
 interface AssetLibraryState {
@@ -77,9 +78,8 @@ class AssetLibrary extends Component<AssetLibraryProps, AssetLibraryState> {
         this.props.openModal("BuiltinLibrary");
     };
 
-    updateFilter = (value: unknown): void => {
-        const text =
-            typeof value === "string" ? value : String(value ?? "");
+    updateFilter = (value: string | number): void => {
+        const text = typeof value === "string" ? value : String(value);
         this.setState({ filterText: text });
     };
 

@@ -23,6 +23,8 @@ import "./_inspector.scss";
 import "./_inspectorselector.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 
+import type { Script as ScriptType, ScriptWindowScriptInfoInterface } from "Editor/types";
+
 import InspectorTitle from "./InspectorTitle/InspectorTitle";
 
 import InspectorNumericSlider from "./InspectorRow/InspectorRowTypes/InspectorNumericSlider";
@@ -39,10 +41,6 @@ import InspectorCheckbox from "./InspectorRow/InspectorRowTypes/InspectorCheckbo
 
 type SelectionAttributes = Record<string, any>;
 type InspectorSelectorOption = { value: any; label: string;[key: string]: any };
-
-interface Script {
-    scripts: Array<{ name: string }>;
-}
 
 interface FontInfoInterface {
     allFontNames: string[];
@@ -70,10 +68,10 @@ interface InspectorProps {
     getClipAnimationTypes: () => Array<{ label: string; value: string }>;
     editorActions: Record<string, any>;
     selectionIsScriptable: () => boolean;
-    script?: Script;
-    deleteScript?: (script: Script, name: string) => void;
+    script?: ScriptType;
+    deleteScript?: (script: ScriptType, name: string) => void;
     editScript?: (name: string) => void;
-    scriptInfoInterface?: any;
+    scriptInfoInterface?: ScriptWindowScriptInfoInterface;
 }
 
 declare global {
@@ -857,6 +855,11 @@ class Inspector extends Component<InspectorProps> {
     };
 
     renderScripts = (): JSX.Element => {
+        const defaultScriptInfo: ScriptWindowScriptInfoInterface = {
+            scriptsByType: {},
+            scriptTypeColors: {},
+        };
+
         return (
             <div className="inspector-item">
                 <InspectorScriptWindow
@@ -871,7 +874,7 @@ class Inspector extends Component<InspectorProps> {
                             console.warn("editScript handler missing", name);
                         })
                     }
-                    scriptInfoInterface={this.props.scriptInfoInterface}
+                    scriptInfoInterface={this.props.scriptInfoInterface ?? defaultScriptInfo}
                 />
             </div>
         );

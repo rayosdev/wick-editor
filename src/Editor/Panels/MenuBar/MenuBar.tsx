@@ -3,6 +3,7 @@ import './_menubar.scss';
 import MenuBarButton from './MenuBarButton/MenuBarButton';
 import MenuBarIconButton from './MenuBarIconButton/MenuBarIconButton';
 import MenuBarSupportButton from './MenuBarSupportButton/MenuBarSupportButton';
+import type { ToastType, ToastOptions } from 'Editor/types';
 
 export type MenuBarSize = 'large' | 'medium' | 'small';
 
@@ -10,14 +11,14 @@ export interface MenuBarProps {
     renderSize: MenuBarSize;
     projectName: string;
     exporting: boolean;
-    openModal: (modalName: string, options?: unknown) => void;
+    openModal: (modalName: string, options?: Record<string, unknown>) => void;
     openNewProjectConfirmation: () => void;
     openProjectFileDialog: () => void;
     exportProjectAsWickFile: () => void;
     openExportMedia: () => void;
     openExportOptions: () => void;
     importProjectAsWickFile?: () => void;
-    toast?: (...args: unknown[]) => unknown;
+    toast?: (message: string, type?: ToastType, options?: ToastOptions) => void;
 }
 
 const MenuBar: FC<MenuBarProps> = ({
