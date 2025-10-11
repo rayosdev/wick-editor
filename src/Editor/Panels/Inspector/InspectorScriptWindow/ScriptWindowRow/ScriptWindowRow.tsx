@@ -35,11 +35,11 @@ interface ScriptWindowRowProps {
   deleteScript: (e?: React.MouseEvent) => void;
 }
 
-const ScriptWindowRow: React.FC<ScriptWindowRowProps> = ({ 
-  name, 
-  scriptInfoInterface, 
-  editScript, 
-  deleteScript 
+const ScriptWindowRow: React.FC<ScriptWindowRowProps> = ({
+  name,
+  scriptInfoInterface,
+  editScript,
+  deleteScript
 }) => {
   const getColorBar = (): string => {
     const scriptsByType = scriptInfoInterface.scriptsByType;
@@ -57,7 +57,7 @@ const ScriptWindowRow: React.FC<ScriptWindowRowProps> = ({
   };
 
   const scriptName = capitalize(name);
-  
+
   return (
     <div className="inspector-script-window-row-container">
       <div className="script-row-item inspector-script-window-row-name">

@@ -36,13 +36,13 @@ interface PopupMenuProps {
  * PopupMenu component - wrapper for Reactstrap Popover
  * Displays a popup menu below the target element
  */
-const PopupMenu: React.FC<PopupMenuProps> = ({ 
-  isOpen, 
-  toggle, 
-  target, 
-  mobile, 
-  children, 
-  className 
+const PopupMenu: React.FC<PopupMenuProps> = ({
+  isOpen,
+  toggle,
+  target,
+  mobile,
+  children,
+  className
 }) => {
   return (
     <Popover

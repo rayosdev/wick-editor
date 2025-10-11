@@ -40,7 +40,7 @@ export interface ToolButtonProps {
   className?: string;
 }
 
-const ToolButton: React.FC<ToolButtonProps> = ({ 
+const ToolButton: React.FC<ToolButtonProps> = ({
   name,
   tooltip,
   keyMap,

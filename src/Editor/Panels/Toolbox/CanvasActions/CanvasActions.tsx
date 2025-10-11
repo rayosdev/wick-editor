@@ -33,7 +33,7 @@ export interface CanvasActionsProps {
   previewPlaying: boolean;
 }
 
-const CanvasActions: React.FC<CanvasActionsProps> = ({ 
+const CanvasActions: React.FC<CanvasActionsProps> = ({
   renderSize,
   editorActions,
   showCanvasActions,

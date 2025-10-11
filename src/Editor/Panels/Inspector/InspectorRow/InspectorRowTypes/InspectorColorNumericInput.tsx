@@ -39,7 +39,7 @@ interface InspectorColorNumericInputProps {
   divider?: boolean;
 }
 
-const InspectorColorNumericInput: React.FC<InspectorColorNumericInputProps> = ({ 
+const InspectorColorNumericInput: React.FC<InspectorColorNumericInputProps> = ({
   tooltip1,
   tooltip2,
   val1,
@@ -55,7 +55,7 @@ const InspectorColorNumericInput: React.FC<InspectorColorNumericInputProps> = ({
 }) => {
   const idLabel1 = tooltip1.replace(/\s+/g, '-').toLowerCase();
   const idLabel2 = tooltip2.replace(/\s+/g, '-').toLowerCase();
-  
+
   return (
     <div className="inspector-row">
       {/* Identifier1 */}
