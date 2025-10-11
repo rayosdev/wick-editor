@@ -1,4 +1,4 @@
-import { Component } from "react";
+import React from "react";
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import ToolboxBreak from "../ToolboxBreak/ToolboxBreak";
@@ -33,12 +33,18 @@ export interface CanvasActionsProps {
   previewPlaying: boolean;
 }
 
-class CanvasActions extends Component<CanvasActionsProps> {
-  renderActionButton(action: CanvasAction): JSX.Element {
+const CanvasActions: React.FC<CanvasActionsProps> = ({ 
+  renderSize,
+  editorActions,
+  showCanvasActions,
+  toggleCanvasActions,
+  previewPlaying
+}) => {
+  const renderActionButton = (action: CanvasAction): JSX.Element => {
     return (
       <ActionButton
         color="tool"
-        id={"canvas-action-button-" + action.icon}
+        id={`canvas-action-button-${action.icon}`}
         tooltip={action.tooltip}
         action={action.action}
         tooltipPlace={"bottom"}
@@ -46,51 +52,49 @@ class CanvasActions extends Component<CanvasActionsProps> {
         className="canvas-action-button"
       />
     );
-  }
+  };
 
-  renderActions = (): JSX.Element => {
+  const renderActions = (): JSX.Element => {
     return (
       <div
         className={classNames(
           "actions-container",
-          this.props.renderSize === "small" && "vertical"
+          renderSize === "small" && "vertical"
         )}
       >
-        {this.renderActionButton(this.props.editorActions.sendToBack)}
-        {this.renderActionButton(this.props.editorActions.sendBackward)}
-        {this.renderActionButton(this.props.editorActions.sendForward)}
-        {this.renderActionButton(this.props.editorActions.sendToFront)}
-        <ToolboxBreak vertical={this.props.renderSize === "small"} />
-        {this.renderActionButton(this.props.editorActions.flipHorizontal)}
-        {this.renderActionButton(this.props.editorActions.flipVertical)}
-        <ToolboxBreak vertical={this.props.renderSize === "small"} />
-        {this.renderActionButton(this.props.editorActions.booleanUnite)}
-        {this.renderActionButton(this.props.editorActions.booleanSubtract)}
-        {this.renderActionButton(this.props.editorActions.booleanIntersect)}
+        {renderActionButton(editorActions.sendToBack)}
+        {renderActionButton(editorActions.sendBackward)}
+        {renderActionButton(editorActions.sendForward)}
+        {renderActionButton(editorActions.sendToFront)}
+        <ToolboxBreak vertical={renderSize === "small"} />
+        {renderActionButton(editorActions.flipHorizontal)}
+        {renderActionButton(editorActions.flipVertical)}
+        <ToolboxBreak vertical={renderSize === "small"} />
+        {renderActionButton(editorActions.booleanUnite)}
+        {renderActionButton(editorActions.booleanSubtract)}
+        {renderActionButton(editorActions.booleanIntersect)}
       </div>
     );
   };
 
-  render(): JSX.Element {
-    return (
-      <PopupMenu
-        mobile={this.props.renderSize === "small"}
-        isOpen={this.props.showCanvasActions}
-        toggle={this.props.toggleCanvasActions}
-        target="more-canvas-actions-popover-button"
+  return (
+    <PopupMenu
+      mobile={renderSize === "small"}
+      isOpen={showCanvasActions}
+      toggle={toggleCanvasActions}
+      target="more-canvas-actions-popover-button"
+    >
+      <div
+        className={classNames(
+          "canvas-actions-widget",
+          "more-canvas-actions-popover",
+          renderSize === "small" && "vertical"
+        )}
       >
-        <div
-          className={classNames(
-            "canvas-actions-widget",
-            "more-canvas-actions-popover",
-            this.props.renderSize === "small" && "vertical"
-          )}
-        >
-          {!this.props.previewPlaying && this.renderActions()}
-        </div>
-      </PopupMenu>
-    );
-  }
-}
+        {!previewPlaying && renderActions()}
+      </div>
+    </PopupMenu>
+  );
+};
 
 export default CanvasActions;
