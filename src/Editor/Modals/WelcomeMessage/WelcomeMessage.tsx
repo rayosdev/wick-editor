@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from "react";
+import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Modal from "react-modal";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
@@ -39,69 +39,67 @@ interface WelcomeModalProps {
   project: any;
 }
 
-class WelcomeModal extends Component<WelcomeModalProps> {
-  forumPost: string;
-  updates: string[];
-  patreonSupporters: string[];
+const WelcomeModal: React.FC<WelcomeModalProps> = ({
+  open,
+  toggle,
+  editorVersion,
+  isMobile
+}) => {
+  const forumPost =
+    "https://forum.wickeditor.com/t/help-needed-wick-editor-version-1-18-new-fill-bucket-outliner-tool-mobile-improvements/3314";
+  const updates = [
+    "New Code Editor!",
+    "New Hit Test Options",
+    "And Much More!",
+  ]; // No More than 3
 
-  constructor(props: WelcomeModalProps) {
-    super(props);
-    this.forumPost =
-      "https://forum.wickeditor.com/t/help-needed-wick-editor-version-1-18-new-fill-bucket-outliner-tool-mobile-improvements/3314";
-    this.updates = [
-      "New Code Editor!",
-      "New Hit Test Options",
-      "And Much More!",
-    ]; // No More than 3
-
-    const t1 = ["Guy de Bree", "Dimp", "Hyun's Dojo"];
-    const t2 = ["Constance Ye", "Dan Doggett", "Anonymous"];
-    const t3 = [
-      "Gautaum Bose",
-      "Trevor",
-      "Jovanny Rodriguez",
-      "André Bray",
-      "Colin Fitz-Gerald",
-    ];
-    const t4 = [
-      "Golan Levin",
-      "Daniel Sun",
-      "Benjamin Briand",
-      "Joseph Hocking",
-      "Charisse Hampton",
-      "Jessie Young",
-      "Bluecake",
-      "O.K. Keyes",
-      "Sarksus",
-      "Laurens Bonnema",
-      "Anonymous",
-    ];
-    const t5 = [
-      "Joe",
-      "Karlin Fox",
-      "StepSwitcher",
-      "Kandy Kat",
-      "Ann Griffin",
-      "Happyships",
-      "Dixie Dorward",
-      "Albin Rodriguex",
-    ];
-    this.patreonSupporters = t1.concat(t2, t3, t4, t5);
-  }
+  const t1 = ["Guy de Bree", "Dimp", "Hyun's Dojo"];
+  const t2 = ["Constance Ye", "Dan Doggett", "Anonymous"];
+  const t3 = [
+    "Gautaum Bose",
+    "Trevor",
+    "Jovanny Rodriguez",
+    "André Bray",
+    "Colin Fitz-Gerald",
+  ];
+  const t4 = [
+    "Golan Levin",
+    "Daniel Sun",
+    "Benjamin Briand",
+    "Joseph Hocking",
+    "Charisse Hampton",
+    "Jessie Young",
+    "Bluecake",
+    "O.K. Keyes",
+    "Sarksus",
+    "Laurens Bonnema",
+    "Anonymous",
+  ];
+  const t5 = [
+    "Joe",
+    "Karlin Fox",
+    "StepSwitcher",
+    "Kandy Kat",
+    "Ann Griffin",
+    "Happyships",
+    "Dixie Dorward",
+    "Albin Rodriguex",
+  ];
+  const patreonSupporters = t1.concat(t2, t3, t4, t5);
 
   // Render updates as a list.
-  renderUpdates = (className?: string): JSX.Element => {
+  const renderUpdates = (className?: string): JSX.Element => {
     return (
       <ul className={classNames("updates-list", className)}>
-        {this.updates.map((update, i) => {
-          return <li key={"update-" + i}>{update}</li>;
+        {updates.map((update, i) => {
+          return <li key={`update-${i}`}>{update}</li>;
         })}
       </ul>
     );
   };
 
   // Render a list of all Patreon supporters.
-  renderPatreonSupporters = (className?: string): JSX.Element => {
+  const renderPatreonSupporters = (className?: string): JSX.Element => {
     return (
       <div className={classNames("supporter-list-container", className)}>
         <a
@@ -113,13 +111,13 @@ class WelcomeModal extends Component<WelcomeModalProps> {
           Become a Patreon Supporter!
         </a>
         <div className="supporter-list">
-          {this.patreonSupporters.join(", ")}
+          {patreonSupporters.join(", ")}
         </div>
       </div>
     );
   };
 
-  renderMobileModal = (modalProps: any): JSX.Element => {
+  const renderMobileModal = (modalProps: any): JSX.Element => {
     return (
       <Modal {...modalProps} className="modal-body welcome-modal-mobile-body">
         <div className="welcome-modal-mobile-image-container">
@@ -136,19 +134,19 @@ class WelcomeModal extends Component<WelcomeModalProps> {
               className="welcome-modal-highlight"
               target="_blank"
               rel="noopener noreferrer"
-              href={this.forumPost}
+              href={forumPost}
             >
-              Version {this.props.editorVersion}
+              Version {editorVersion}
             </a>
           </div>
-          {this.renderUpdates("small-modal")}
-          {this.renderPatreonSupporters()}
+          {renderUpdates("small-modal")}
+          {renderPatreonSupporters()}
         </div>
         <div id="welcome-modal-mobile-accept">
           <ActionButton
             className="welcome-modal-button"
             color="green"
-            action={this.props.toggle}
+            action={toggle}
             text="Try it"
           />
         </div>
@@ -156,7 +154,7 @@ class WelcomeModal extends Component<WelcomeModalProps> {
     );
   };
 
-  renderDesktopModal = (modalProps: any): JSX.Element => {
+  const renderDesktopModal = (modalProps: any): JSX.Element => {
     return (
       <Modal {...modalProps} className="modal-body welcome-modal-body">
         <div id="welcome-modal-interior-content">
@@ -179,17 +177,17 @@ class WelcomeModal extends Component<WelcomeModalProps> {
                 className="welcome-modal-highlight"
                 target="_blank"
                 rel="noopener noreferrer"
-                href={this.forumPost}
+                href={forumPost}
               >
-                Version {this.props.editorVersion}
+                Version {editorVersion}
               </a>
             </div>
             <div id="welcome-modal-subtitle" className="welcome-modal-item">
-              Wick Editor {this.props.editorVersion} includes:
+              Wick Editor {editorVersion} includes:
             </div>
             <div id="welcome-modal-message" className="welcome-modal-item">
-              {this.renderUpdates()}
-              {this.renderPatreonSupporters("desktop-modal")}
+              {renderUpdates()}
+              {renderPatreonSupporters("desktop-modal")}
             </div>
             <div id="welcome-modal-forum-link" className="welcome-modal-item">
               Please report all bugs on our{" "}
@@ -207,7 +205,7 @@ class WelcomeModal extends Component<WelcomeModalProps> {
                 <ActionButton
                   className="welcome-modal-button"
                   color="green"
-                  action={this.props.toggle}
+                  action={toggle}
                   text="Try it"
                 />
               </div>
@@ -218,20 +216,18 @@ class WelcomeModal extends Component<WelcomeModalProps> {
     );
   };
 
-  render(): JSX.Element {
-    const modalProps = {
-      isOpen: this.props.open,
-      toggle: this.props.toggle,
-      onRequestClose: this.props.toggle,
-      overlayClassName: "modal-overlay welcome-modal-overlay",
-    };
+  const modalProps = {
+    isOpen: open,
+    toggle: toggle,
+    onRequestClose: toggle,
+    overlayClassName: "modal-overlay welcome-modal-overlay",
+  };
 
-    if (this.props.isMobile) {
-      return this.renderMobileModal(modalProps);
-    } else {
-      return this.renderDesktopModal(modalProps);
-    }
+  if (isMobile) {
+    return renderMobileModal(modalProps);
+  } else {
+    return renderDesktopModal(modalProps);
   }
-}
+};
 
 export default WelcomeModal;

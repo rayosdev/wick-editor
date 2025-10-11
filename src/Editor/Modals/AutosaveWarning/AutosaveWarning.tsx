@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import React from 'react';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
 
@@ -34,55 +34,58 @@ interface AutosaveWarningProps {
  * AutosaveWarning modal prompts user to load or delete an autosaved project.
  * Displayed when an autosave is detected on editor startup.
  */
-class AutosaveWarning extends Component<AutosaveWarningProps> {
-  loadAndToggle = (): void => {
-    this.props.loadAutosavedProject(() => {
-      this.props.toggle();
+const AutosaveWarning: React.FC<AutosaveWarningProps> = ({
+  open,
+  toggle,
+  loadAutosavedProject,
+  clearAutoSavedProject
+}) => {
+  const loadAndToggle = (): void => {
+    loadAutosavedProject(() => {
+      toggle();
     });
-  }
+  };
 
-  deleteAndToggle = (): void => {
-    this.props.clearAutoSavedProject(() => {
-      this.props.toggle();
+  const deleteAndToggle = (): void => {
+    clearAutoSavedProject(() => {
+      toggle();
     });
-  }
+  };
 
-  render(): JSX.Element {
-    return (
-      <WickModal
-      open={this.props.open}
-      toggle={this.props.toggle}
+  return (
+    <WickModal
+      open={open}
+      toggle={toggle}
       icon="autosave"
       className="autosave-modal-body"
       overlayClassName="autosave-modal-overlay">
-        <div id="autosave-modal-interior-content">
-          <div id="autosave-modal-title">Load Autosave?</div>
-          <div id="autosave-modal-footer">
-            <div id="autosave-modal-cancel">
-                <ActionButton
-                  className="autosave-modal-button"
-                  color='red'
-                  action={this.deleteAndToggle}
-                  text="Delete"
-                  icon="delete-black"
-                  iconClassName="autosave-icon"
-                  />
-              </div>
-              <div id="autosave-modal-accept">
-                <ActionButton
-                  className="autosave-modal-button"
-                  color='green'
-                  action={this.loadAndToggle}
-                  text="Load"
-                  icon="load"
-                  iconClassName="autosave-icon"
-                  />
-              </div>
+      <div id="autosave-modal-interior-content">
+        <div id="autosave-modal-title">Load Autosave?</div>
+        <div id="autosave-modal-footer">
+          <div id="autosave-modal-cancel">
+            <ActionButton
+              className="autosave-modal-button"
+              color='red'
+              action={deleteAndToggle}
+              text="Delete"
+              icon="delete-black"
+              iconClassName="autosave-icon"
+            />
+          </div>
+          <div id="autosave-modal-accept">
+            <ActionButton
+              className="autosave-modal-button"
+              color='green'
+              action={loadAndToggle}
+              text="Load"
+              icon="load"
+              iconClassName="autosave-icon"
+            />
           </div>
         </div>
-      </WickModal>
-    );
-  }
-}
+      </div>
+    </WickModal>
+  );
+};
 
 export default AutosaveWarning;
