@@ -60559,11 +60559,12 @@ Wick.View.Project = class extends Wick.View {
    * The amount to pan the view. (0,0) is the center.
    */
   get pan() {
+		const focus = this.model.focus || this.model.root;
     var pan = {
       x: -this.paper.view.center.x,
       y: -this.paper.view.center.y
     };
-    if (this.model.focus.isRoot) {
+		if (focus && focus.isRoot) {
       pan.x += this.model.width / 2;
       pan.y += this.model.height / 2;
     }
@@ -60574,7 +60575,8 @@ Wick.View.Project = class extends Wick.View {
       x: pan.x,
       y: pan.y
     };
-    if (this.model.focus.isRoot) {
+		const focus = this.model.focus || this.model.root;
+		if (focus && focus.isRoot) {
       this._pan.x -= this.model.width / 2;
       this._pan.y -= this.model.height / 2;
     }
@@ -60667,6 +60669,7 @@ Wick.View.Project = class extends Wick.View {
    */
   scrollToZoom(event) {
     if (this.model.isPublished) return;
+		if (!this.model.focus) return;
 
     // Detect if this is a zoom gesture (pinch or ctrl+scroll) vs pan gesture (two-finger scroll)
     const isZoomGesture = event.ctrlKey || event.metaKey;
@@ -61152,6 +61155,7 @@ Wick.View.Project = class extends Wick.View {
     return clipBorders;
   }
   _applyZoomAndPanChangesFromPaper() {
+		if (!this.model.focus) return;
     // sanitize zoom first
     if (!Number.isFinite(this.paper.view.zoom) || this.paper.view.zoom <= 0) {
       this.paper.view.zoom = 1;
