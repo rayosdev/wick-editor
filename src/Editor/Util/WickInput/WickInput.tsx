@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { ReactNode, ChangeEvent } from "react";
+import React, { ReactNode, ChangeEvent, forwardRef } from "react";
 import "./_wickinput.scss";
 
 import Select from "react-select";
@@ -67,9 +67,10 @@ interface WickInputProps {
  * WickInput - A versatile input component for the Wick Editor.
  * Supports numeric, text, slider, select, color, checkbox, radio, and button types.
  * @param props - Component props
+ * @param ref - Optional ref forwarded to the component
  * @returns JSX.Element
  */
-const WickInput: React.FC<WickInputProps> = (props) => {
+const WickInput = forwardRef<any, WickInputProps>((props, ref) => {
   const renderTooltip = (tooltipID: string): JSX.Element => {
     // Detect if on mobile to disable tooltips.
 
@@ -202,7 +203,7 @@ const WickInput: React.FC<WickInputProps> = (props) => {
 
   const renderSelect = (): JSX.Element => {
     let value = props.options?.find(
-      (obj) => obj.value === props.value
+      (obj: SelectOption) => obj.value === props.value
     );
 
     if (value === undefined) {
@@ -328,6 +329,8 @@ const WickInput: React.FC<WickInputProps> = (props) => {
   } else {
     return renderContent();
   }
-};
+});
+
+WickInput.displayName = 'WickInput';
 
 export default WickInput;

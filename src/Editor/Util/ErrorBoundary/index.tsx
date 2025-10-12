@@ -17,7 +17,8 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component, ReactNode, ErrorInfo } from 'react';
+import { ReactNode, ErrorInfo } from 'react';
+import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
 
 interface ErrorBoundaryProps {
   children?: ReactNode;
@@ -25,43 +26,33 @@ interface ErrorBoundaryProps {
   processError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
-interface ErrorBoundaryState {
-  hasError: boolean;
-}
-
 /**
  * ErrorBoundary component - catches JavaScript errors in child components
  * Displays a fallback UI instead of crashing the entire component tree
+ * 
+ * Now using react-error-boundary library for functional component compatibility
  */
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = {
-    hasError: false
-  }
+const ErrorBoundary: React.FC<ErrorBoundaryProps> = ({
+  children,
+  fallback,
+  processError
+}) => {
+  const FallbackComponent = fallback || (() => null);
 
-  static defaultProps = {
-    fallback: () => null as any
-  }
-
-  static getDerivedStateFromError(_error: Error): ErrorBoundaryState {
-    return { hasError: true }
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    if(this.props.processError) {
-      this.props.processError(error, errorInfo)
-    }
-  }
-
-  render(): ReactNode {
-    if(this.state.hasError) {
-      console.log("error234", this.state.hasError);
-      const ErrorComponent = this.props.fallback!;
-
-      return <ErrorComponent />;
-    }
-
-    return this.props.children;
-  }
-}
+  return (
+    <ReactErrorBoundary
+      FallbackComponent={FallbackComponent}
+      onError={(error, errorInfo) => {
+        console.log("error234", true);
+        if (processError) {
+          processError(error, errorInfo);
+        }
+      }}
+    >
+      {children}
+    </ReactErrorBoundary>
+  );
+};
 
 export default ErrorBoundary;
+
