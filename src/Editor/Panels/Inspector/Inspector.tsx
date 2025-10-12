@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from "react";
+import React from "react";
 
 import "./_inspector.scss";
 import "./_inspectorselector.scss";
@@ -86,174 +86,142 @@ declare global {
     }
 }
 
-class Inspector extends Component<InspectorProps> {
-    private inspectorContentRenderFunctions: Record<string, () => JSX.Element | null>;
-
-    private actionRules: Record<string, string[]>;
-
-    private inspectorTitles: Record<string, string>;
-
-    constructor(props: InspectorProps) {
-        super(props);
-
-        this.inspectorContentRenderFunctions = {
-            frame: this.renderFrame,
-            layer: this.renderLayer,
-            multiframe: this.renderMultiFrame,
-            tween: this.renderTween,
-            multitween: this.renderMultiTween,
-            clip: this.renderClip,
-            button: this.renderButton,
-            path: this.renderPath,
-            text: this.renderText,
-            image: this.renderImage,
-            multipath: this.renderMultiPath,
-            multiclip: this.renderMultiClip,
-            multitimeline: this.renderMultiTimeline,
-            multicanvas: this.renderMultiCanvas,
-            imageasset: this.renderAsset,
-            soundasset: this.renderAsset,
-            multiassetmixed: this.renderAsset,
-            multisoundasset: this.renderAsset,
-            multiimageasset: this.renderAsset,
-        };
-
-        this.actionRules = {
-            breakApart: ["clip", "button"],
-            convertSelectionToButton: [
-                "path",
-                "text",
-                "image",
-                "multipath",
-                "multiclip",
-                "multicanvas",
-            ],
-            convertSelectionToClip: [
-                "path",
-                "text",
-                "image",
-                "multipath",
-                "multiclip",
-                "multicanvas",
-            ],
-            editTimeline: ["clip", "button"],
-            addAssetToCanvas: ["imageasset"],
-        };
-
-        this.inspectorTitles = {
-            frame: "Frame",
-            multiframe: "Multi-Frame",
-            tween: "Tween",
-            multitween: "Multi-Tween",
-            clip: "Clip",
-            button: "Button",
-            path: "Path",
-            text: "Text",
-            image: "Image",
-            multipath: "Multi-Path",
-            multiclip: "Multi-Clip",
-            multitimeline: "Multi-Timeline",
-            multicanvas: "Multi-Canvas",
-            imageasset: "Image Asset",
-            soundasset: "Sound Asset",
-            multiassetmixed: "Multi-Asset",
-            multisoundasset: "Multi-Asset Sound",
-            multiimageasset: "Multi-Asset Image",
-            unknown: "",
-        };
-    }
-
-    getSelectionAttribute = (attribute: string): any => {
+const Inspector: React.FC<InspectorProps> = (props) => {
+    const getSelectionAttribute = (attribute: string): any => {
         if (attribute === "fillColorOpacity") {
-            return this.getSelectionFillColorOpacity();
+            return getSelectionFillColorOpacity();
         }
 
-        return this.props.getAllSelectionAttributes()[attribute];
+        return props.getAllSelectionAttributes()[attribute];
     };
 
-    getSelectionFillColorOpacity = (): any => {
-        return this.getSelectionAttribute("fillColor").alpha;
+    const getSelectionFillColorOpacity = (): any => {
+        return getSelectionAttribute("fillColor").alpha;
     };
 
-    setSelectionFillColorOpacity = (value: any): void => {
-        const color = this.getSelectionAttribute("fillColor");
+    const setSelectionFillColorOpacity = (value: any): void => {
+        const color = getSelectionAttribute("fillColor");
         color.alpha = value;
-        this.setSelectionAttribute("fillColor", color);
+        setSelectionAttribute("fillColor", color);
     };
 
-    setSelectionAttribute = (attribute: string, newValue: any): void => {
+    const setSelectionAttribute = (attribute: string, newValue: any): void => {
         if (attribute === "fillColorOpacity") {
-            this.setSelectionFillColorOpacity(newValue);
+            setSelectionFillColorOpacity(newValue);
             return;
         }
-        this.props.setSelectionAttribute(attribute, newValue);
+        props.setSelectionAttribute(attribute, newValue);
     };
 
-    getSelectionInputProps = (
+    const getSelectionInputProps = (
         attribute: string
     ): Record<string, any> | undefined => {
-        return this.props.getSelectionInputProps?.(attribute);
+        return props.getSelectionInputProps?.(attribute);
     };
 
-    renderSelectionStrokeWidth = (): JSX.Element => {
+    const actionRules: Record<string, string[]> = {
+        breakApart: ["clip", "button"],
+        convertSelectionToButton: [
+            "path",
+            "text",
+            "image",
+            "multipath",
+            "multiclip",
+            "multicanvas",
+        ],
+        convertSelectionToClip: [
+            "path",
+            "text",
+            "image",
+            "multipath",
+            "multiclip",
+            "multicanvas",
+        ],
+        editTimeline: ["clip", "button"],
+        addAssetToCanvas: ["imageasset"],
+    };
+
+    const inspectorTitles: Record<string, string> = {
+        frame: "Frame",
+        multiframe: "Multi-Frame",
+        tween: "Tween",
+        multitween: "Multi-Tween",
+        clip: "Clip",
+        button: "Button",
+        path: "Path",
+        text: "Text",
+        image: "Image",
+        multipath: "Multi-Path",
+        multiclip: "Multi-Clip",
+        multitimeline: "Multi-Timeline",
+        multicanvas: "Multi-Canvas",
+        imageasset: "Image Asset",
+        soundasset: "Sound Asset",
+        multiassetmixed: "Multi-Asset",
+        multisoundasset: "Multi-Asset Sound",
+        multiimageasset: "Multi-Asset Image",
+        unknown: "",
+    };
+
+    const renderSelectionStrokeWidth = (): JSX.Element => {
         return (
             <InspectorNumericSlider
                 tooltip="Stroke Width"
-                val={this.getSelectionAttribute("strokeWidth")}
-                onChange={(val) => this.setSelectionAttribute("strokeWidth", val)}
+                val={getSelectionAttribute("strokeWidth")}
+                onChange={(val) => setSelectionAttribute("strokeWidth", val)}
                 divider={false}
-                inputProps={this.getSelectionInputProps("strokeWidth")}
+                inputProps={getSelectionInputProps("strokeWidth")}
                 id="inspector-selection-stroke-width"
             />
         );
     };
 
-    renderSelectionColor = (): JSX.Element => {
+    const renderSelectionColor = (): JSX.Element => {
         return (
             <div className="inspector-item">
                 <InspectorColorNumericInput
                     tooltip1="Fill"
                     tooltip2="Opacity"
-                    val1={this.getSelectionAttribute("fillColor").toCSS()}
-                    onChange1={(col) => this.setSelectionAttribute("fillColor", col)}
+                    val1={getSelectionAttribute("fillColor").toCSS()}
+                    onChange1={(col) => setSelectionAttribute("fillColor", col)}
                     id={"inspector-selection-fill-color"}
-                    val2={this.getSelectionAttribute("fillColorOpacity")}
-                    onChange2={(val) => this.setSelectionAttribute("fillColorOpacity", val)}
+                    val2={getSelectionAttribute("fillColorOpacity")}
+                    onChange2={(val) => setSelectionAttribute("fillColorOpacity", val)}
                     divider={false}
-                    colorPickerType={this.props.colorPickerType}
-                    changeColorPickerType={this.props.changeColorPickerType}
-                    updateLastColors={this.props.updateLastColors}
-                    lastColorsUsed={this.props.lastColorsUsed}
+                    colorPickerType={props.colorPickerType}
+                    changeColorPickerType={props.changeColorPickerType}
+                    updateLastColors={props.updateLastColors}
+                    lastColorsUsed={props.lastColorsUsed}
                 />
                 <InspectorColorNumericInput
                     tooltip1="Stroke"
                     tooltip2="Weight"
-                    val1={this.getSelectionAttribute("strokeColor").toCSS()}
-                    onChange1={(col) => this.setSelectionAttribute("strokeColor", col)}
+                    val1={getSelectionAttribute("strokeColor").toCSS()}
+                    onChange1={(col) => setSelectionAttribute("strokeColor", col)}
                     id={"inspector-selection-stroke-color"}
                     stroke={true}
-                    val2={this.getSelectionAttribute("strokeWidth")}
-                    onChange2={(val) => this.setSelectionAttribute("strokeWidth", val)}
+                    val2={getSelectionAttribute("strokeWidth")}
+                    onChange2={(val) => setSelectionAttribute("strokeWidth", val)}
                     divider={false}
-                    colorPickerType={this.props.colorPickerType}
-                    changeColorPickerType={this.props.changeColorPickerType}
-                    updateLastColors={this.props.updateLastColors}
-                    lastColorsUsed={this.props.lastColorsUsed}
+                    colorPickerType={props.colorPickerType}
+                    changeColorPickerType={props.changeColorPickerType}
+                    updateLastColors={props.updateLastColors}
+                    lastColorsUsed={props.lastColorsUsed}
                 />
             </div>
         );
     };
 
-    renderFontFamily = (): JSX.Element => {
+    const renderFontFamily = (): JSX.Element => {
         const getFontClass = (font: string) => {
             const fontClass = "font-selector-" + font.split(" ").join("-");
-            const existingClass = this.props.fontInfoInterface.isExistingFont(font)
+            const existingClass = props.fontInfoInterface.isExistingFont(font)
                 ? " existing-font"
                 : "";
             return fontClass + existingClass;
         };
 
-        const opts: InspectorSelectorOption[] = this.props.fontInfoInterface.allFontNames.map(
+        const opts: InspectorSelectorOption[] = props.fontInfoInterface.allFontNames.map(
             (opt) => {
                 return {
                     value: opt,
@@ -266,7 +234,7 @@ class Inspector extends Component<InspectorProps> {
         return (
             <InspectorSelector
                 className="font-family"
-                value={this.getSelectionAttribute("fontFamily")}
+                value={getSelectionAttribute("fontFamily")}
                 tooltip="Font Family"
                 type="select"
                 isSearchable={true}
@@ -274,17 +242,17 @@ class Inspector extends Component<InspectorProps> {
                 onChange={(val) => {
                     const font = val.value;
 
-                    if (this.props.fontInfoInterface.hasFont(val.value)) {
-                        this.setSelectionAttribute("fontFamily", font);
+                    if (props.fontInfoInterface.hasFont(val.value)) {
+                        setSelectionAttribute("fontFamily", font);
                         return;
                     }
 
-                    this.props.fontInfoInterface.getFontFile({
+                    props.fontInfoInterface.getFontFile({
                         font,
                         callback: (blob: Blob) => {
                             const file = new File([blob], font + ".ttf", { type: "font/ttf" });
-                            this.props.importFileAsAsset(file, () => {
-                                this.setSelectionAttribute("fontFamily", font);
+                            props.importFileAsAsset(file, () => {
+                                setSelectionAttribute("fontFamily", font);
                             });
                         },
                         error: (error: unknown) => {
@@ -296,7 +264,7 @@ class Inspector extends Component<InspectorProps> {
         );
     };
 
-    renderFontStyle = (): JSX.Element => {
+    const renderFontStyle = (): JSX.Element => {
         const options = [
             { value: "normal", label: "normal" },
             { value: "italic", label: "italic" },
@@ -306,16 +274,16 @@ class Inspector extends Component<InspectorProps> {
                 tooltip="Style"
                 type="select"
                 isSearchable={true}
-                value={this.getSelectionAttribute("fontStyle")}
+                value={getSelectionAttribute("fontStyle")}
                 options={options}
                 onChange={(val) => {
-                    this.setSelectionAttribute("fontStyle", val.value);
+                    setSelectionAttribute("fontStyle", val.value);
                 }}
             />
         );
     };
 
-    renderFontWeight = (): JSX.Element => {
+    const renderFontWeight = (): JSX.Element => {
         const fontWeights = [
             { label: "thin", value: 100 },
             { label: "extra light", value: 200 },
@@ -328,7 +296,7 @@ class Inspector extends Component<InspectorProps> {
             { label: "black", value: 900 },
         ];
 
-        const weight = Math.min(Math.max(this.getSelectionAttribute("fontWeight"), 100), 900);
+        const weight = Math.min(Math.max(getSelectionAttribute("fontWeight"), 100), 900);
 
         return (
             <InspectorSelector
@@ -339,30 +307,30 @@ class Inspector extends Component<InspectorProps> {
                 options={fontWeights}
                 onChange={(val) => {
                     const newWeight = val.value || 400;
-                    this.setSelectionAttribute("fontWeight", newWeight);
+                    setSelectionAttribute("fontWeight", newWeight);
                 }}
             />
         );
     };
 
-    renderFontSize = (): JSX.Element => {
+    const renderFontSize = (): JSX.Element => {
         return (
             <InspectorNumericInput
                 tooltip="Font Size"
-                val={this.getSelectionAttribute("fontSize")}
-                onChange={(val) => this.setSelectionAttribute("fontSize", val)}
+                val={getSelectionAttribute("fontSize")}
+                onChange={(val) => setSelectionAttribute("fontSize", val)}
             />
         );
     };
 
-    renderName = (): JSX.Element => {
+    const renderName = (): JSX.Element => {
         return (
             <div className="inspector-item">
                 <InspectorTextInput
                     tooltip="Name"
-                    val={this.getSelectionAttribute("name")}
+                    val={getSelectionAttribute("name")}
                     onChange={(val) => {
-                        this.setSelectionAttribute("name", val);
+                        setSelectionAttribute("name", val);
                     }}
                     placeholder="no_name"
                     id="inspector-name"
@@ -371,14 +339,14 @@ class Inspector extends Component<InspectorProps> {
         );
     };
 
-    renderIdentifier = (): JSX.Element => {
+    const renderIdentifier = (): JSX.Element => {
         return (
             <div className="inspector-item">
                 <InspectorTextInput
                     tooltip="Name"
-                    val={this.getSelectionAttribute("identifier")}
+                    val={getSelectionAttribute("identifier")}
                     onChange={(val) => {
-                        this.setSelectionAttribute("identifier", val);
+                        setSelectionAttribute("identifier", val);
                     }}
                     placeholder="no_name"
                     id="inspector-name"
@@ -387,12 +355,12 @@ class Inspector extends Component<InspectorProps> {
         );
     };
 
-    renderFilename = (): JSX.Element => {
+    const renderFilename = (): JSX.Element => {
         return (
             <div className="inspector-item">
                 <InspectorTextInput
                     tooltip="File"
-                    val={this.getSelectionAttribute("filename")}
+                    val={getSelectionAttribute("filename")}
                     readOnly={true}
                     id="inspector-file-name"
                 />
@@ -400,12 +368,12 @@ class Inspector extends Component<InspectorProps> {
         );
     };
 
-    renderAssetPreview = (): JSX.Element | undefined => {
-        const selectionType = this.props.getSelectionType();
+    const renderAssetPreview = (): JSX.Element | undefined => {
+        const selectionType = props.getSelectionType();
         if (selectionType === "imageasset") {
             return (
                 <InspectorImagePreview
-                    src={this.getSelectionAttribute("src")}
+                    src={getSelectionAttribute("src")}
                     id="inspector-image-preview"
                 />
             );
@@ -413,7 +381,7 @@ class Inspector extends Component<InspectorProps> {
         if (selectionType === "soundasset") {
             return (
                 <InspectorSoundPreview
-                    src={this.getSelectionAttribute("src")}
+                    src={getSelectionAttribute("src")}
                     id="inspector-sound-preview"
                 />
             );
@@ -421,92 +389,92 @@ class Inspector extends Component<InspectorProps> {
         return undefined;
     };
 
-    renderFrameLength = (): JSX.Element => {
+    const renderFrameLength = (): JSX.Element => {
         return (
             <div className="inspector-item">
                 <InspectorNumericInput
                     tooltip="Length"
-                    val={this.getSelectionAttribute("frameLength")}
-                    onChange={(val) => this.setSelectionAttribute("frameLength", val)}
+                    val={getSelectionAttribute("frameLength")}
+                    onChange={(val) => setSelectionAttribute("frameLength", val)}
                     id="inspector-frame-length"
                 />
             </div>
         );
     };
 
-    renderPosition = (): JSX.Element => {
+    const renderPosition = (): JSX.Element => {
         return (
             <InspectorDualNumericInput
                 tooltip1="Origin X"
                 tooltip2="Origin Y"
-                val1={this.getSelectionAttribute("originX")}
-                val2={this.getSelectionAttribute("originY")}
-                onChange1={(val) => this.setSelectionAttribute("originX", val)}
-                onChange2={(val) => this.setSelectionAttribute("originY", val)}
+                val1={getSelectionAttribute("originX")}
+                val2={getSelectionAttribute("originY")}
+                onChange1={(val) => setSelectionAttribute("originX", val)}
+                onChange2={(val) => setSelectionAttribute("originY", val)}
                 id="inspector-origin"
             />
         );
     };
 
-    renderOrigin = (): JSX.Element => {
+    const renderOrigin = (): JSX.Element => {
         return (
             <InspectorDualNumericInput
                 tooltip1="X"
                 tooltip2="Y"
-                val1={this.getSelectionAttribute("x")}
-                val2={this.getSelectionAttribute("y")}
-                onChange1={(val) => this.setSelectionAttribute("x", val)}
-                onChange2={(val) => this.setSelectionAttribute("y", val)}
+                val1={getSelectionAttribute("x")}
+                val2={getSelectionAttribute("y")}
+                onChange1={(val) => setSelectionAttribute("x", val)}
+                onChange2={(val) => setSelectionAttribute("y", val)}
                 id="inspector-position"
             />
         );
     };
 
-    renderSize = (): JSX.Element => {
+    const renderSize = (): JSX.Element => {
         return (
             <InspectorDualNumericInput
                 tooltip1="Width"
                 tooltip2="Height"
-                val1={this.getSelectionAttribute("width")}
-                val2={this.getSelectionAttribute("height")}
-                onChange1={(val) => this.setSelectionAttribute("width", val)}
-                onChange2={(val) => this.setSelectionAttribute("height", val)}
+                val1={getSelectionAttribute("width")}
+                val2={getSelectionAttribute("height")}
+                onChange1={(val) => setSelectionAttribute("width", val)}
+                onChange2={(val) => setSelectionAttribute("height", val)}
                 id="inspector-size"
             />
         );
     };
 
-    renderScale = (): JSX.Element => {
+    const renderScale = (): JSX.Element => {
         return (
             <InspectorDualNumericInput
                 tooltip1="Scale W"
                 tooltip2="Scale H"
-                val1={this.getSelectionAttribute("scaleX")}
-                val2={this.getSelectionAttribute("scaleY")}
-                onChange1={(val) => this.setSelectionAttribute("scaleX", val)}
-                onChange2={(val) => this.setSelectionAttribute("scaleY", val)}
+                val1={getSelectionAttribute("scaleX")}
+                val2={getSelectionAttribute("scaleY")}
+                onChange1={(val) => setSelectionAttribute("scaleX", val)}
+                onChange2={(val) => setSelectionAttribute("scaleY", val)}
                 id="inspector-scale"
             />
         );
     };
 
-    renderRotation = (): JSX.Element => {
+    const renderRotation = (): JSX.Element => {
         return (
             <InspectorNumericInput
                 tooltip="Rotation"
-                val={this.getSelectionAttribute("rotation")}
-                onChange={(val) => this.setSelectionAttribute("rotation", val)}
+                val={getSelectionAttribute("rotation")}
+                onChange={(val) => setSelectionAttribute("rotation", val)}
                 id="inspector-rotation"
             />
         );
     };
 
-    renderOpacity = (): JSX.Element => {
+    const renderOpacity = (): JSX.Element => {
         return (
             <InspectorNumericSlider
                 tooltip="Opacity"
-                val={this.getSelectionAttribute("opacity")}
-                onChange={(val) => this.setSelectionAttribute("opacity", val)}
+                val={getSelectionAttribute("opacity")}
+                onChange={(val) => setSelectionAttribute("opacity", val)}
                 divider={false}
                 inputProps={{ min: 0, max: 1, step: 0.01 }}
                 id="inspector-opacity"
@@ -514,20 +482,20 @@ class Inspector extends Component<InspectorProps> {
         );
     };
 
-    renderSelectionTransformProperties = (): JSX.Element => {
+    const renderSelectionTransformProperties = (): JSX.Element => {
         return (
             <div className="inspector-item">
-                {this.renderPosition()}
-                {this.renderOrigin()}
-                {this.renderSize()}
-                {this.renderScale()}
-                {this.renderRotation()}
-                {this.renderOpacity()}
+                {renderPosition()}
+                {renderOrigin()}
+                {renderSize()}
+                {renderScale()}
+                {renderRotation()}
+                {renderOpacity()}
             </div>
         );
     };
 
-    renderSelectionSoundAsset = (): JSX.Element => {
+    const renderSelectionSoundAsset = (): JSX.Element => {
         const options: InspectorSelectorOption[] = [
             {
                 value: null,
@@ -548,10 +516,10 @@ class Inspector extends Component<InspectorProps> {
             };
         };
 
-        const assetOptions = this.props.getAllSoundAssets().map(mapAsset);
+        const assetOptions = props.getAllSoundAssets().map(mapAsset);
         const resolvedOptions = options.concat(assetOptions);
 
-        const value = this.getSelectionAttribute("sound");
+        const value = getSelectionAttribute("sound");
         return (
             <InspectorSelector
                 tooltip="Sound"
@@ -560,76 +528,76 @@ class Inspector extends Component<InspectorProps> {
                 value={value}
                 isSearchable={true}
                 onChange={(val) => {
-                    this.setSelectionAttribute("sound", val.value);
+                    setSelectionAttribute("sound", val.value);
                 }}
             />
         );
     };
 
-    renderSelectionSoundVolume = (): JSX.Element => {
+    const renderSelectionSoundVolume = (): JSX.Element => {
         return (
             <InspectorNumericInput
                 tooltip="Volume"
-                val={this.getSelectionAttribute("soundVolume")}
+                val={getSelectionAttribute("soundVolume")}
                 onChange={(val) => {
-                    this.setSelectionAttribute("soundVolume", val);
+                    setSelectionAttribute("soundVolume", val);
                 }}
                 id="inspector-sound-volume"
             />
         );
     };
 
-    renderSelectionSoundStart = (): JSX.Element => {
+    const renderSelectionSoundStart = (): JSX.Element => {
         return (
             <InspectorNumericInput
                 tooltip="Start (ms)"
                 type="numeric"
-                val={this.getSelectionAttribute("soundStart")}
+                val={getSelectionAttribute("soundStart")}
                 onChange={(val) => {
-                    this.setSelectionAttribute("soundStart", val);
+                    setSelectionAttribute("soundStart", val);
                 }}
             />
         );
     };
 
-    renderSoundContent = (): JSX.Element => {
+    const renderSoundContent = (): JSX.Element => {
         return (
             <div className="inspector-item">
-                {this.renderSelectionSoundAsset()}
-                {this.getSelectionAttribute("sound") && this.renderSelectionSoundVolume()}
-                {this.getSelectionAttribute("sound") && this.renderSelectionSoundStart()}
+                {renderSelectionSoundAsset()}
+                {getSelectionAttribute("sound") && renderSelectionSoundVolume()}
+                {getSelectionAttribute("sound") && renderSelectionSoundStart()}
             </div>
         );
     };
 
-    renderAnimationType = (): JSX.Element => {
+    const renderAnimationType = (): JSX.Element => {
         return (
             <div className="inspector-item">
                 <InspectorSelector
                     tooltip="Animation"
                     type="select"
-                    options={this.props.getClipAnimationTypes()}
-                    value={this.getSelectionAttribute("animationType")}
+                    options={props.getClipAnimationTypes()}
+                    value={getSelectionAttribute("animationType")}
                     isSearchable={true}
                     onChange={(val) => {
-                        this.setSelectionAttribute("animationType", val.value);
+                        setSelectionAttribute("animationType", val.value);
                     }}
                 />
-                {this.getSelectionAttribute("singleFrameNumber") && (
+                {getSelectionAttribute("singleFrameNumber") && (
                     <InspectorNumericInput
                         tooltip="Frame"
-                        val={this.getSelectionAttribute("singleFrameNumber")}
-                        onChange={(val) => this.setSelectionAttribute("singleFrameNumber", val)}
+                        val={getSelectionAttribute("singleFrameNumber")}
+                        onChange={(val) => setSelectionAttribute("singleFrameNumber", val)}
                     />
                 )}
-                {this.getSelectionAttribute("animationType") !== "single" && (
+                {getSelectionAttribute("animationType") !== "single" && (
                     <InspectorCheckbox
                         tooltip="Synced"
-                        checked={this.getSelectionAttribute("isSynced")}
+                        checked={getSelectionAttribute("isSynced")}
                         onChange={() =>
-                            this.setSelectionAttribute(
+                            setSelectionAttribute(
                                 "isSynced",
-                                !this.getSelectionAttribute("isSynced")
+                                !getSelectionAttribute("isSynced")
                             )
                         }
                     />
@@ -638,7 +606,7 @@ class Inspector extends Component<InspectorProps> {
         );
     };
 
-    renderTweenEasingType = (): JSX.Element => {
+    const renderTweenEasingType = (): JSX.Element => {
         const options = window.Wick.Tween.VALID_EASING_TYPES;
         const optionLabels: Array<{ label: string; value: string }> = [];
         options.forEach((option: string) => {
@@ -650,174 +618,174 @@ class Inspector extends Component<InspectorProps> {
                     tooltip="Easing Type"
                     type="select"
                     options={optionLabels}
-                    value={this.getSelectionAttribute("easingType")}
+                    value={getSelectionAttribute("easingType")}
                     isSearchable={true}
                     onChange={(val) => {
-                        this.setSelectionAttribute("easingType", val.value);
+                        setSelectionAttribute("easingType", val.value);
                     }}
                 />
             </div>
         );
     };
 
-    renderTweenFullRotations = (): JSX.Element => {
+    const renderTweenFullRotations = (): JSX.Element => {
         return (
             <div className="inspector-item">
                 <InspectorNumericInput
                     tooltip="Full Rotations"
-                    val={this.getSelectionAttribute("fullRotations")}
-                    onChange={(val) => this.setSelectionAttribute("fullRotations", val)}
+                    val={getSelectionAttribute("fullRotations")}
+                    onChange={(val) => setSelectionAttribute("fullRotations", val)}
                     id="inspector-full-rotation"
                 />
             </div>
         );
     };
 
-    renderFrame = (): JSX.Element => {
+    const renderFrame = (): JSX.Element => {
         return (
             <div className="inspector-content">
-                {this.renderIdentifier()}
-                {this.renderFrameLength()}
-                {this.renderSoundContent()}
+                {renderIdentifier()}
+                {renderFrameLength()}
+                {renderSoundContent()}
             </div>
         );
     };
 
-    renderLayer = (): JSX.Element => {
+    const renderLayer = (): JSX.Element => {
         return (
-            <div className="inspector-content">{this.renderName()}</div>
+            <div className="inspector-content">{renderName()}</div>
         );
     };
 
-    renderMultiFrame = (): JSX.Element => {
+    const renderMultiFrame = (): JSX.Element => {
         return <div className="inspector-content" />;
     };
 
-    renderMultiClip = (): JSX.Element => {
+    const renderMultiClip = (): JSX.Element => {
         return <div className="inspector-content" />;
     };
 
-    renderTween = (): JSX.Element => {
+    const renderTween = (): JSX.Element => {
         return (
             <div className="inspector-content">
-                {this.renderTweenEasingType()}
-                {this.renderTweenFullRotations()}
+                {renderTweenEasingType()}
+                {renderTweenFullRotations()}
             </div>
         );
     };
 
-    renderMultiTween = (): JSX.Element => {
+    const renderMultiTween = (): JSX.Element => {
         return (
             <div className="inspector-content">
-                {this.renderTweenEasingType()}
-                {this.renderTweenFullRotations()}
+                {renderTweenEasingType()}
+                {renderTweenFullRotations()}
             </div>
         );
     };
 
-    renderGroupContent = (): JSX.Element => {
+    const renderGroupContent = (): JSX.Element => {
         return (
             <div className="inspector-content">
-                {this.renderIdentifier()}
-                {this.renderSelectionTransformProperties()}
+                {renderIdentifier()}
+                {renderSelectionTransformProperties()}
             </div>
         );
     };
 
-    renderGroup = (): JSX.Element => {
-        return this.renderGroupContent();
+    const renderGroup = (): JSX.Element => {
+        return renderGroupContent();
     };
 
-    renderMultiGroup = (): JSX.Element => {
-        return this.renderGroupContent();
+    const renderMultiGroup = (): JSX.Element => {
+        return renderGroupContent();
     };
 
-    renderClip = (): JSX.Element => {
-        return this.renderGroupContent();
+    const renderClip = (): JSX.Element => {
+        return renderGroupContent();
     };
 
-    renderButton = (): JSX.Element => {
-        return this.renderGroupContent();
+    const renderButton = (): JSX.Element => {
+        return renderGroupContent();
     };
 
-    renderFontContent = (): JSX.Element => {
+    const renderFontContent = (): JSX.Element => {
         return (
             <div className="inspector-item">
-                {this.renderFontFamily()}
-                {this.renderFontStyle()}
-                {this.renderFontWeight()}
-                {this.renderFontSize()}
+                {renderFontFamily()}
+                {renderFontStyle()}
+                {renderFontWeight()}
+                {renderFontSize()}
             </div>
         );
     };
 
-    renderPathContent = (): JSX.Element => {
+    const renderPathContent = (): JSX.Element => {
         return (
             <div className="inspector-content">
-                {this.renderSelectionTransformProperties()}
-                {this.renderSelectionColor()}
+                {renderSelectionTransformProperties()}
+                {renderSelectionColor()}
             </div>
         );
     };
 
-    renderPath = (): JSX.Element => {
-        return this.renderPathContent();
+    const renderPath = (): JSX.Element => {
+        return renderPathContent();
     };
 
-    renderText = (): JSX.Element => {
+    const renderText = (): JSX.Element => {
         return (
             <div className="inspector-content">
-                {this.renderIdentifier()}
-                {this.renderSelectionTransformProperties()}
-                {this.renderSelectionColor()}
-                {this.renderFontContent()}
+                {renderIdentifier()}
+                {renderSelectionTransformProperties()}
+                {renderSelectionColor()}
+                {renderFontContent()}
             </div>
         );
     };
 
-    renderAnimationSetting = (): JSX.Element => {
+    const renderAnimationSetting = (): JSX.Element => {
         return (
-            <div className="inspector-content">{this.renderAnimationType()}</div>
+            <div className="inspector-content">{renderAnimationType()}</div>
         );
     };
 
-    renderImage = (): JSX.Element => {
-        return (
-            <div className="inspector-content">
-                {this.renderSelectionTransformProperties()}
-            </div>
-        );
-    };
-
-    renderMultiPath = (): JSX.Element => {
+    const renderImage = (): JSX.Element => {
         return (
             <div className="inspector-content">
-                {this.renderSelectionTransformProperties()}
-                {this.renderSelectionColor()}
-                {this.getSelectionAttribute("fontFamily") && this.renderFontContent()}
+                {renderSelectionTransformProperties()}
             </div>
         );
     };
 
-    renderMultiCanvas = (): JSX.Element => {
-        return this.renderSelectionTransformProperties();
+    const renderMultiPath = (): JSX.Element => {
+        return (
+            <div className="inspector-content">
+                {renderSelectionTransformProperties()}
+                {renderSelectionColor()}
+                {getSelectionAttribute("fontFamily") && renderFontContent()}
+            </div>
+        );
     };
 
-    renderMultiTimeline = (): JSX.Element => {
+    const renderMultiCanvas = (): JSX.Element => {
+        return renderSelectionTransformProperties();
+    };
+
+    const renderMultiTimeline = (): JSX.Element => {
         return <div></div>;
     };
 
-    renderAsset = (): JSX.Element => {
+    const renderAsset = (): JSX.Element => {
         return (
             <div className="inspector-content">
-                {this.renderName()}
-                {this.renderFilename()}
-                {this.renderAssetPreview()}
+                {renderName()}
+                {renderFilename()}
+                {renderAssetPreview()}
             </div>
         );
     };
 
-    renderUnknown = (): JSX.Element => {
+    const renderUnknown = (): JSX.Element => {
         return (
             <div>
                 <div className="inspector-content"></div>
@@ -825,16 +793,38 @@ class Inspector extends Component<InspectorProps> {
         );
     };
 
-    renderDisplay = (selectionType: string): JSX.Element | null => {
-        let renderFunction = this.inspectorContentRenderFunctions[selectionType];
+    const inspectorContentRenderFunctions: Record<string, () => JSX.Element | null> = {
+        frame: renderFrame,
+        layer: renderLayer,
+        multiframe: renderMultiFrame,
+        tween: renderTween,
+        multitween: renderMultiTween,
+        clip: renderClip,
+        button: renderButton,
+        path: renderPath,
+        text: renderText,
+        image: renderImage,
+        multipath: renderMultiPath,
+        multiclip: renderMultiClip,
+        multitimeline: renderMultiTimeline,
+        multicanvas: renderMultiCanvas,
+        imageasset: renderAsset,
+        soundasset: renderAsset,
+        multiassetmixed: renderAsset,
+        multisoundasset: renderAsset,
+        multiimageasset: renderAsset,
+    };
+
+    const renderDisplay = (selectionType: string): JSX.Element | null => {
+        let renderFunction = inspectorContentRenderFunctions[selectionType];
         if (!renderFunction) {
-            renderFunction = this.renderUnknown;
+            renderFunction = renderUnknown;
         }
 
         return renderFunction();
     };
 
-    renderActionButton = (action: any, i: number): JSX.Element => {
+    const renderActionButton = (action: any, i: number): JSX.Element => {
         return (
             <div key={i} className="inspector-item">
                 <InspectorActionButton action={action} />
@@ -842,25 +832,25 @@ class Inspector extends Component<InspectorProps> {
         );
     };
 
-    renderActions = (): JSX.Element => {
+    const renderActions = (): JSX.Element => {
         const actions: any[] = [];
-        const selectionType = this.props.getSelectionType();
+        const selectionType = props.getSelectionType();
 
-        Object.keys(this.actionRules).forEach((action) => {
-            const actionList = this.actionRules[action] ?? [];
+        Object.keys(actionRules).forEach((action) => {
+            const actionList = actionRules[action] ?? [];
             if (actionList.indexOf(selectionType) > -1) actions.push(action);
         });
 
         return (
             <div className="inspector-content">
                 {actions.map((action, i) => {
-                    return this.renderActionButton(this.props.editorActions[action], i);
+                    return renderActionButton(props.editorActions[action], i);
                 })}
             </div>
         );
     };
 
-    renderScripts = (): JSX.Element => {
+    const renderScripts = (): JSX.Element => {
         const defaultScriptInfo: ScriptWindowScriptInfoInterface = {
             scriptsByType: {},
             scriptTypeColors: {},
@@ -869,50 +859,48 @@ class Inspector extends Component<InspectorProps> {
         return (
             <div className="inspector-item">
                 <InspectorScriptWindow
-                    script={this.props.script ?? { scripts: [] }}
+                    script={props.script ?? { scripts: [] }}
                     deleteScript={
-                        this.props.deleteScript ?? ((script) => {
+                        props.deleteScript ?? ((script) => {
                             console.warn("deleteScript handler missing", script);
                         })
                     }
                     editScript={
-                        this.props.editScript ?? ((name) => {
+                        props.editScript ?? ((name) => {
                             console.warn("editScript handler missing", name);
                         })
                     }
-                    scriptInfoInterface={this.props.scriptInfoInterface ?? defaultScriptInfo}
+                    scriptInfoInterface={props.scriptInfoInterface ?? defaultScriptInfo}
                 />
             </div>
         );
     };
 
-    renderTitle = (selectionType: string): JSX.Element => {
-        if (!(selectionType in this.inspectorTitles)) selectionType = "";
+    const renderTitle = (selectionType: string): JSX.Element => {
+        if (!(selectionType in inspectorTitles)) selectionType = "";
 
         return (
             <div className="inspector-title-container">
                 <InspectorTitle
                     type={selectionType}
-                    title={this.inspectorTitles[selectionType]}
+                    title={inspectorTitles[selectionType]}
                 />
             </div>
         );
     };
 
-    render(): JSX.Element {
-        const selectionType = this.props.getSelectionType();
-        return (
-            <div className="docked-pane inspector" aria-label="Inspector Panel">
-                {this.renderTitle(selectionType)}
-                <div className="inspector-body">
-                    {this.renderDisplay(selectionType)}
-                    {this.renderActions()}
-                    {this.props.selectionIsScriptable() && this.renderScripts()}
-                    {selectionType === "clip" && this.renderAnimationSetting()}
-                </div>
+    const selectionType = props.getSelectionType();
+    return (
+        <div className="docked-pane inspector" aria-label="Inspector Panel">
+            {renderTitle(selectionType)}
+            <div className="inspector-body">
+                {renderDisplay(selectionType)}
+                {renderActions()}
+                {props.selectionIsScriptable() && renderScripts()}
+                {selectionType === "clip" && renderAnimationSetting()}
             </div>
-        );
-    }
-}
+        </div>
+    );
+};
 
 export default Inspector;
