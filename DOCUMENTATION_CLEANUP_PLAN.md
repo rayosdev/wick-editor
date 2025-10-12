@@ -9,6 +9,7 @@
 ## Recommendation: KEEP (15 files)
 
 ### Essential Project Documentation (5 files)
+
 1. ✅ **README.md** - Main project documentation
 2. ✅ **LICENSE.md** - Legal requirement
 3. ✅ **CODE_OF_CONDUCT.md** - Community guidelines
@@ -16,6 +17,7 @@
 5. ✅ **UPGRADE_PLAN.md** - Current modernization roadmap (if exists)
 
 ### Current SVG Work (3-4 files - KEEP CONSOLIDATED)
+
 6. ✅ **SVG_MODERNIZATION_PLAN.md** (20K) - Keep, has 3-phase strategy
 7. ✅ **SVG_FIX_COMPLETE.md** (8.2K) - Keep as final record
 8. ⚠️ **SVG_EMERGENCY_FIX_STATUS.md** (11K) - MERGE into SVG_FIX_COMPLETE, then delete
@@ -24,10 +26,12 @@
 11. ❌ **SVG_SUMMARY.md** (5.2K) - DELETE (redundant with above)
 
 ### Phase 3 Summary (2 files)
+
 12. ✅ **PHASE3_COMPLETE_SUMMARY.md** (13K) - Keep as final record
 13. ❌ **PHASE3_FINAL_CHECKLIST.md** (8.5K) - DELETE (redundant)
 
 ### Testing Documentation (2 files)
+
 14. ✅ **TEST_STRATEGY.md** (8.5K) - Keep for ongoing testing guidance
 15. ⚠️ **TEST_INFRASTRUCTURE.md** (5.4K) - Consider merging into TEST_STRATEGY
 
@@ -36,9 +40,11 @@
 ## Recommendation: DELETE (37 files)
 
 ### Phase 1 Historical Documents (1 file)
+
 - ❌ **PHASE1_COMPLETE.md** - Work completed, no longer needed
 
 ### Phase 2 Historical Documents (12 files - ALL DELETE)
+
 - ❌ **PHASE2_COMPLETE.md**
 - ❌ **PHASE2_FINAL_STATUS.md**
 - ❌ **PHASE2_MILESTONE.md**
@@ -53,6 +59,7 @@
 - ❌ **TYPESCRIPT_MIGRATION_STRATEGY.md** (consolidated elsewhere)
 
 ### Phase 3 Session Documents (5 files - ALL DELETE)
+
 - ❌ **PHASE3_SESSION1_COMPLETE.md**
 - ❌ **PHASE3_SESSION2_COMPLETE.md**
 - ❌ **PHASE3_SESSION3_COMPLETE.md**
@@ -62,20 +69,24 @@
 - ❌ **PHASE3_REACT_MODERNIZATION_PLAN.md** (superseded by COMPLETE_SUMMARY)
 
 ### jQuery Removal (3 files - ALL DELETE)
+
 - ❌ **JQUERY_REMOVAL_COMPLETE.md**
 - ❌ **JQUERY_REMOVAL_SUMMARY.md**
 - ❌ **JQUERY_REMOVAL.md**
 
 ### TypeScript Migration (4 files - ALL DELETE)
+
 - ❌ **TYPESCRIPT_REFACTOR_PLAN.md**
 - ❌ **TYPESCRIPT_STATUS.md**
 - ❌ **TYPESCRIPT_UPDATE.md**
 - ❌ **CONVERSION_PROGRESS.md**
 
 ### ES6 Conversion (1 file)
+
 - ❌ **ES6_CONVERSION.md**
 
 ### Icon/Mouse/Other (5 files - ALL DELETE)
+
 - ❌ **ICON_FIX.md** (SVG work supersedes this)
 - ❌ **ICON_LOADING_ISSUE.md** (SVG work supersedes this)
 - ❌ **MOUSE_IMPROVEMENTS.md** (completed work)
@@ -83,6 +94,7 @@
 - ❌ **PLAYWRIGHT_SOLUTIONS.md** (old test reports)
 
 ### Test Documents (3 files - CONSOLIDATE)
+
 - ❌ **TEST_SUMMARY.md** (merge into TEST_STRATEGY)
 - ❌ **QUICKSTART_TESTS.md** (merge into TEST_STRATEGY)
 - ⚠️ **TEST_INFRASTRUCTURE.md** (merge into TEST_STRATEGY)
@@ -94,11 +106,13 @@
 ### Step 1: Consolidate Important Info
 
 **Merge SVG_EMERGENCY_FIX_STATUS.md → SVG_FIX_COMPLETE.md**
+
 - SVG_FIX_COMPLETE already has most info
 - Add any unique details from STATUS file
 - Delete STATUS file after merge
 
 **Merge Test Docs → TEST_STRATEGY.md**
+
 - Consolidate TEST_INFRASTRUCTURE + TEST_SUMMARY + QUICKSTART_TESTS
 - Keep TEST_STRATEGY as single source of truth
 - Delete redundant test docs
@@ -106,6 +120,7 @@
 ### Step 2: Archive to history/ folder (OPTIONAL)
 
 If you want to preserve history, create:
+
 ```
 docs/history/
   phase1/
@@ -161,16 +176,19 @@ ROOT/
 ## Decision Points
 
 **Option A: AGGRESSIVE CLEANUP** (Recommended)
+
 - Keep only 10-12 essential files
 - Delete all historical session docs
 - Total: ~10 files remain
 
 **Option B: MODERATE CLEANUP**
+
 - Keep 15 files as recommended above
 - Archive session docs to docs/history/
 - Total: ~15 files + archived history
 
 **Option C: LIGHT CLEANUP**
+
 - Delete only obvious duplicates (SVG docs)
 - Keep phase summaries
 - Total: ~25-30 files remain
@@ -180,6 +198,7 @@ ROOT/
 ## Recommended Immediate Actions
 
 1. **Delete SVG redundant docs (4 files):**
+
    ```bash
    rm SVG_AUDIT_REPORT.md
    rm SVG_CRISIS_REPORT.md
@@ -188,6 +207,7 @@ ROOT/
    ```
 
 2. **Delete all session progress docs (14 files):**
+
    ```bash
    rm PHASE2_SESSION*.md
    rm PHASE3_SESSION*.md
@@ -196,6 +216,7 @@ ROOT/
    ```
 
 3. **Delete completed migration docs (8 files):**
+
    ```bash
    rm JQUERY_REMOVAL*.md
    rm TYPESCRIPT_STATUS.md
@@ -205,6 +226,7 @@ ROOT/
    ```
 
 4. **Delete historical phase docs (5 files):**
+
    ```bash
    rm PHASE1_COMPLETE.md
    rm PHASE2_COMPLETE.md
