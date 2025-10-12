@@ -9,12 +9,12 @@
 
 Ran automated audit on **191 SVG files** in Wick Editor:
 
-| Finding | Count | Impact |
-|---------|-------|--------|
-| **🔴 CRITICAL: Malformed SVGs** | 63 files | Won't render in strict parsers |
-| **🟡 Missing Accessibility** | 152 files | Screen readers can't describe |
-| **🟢 Needs Optimization** | 116 files | Bloated with Adobe metadata |
-| **Total Issues** | 188/191 (98.4%) | Systematic problems |
+| Finding                         | Count           | Impact                         |
+| ------------------------------- | --------------- | ------------------------------ |
+| **🔴 CRITICAL: Malformed SVGs** | 63 files        | Won't render in strict parsers |
+| **🟡 Missing Accessibility**    | 152 files       | Screen readers can't describe  |
+| **🟢 Needs Optimization**       | 116 files       | Bloated with Adobe metadata    |
+| **Total Issues**                | 188/191 (98.4%) | Systematic problems            |
 
 ---
 
@@ -37,6 +37,7 @@ Many SVGs are missing their opening `<svg>` tags:
 ```
 
 **Why it matters:**
+
 - Technically invalid XML
 - Will break optimization tools (SVGO, etc.)
 - May fail in future bundlers
@@ -44,6 +45,7 @@ Many SVGs are missing their opening `<svg>` tags:
 - Unnecessarily large files
 
 **Why it hasn't caused issues yet:**
+
 - Browsers are forgiving (error correction)
 - Vite handles them as opaque assets
 - We recently fixed 2 files that DID break
@@ -59,6 +61,7 @@ Many SVGs are missing their opening `<svg>` tags:
 **Impact:** Fixes all critical issues
 
 **What it does:**
+
 1. Automatically fixes all 63 malformed SVGs
 2. Adds missing `<svg>` tags
 3. Fixes invalid CSS colors
@@ -66,6 +69,7 @@ Many SVGs are missing their opening `<svg>` tags:
 5. Validates all changes
 
 **How to run:**
+
 ```bash
 # 1. Run the emergency fix
 node scripts/fix-svgs.js
@@ -94,6 +98,7 @@ git commit -m "fix: repair 63 malformed SVG files"
 **Phase 3:** Optimize files (remove metadata, compress)
 
 **Result:**
+
 - Structurally valid ✅
 - Accessible ✅
 - Optimized (30-50% smaller) ✅
@@ -113,17 +118,20 @@ git commit -m "fix: repair 63 malformed SVG files"
 ## 🚦 Decision Needed
 
 **Option 1: Emergency Fix Only** (Recommended Now)
+
 - ✅ Fixes critical issues immediately
 - ✅ Low risk, high value
 - ✅ 2-3 hours effort
 - ⏰ **Can start now**
 
 **Option 2: Comprehensive Fix** (Recommended Later)
+
 - ✅ Fixes everything + optimization
 - ✅ Production-ready
 - ⏰ Schedule for next sprint (1-2 weeks)
 
 **Option 3: Full Modernization** (Future)
+
 - Convert to React components
 - Enable theming and animations
 - SVG sprite sheets
@@ -134,6 +142,7 @@ git commit -m "fix: repair 63 malformed SVG files"
 ## 🎬 Next Steps
 
 ### Immediate
+
 1. Review `SVG_CRISIS_REPORT.md`
 2. Approve emergency fix
 3. Create `scripts/fix-svgs.js` (code provided)
@@ -141,11 +150,13 @@ git commit -m "fix: repair 63 malformed SVG files"
 5. Test and commit
 
 ### This Week
+
 - Plan comprehensive fix for next sprint
 - Assign resources
 - Define success criteria
 
 ### Next Sprint
+
 - Add accessibility attributes
 - Run SVGO optimization
 - Create SVG style guide
@@ -159,7 +170,8 @@ git commit -m "fix: repair 63 malformed SVG files"
 A: Browsers are forgiving. But 2 files DID break (we just fixed them).
 
 **Q: Is this urgent?**  
-A: Medium-High. Not breaking *right now*, but will cause problems with:
+A: Medium-High. Not breaking _right now_, but will cause problems with:
+
 - SVG optimization tools
 - Future bundler updates
 - Accessibility audits
@@ -176,12 +188,14 @@ A: 2-3 hours for emergency fix (all critical issues solved).
 ## 📊 Files Affected
 
 **Most Critical Directories:**
+
 - `inspector-icons/property-icons/` (most files missing `<svg>`)
-- `asset-library-icons/` 
+- `asset-library-icons/`
 - `tool-icons/`
 - `toolbar-icons/`
 
 **Least Critical:**
+
 - `interface/` (mostly clean)
 - `logo-icons/` (good structure)
 
@@ -190,17 +204,20 @@ A: 2-3 hours for emergency fix (all critical issues solved).
 ## ✨ Recommendation
 
 **Do Option 1 (Emergency Fix) NOW:**
+
 - Low effort (2-3 hours)
 - High value (fixes 63 critical issues)
 - Very low risk (automated + backups)
 - Prevents future breakage
 
 **Schedule Option 2 (Comprehensive) for Next Sprint:**
+
 - Accessibility improvements
 - File size optimization
 - Style guide creation
 
 **Defer Option 3 (Modernization) until needed:**
+
 - Evaluate after Option 2
 - Consider when adding theming/animations
 
@@ -214,6 +231,7 @@ A: 2-3 hours for emergency fix (all critical issues solved).
 ---
 
 For full details, see:
+
 - `SVG_CRISIS_REPORT.md` - Complete analysis
 - `SVG_MODERNIZATION_PLAN.md` - Long-term strategy
 - `SVG_AUDIT_REPORT.md` - All 188 issues listed

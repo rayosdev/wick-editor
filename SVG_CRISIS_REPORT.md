@@ -40,6 +40,7 @@ An automated audit of all 191 SVG files in the Wick Editor revealed **widespread
 ### 🔴 Critical: Missing `<svg>` Tags (63 files)
 
 **Most Affected Directories:**
+
 - `inspector-icons/property-icons/` - Almost all files
 - `asset-library-icons/` - Multiple files
 - `tool-icons/` - Several key files
@@ -47,6 +48,7 @@ An automated audit of all 191 SVG files in the Wick Editor revealed **widespread
 **Impact:** Files won't render in strict XML parsers, break optimization tools
 
 **Examples:**
+
 ```xml
 <!-- BROKEN (missing <svg> tag) -->
 <?xml version="1.0" encoding="utf-8"?>
@@ -67,12 +69,14 @@ An automated audit of all 191 SVG files in the Wick Editor revealed **widespread
 
 **Affected:** 79% of all SVG files
 
-**Impact:** 
+**Impact:**
+
 - Screen readers can't describe icons
 - Poor accessibility score
 - WCAG compliance failure
 
 **Fix:**
+
 ```xml
 <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
   <title>Brush Tool</title>
@@ -86,6 +90,7 @@ An automated audit of all 191 SVG files in the Wick Editor revealed **widespread
 ### 🟢 Optimization: Bloated Files (116 files)
 
 **Issues:**
+
 1. Adobe Illustrator metadata (116 files)
 2. CSS classes instead of inline styles (many files)
 3. Commented-out gradient definitions
@@ -106,18 +111,21 @@ An automated audit of all 191 SVG files in the Wick Editor revealed **widespread
 **Steps:**
 
 1. **Create Backup** (5 min)
+
    ```bash
    mkdir -p svg-backups-emergency
    cp -r src/resources/*-icons svg-backups-emergency/
    ```
 
 2. **Run Automated Fix Script** (10 min)
+
    - Fix all missing `<svg>` tags
    - Fix invalid CSS colors
    - Add closing `</svg>` tags
    - Validate with xmllint
 
 3. **Visual Testing** (30-60 min)
+
    - Test in dev environment
    - Check all major icon locations:
      - Toolbar
@@ -133,6 +141,7 @@ An automated audit of all 191 SVG files in the Wick Editor revealed **widespread
    ```
 
 **Deliverable:**
+
 - All 191 SVG files structurally valid
 - Zero critical issues
 - Backward compatible (visual appearance unchanged)
@@ -148,18 +157,21 @@ An automated audit of all 191 SVG files in the Wick Editor revealed **widespread
 **Phase 1:** Emergency fixes (same as Option 1)
 
 **Phase 2:** Accessibility (1 week)
+
 - Add `<title>` tags to all SVGs
 - Add `<desc>` for complex icons
 - Add ARIA attributes
 - Test with screen readers
 
 **Phase 3:** Optimization (1 week)
+
 - Run SVGO on all files
 - Remove Adobe metadata
 - Inline CSS styles
 - Compress to < 5KB each
 
 **Deliverable:**
+
 - Structurally valid
 - Accessible
 - Optimized
@@ -176,52 +188,53 @@ Create `/Users/anders/Documents/_Projects/_Web/wick-editor/scripts/fix-svgs.js`:
 ```javascript
 #!/usr/bin/env node
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const RESOURCES_DIR = path.join(__dirname, '../src/resources');
-const BACKUP_DIR = path.join(__dirname, '../svg-backups-emergency');
+const RESOURCES_DIR = path.join(__dirname, "../src/resources");
+const BACKUP_DIR = path.join(__dirname, "../svg-backups-emergency");
 
 let fixCount = 0;
 
 function fixSVG(filePath) {
-  const content = fs.readFileSync(filePath, 'utf8');
+  const content = fs.readFileSync(filePath, "utf8");
   let fixed = content;
   let changed = false;
 
   // Fix 1: Add missing <svg> tag
-  if (!fixed.includes('<svg')) {
+  if (!fixed.includes("<svg")) {
     console.log(`Fixing missing <svg> tag: ${path.basename(filePath)}`);
-    
+
     // Find where to insert <svg> tag
-    const xmlDeclEnd = fixed.indexOf('?>');
+    const xmlDeclEnd = fixed.indexOf("?>");
     if (xmlDeclEnd === -1) {
       console.error(`  ⚠️  No XML declaration found, skipping`);
       return false;
     }
-    
+
     // Find first tag after XML declaration
     let insertPoint = xmlDeclEnd + 2;
     while (insertPoint < fixed.length && fixed[insertPoint].match(/\s/)) {
       insertPoint++;
     }
-    
+
     // Extract viewBox if present in orphaned attributes
     const viewBoxMatch = fixed.match(/viewBox="([^"]+)"/);
     const viewBox = viewBoxMatch ? viewBoxMatch[0] : 'viewBox="0 0 100 100"';
-    
+
     // Check if we have width/height
     const widthMatch = fixed.match(/width="([^"]+)"/);
     const heightMatch = fixed.match(/height="([^"]+)"/);
-    const dimensions = (widthMatch && heightMatch) 
-      ? `width="${widthMatch[1]}" height="${heightMatch[1]}"` 
-      : '';
-    
+    const dimensions =
+      widthMatch && heightMatch
+        ? `width="${widthMatch[1]}" height="${heightMatch[1]}"`
+        : "";
+
     // Construct proper <svg> tag
     const svgTag = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ${viewBox} ${dimensions} xml:space="preserve">\n`;
-    
+
     fixed = fixed.slice(0, insertPoint) + svgTag + fixed.slice(insertPoint);
     changed = true;
   }
@@ -230,15 +243,21 @@ function fixSVG(filePath) {
   const colorMatches = fixed.match(/fill:([0-9A-F]{6});/gi);
   if (colorMatches) {
     console.log(`Fixing CSS colors: ${path.basename(filePath)}`);
-    fixed = fixed.replace(/fill:([0-9A-F]{6});/gi, (match, hex) => `fill:#${hex};`);
-    fixed = fixed.replace(/stroke:([0-9A-F]{6});/gi, (match, hex) => `stroke:#${hex};`);
+    fixed = fixed.replace(
+      /fill:([0-9A-F]{6});/gi,
+      (match, hex) => `fill:#${hex};`
+    );
+    fixed = fixed.replace(
+      /stroke:([0-9A-F]{6});/gi,
+      (match, hex) => `stroke:#${hex};`
+    );
     changed = true;
   }
 
   // Fix 3: Ensure closing </svg> tag exists
-  if (!fixed.includes('</svg>')) {
+  if (!fixed.includes("</svg>")) {
     console.log(`Adding missing </svg> tag: ${path.basename(filePath)}`);
-    fixed += '\n</svg>';
+    fixed += "\n</svg>";
     changed = true;
   }
 
@@ -248,7 +267,7 @@ function fixSVG(filePath) {
     const backupPath = path.join(BACKUP_DIR, relativePath);
     fs.mkdirSync(path.dirname(backupPath), { recursive: true });
     fs.writeFileSync(backupPath, content);
-    
+
     // Write fixed version
     fs.writeFileSync(filePath, fixed);
     fixCount++;
@@ -269,7 +288,7 @@ function findSVGs(dir) {
 
     if (stat.isDirectory()) {
       svgs.push(...findSVGs(fullPath));
-    } else if (file.endsWith('.svg')) {
+    } else if (file.endsWith(".svg")) {
       svgs.push(fullPath);
     }
   }
@@ -278,22 +297,22 @@ function findSVGs(dir) {
 }
 
 // Main execution
-console.log('🔧 Starting SVG Emergency Fix...\n');
+console.log("🔧 Starting SVG Emergency Fix...\n");
 console.log(`Backing up to: ${BACKUP_DIR}\n`);
 
 const svgFiles = findSVGs(RESOURCES_DIR);
 console.log(`Found ${svgFiles.length} SVG files\n`);
-console.log('Fixing...\n');
+console.log("Fixing...\n");
 
 for (const file of svgFiles) {
   fixSVG(file);
 }
 
-console.log('='.repeat(60));
+console.log("=".repeat(60));
 console.log(`✅ Fixed ${fixCount} SVG files`);
 console.log(`📦 Backups saved to: ${BACKUP_DIR}`);
-console.log('='.repeat(60));
-console.log('\n✨ Run audit again to verify: node scripts/audit-svgs.js\n');
+console.log("=".repeat(60));
+console.log("\n✨ Run audit again to verify: node scripts/audit-svgs.js\n");
 ```
 
 ---
@@ -335,6 +354,7 @@ Fixes #[issue-number] (if applicable)"
 After running fixes, verify these areas:
 
 ### Desktop UI
+
 - [ ] Toolbar icons (brush, cursor, eraser, etc.)
 - [ ] Tool action icons (undo, redo, copy, paste)
 - [ ] Inspector property icons
@@ -345,17 +365,20 @@ After running fixes, verify these areas:
 - [ ] Code editor icons
 
 ### Mobile UI
+
 - [ ] Mobile container icons
 - [ ] Mobile inspector icons
 - [ ] Touch-friendly icons
 
 ### Modals
+
 - [ ] Welcome screen graphics
 - [ ] Support us modal
 - [ ] Export options
 - [ ] Project settings
 
 ### Accessibility
+
 - [ ] Test with screen reader (VoiceOver on Mac)
 - [ ] Check ARIA labels
 - [ ] Verify keyboard navigation
@@ -365,18 +388,21 @@ After running fixes, verify these areas:
 ## 🎯 Success Criteria
 
 ### Immediate (Emergency Fix)
+
 - ✅ Zero critical errors in audit
 - ✅ All SVGs render correctly
 - ✅ No visual regressions
 - ✅ Backward compatible
 
 ### Short-term (Accessibility)
+
 - ✅ All SVGs have `<title>` tags
 - ✅ Complex icons have `<desc>` tags
 - ✅ ARIA attributes added
 - ✅ Screen reader compatible
 
 ### Long-term (Optimization)
+
 - ✅ 30-50% file size reduction
 - ✅ < 5KB average file size
 - ✅ No Adobe metadata
@@ -387,12 +413,14 @@ After running fixes, verify these areas:
 ## ⚠️ Risks
 
 ### Low Risk (Emergency Fix)
+
 - Browser error correction currently hides most issues
 - Visual appearance won't change
 - Backups created automatically
 - Can rollback easily
 
 ### Mitigation
+
 - Manual visual testing before commit
 - Keep backups for 30 days
 - Test on multiple browsers
@@ -411,15 +439,18 @@ After running fixes, verify these areas:
 ## 🚦 Decision Required
 
 **Immediate Action:**
+
 - [ ] Approve emergency fix (Option 1)
 - [ ] Schedule comprehensive fix (Option 2)
 - [ ] Both (emergency now, comprehensive next sprint)
 
 **Timeline:**
+
 - Emergency fix: Today (2-3 hours)
 - Comprehensive fix: Next 1-2 weeks
 
 **Who:**
+
 - Developer: Run scripts and test
 - QA: Visual regression testing
 - PM: Approve approach
