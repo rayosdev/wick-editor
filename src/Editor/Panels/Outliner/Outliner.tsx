@@ -1,4 +1,4 @@
-import { Component, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from "react";
+import React, { useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from "react";
 import classNames from "classnames";
 
 import { OutlinerObject } from "./OutlinerObject/OutlinerObject";
@@ -33,36 +33,23 @@ interface OutlinerProps {
     className?: string;
 }
 
-interface OutlinerState {
-    dragging: boolean;
-    highlighted: WickNode | null;
-    display: DisplayOptions;
-    collapsedUUIDs: Record<string, boolean>;
-}
-
 type ToggleEvent = ReactMouseEvent<Element, MouseEvent> | ReactKeyboardEvent<Element>;
 
-class Outliner extends Component<OutlinerProps, OutlinerState> {
-    private maxDepth = 3;
+const Outliner: React.FC<OutlinerProps> = (props) => {
+    const maxDepth = 3;
 
-    constructor(props: OutlinerProps) {
-        super(props);
+    const [dragging, setDragging] = useState<boolean>(false);
+    const [highlighted, setHighlighted] = useState<WickNode | null>(null);
+    const [display, setDisplay] = useState<DisplayOptions>({
+        path: true,
+        button: true,
+        clip: true,
+        text: true,
+        image: true,
+    });
+    const [collapsedUUIDs, setCollapsedUUIDs] = useState<Record<string, boolean>>({});
 
-        this.state = {
-            dragging: false,
-            highlighted: null,
-            display: {
-                path: true,
-                button: true,
-                clip: true,
-                text: true,
-                image: true,
-            },
-            collapsedUUIDs: {},
-        };
-    }
-
-    private getDepth = (object: WickNode): number => {
+    const getDepth = (object: WickNode): number => {
         let depth = 0;
         let current: WickNode | undefined = object;
         while (current && current.parent) {
@@ -72,7 +59,7 @@ class Outliner extends Component<OutlinerProps, OutlinerState> {
         return depth;
     };
 
-    private getChildIndex = (parent: WickNode, child: WickNode): number => {
+    const getChildIndex = (parent: WickNode, child: WickNode): number => {
         const children = parent.getChildren();
         const rawIndex = children.indexOf(child);
         if (parent.classname === "Frame") {
@@ -81,7 +68,7 @@ class Outliner extends Component<OutlinerProps, OutlinerState> {
         return rawIndex;
     };
 
-    private getCommonAncestorIndices = (
+    const getCommonAncestorIndices = (
         object1: WickNode,
         object2: WickNode
     ): { ancestor: WickNode; indices1: number[]; indices2: number[] } => {
@@ -127,7 +114,7 @@ class Outliner extends Component<OutlinerProps, OutlinerState> {
         };
     };
 
-    private getObjectAtIndices = (
+    const getObjectAtIndices = (
         ancestor: WickTimeline,
         indices: number[],
         length: number
@@ -151,7 +138,7 @@ class Outliner extends Component<OutlinerProps, OutlinerState> {
         return object as WickNode;
     };
 
-    private indicesEqual = (a: number[], b: number[]): boolean => {
+    const indicesEqual = (a: number[], b: number[]): boolean => {
         if (a.length !== b.length) {
             return false;
         }
@@ -163,7 +150,7 @@ class Outliner extends Component<OutlinerProps, OutlinerState> {
         return true;
     };
 
-    private isActive = (object: WickNode | null): boolean => {
+    const isActive = (object: WickNode | null): boolean => {
         if (!object) {
             return false;
         }
@@ -173,7 +160,7 @@ class Outliner extends Component<OutlinerProps, OutlinerState> {
         }
 
         if (object.classname === "Frame") {
-            const playhead = this.props.project.activeTimeline.playheadPosition;
+            const playhead = props.project.activeTimeline.playheadPosition;
             return (
                 typeof object.start === "number" &&
                 typeof object.end === "number" &&
@@ -184,14 +171,14 @@ class Outliner extends Component<OutlinerProps, OutlinerState> {
 
         if (object.classname === "Path") {
             const pathKey = typeof object.pathType === "string" ? object.pathType : "path";
-            return Boolean(this.state.display[pathKey] ?? false);
+            return Boolean(display[pathKey] ?? false);
         }
 
         const key = typeof object.classname === "string" ? object.classname.toLowerCase() : "";
-        return Boolean(this.state.display[key] ?? false);
+        return Boolean(display[key] ?? false);
     };
 
-    private setActiveLayerFromObject = (object: WickNode): void => {
+    const setActiveLayerFromObject = (object: WickNode): void => {
         const layerIndex =
             object.classname === "Layer"
                 ? object.index
@@ -199,7 +186,7 @@ class Outliner extends Component<OutlinerProps, OutlinerState> {
                     ? object.parentLayer.index
                     : undefined;
         if (typeof layerIndex === "number") {
-            this.props.setActiveLayerIndex(layerIndex);
+            props.setActiveLayerIndex(layerIndex);
         }
     };
 
@@ -209,7 +196,7 @@ class Outliner extends Component<OutlinerProps, OutlinerState> {
         }
 
         const object = this.getObjectAtIndices(
-            this.props.project.activeTimeline,
+            props.project.activeTimeline,
             indices,
             indices.length
         );
@@ -220,7 +207,7 @@ class Outliner extends Component<OutlinerProps, OutlinerState> {
 
         const keyboardOrMouseEvent = event as ReactMouseEvent<Element> & ReactKeyboardEvent<Element>;
 
-        const highlighted = this.state.highlighted;
+        const highlighted = highlighted;
         const isSameDepth =
             highlighted && this.getDepth(highlighted) === this.getDepth(object);
 
@@ -275,7 +262,7 @@ class Outliner extends Component<OutlinerProps, OutlinerState> {
             }
 
             if (toSelect.length) {
-                this.props.selectObjects(toSelect);
+                props.selectObjects(toSelect);
             }
             this.setState({ highlighted: object });
             this.setActiveLayerFromObject(object);
@@ -284,43 +271,42 @@ class Outliner extends Component<OutlinerProps, OutlinerState> {
 
         if (keyboardOrMouseEvent.ctrlKey && highlighted && isSameDepth) {
             if (object.isSelected) {
-                this.props.deselectObjects([object]);
+                props.deselectObjects([object]);
             } else {
-                this.props.selectObjects([object]);
+                props.selectObjects([object]);
                 this.setActiveLayerFromObject(object);
             }
             this.setState({ highlighted: object });
             return;
         }
 
-        this.props.clearSelection();
-        this.props.selectObjects([object]);
+        props.clearSelection();
+        props.selectObjects([object]);
         this.setState({ highlighted: object });
         this.setActiveLayerFromObject(object);
     };
 
     toggleDropdown = (_event: ToggleEvent, indices: number[]): void => {
         const object = this.getObjectAtIndices(
-            this.props.project.activeTimeline,
+            props.project.activeTimeline,
             indices,
             indices.length
         );
         if (!object) {
             return;
         }
-        this.setState((prevState) => {
-            const next = { ...prevState.collapsedUUIDs };
+        setCollapsedUUIDs((prevCollapsedUUIDs) => {
+            const next = { ...prevCollapsedUUIDs };
             if (next[object.uuid]) {
                 delete next[object.uuid];
             } else {
                 next[object.uuid] = true;
             }
-            return { collapsedUUIDs: next };
+            return next;
         });
     };
 
-    render() {
-        const { project, className } = this.props;
+    const { project, className } = props;
 
         const timelineChildren = project.activeTimeline.getChildren();
 
@@ -334,7 +320,7 @@ class Outliner extends Component<OutlinerProps, OutlinerState> {
                     <div className="outliner-item">
                         <OutlinerDisplay
                             tooltip="Display"
-                            display={this.state.display}
+                            display={display}
                             onChange={(display) => {
                                 this.setState({ display });
                             }}
@@ -345,14 +331,14 @@ class Outliner extends Component<OutlinerProps, OutlinerState> {
                         {timelineChildren.map((layer: WickNode, index: number) => (
                             <OutlinerObject
                                 key={layer.uuid}
-                                clearSelection={this.props.clearSelection}
-                                selectObjects={this.props.selectObjects}
-                                editScript={this.props.editScript}
+                                clearSelection={props.clearSelection}
+                                selectObjects={props.selectObjects}
+                                editScript={props.editScript}
                                 playhead={project.activeTimeline.playheadPosition}
                                 depth={1}
-                                maxDepth={this.maxDepth}
-                                display={this.state.display}
-                                highlighted={this.state.highlighted}
+                                maxDepth={maxDepth}
+                                display={display}
+                                highlighted={highlighted}
                                 toggle={(toggleEvent: ToggleEvent, indices: number[], property: OutlinerToggleProperty) => {
                                     indices.unshift(index);
                                     if (property === "select") {
@@ -367,23 +353,23 @@ class Outliner extends Component<OutlinerProps, OutlinerState> {
                                         );
                                         if (target) {
                                             if (property === "locked") {
-                                                this.props.toggleLocked(target);
+                                                props.toggleLocked(target);
                                             } else {
-                                                this.props.toggleHidden(target);
+                                                props.toggleHidden(target);
                                             }
                                         }
                                     }
                                 }}
                                 data={layer}
                                 isActive={this.isActive}
-                                collapsedUUIDs={this.state.collapsedUUIDs}
-                                dragging={this.state.dragging}
+                                collapsedUUIDs={collapsedUUIDs}
+                                dragging={dragging}
                                 setDragging={(dragging: boolean) => {
                                     this.setState({ dragging });
                                 }}
-                                setFocusObject={this.props.setFocusObject}
-                                setActiveLayerIndex={this.props.setActiveLayerIndex}
-                                moveSelection={this.props.moveSelection}
+                                setFocusObject={props.setFocusObject}
+                                setActiveLayerIndex={props.setActiveLayerIndex}
+                                moveSelection={props.moveSelection}
                             />
                         ))}
                     </div>
