@@ -60,7 +60,7 @@ interface AdvancedSizes {
 const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
   const placeholderName = "Filename";
   const customSizeTag = "custom";
-  
+
   const advancedSizes: AdvancedSizes = {
     "1080p": {
       width: 1920,

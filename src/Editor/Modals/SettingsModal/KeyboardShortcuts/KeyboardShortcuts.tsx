@@ -66,7 +66,7 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
     actionIndex: 0,
   });
   const [newActions, setNewActions] = useState<ActionChange[]>([]);
-  const [cancelKeyRecording, setCancelKeyRecording] = useState<() => void>(() => () => {});
+  const [cancelKeyRecording, setCancelKeyRecording] = useState<() => void>(() => () => { });
   const [openTabs, setOpenTabs] = useState<string[]>([]);
 
   /**
@@ -315,7 +315,7 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
   const stopEditingKey = () => {
     cancelKeyRecording();
     setEditingAction({ actionName: "", name: "", actionIndex: 0 });
-    setCancelKeyRecording(() => () => {});
+    setCancelKeyRecording(() => () => { });
   };
 
   // Remove all potential hotkeys.
@@ -380,73 +380,73 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
             <th className="hotkey-action-column">Action</th>
             <th className="hotkey-column header">Hotkey 1</th>
             <th className="hotkey-column header">Hotkey 2</th>
-            </tr>
-          </thead>
-          <tbody>
-            {groupedRows.map((action) => {
-              if (action.type === "header") {
-                return createHeader(action);
-              }
+          </tr>
+        </thead>
+        <tbody>
+          {groupedRows.map((action) => {
+            if (action.type === "header") {
+              return createHeader(action);
+            }
 
-              const actionName = action.name;
-              const entry = keyMap[actionName];
-              if (!entry) {
-                return null;
-              }
+            const actionName = action.name;
+            const entry = keyMap[actionName];
+            if (!entry) {
+              return null;
+            }
 
-              const { sequences, name } = entry;
-              return createRow({
-                actionName: actionName,
-                name: name || actionName,
-                sequence1: sequences[0],
-                sequence2: sequences[1],
-              });
-            })}
-          </tbody>
-        </table>
-        {/* Footer */}
-        <div id="keyboard-shortcuts-modal-footer">
-          <div
-            className="keyboard-shortcuts-footer-button-container"
-            id="keyboard-shortcuts-modal-reset"
-          >
-            <ActionButton
-              className="keyboard-shortcuts-modal-button"
-              id="keyboard-shorcuts-reset-button"
-              color="flame"
-              action={resetHotkeys}
-              text="Reset"
-              tooltip="Reset hotkeys to default settings."
-              tooltipPlace="top"
-            />
-          </div>
-          <div
-            className="keyboard-shortcuts-footer-button-container"
-            id="keyboard-shortcuts-modal-cancel"
-          >
-            <ActionButton
-              className="keyboard-shortcuts-modal-button"
-              id="keyboard-shorcuts-cancel-button"
-              color="gray"
-              action={resetAndToggle}
-              text="Cancel"
-            />
-          </div>
-          <div
-            className="keyboard-shortcuts-footer-button-container"
-            id="keyboard-shortcuts-modal-accept"
-          >
-            <ActionButton
-              className="keyboard-shortcuts-modal-button"
-              id="keyboard-shorcuts-apply-button"
-              color="green"
-              action={applyNewKeys}
-              text="Apply"
-            />
-          </div>
+            const { sequences, name } = entry;
+            return createRow({
+              actionName: actionName,
+              name: name || actionName,
+              sequence1: sequences[0],
+              sequence2: sequences[1],
+            });
+          })}
+        </tbody>
+      </table>
+      {/* Footer */}
+      <div id="keyboard-shortcuts-modal-footer">
+        <div
+          className="keyboard-shortcuts-footer-button-container"
+          id="keyboard-shortcuts-modal-reset"
+        >
+          <ActionButton
+            className="keyboard-shortcuts-modal-button"
+            id="keyboard-shorcuts-reset-button"
+            color="flame"
+            action={resetHotkeys}
+            text="Reset"
+            tooltip="Reset hotkeys to default settings."
+            tooltipPlace="top"
+          />
+        </div>
+        <div
+          className="keyboard-shortcuts-footer-button-container"
+          id="keyboard-shortcuts-modal-cancel"
+        >
+          <ActionButton
+            className="keyboard-shortcuts-modal-button"
+            id="keyboard-shorcuts-cancel-button"
+            color="gray"
+            action={resetAndToggle}
+            text="Cancel"
+          />
+        </div>
+        <div
+          className="keyboard-shortcuts-footer-button-container"
+          id="keyboard-shortcuts-modal-accept"
+        >
+          <ActionButton
+            className="keyboard-shortcuts-modal-button"
+            id="keyboard-shorcuts-apply-button"
+            color="green"
+            action={applyNewKeys}
+            text="Apply"
+          />
         </div>
       </div>
-    );
-  };
-  
-  export default KeyboardShortcuts;
+    </div>
+  );
+};
+
+export default KeyboardShortcuts;
