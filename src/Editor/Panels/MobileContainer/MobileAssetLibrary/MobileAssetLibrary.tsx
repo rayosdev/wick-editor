@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from 'react';
+import { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 import Asset from './Asset/Asset';
@@ -44,75 +44,63 @@ interface MobileAssetLibraryProps {
   toast?: (message: string, type?: ToastType, options?: ToastOptions) => void;
 }
 
-interface MobileAssetLibraryState {
-  filterText: string;
-}
+const MobileAssetLibrary: React.FC<MobileAssetLibraryProps> = (props) => {
+  const [filterText, setFilterText] = useState('');
 
-class MobileAssetLibrary extends Component<MobileAssetLibraryProps, MobileAssetLibraryState> {
-  constructor(props: MobileAssetLibraryProps) {
-    super(props);
+  const openFileDialog = (): void => {
+    props.openImportAssetFileDialog();
+  };
 
-    this.state = {
-      filterText: '',
-    }
-  }
+  const openBuiltinAssetLibrary = (): void => {
+    props.openModal('BuiltinLibrary');
+  };
 
-  openFileDialog = (): void => {
-    this.props.openImportAssetFileDialog();
-  }
+  const updateFilter = (text: string): void => {
+    setFilterText(text);
+  };
 
-  openBuiltinAssetLibrary = (): void => {
-    this.props.openModal('BuiltinLibrary');
-  }
-
-  updateFilter = (text: string): void => {
-    this.setState({
-      filterText: text,
-    });
-  }
-
-  filterArray = (array: WickAsset[]): WickAsset[] => {
-    let filterText = this.state.filterText.toLowerCase();
+  const filterArray = (array: WickAsset[]): WickAsset[] => {
+    const filterTextLower = filterText.toLowerCase();
     return array.filter(item => {
-      return !item.isGifImage && item.name.toLowerCase().includes(filterText);
+      return !item.isGifImage && item.name.toLowerCase().includes(filterTextLower);
     });
-  }
+  };
 
-  makeNode = (assetObject: WickAsset, i: number): JSX.Element => {
+  const makeNode = (assetObject: WickAsset, i: number): JSX.Element => {
     return (
       <Asset
         key={i}
         asset={assetObject as any}
-        isSelected={this.props.isObjectSelected(assetObject)}
+        isSelected={props.isObjectSelected(assetObject)}
         onClick={() => {
-          this.props.clearSelection();
-          this.props.selectObjects([assetObject]);
+          props.clearSelection();
+          props.selectObjects([assetObject]);
         }}
-        createAssets={this.props.createAssets as any}
-        importProjectAsWickFile={this.props.importProjectAsWickFile}
-        createImageFromAsset={this.props.createImageFromAsset as any}
-        deleteSelectedObjects={this.props.deleteSelectedObjects}
-        clearSelection={this.props.clearSelection}
-        selectObjects={this.props.selectObjects as any}
-        addSoundToActiveFrame={this.props.addSoundToActiveFrame as any}
+        createAssets={props.createAssets as any}
+        importProjectAsWickFile={props.importProjectAsWickFile}
+        createImageFromAsset={props.createImageFromAsset as any}
+        deleteSelectedObjects={props.deleteSelectedObjects}
+        clearSelection={props.clearSelection}
+        selectObjects={props.selectObjects as any}
+        addSoundToActiveFrame={props.addSoundToActiveFrame as any}
       />
-    )
-  }
+    );
+  };
 
   /**
    * Sorts an array of assets by their names.
    * @param  {Wick.Asset[]} assets An array of Wick.Asset objects.
    * @return {Wick.Asset[]}        Returns a sorted array of Wick.Assets.
    */
-  sortAssets = (assets: WickAsset[]): WickAsset[] => {
-    let copiedAssets: WickAsset[] = [].concat(assets as any);
+  const sortAssets = (assets: WickAsset[]): WickAsset[] => {
+    const copiedAssets: WickAsset[] = [].concat(assets as any);
 
     // Perform alphabetic sort.
     copiedAssets.sort((a, b) => a.name.localeCompare(b.name));
     return copiedAssets;
-  }
+  };
 
-  renderLeftSection = (): JSX.Element => {
+  const renderLeftSection = (): JSX.Element => {
     return (
       <div className="mobile-asset-library-left-container">
         <div className="mobile-asset-library-filter">
@@ -124,13 +112,13 @@ class MobileAssetLibrary extends Component<MobileAssetLibraryProps, MobileAssetL
             aria-label="filter"
             placeholder="filter..."
             type="text"
-            onChange={this.updateFilter}
-            value={this.state.filterText} />
+            onChange={updateFilter}
+            value={filterText} />
         </div>
         <div className="mobile-btn-asset-builtin">
           <ActionButton
             color="green"
-            action={this.openBuiltinAssetLibrary}
+            action={openBuiltinAssetLibrary}
             id="button-asset-builtin"
             icon="add-dark"
             iconClassName="mobile-asset-library-icon"
@@ -140,7 +128,7 @@ class MobileAssetLibrary extends Component<MobileAssetLibraryProps, MobileAssetL
         <div className="mobile-btn-asset-upload">
           <ActionButton
             color="inspector"
-            action={this.openFileDialog}
+            action={openFileDialog}
             id="button-asset-upload"
             icon="upload-dark"
             iconClassName="mobile-asset-library-icon"
@@ -148,23 +136,22 @@ class MobileAssetLibrary extends Component<MobileAssetLibraryProps, MobileAssetL
             tooltip="Upload" />
         </div>
       </div>
-    )
-  }
+    );
+  };
 
-  render(): JSX.Element {
-    let filteredAssets = this.filterArray(this.props.assets);
-    let sortedFilteredAssets = this.sortAssets(filteredAssets);
-    return (
-      <div className="docked-pane mobile-asset-library" aria-label="Asset Library">
-        {this.renderLeftSection()}
-        <div className="mobile-asset-library-right-container">
-          <div className="mobile-asset-library-asset-container">
-            {sortedFilteredAssets.map(this.makeNode)}
-          </div>
+  const filteredAssets = filterArray(props.assets);
+  const sortedFilteredAssets = sortAssets(filteredAssets);
+
+  return (
+    <div className="docked-pane mobile-asset-library" aria-label="Asset Library">
+      {renderLeftSection()}
+      <div className="mobile-asset-library-right-container">
+        <div className="mobile-asset-library-asset-container">
+          {sortedFilteredAssets.map(makeNode)}
         </div>
       </div>
-    )
-  }
-}
+    </div>
+  );
+};
 
 export default MobileAssetLibrary

@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component, Fragment } from "react";
+import { Fragment } from "react";
 
 import "./_mobileinspector.scss";
 import "../../Inspector/_inspectorselector.scss";
@@ -122,193 +122,181 @@ interface MobileInspectorProps {
     [key: string]: any; // Additional props inherently flexible
 }
 
-type MobileInspectorState = Record<string, never>;
+const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
+    const actionRules: Record<string, string[]> = {
+        breakApart: ["clip", "button"],
+        convertSelectionToButton: [
+            "path",
+            "text",
+            "image",
+            "multipath",
+            "multiclip",
+            "multicanvas",
+        ],
+        convertSelectionToClip: [
+            "path",
+            "text",
+            "image",
+            "multipath",
+            "multiclip",
+            "multicanvas",
+        ],
+        editTimeline: ["clip", "button"],
+        addAssetToCanvas: ["imageasset"],
+    };
 
-class MobileInspector extends Component<MobileInspectorProps, MobileInspectorState> {
-    private actionRules: Record<string, string[]>;
-    private inspectorTitles: Record<string, string>;
-    private tabsOptions: Record<string, TabOption>;
-    private inspectorTabs: Record<string, string[]>;
+    const inspectorTitles: Record<string, string> = {
+        frame: "Frame",
+        multiframe: "Multi-Frame",
+        tween: "Tween",
+        multitween: "Multi-Tween",
+        clip: "Clip",
+        button: "Button",
+        path: "Path",
+        text: "Text",
+        image: "Image",
+        multipath: "Multi-Path",
+        multiclip: "Multi-Clip",
+        multitimeline: "Multi-Timeline",
+        multicanvas: "Multi-Canvas",
+        imageasset: "Image Asset",
+        soundasset: "Sound Asset",
+        multiassetmixed: "Multi-Asset",
+        multisoundasset: "Multi-Asset Sound",
+        multiimageasset: "Multi-Asset Image",
+        unknown: "",
+    };
 
-    constructor(props: MobileInspectorProps) {
-        super(props);
+    const tabsOptions: Record<string, TabOption> = {
+        transform: {
+            label: "transform",
+            icon: transformIcon,
+            iconActive: transformIconActive,
+            alt: "transform icon",
+        },
+        style: {
+            label: "style",
+            icon: styleIcon,
+            iconActive: styleIconActive,
+            alt: "style icon",
+        },
+        font: {
+            label: "font",
+            icon: fontIcon,
+            iconActive: fontIconActive,
+            alt: "font icon",
+        },
+        frameSettings: {
+            label: "frameSettings",
+            icon: settingsIcon,
+            iconActive: settingsIconActive,
+            alt: "setting icon",
+        },
+        tweenSettings: {
+            label: "tweenSsettings",
+            icon: settingsIcon,
+            iconActive: settingsIconActive,
+            alt: "setting icon",
+        },
+        animationSettings: {
+            label: "animationSettings",
+            icon: settingsIcon,
+            iconActive: settingsIconActive,
+            alt: "setting icon",
+        },
+        assetSettings: {
+            label: "assetSettings",
+            icon: settingsIcon,
+            iconActive: settingsIconActive,
+            alt: "setting icon",
+        },
+        actions: {
+            label: "actions",
+            icon: actionIcon,
+            iconActive: actionIconActive,
+            alt: "action icon",
+        },
+    };
 
-        this.actionRules = {
-            breakApart: ["clip", "button"],
-            convertSelectionToButton: [
-                "path",
-                "text",
-                "image",
-                "multipath",
-                "multiclip",
-                "multicanvas",
-            ],
-            convertSelectionToClip: [
-                "path",
-                "text",
-                "image",
-                "multipath",
-                "multiclip",
-                "multicanvas",
-            ],
-            editTimeline: ["clip", "button"],
-            addAssetToCanvas: ["imageasset"],
-        };
-
-        this.inspectorTitles = {
-            frame: "Frame",
-            multiframe: "Multi-Frame",
-            tween: "Tween",
-            multitween: "Multi-Tween",
-            clip: "Clip",
-            button: "Button",
-            path: "Path",
-            text: "Text",
-            image: "Image",
-            multipath: "Multi-Path",
-            multiclip: "Multi-Clip",
-            multitimeline: "Multi-Timeline",
-            multicanvas: "Multi-Canvas",
-            imageasset: "Image Asset",
-            soundasset: "Sound Asset",
-            multiassetmixed: "Multi-Asset",
-            multisoundasset: "Multi-Asset Sound",
-            multiimageasset: "Multi-Asset Image",
-            unknown: "",
-        };
-
-        this.tabsOptions = {
-            transform: {
-                label: "transform",
-                icon: transformIcon,
-                iconActive: transformIconActive,
-                alt: "transform icon",
-            },
-            style: {
-                label: "style",
-                icon: styleIcon,
-                iconActive: styleIconActive,
-                alt: "style icon",
-            },
-            font: {
-                label: "font",
-                icon: fontIcon,
-                iconActive: fontIconActive,
-                alt: "font icon",
-            },
-            frameSettings: {
-                label: "frameSettings",
-                icon: settingsIcon,
-                iconActive: settingsIconActive,
-                alt: "setting icon",
-            },
-            tweenSettings: {
-                label: "tweenSsettings",
-                icon: settingsIcon,
-                iconActive: settingsIconActive,
-                alt: "setting icon",
-            },
-            animationSettings: {
-                label: "animationSettings",
-                icon: settingsIcon,
-                iconActive: settingsIconActive,
-                alt: "setting icon",
-            },
-            assetSettings: {
-                label: "assetSettings",
-                icon: settingsIcon,
-                iconActive: settingsIconActive,
-                alt: "setting icon",
-            },
-            actions: {
-                label: "actions",
-                icon: actionIcon,
-                iconActive: actionIconActive,
-                alt: "action icon",
-            },
-        };
-
-        this.inspectorTabs = {
-            frame: ["frameSettings", "identifier"],
-            layer: ["identifier"],
-            multiframe: [],
-            tween: ["tweenSettings"],
-            multitween: ["tweenSettings"],
-            clip: ["transform", "animationSettings", "identifier"],
-            button: ["transform", "identifier"],
-            path: ["transform", "style"],
-            text: ["transform", "style", "font", "identifier"],
-            image: ["transform"],
-            multipath:
-                this.getSelectionAttribute("fontFamily") &&
-                    typeof this.getSelectionAttribute("fontFamily") !== "undefined"
-                    ? ["transform", "style", "font"]
-                    : ["transform", "style"],
-            multiclip: ["transform"],
-            multitimeline: [],
-            multicanvas: ["transform"],
-            imageasset: ["assetSettings", "name"],
-            soundasset: ["assetSettings", "name"],
-            multiassetmixed: ["assetSettings"],
-            multisoundasset: ["assetSettings"],
-            multiimageasset: ["assetSettings"],
-            unknown: [],
-        };
-
-    }
-
-    getSelectionAttribute = (attribute: string): any => {
+    const getSelectionAttribute = (attribute: string): any => {
         if (attribute === "fillColorOpacity") {
-            return this.getSelectionFillColorOpacity();
+            return getSelectionFillColorOpacity();
         }
 
-        const attributes = this.props.getAllSelectionAttributes?.() ?? {};
+        const attributes = props.getAllSelectionAttributes?.() ?? {};
         return (attributes as SelectionAttributes)[attribute];
     };
 
-    getSelectionFillColorOpacity = (): any => {
-        return this.getSelectionAttribute("fillColor").alpha;
+    const getSelectionFillColorOpacity = (): any => {
+        return getSelectionAttribute("fillColor").alpha;
     };
 
-    setSelectionFillColorOpacity = (value: any): void => {
-        const color = this.getSelectionAttribute("fillColor");
+    const setSelectionFillColorOpacity = (value: any): void => {
+        const color = getSelectionAttribute("fillColor");
         color.alpha = value;
-        this.setSelectionAttribute("fillColor", color);
+        props.setSelectionAttribute("fillColor", color);
     };
 
-    setSelectionAttribute = (attribute: string, newValue: any): void => {
+    const inspectorTabs: Record<string, string[]> = {
+        frame: ["frameSettings", "identifier"],
+        layer: ["identifier"],
+        multiframe: [],
+        tween: ["tweenSettings"],
+        multitween: ["tweenSettings"],
+        clip: ["transform", "animationSettings", "identifier"],
+        button: ["transform", "identifier"],
+        path: ["transform", "style"],
+        text: ["transform", "style", "font", "identifier"],
+        image: ["transform"],
+        multipath:
+            getSelectionAttribute("fontFamily") &&
+                typeof getSelectionAttribute("fontFamily") !== "undefined"
+                ? ["transform", "style", "font"]
+                : ["transform", "style"],
+        multiclip: ["transform"],
+        multitimeline: [],
+        multicanvas: ["transform"],
+        imageasset: ["assetSettings", "name"],
+        soundasset: ["assetSettings", "name"],
+        multiassetmixed: ["assetSettings"],
+        multisoundasset: ["assetSettings"],
+        multiimageasset: ["assetSettings"],
+        unknown: [],
+    };
+
+    const setSelectionAttribute = (attribute: string, newValue: any): void => {
         if (attribute === "fillColorOpacity") {
-            this.setSelectionFillColorOpacity(newValue);
+            setSelectionFillColorOpacity(newValue);
             return;
         }
-        this.props.setSelectionAttribute(attribute, newValue);
+        props.setSelectionAttribute(attribute, newValue);
     };
 
-    renderSelectionColor = (): JSX.Element => {
+    const renderSelectionColor = (): JSX.Element => {
         return (
             <div className="mobile-inspector-item mobile-inspector-item-style">
                 <div className="mobile-inspector-col-left">
                     <MobileInspectorColor
                         tooltip="Stroke"
-                        val={this.getSelectionAttribute("strokeColor").toCSS()}
-                        onChange={(col) => this.setSelectionAttribute("strokeColor", col)}
+                        val={getSelectionAttribute("strokeColor").toCSS()}
+                        onChange={(col) => setSelectionAttribute("strokeColor", col)}
                         id="mobile-inspector-selection-stroke-color"
                         stroke={true}
-                        colorPickerType={this.props.colorPickerType}
-                        changeColorPickerType={this.props.changeColorPickerType}
-                        updateLastColors={this.props.updateLastColors}
-                        lastColorsUsed={this.props.lastColorsUsed}
+                        colorPickerType={props.colorPickerType}
+                        changeColorPickerType={props.changeColorPickerType}
+                        updateLastColors={props.updateLastColors}
+                        lastColorsUsed={props.lastColorsUsed}
                     />
 
                     <MobileInspectorColor
                         tooltip="Fill"
-                        val={this.getSelectionAttribute("fillColor").toCSS()}
-                        onChange={(col) => this.setSelectionAttribute("fillColor", col)}
+                        val={getSelectionAttribute("fillColor").toCSS()}
+                        onChange={(col) => setSelectionAttribute("fillColor", col)}
                         id="mobile-inspector-selection-fill-color"
-                        colorPickerType={this.props.colorPickerType}
-                        changeColorPickerType={this.props.changeColorPickerType}
-                        updateLastColors={this.props.updateLastColors}
-                        lastColorsUsed={this.props.lastColorsUsed}
+                        colorPickerType={props.colorPickerType}
+                        changeColorPickerType={props.changeColorPickerType}
+                        updateLastColors={props.updateLastColors}
+                        lastColorsUsed={props.lastColorsUsed}
                     />
                 </div>
 
@@ -317,18 +305,18 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
                         tooltip="Stroke Weight"
                         icon={strokeIcon}
                         iconAlt="Strokeweight Icon"
-                        val={this.getSelectionAttribute("strokeWidth") as number}
-                        onChange={(val) => this.setSelectionAttribute("strokeWidth", val)}
+                        val={getSelectionAttribute("strokeWidth") as number}
+                        onChange={(val) => setSelectionAttribute("strokeWidth", val)}
                     />
 
-                    {this.renderOpacity()}
+                    {renderOpacity()}
 
                     <MobileInspectorNumericSlider
                         tooltip="Fill Opacity"
                         icon={fillOpacityIcon}
-                        val={this.getSelectionAttribute("fillColorOpacity") as number}
+                        val={getSelectionAttribute("fillColorOpacity") as number}
                         onChange={(val) =>
-                            this.setSelectionAttribute("fillColorOpacity", val)
+                            setSelectionAttribute("fillColorOpacity", val)
                         }
                         inputProps={{ min: 0, max: 1, step: 0.01 }}
                     />
@@ -337,16 +325,16 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
         );
     };
 
-    renderFontFamily = (): JSX.Element => {
+    const renderFontFamily = (): JSX.Element => {
         const getFontClass = (font: string): string => {
             const fontClass = "font-selector-" + font.split(" ").join("-");
-            const existingClass = this.props.fontInfoInterface.isExistingFont(font)
+            const existingClass = props.fontInfoInterface.isExistingFont(font)
                 ? " existing-font"
                 : "";
             return fontClass + existingClass;
         };
 
-        const options: MobileInspectorSelectorOption[] = this.props.fontInfoInterface.allFontNames.map(
+        const options: MobileInspectorSelectorOption[] = props.fontInfoInterface.allFontNames.map(
             (fontName) => ({
                 value: fontName,
                 label: fontName,
@@ -357,7 +345,7 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
         return (
             <MobileInspectorSelector
                 className="font-family"
-                value={this.getSelectionAttribute("fontFamily")}
+                value={getSelectionAttribute("fontFamily")}
                 tooltip="Font Family"
                 type="select"
                 isSearchable={true}
@@ -365,19 +353,19 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
                 onChange={(val) => {
                     const font = val.value as string;
 
-                    if (this.props.fontInfoInterface.hasFont(val.value)) {
-                        this.setSelectionAttribute("fontFamily", font);
+                    if (props.fontInfoInterface.hasFont(val.value)) {
+                        setSelectionAttribute("fontFamily", font);
                         return;
                     }
 
-                    this.props.fontInfoInterface.getFontFile({
+                    props.fontInfoInterface.getFontFile({
                         font,
                         callback: (blob) => {
                             const file = new File([blob], font + ".ttf", {
                                 type: "font/ttf",
                             });
-                            this.props.importFileAsAsset(file, () => {
-                                this.setSelectionAttribute("fontFamily", font);
+                            props.importFileAsAsset(file, () => {
+                                setSelectionAttribute("fontFamily", font);
                             });
                         },
                         error: (error) => {
@@ -389,7 +377,7 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
         );
     };
 
-    renderFontStyle = (): JSX.Element => {
+    const renderFontStyle = (): JSX.Element => {
         const options = [
             { value: "normal", label: "normal" },
             { value: "italic", label: "italic" },
@@ -399,16 +387,16 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
                 tooltip="Style"
                 type="select"
                 isSearchable={true}
-                value={this.getSelectionAttribute("fontStyle")}
+                value={getSelectionAttribute("fontStyle")}
                 options={options}
                 onChange={(val) => {
-                    this.setSelectionAttribute("fontStyle", val.value);
+                    setSelectionAttribute("fontStyle", val.value);
                 }}
             />
         );
     };
 
-    renderFontWeight = (): JSX.Element => {
+    const renderFontWeight = (): JSX.Element => {
         const fontWeights = [
             { label: "thin", value: 100 },
             { label: "extra light", value: 200 },
@@ -422,7 +410,7 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
         ];
 
         const weight = Math.min(
-            Math.max(this.getSelectionAttribute("fontWeight"), 100),
+            Math.max(getSelectionAttribute("fontWeight"), 100),
             900,
         );
 
@@ -435,30 +423,30 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
                 options={fontWeights}
                 onChange={(val) => {
                     const newWeight = val.value || 400;
-                    this.setSelectionAttribute("fontWeight", newWeight);
+                    setSelectionAttribute("fontWeight", newWeight);
                 }}
             />
         );
     };
 
-    renderFontSize = (): JSX.Element => {
+    const renderFontSize = (): JSX.Element => {
         return (
             <MobileInspectorNumericInput
                 tooltip="Font Size"
-                val={this.getSelectionAttribute("fontSize")}
-                onChange={(val) => this.setSelectionAttribute("fontSize", val)}
+                val={getSelectionAttribute("fontSize")}
+                onChange={(val) => setSelectionAttribute("fontSize", val)}
             />
         );
     };
 
-    renderName = (): JSX.Element => {
+    const renderName = (): JSX.Element => {
         return (
             <div className="mobile-inspector-item mobile-inspector-name">
                 <MobileInspectorTextInput
                     tooltip="Name"
-                    val={this.getSelectionAttribute("name")}
+                    val={getSelectionAttribute("name")}
                     onChange={(val) => {
-                        this.setSelectionAttribute("name", val);
+                        setSelectionAttribute("name", val);
                     }}
                     placeholder="no_name"
                     id="inspector-name"
@@ -468,14 +456,14 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
         );
     };
 
-    renderIdentifier = (): JSX.Element => {
+    const renderIdentifier = (): JSX.Element => {
         return (
             <div className="mobile-inspector-item mobile-inspector-name">
                 <MobileInspectorTextInput
                     tooltip="Name"
-                    val={this.getSelectionAttribute("identifier")}
+                    val={getSelectionAttribute("identifier")}
                     onChange={(val) => {
-                        this.setSelectionAttribute("identifier", val);
+                        setSelectionAttribute("identifier", val);
                     }}
                     placeholder="no_name"
                     id="mobile-inspector-identifier"
@@ -485,12 +473,12 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
         );
     };
 
-    renderFilename = (): JSX.Element => {
+    const renderFilename = (): JSX.Element => {
         return (
             <div className="mobile-inspector-item">
                 <MobileInspectorTextInput
                     tooltip="File"
-                    val={this.getSelectionAttribute("filename")}
+                    val={getSelectionAttribute("filename")}
                     readOnly={true}
                     id="inspector-file-name"
                 />
@@ -498,19 +486,19 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
         );
     };
 
-    renderAssetPreview = (): JSX.Element | undefined => {
-        const selectionType = this.props.getSelectionType();
+    const renderAssetPreview = (): JSX.Element | undefined => {
+        const selectionType = props.getSelectionType();
         if (selectionType === "imageasset") {
             return (
                 <InspectorImagePreview
-                    src={this.getSelectionAttribute("src")}
+                    src={getSelectionAttribute("src")}
                     id="inspector-image-preview"
                 />
             );
         } else if (selectionType === "soundasset") {
             return (
                 <InspectorSoundPreview
-                    src={this.getSelectionAttribute("src")}
+                    src={getSelectionAttribute("src")}
                     id="inspector-sound-preview"
                 />
             );
@@ -518,20 +506,20 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
         return undefined;
     };
 
-    renderFrameLength = (): JSX.Element => {
+    const renderFrameLength = (): JSX.Element => {
         return (
             <div className="mobile-inspector-item">
                 <MobileInspectorNumericInput
                     tooltip="Length"
-                    val={this.getSelectionAttribute("frameLength")}
-                    onChange={(val) => this.setSelectionAttribute("frameLength", val)}
+                    val={getSelectionAttribute("frameLength")}
+                    onChange={(val) => setSelectionAttribute("frameLength", val)}
                     id="inspector-frame-length"
                 />
             </div>
         );
     };
 
-    renderPosition = (): JSX.Element => {
+    const renderPosition = (): JSX.Element => {
         return (
             <MobileInspectorDualNumericInput
                 tooltip1="Origin X"
@@ -540,16 +528,16 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
                 iconAlt1="x Icon"
                 icon2={yIcon}
                 iconAlt2="Y Icon"
-                val1={this.getSelectionAttribute("originX")}
-                val2={this.getSelectionAttribute("originY")}
-                onChange1={(val) => this.setSelectionAttribute("originX", val)}
-                onChange2={(val) => this.setSelectionAttribute("originY", val)}
+                val1={getSelectionAttribute("originX")}
+                val2={getSelectionAttribute("originY")}
+                onChange1={(val) => setSelectionAttribute("originX", val)}
+                onChange2={(val) => setSelectionAttribute("originY", val)}
                 id="inspector-origin"
             />
         );
     };
 
-    renderSize = (): JSX.Element => {
+    const renderSize = (): JSX.Element => {
         return (
             <MobileInspectorDualNumericInput
                 tooltip1="Width"
@@ -558,16 +546,16 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
                 iconAlt1="Width Icon"
                 icon2={hIcon}
                 iconAlt2="Height Icon"
-                val1={this.getSelectionAttribute("width")}
-                val2={this.getSelectionAttribute("height")}
-                onChange1={(val) => this.setSelectionAttribute("width", val)}
-                onChange2={(val) => this.setSelectionAttribute("height", val)}
+                val1={getSelectionAttribute("width")}
+                val2={getSelectionAttribute("height")}
+                onChange1={(val) => setSelectionAttribute("width", val)}
+                onChange2={(val) => setSelectionAttribute("height", val)}
                 id="inspector-size"
             />
         );
     };
 
-    renderScale = (): JSX.Element => {
+    const renderScale = (): JSX.Element => {
         return (
             <MobileInspectorDualNumericInput
                 tooltip1="Scale W"
@@ -576,35 +564,35 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
                 iconAlt1="Scale Width Icon"
                 icon2={scaleHIcon}
                 iconAlt2="Scale Height Icon"
-                val1={this.getSelectionAttribute("scaleX")}
-                val2={this.getSelectionAttribute("scaleY")}
-                onChange1={(val) => this.setSelectionAttribute("scaleX", val)}
-                onChange2={(val) => this.setSelectionAttribute("scaleY", val)}
+                val1={getSelectionAttribute("scaleX")}
+                val2={getSelectionAttribute("scaleY")}
+                onChange1={(val) => setSelectionAttribute("scaleX", val)}
+                onChange2={(val) => setSelectionAttribute("scaleY", val)}
                 id="inspector-scale"
             />
         );
     };
 
-    renderRotation = (): JSX.Element => {
+    const renderRotation = (): JSX.Element => {
         return (
             <MobileInspectorNumericInput
                 tooltip="Rotation"
                 icon={rotateIcon}
                 iconAlt="Rotation Icon"
-                val={this.getSelectionAttribute("rotation")}
-                onChange={(val) => this.setSelectionAttribute("rotation", val)}
+                val={getSelectionAttribute("rotation")}
+                onChange={(val) => setSelectionAttribute("rotation", val)}
                 id="inspector-rotation"
             />
         );
     };
 
-    renderOpacity = (): JSX.Element => {
+    const renderOpacity = (): JSX.Element => {
         return (
             <MobileInspectorNumericSlider
                 tooltip="Opacity"
                 icon={opacityIcon}
-                val={this.getSelectionAttribute("opacity")}
-                onChange={(val) => this.setSelectionAttribute("opacity", val)}
+                val={getSelectionAttribute("opacity")}
+                onChange={(val) => setSelectionAttribute("opacity", val)}
                 divider={false}
                 inputProps={{ min: 0, max: 1, step: 0.01 }}
                 id="inspector-opacity"
@@ -612,18 +600,18 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
         );
     };
 
-    renderSelectionTransformProperties = (): JSX.Element => {
+    const renderSelectionTransformProperties = (): JSX.Element => {
         return (
             <div className="mobile-inspector-item">
-                {this.renderPosition()}
-                {this.renderSize()}
-                {this.renderScale()}
-                {this.renderRotation()}
+                {renderPosition()}
+                {renderSize()}
+                {renderScale()}
+                {renderRotation()}
             </div>
         );
     };
 
-    renderSelectionSoundAsset = (): JSX.Element => {
+    const renderSelectionSoundAsset = (): JSX.Element => {
         let options: Array<{ value: any; label: string }> = [
             {
                 value: null,
@@ -644,9 +632,9 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
             };
         };
 
-        options = options.concat(this.props.getAllSoundAssets().map(mapAsset));
+        options = options.concat(props.getAllSoundAssets().map(mapAsset));
 
-        const value = this.getSelectionAttribute("sound");
+        const value = getSelectionAttribute("sound");
         return (
             <MobileInspectorSelector
                 tooltip="Sound"
@@ -655,80 +643,80 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
                 value={value}
                 isSearchable={true}
                 onChange={(val) => {
-                    this.setSelectionAttribute("sound", val.value);
+                    setSelectionAttribute("sound", val.value);
                 }}
             />
         );
     };
 
-    renderSelectionSoundVolume = (): JSX.Element => {
+    const renderSelectionSoundVolume = (): JSX.Element => {
         return (
             <MobileInspectorNumericInput
                 tooltip="Volume"
-                val={this.getSelectionAttribute("soundVolume")}
+                val={getSelectionAttribute("soundVolume")}
                 onChange={(val) => {
-                    this.setSelectionAttribute("soundVolume", val);
+                    setSelectionAttribute("soundVolume", val);
                 }}
                 id="inspector-sound-volume"
             />
         );
     };
 
-    renderSelectionSoundStart = (): JSX.Element => {
+    const renderSelectionSoundStart = (): JSX.Element => {
         return (
             <MobileInspectorNumericInput
                 tooltip="Start (ms)"
                 type="numeric"
-                val={this.getSelectionAttribute("soundStart")}
+                val={getSelectionAttribute("soundStart")}
                 onChange={(val) => {
-                    this.setSelectionAttribute("soundStart", val);
+                    setSelectionAttribute("soundStart", val);
                 }}
             />
         );
     };
 
-    renderSoundContent = (): JSX.Element => {
+    const renderSoundContent = (): JSX.Element => {
         return (
             <div className="mobile-inspector-item">
-                {this.renderSelectionSoundAsset()}
-                {this.getSelectionAttribute("sound") &&
-                    this.renderSelectionSoundVolume()}
-                {this.getSelectionAttribute("sound") &&
-                    this.renderSelectionSoundStart()}
+                {renderSelectionSoundAsset()}
+                {getSelectionAttribute("sound") &&
+                    renderSelectionSoundVolume()}
+                {getSelectionAttribute("sound") &&
+                    renderSelectionSoundStart()}
             </div>
         );
     };
 
-    renderAnimationType = (): JSX.Element => {
+    const renderAnimationType = (): JSX.Element => {
         return (
             <div className="mobile-inspector-item">
                 <MobileInspectorSelector
                     tooltip="Animation"
                     type="select"
-                    options={this.props.getClipAnimationTypes()}
-                    value={this.getSelectionAttribute("animationType")}
+                    options={props.getClipAnimationTypes()}
+                    value={getSelectionAttribute("animationType")}
                     isSearchable={true}
                     onChange={(val) => {
-                        this.setSelectionAttribute("animationType", val.value);
+                        setSelectionAttribute("animationType", val.value);
                     }}
                 />
-                {this.getSelectionAttribute("singleFrameNumber") && (
+                {getSelectionAttribute("singleFrameNumber") && (
                     <MobileInspectorNumericInput
                         tooltip="Frame"
-                        val={this.getSelectionAttribute("singleFrameNumber")}
+                        val={getSelectionAttribute("singleFrameNumber")}
                         onChange={(val) =>
-                            this.setSelectionAttribute("singleFrameNumber", val)
+                            setSelectionAttribute("singleFrameNumber", val)
                         }
                     />
                 )}
-                {this.getSelectionAttribute("animationType") !== "single" && (
+                {getSelectionAttribute("animationType") !== "single" && (
                     <MobileInspectorCheckbox
                         tooltip="Synced"
-                        checked={this.getSelectionAttribute("isSynced")}
+                        checked={getSelectionAttribute("isSynced")}
                         onChange={() =>
-                            this.setSelectionAttribute(
+                            setSelectionAttribute(
                                 "isSynced",
-                                !this.getSelectionAttribute("isSynced"),
+                                !getSelectionAttribute("isSynced"),
                             )
                         }
                     />
@@ -737,7 +725,7 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
         );
     };
 
-    renderTweenEasingType = (): JSX.Element => {
+    const renderTweenEasingType = (): JSX.Element => {
         const options = window.Wick.Tween.VALID_EASING_TYPES;
         const optionLabels = options.map((option: string) => ({
             label: option,
@@ -749,24 +737,24 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
                     tooltip="Easing Type"
                     type="select"
                     options={optionLabels}
-                    value={this.getSelectionAttribute("easingType")}
+                    value={getSelectionAttribute("easingType")}
                     isSearchable={true}
                     onChange={(val) => {
-                        this.setSelectionAttribute("easingType", val.value);
+                        setSelectionAttribute("easingType", val.value);
                     }}
                 />
             </div>
         );
     };
 
-    renderTweenFullRotations = (): JSX.Element => {
+    const renderTweenFullRotations = (): JSX.Element => {
         return (
             <div className="mobile-inspector-item">
                 <MobileInspectorNumericInput
                     tooltip="Full Rotations"
-                    val={this.getSelectionAttribute("fullRotations")}
+                    val={getSelectionAttribute("fullRotations")}
                     onChange={(val) =>
-                        this.setSelectionAttribute("fullRotations", val)
+                        setSelectionAttribute("fullRotations", val)
                     }
                     id="inspector-full-rotation"
                 />
@@ -774,54 +762,54 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
         );
     };
 
-    renderFrame = (): JSX.Element => {
+    const renderFrame = (): JSX.Element => {
         return (
             <div className="inspector-content">
-                {this.renderFrameLength()}
-                {this.renderSoundContent()}
+                {renderFrameLength()}
+                {renderSoundContent()}
             </div>
         );
     };
 
-    renderTween = (): JSX.Element => {
+    const renderTween = (): JSX.Element => {
         return (
             <div className="inspector-content">
-                {this.renderTweenEasingType()}
-                {this.renderTweenFullRotations()}
+                {renderTweenEasingType()}
+                {renderTweenFullRotations()}
             </div>
         );
     };
 
-    renderFontContent = (): JSX.Element => {
+    const renderFontContent = (): JSX.Element => {
         return (
             <div className="mobile-inspector-item">
-                {this.renderFontFamily()}
-                {this.renderFontStyle()}
-                {this.renderFontWeight()}
-                {this.renderFontSize()}
+                {renderFontFamily()}
+                {renderFontStyle()}
+                {renderFontWeight()}
+                {renderFontSize()}
             </div>
         );
     };
 
-    renderAnimationSetting = (): JSX.Element => {
+    const renderAnimationSetting = (): JSX.Element => {
         return (
             <div className="inspector-content">
-                {this.renderAnimationType()}
+                {renderAnimationType()}
             </div>
         );
     };
 
-    renderAsset = (): JSX.Element => {
+    const renderAsset = (): JSX.Element => {
         return (
             <div className="inspector-content">
-                {this.renderName()}
-                {this.renderFilename()}
-                {this.renderAssetPreview()}
+                {renderName()}
+                {renderFilename()}
+                {renderAssetPreview()}
             </div>
         );
     };
 
-    renderUnknown = (): JSX.Element => {
+    const renderUnknown = (): JSX.Element => {
         return (
             <div>
                 <div className="inspector-content"></div>
@@ -829,7 +817,7 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
         );
     };
 
-    renderActionButton = (action: any, i: number): JSX.Element => {
+    const renderActionButton = (action: any, i: number): JSX.Element => {
         return (
             <div key={i} className="mobile-inspector-item">
                 <InspectorActionButton action={action} />
@@ -837,12 +825,12 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
         );
     };
 
-    getAllActions = (): string[] => {
+    const getAllActions = (): string[] => {
         const actions: string[] = [];
-        const selectionType = this.props.getSelectionType();
+        const selectionType = props.getSelectionType();
 
-        Object.keys(this.actionRules).forEach((action) => {
-            const actionList = this.actionRules[action] ?? [];
+        Object.keys(actionRules).forEach((action) => {
+            const actionList = actionRules[action] ?? [];
             if (actionList.includes(selectionType)) {
                 actions.push(action);
             }
@@ -850,14 +838,14 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
         return actions;
     };
 
-    renderActions = (): JSX.Element => {
-        const actions = this.getAllActions();
+    const renderActions = (): JSX.Element => {
+        const actions = getAllActions();
 
         return (
             <div className="inspector-content">
                 {actions.map((action, i) => {
-                    return this.renderActionButton(
-                        this.props.editorActions[action],
+                    return renderActionButton(
+                        props.editorActions[action],
                         i,
                     );
                 })}
@@ -865,84 +853,82 @@ class MobileInspector extends Component<MobileInspectorProps, MobileInspectorSta
         );
     };
 
-    render(): JSX.Element {
-        let selectionType = this.props.getSelectionType();
-        if (!Object.keys(this.inspectorTabs).includes(selectionType)) {
-            selectionType = "unknown";
-        }
-
-        const baseTabs = this.inspectorTabs[selectionType] ?? [];
-        const tabNames = baseTabs.concat([]);
-        const tabs = tabNames
-            .filter((ele) => ele !== "name" && ele !== "identifier")
-            .map((name) => this.tabsOptions[name])
-            .filter((option): option is TabOption => Boolean(option));
-
-        const actions = this.getAllActions();
-
-        if (actions.length > 0) {
-            tabNames.push("actions");
-            const actionsTab = this.tabsOptions.actions;
-            if (actionsTab) {
-                tabs.push(actionsTab);
-            }
-        }
-
-        return (
-            <div className="mobile-inspector" aria-label="Inspector Panel">
-                <div className="mobile-inspector-title">
-                    <span className="mobile-inspector-title-prefix">
-                        Inspect:
-                    </span>
-                    {this.inspectorTitles[selectionType]}
-
-                    {tabNames.includes("identifier")
-                        ? this.renderIdentifier()
-                        : tabNames.includes("name")
-                            ? this.renderName()
-                            : undefined}
-                </div>
-                {selectionType === "unknown" && (
-                    <div className="mobile-inspector-unknown-selection">
-                        Unknown Selection
-                    </div>
-                )}
-
-                {tabs.length > 0 && (
-                    <MobileInspectorTabbedInterface tabs={tabs}>
-                        {tabNames.includes("transform") && (
-                            <Fragment>
-                                {this.renderSelectionTransformProperties()}
-                            </Fragment>
-                        )}
-                        {tabNames.includes("style") && (
-                            <Fragment>{this.renderSelectionColor()}</Fragment>
-                        )}
-                        {tabNames.includes("font") && (
-                            <Fragment>{this.renderFontContent()}</Fragment>
-                        )}
-                        {tabNames.includes("frameSettings") && (
-                            <Fragment>{this.renderFrame()}</Fragment>
-                        )}
-                        {tabNames.includes("tweenSettings") && (
-                            <Fragment>{this.renderTween()}</Fragment>
-                        )}
-                        {tabNames.includes("animationSettings") && (
-                            <Fragment>
-                                {this.renderAnimationSetting()}
-                            </Fragment>
-                        )}
-                        {tabNames.includes("assetSettings") && (
-                            <Fragment>{this.renderAsset()}</Fragment>
-                        )}
-                        {tabNames.includes("actions") && (
-                            <Fragment>{this.renderActions()}</Fragment>
-                        )}
-                    </MobileInspectorTabbedInterface>
-                )}
-            </div>
-        );
+    let selectionType = props.getSelectionType();
+    if (!Object.keys(inspectorTabs).includes(selectionType)) {
+        selectionType = "unknown";
     }
-}
+
+    const baseTabs = inspectorTabs[selectionType] ?? [];
+    const tabNames = baseTabs.concat([]);
+    const tabs = tabNames
+        .filter((ele) => ele !== "name" && ele !== "identifier")
+        .map((name) => tabsOptions[name])
+        .filter((option): option is TabOption => Boolean(option));
+
+    const actions = getAllActions();
+
+    if (actions.length > 0) {
+        tabNames.push("actions");
+        const actionsTab = tabsOptions.actions;
+        if (actionsTab) {
+            tabs.push(actionsTab);
+        }
+    }
+
+    return (
+        <div className="mobile-inspector" aria-label="Inspector Panel">
+            <div className="mobile-inspector-title">
+                <span className="mobile-inspector-title-prefix">
+                    Inspect:
+                </span>
+                {inspectorTitles[selectionType]}
+
+                {tabNames.includes("identifier")
+                    ? renderIdentifier()
+                    : tabNames.includes("name")
+                        ? renderName()
+                        : undefined}
+            </div>
+            {selectionType === "unknown" && (
+                <div className="mobile-inspector-unknown-selection">
+                    Unknown Selection
+                </div>
+            )}
+
+            {tabs.length > 0 && (
+                <MobileInspectorTabbedInterface tabs={tabs}>
+                    {tabNames.includes("transform") && (
+                        <Fragment>
+                            {renderSelectionTransformProperties()}
+                        </Fragment>
+                    )}
+                    {tabNames.includes("style") && (
+                        <Fragment>{renderSelectionColor()}</Fragment>
+                    )}
+                    {tabNames.includes("font") && (
+                        <Fragment>{renderFontContent()}</Fragment>
+                    )}
+                    {tabNames.includes("frameSettings") && (
+                        <Fragment>{renderFrame()}</Fragment>
+                    )}
+                    {tabNames.includes("tweenSettings") && (
+                        <Fragment>{renderTween()}</Fragment>
+                    )}
+                    {tabNames.includes("animationSettings") && (
+                        <Fragment>
+                            {renderAnimationSetting()}
+                        </Fragment>
+                    )}
+                    {tabNames.includes("assetSettings") && (
+                        <Fragment>{renderAsset()}</Fragment>
+                    )}
+                    {tabNames.includes("actions") && (
+                        <Fragment>{renderActions()}</Fragment>
+                    )}
+                </MobileInspectorTabbedInterface>
+            )}
+        </div>
+    );
+};
 
 export default MobileInspector;

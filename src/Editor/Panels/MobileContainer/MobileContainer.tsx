@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component, Fragment, type ComponentProps } from "react";
+import { Fragment, type ComponentProps } from "react";
 
 import "./_mobilecontainer.scss";
 
@@ -45,7 +45,7 @@ import assetIcon from "resources/mobile-container-icons/asset-icon.svg";
 import assetIconActive from "resources/mobile-container-icons/asset-icon-active.svg";
 
 // Timeline instance type for onRef callback (Timeline is a class component wrapped by react-dnd)
-type TimelineInstance = Component<any, any>;
+type TimelineInstance = any;
 
 type InspectorScriptWindowProps = ComponentProps<typeof InspectorScriptWindow>;
 type MobileAssetLibraryProps = ComponentProps<typeof MobileAssetLibrary>;
@@ -97,12 +97,8 @@ interface MobileContainerProps {
     addSoundToActiveFrame: MobileAssetLibraryProps["addSoundToActiveFrame"];
 }
 
-type MobileContainerState = Record<string, never>;
-
-class MobileContainer extends Component<MobileContainerProps, MobileContainerState> {
-    state: MobileContainerState = {};
-
-    renderTimeline = (props: MobileContainerProps): JSX.Element => {
+const MobileContainer: React.FC<MobileContainerProps> = (props) => {
+    const renderTimeline = (): JSX.Element => {
         return (
             <Fragment>
                 <Timeline
@@ -121,7 +117,7 @@ class MobileContainer extends Component<MobileContainerProps, MobileContainerSta
         );
     };
 
-    renderInpector = (props: MobileContainerProps): JSX.Element => {
+    const renderInpector = (): JSX.Element => {
         return (
             <Fragment>
                 <MobileInspector
@@ -150,7 +146,7 @@ class MobileContainer extends Component<MobileContainerProps, MobileContainerSta
         );
     };
 
-    renderCode = (props: MobileContainerProps): JSX.Element => {
+    const renderCode = (): JSX.Element => {
         return (
             <Fragment>
                 <InspectorScriptWindow
@@ -163,7 +159,7 @@ class MobileContainer extends Component<MobileContainerProps, MobileContainerSta
         );
     };
 
-    renderAsset = (props: MobileContainerProps): JSX.Element => {
+    const renderAsset = (): JSX.Element => {
         return (
             <Fragment>
                 <MobileAssetLibrary
@@ -185,51 +181,49 @@ class MobileContainer extends Component<MobileContainerProps, MobileContainerSta
         );
     };
 
-    render(): JSX.Element {
-        return (
-            <MobileTabbedInterface
-                className="mobile-container"
-                tabs={[
-                    {
-                        label: "timeline",
-                        icon: timelineIcon,
-                        iconActive: timelineIconActive,
-                        alt: "timeline icon",
-                    },
-                    {
-                        label: "inspector",
-                        icon: inspectorIcon,
-                        iconActive: inspectorIconActive,
-                        alt: "inspector icon",
-                    },
-                    {
-                        label: "code",
-                        icon: codeIcon,
-                        iconActive: codeIconActive,
-                        alt: "code editor icon",
-                    },
-                    {
-                        label: "asset",
-                        icon: assetIcon,
-                        iconActive: assetIconActive,
-                        alt: "asset library icon",
-                    },
-                ]}
-            >
-                {this.renderTimeline(this.props)}
-                {this.renderInpector(this.props)}
-                {this.props.selectionIsScriptable() ? (
-                    this.renderCode(this.props)
-                ) : (
-                    <div className="mobile-inspector-unknown-selection">
-                        <div>No Scriptable</div>
-                        <div>Object Selected</div>
-                    </div>
-                )}
-                {this.renderAsset(this.props)}
-            </MobileTabbedInterface>
-        );
-    }
-}
+    return (
+        <MobileTabbedInterface
+            className="mobile-container"
+            tabs={[
+                {
+                    label: "timeline",
+                    icon: timelineIcon,
+                    iconActive: timelineIconActive,
+                    alt: "timeline icon",
+                },
+                {
+                    label: "inspector",
+                    icon: inspectorIcon,
+                    iconActive: inspectorIconActive,
+                    alt: "inspector icon",
+                },
+                {
+                    label: "code",
+                    icon: codeIcon,
+                    iconActive: codeIconActive,
+                    alt: "code editor icon",
+                },
+                {
+                    label: "asset",
+                    icon: assetIcon,
+                    iconActive: assetIconActive,
+                    alt: "asset library icon",
+                },
+            ]}
+        >
+            {renderTimeline()}
+            {renderInpector()}
+            {props.selectionIsScriptable() ? (
+                renderCode()
+            ) : (
+                <div className="mobile-inspector-unknown-selection">
+                    <div>No Scriptable</div>
+                    <div>Object Selected</div>
+                </div>
+            )}
+            {renderAsset()}
+        </MobileTabbedInterface>
+    );
+};
 
 export default MobileContainer;
