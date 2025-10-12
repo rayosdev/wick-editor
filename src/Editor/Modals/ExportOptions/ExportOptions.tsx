@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from "react";
+import React, { useState, useEffect } from "react";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import WickModal from "Editor/Modals/WickModal/WickModal";
 import WickInput from "Editor/Util/WickInput/WickInput";
@@ -50,16 +50,6 @@ interface ExportOptionsProps {
   isMobile?: boolean;
 }
 
-interface ExportOptionsState {
-  name: string;
-  subTab: string;
-  exportWidth: number;
-  exportHeight: number;
-  exportResolution: string;
-  blackBars: boolean;
-  useAdvanced: boolean;
-}
-
 interface AdvancedSizes {
   [key: string]: {
     width: number;
@@ -67,147 +57,121 @@ interface AdvancedSizes {
   };
 }
 
-class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
-  placeholderName: string;
-  customSizeTag: string;
-  advancedSizes: AdvancedSizes;
-
-  constructor(props: ExportOptionsProps) {
-    super(props);
-    this.placeholderName = "Filename";
-    this.state = {
-      name: this.props.projectName || "",
-      subTab: "Animation",
-      exportWidth: 1920,
-      exportHeight: 1080,
-      exportResolution: "1080p",
-      blackBars: true,
-      useAdvanced: false,
-    };
-
-    this.customSizeTag = "custom";
-
-    // If size is not represented, default to "custom".
-    this.advancedSizes = {
-      "1080p": {
-        width: 1920,
-        height: 1080,
-      },
-      "720p": {
-        width: 1080,
-        height: 720,
-      },
-      "480p": {
-        width: 720,
-        height: 480,
-      },
-    };
-  }
-
-  resetCustomSize = (): void => {
-    this.setState({
-      exportResolution: this.customSizeTag,
-      exportWidth: 720,
-      exportHeight: 405,
-    });
+const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
+  const placeholderName = "Filename";
+  const customSizeTag = "custom";
+  
+  const advancedSizes: AdvancedSizes = {
+    "1080p": {
+      width: 1920,
+      height: 1080,
+    },
+    "720p": {
+      width: 1080,
+      height: 720,
+    },
+    "480p": {
+      width: 720,
+      height: 480,
+    },
   };
 
-  componentDidUpdate = (prevProps: ExportOptionsProps): void => {
-    if (prevProps.projectName !== this.props.projectName) {
-      this.setState({
-        name: this.props.projectName,
-      });
-    }
+  const [name, setName] = useState<string>(props.projectName || "");
+  const [subTab, setSubTab] = useState<string>("Animation");
+  const [exportWidth, setExportWidth] = useState<number>(1920);
+  const [exportHeight, setExportHeight] = useState<number>(1080);
+  const [exportResolution, setExportResolution] = useState<string>("1080p");
+  const [useAdvanced, setUseAdvanced] = useState<boolean>(false);
+
+  // componentDidUpdate replacement
+  useEffect(() => {
+    setName(props.projectName);
+  }, [props.projectName]);
+
+  const resetCustomSize = (): void => {
+    setExportResolution(customSizeTag);
+    setExportWidth(720);
+    setExportHeight(405);
   };
 
   /**
    * Creates an item of type and toggles the modal.
    * @param {string} type Either 'GIF', 'VIDEO', 'ZIP', or 'HTML'.
    */
-  createAndToggle = (type: string): void => {
-    const name = this.state.name !== "" ? this.state.name : type;
+  const createAndToggle = (type: string): void => {
+    const exportName = name !== "" ? name : type;
 
     const args: ExportArgs = {
-      name: name,
-      width: this.state.useAdvanced ? this.state.exportWidth : undefined,
-      height: this.state.useAdvanced ? this.state.exportHeight : undefined,
+      name: exportName,
+      width: useAdvanced ? exportWidth : undefined,
+      height: useAdvanced ? exportHeight : undefined,
     };
 
     if (type === "GIF") {
-      this.props.exportProjectAsGif(args);
+      props.exportProjectAsGif(args);
     } else if (type === "VIDEO") {
-      this.props.exportProjectAsVideo(args);
+      props.exportProjectAsVideo(args);
     } else if (type === "ZIP") {
-      this.props.exportProjectAsStandaloneZip(args);
-      this.props.toggle();
+      props.exportProjectAsStandaloneZip(args);
+      props.toggle();
     } else if (type === "HTML") {
-      this.props.exportProjectAsStandaloneHTML(args);
-      this.props.toggle();
+      props.exportProjectAsStandaloneHTML(args);
+      props.toggle();
     } else if (type === "IMAGE_SEQUENCE") {
-      this.props.exportProjectAsImageSequence(args);
+      props.exportProjectAsImageSequence(args);
     } else if (type === "AUDIO_TRACK") {
-      this.props.exportProjectAsAudioTrack(args);
-      this.props.toggle();
+      props.exportProjectAsAudioTrack(args);
+      props.toggle();
     } else if (type === "IMAGE_SVG") {
-      this.props.exportProjectAsImageSVG(name);
-      this.props.toggle();
+      props.exportProjectAsImageSVG(exportName);
+      props.toggle();
     }
   };
 
   // Updates the clip name in the state.
-  updateExportName = (newName: string): void => {
-    this.setState({
-      name: newName,
-    });
+  const updateExportName = (newName: string): void => {
+    setName(newName);
   };
 
-  setSubTab = (name: string): void => {
-    this.setState({
-      subTab: name,
-    });
+  const handleSetSubTab = (tabName: string): void => {
+    setSubTab(tabName);
   };
 
-  toggleAdvancedOptionsCheckbox = (): void => {
-    this.setState({
-      useAdvanced: !this.state.useAdvanced,
-    });
+  const toggleAdvancedOptionsCheckbox = (): void => {
+    setUseAdvanced(!useAdvanced);
   };
 
-  updateExportSize = (width: number, height: number): void => {
-    let res = this.customSizeTag;
+  const updateExportSize = (width: number, height: number): void => {
+    let res = customSizeTag;
 
-    Object.keys(this.advancedSizes).forEach((key) => {
-      const size = this.advancedSizes[key];
+    Object.keys(advancedSizes).forEach((key) => {
+      const size = advancedSizes[key];
       if (size && size.width === width && size.height === height) {
         res = key;
       }
     });
 
-    this.setState({
-      exportResolution: res,
-      exportWidth: width,
-      exportHeight: height,
-    });
+    setExportResolution(res);
+    setExportWidth(width);
+    setExportHeight(height);
   };
 
-  updateExportResolutionType = (val: { value: string }): void => {
+  const updateExportResolutionType = (val: { value: string }): void => {
     const value = val.value;
 
-    if (value === this.customSizeTag) {
-      this.resetCustomSize();
-    } else if (this.advancedSizes[value]) {
-      let dimensions = this.advancedSizes[value];
-      this.setState({
-        exportResolution: value,
-        exportWidth: dimensions.width,
-        exportHeight: dimensions.height,
-      });
+    if (value === customSizeTag) {
+      resetCustomSize();
+    } else if (advancedSizes[value]) {
+      let dimensions = advancedSizes[value];
+      setExportResolution(value);
+      setExportWidth(dimensions.width);
+      setExportHeight(dimensions.height);
     }
   };
 
-  renderAdvancedOptions = (): JSX.Element => {
-    let optionsValues = Object.keys(this.advancedSizes).concat([
-      this.customSizeTag,
+  const renderAdvancedOptions = (): JSX.Element => {
+    let optionsValues = Object.keys(advancedSizes).concat([
+      customSizeTag,
     ]);
     let options = optionsValues.map((val) => {
       return { label: val, value: val };
@@ -218,12 +182,12 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
         <div className="export-modal-advanced-checkbox-container">
           <WickInput
             type="checkbox"
-            checked={this.state.useAdvanced}
-            onChange={this.toggleAdvancedOptionsCheckbox}
+            checked={useAdvanced}
+            onChange={toggleAdvancedOptionsCheckbox}
             label="Resolution Options"
           />
         </div>
-        {this.state.useAdvanced && (
+        {useAdvanced && (
           <div className="export-modal-advanced-options-content">
             {/* label is this because overwriting default library react-select */}
 
@@ -268,10 +232,10 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
                       id="advanced-resolution-dropdown"
                       inputProps={{ id: "resolution" }}
                       type="select"
-                      value={this.state.exportResolution}
+                      value={exportResolution}
                       options={options}
-                      onChange={(val) => {
-                        this.updateExportResolutionType(val);
+                      onChange={(val: any) => {
+                        updateExportResolutionType(val);
                       }}
                     />
                   </td>
@@ -279,9 +243,9 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
                     <WickInput
                       id="export-width"
                       type="numeric"
-                      value={this.state.exportWidth}
-                      onChange={(val) => {
-                        this.updateExportSize(val, this.state.exportHeight);
+                      value={exportWidth}
+                      onChange={(val: any) => {
+                        updateExportSize(val, exportHeight);
                       }}
                     />
                   </td>
@@ -289,9 +253,9 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
                     <WickInput
                       id="export-height"
                       type="numeric"
-                      value={this.state.exportHeight}
-                      onChange={(val) => {
-                        this.updateExportSize(this.state.exportWidth, val);
+                      value={exportHeight}
+                      onChange={(val: any) => {
+                        updateExportSize(exportWidth, val);
                       }}
                     />
                   </td>
@@ -304,12 +268,12 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
     );
   };
 
-  renderGifObject = (): JSX.Element => {
+  const renderGifObject = (): JSX.Element => {
     return (
       <div
         className={classNames(
           "export-info-item",
-          this.props.isMobile && "mobile"
+          props.isMobile && "mobile"
         )}
       >
         <ObjectInfo
@@ -325,7 +289,7 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
           <ActionButton
             color="gray-green"
             action={() => {
-              this.createAndToggle("GIF");
+              createAndToggle("GIF");
             }}
             text="Export GIF"
           />
@@ -334,12 +298,12 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
     );
   };
 
-  renderVideoObject = (): JSX.Element => {
+  const renderVideoObject = (): JSX.Element => {
     return (
       <div
         className={classNames(
           "export-info-item",
-          this.props.isMobile && "mobile"
+          props.isMobile && "mobile"
         )}
       >
         <ObjectInfo
@@ -355,7 +319,7 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
           <ActionButton
             color="gray-green"
             action={() => {
-              this.createAndToggle("VIDEO");
+              createAndToggle("VIDEO");
             }}
             text="Export Video (Beta)"
           />
@@ -364,35 +328,35 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
     );
   };
 
-  renderStandaloneVideoObject = (componentFn: () => JSX.Element): JSX.Element => {
+  const renderStandaloneVideoObject = (componentFn: () => JSX.Element): JSX.Element => {
     return (
       <div>
         {componentFn()}
-        {this.renderAdvancedOptions()}
+        {renderAdvancedOptions()}
       </div>
     );
   };
 
   // Renders the body of the "Animation" tab.
-  renderAnimatedInfo = (): JSX.Element => {
+  const renderAnimatedInfo = (): JSX.Element => {
     return (
       <div>
         <div
           className={classNames(
             "export-info-container",
-            this.props.isMobile && "mobile"
+            props.isMobile && "mobile"
           )}
         >
-          {this.renderGifObject()}
-          {this.renderVideoObject()}
+          {renderGifObject()}
+          {renderVideoObject()}
         </div>
-        {this.renderAdvancedOptions()}
+        {renderAdvancedOptions()}
       </div>
     );
   };
 
   // Renders the body of the "Interactive" tab.
-  renderInteractiveInfo = (): JSX.Element => {
+  const renderInteractiveInfo = (): JSX.Element => {
     return (
       <div className="export-info-container">
         <div className="export-info-item">
@@ -409,7 +373,7 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
             <ActionButton
               color="gray-green"
               action={() => {
-                this.createAndToggle("ZIP");
+                createAndToggle("ZIP");
               }}
               text="Export ZIP"
             />
@@ -429,7 +393,7 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
             <ActionButton
               color="gray-green"
               action={() => {
-                this.createAndToggle("HTML");
+                createAndToggle("HTML");
               }}
               text="Export HTML"
             />
@@ -440,19 +404,19 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
   };
 
   // Renders the body of the "Animation" tab.
-  renderImageInfo = (): JSX.Element => {
+  const renderImageInfo = (): JSX.Element => {
     return (
       <div>
         <div
           className={classNames(
             "export-info-container",
-            this.props.isMobile && "mobile"
+            props.isMobile && "mobile"
           )}
         >
           <div
             className={classNames(
               "export-info-item",
-              this.props.isMobile && "mobile"
+              props.isMobile && "mobile"
             )}
           >
             <ObjectInfo
@@ -477,7 +441,7 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
               <ActionButton
                 color="gray-green"
                 action={() => {
-                  this.createAndToggle("IMAGE_SEQUENCE");
+                  createAndToggle("IMAGE_SEQUENCE");
                 }}
                 text="Export Image Sequence"
               />
@@ -486,7 +450,7 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
           <div
             className={classNames(
               "export-info-item",
-              this.props.isMobile && "mobile"
+              props.isMobile && "mobile"
             )}
           >
             <ObjectInfo
@@ -511,19 +475,19 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
               <ActionButton
                 color="gray-green"
                 action={() => {
-                  this.createAndToggle("IMAGE_SVG");
+                  createAndToggle("IMAGE_SVG");
                 }}
                 text="Export Image SVG"
               />
             </div>
           </div>
         </div>
-        {this.renderAdvancedOptions()}
+        {renderAdvancedOptions()}
       </div>
     );
   };
 
-  renderAudioInfo(): JSX.Element {
+  const renderAudioInfo = (): JSX.Element => {
     return (
       <div className="export-info-container">
         <div className="wide-export-info-item">
@@ -545,7 +509,7 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
             <ActionButton
               color="gray-green"
               action={() => {
-                this.createAndToggle("AUDIO_TRACK");
+                createAndToggle("AUDIO_TRACK");
               }}
               text="Export Audio"
             />
@@ -555,7 +519,7 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
     );
   }
 
-  renderDesktop = (): JSX.Element => {
+  const renderDesktop = (): JSX.Element => {
     (window as any).allowedExportTypes = (window as any).allowedExportTypes.sort((a: string, b: string) => {
       const order = ["Animation", "Interactive", "Audio", "Images"];
 
@@ -566,8 +530,8 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
 
     return (
       <WickModal
-        open={this.props.open}
-        toggle={this.props.toggle}
+        open={props.open}
+        toggle={props.toggle}
         className={classNames("export-modal-body")}
         overlayClassName="export-modal-overlay"
       >
@@ -576,41 +540,41 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
           <div id="export-modal-name-input">
             <WickInput
               type="text"
-              value={this.state.name}
-              onChange={this.updateExportName}
-              placeholder={this.placeholderName}
+              value={name}
+              onChange={updateExportName}
+              placeholder={placeholderName}
               aria-label="project name"
             />
           </div>
           <TabbedInterface
             tabNames={allowedExportTypes}
-            onTabSelect={this.setSubTab}
+            onTabSelect={handleSetSubTab}
           >
             {allowedExportTypes.indexOf("Animation") > -1 &&
-              this.renderAnimatedInfo()}
+              renderAnimatedInfo()}
             {allowedExportTypes.indexOf("Interactive") > -1 &&
-              this.renderInteractiveInfo()}
-            {allowedExportTypes.indexOf("Audio") > -1 && this.renderAudioInfo()}
+              renderInteractiveInfo()}
+            {allowedExportTypes.indexOf("Audio") > -1 && renderAudioInfo()}
             {allowedExportTypes.indexOf("Images") > -1 &&
-              this.renderImageInfo()}
+              renderImageInfo()}
           </TabbedInterface>
         </div>
       </WickModal>
     );
   };
 
-  renderMobile = (): JSX.Element => {
+  const renderMobile = (): JSX.Element => {
     return (
       <WickModal
-        open={this.props.open}
-        toggle={this.props.toggle}
+        open={props.open}
+        toggle={props.toggle}
         className={classNames(
           "export-modal-body",
           {
             "advanced-options":
-              this.state.useAdvanced &&
-              (this.state.subTab === "Animation" ||
-                this.state.subTab === "Images"),
+              useAdvanced &&
+              (subTab === "Animation" ||
+                subTab === "Images"),
           },
           "mobile"
         )}
@@ -621,31 +585,29 @@ class ExportOptions extends Component<ExportOptionsProps, ExportOptionsState> {
           <div id="export-modal-name-input">
             <WickInput
               type="text"
-              value={this.state.name}
-              onChange={this.updateExportName}
-              placeholder={this.placeholderName}
+              value={name}
+              onChange={updateExportName}
+              placeholder={placeholderName}
               aria-label="project name"
             />
           </div>
           <TabbedInterface
             tabNames={["GIF", "Video"]}
-            onTabSelect={this.setSubTab}
+            onTabSelect={handleSetSubTab}
           >
-            {this.renderStandaloneVideoObject(this.renderGifObject)}
-            {this.renderStandaloneVideoObject(this.renderVideoObject)}
+            {renderStandaloneVideoObject(renderGifObject)}
+            {renderStandaloneVideoObject(renderVideoObject)}
           </TabbedInterface>
         </div>
       </WickModal>
     );
   };
 
-  render(): JSX.Element {
-    if (this.props.isMobile) {
-      return this.renderMobile();
-    } else {
-      return this.renderDesktop();
-    }
+  if (props.isMobile) {
+    return renderMobile();
+  } else {
+    return renderDesktop();
   }
-}
+};
 
 export default ExportOptions;
