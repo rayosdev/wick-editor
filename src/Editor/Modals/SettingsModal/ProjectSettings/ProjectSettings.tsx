@@ -17,9 +17,9 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from "react";
+import React, { useState, useEffect } from "react";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
-import WickInput from "Editor/Util/WickInput/WickInput";
+import WickInput, { SelectOption } from "Editor/Util/WickInput/WickInput";
 
 import "./_projectsettings.scss";
 
@@ -36,86 +36,41 @@ interface ProjectSettingsProps {
   lastColorsUsed?: string[];
 }
 
-interface ProjectSettingsState {
-  name: string;
-  width: number;
-  height: number;
-  framerate: number;
-  backgroundColor: string;
-  preset: string;
-}
+const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
+  const defaultName = "New Project";
 
-class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsState> {
-  defaultName: string;
-  projectMinWidth: number;
-  projectMinHeight: number;
-  projectMinFramerate: number;
-  presets: Array<{ name: string; width: number; height: number }>;
+  // Set minimums for project settings.
+  // TODO: Add this to the engine.
+  const projectMinWidth = 1;
+  const projectMinHeight = 1;
+  const projectMinFramerate = 1;
 
-  constructor(props: ProjectSettingsProps) {
-    super(props);
+  // Create presets.
+  const presets = [
+    {
+      name: "Default",
+      width: 720,
+      height: 480,
+    },
+    {
+      name: "Square",
+      width: 600,
+      height: 600,
+    },
+    {
+      name: "720p",
+      width: 1280,
+      height: 720,
+    },
+    {
+      name: "1080p",
+      width: 1920,
+      height: 1080,
+    },
+  ];
 
-    this.defaultName = "New Project";
-
-    // Set minimums for project settings.
-    // TODO: Add this to the engine.
-    this.projectMinWidth = 1;
-    this.projectMinHeight = 1;
-    this.projectMinFramerate = 1;
-
-    // Create presets.
-    this.presets = [
-      {
-        name: "Default",
-        width: 720,
-        height: 480,
-      },
-      {
-        name: "Square",
-        width: 600,
-        height: 600,
-      },
-      {
-        name: "720p",
-        width: 1280,
-        height: 720,
-      },
-      {
-        name: "1080p",
-        width: 1920,
-        height: 1080,
-      },
-    ];
-
-    this.state = {
-      name: this.props.project.name,
-      width: this.props.project.width,
-      height: this.props.project.height,
-      framerate: this.props.project.framerate,
-      backgroundColor: this.props.project.backgroundColor.rgba,
-      preset: this.getPreset(
-        this.props.project.width,
-        this.props.project.height
-      ),
-    };
-  }
-
-  componentDidUpdate = (prevProps: ProjectSettingsProps): void => {
-    let values = ["name", "width", "height", "framerate", "backgroundColor"];
-    let different = false;
-    values.forEach((value) => {
-      if (prevProps.project[value] !== this.props.project[value]) {
-        different = true;
-      }
-    });
-
-    if (different) {
-      this.reset();
-    }
-  };
-
-  getPreset = (width: number, height: number): string => {
-    let possiblePreset = this.presets.find((preset) => preset.width === width);
+  const getPreset = (width: number, height: number): string => {
+    let possiblePreset = presets.find((preset) => preset.width === width);
     if (possiblePreset && possiblePreset.height === height) {
       return possiblePreset.name;
     } else {
@@ -123,93 +78,101 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
     }
   };
 
-  setPreset = (width: number, height: number): void => {
-    this.setState({
-      preset: this.getPreset(width, height),
-    });
+  const [name, setName] = useState<string>(props.project.name);
+  const [width, setWidth] = useState<number>(props.project.width);
+  const [height, setHeight] = useState<number>(props.project.height);
+  const [framerate, setFramerate] = useState<number>(props.project.framerate);
+  const [backgroundColor, setBackgroundColor] = useState<string>(
+    props.project.backgroundColor.rgba
+  );
+  const [preset, setPreset] = useState<string>(
+    getPreset(props.project.width, props.project.height)
+  );
+
+  // Reset state when project properties change
+  useEffect(() => {
+    setName(props.project.name);
+    setWidth(props.project.width);
+    setHeight(props.project.height);
+    setFramerate(props.project.framerate);
+    setBackgroundColor(props.project.backgroundColor.rgba);
+    setPreset(getPreset(props.project.width, props.project.height));
+  }, [
+    props.project.name,
+    props.project.width,
+    props.project.height,
+    props.project.framerate,
+    props.project.backgroundColor.rgba,
+  ]);
+
+  const reset = (): void => {
+    setName(props.project.name);
+    setWidth(props.project.width);
+    setHeight(props.project.height);
+    setFramerate(props.project.framerate);
+    setBackgroundColor(props.project.backgroundColor.rgba);
+    setPreset(getPreset(props.project.width, props.project.height));
   };
 
-  changeProjectName = (proposedName: string): void => {
-    this.setState({
-      name: proposedName,
-    });
+  const updatePreset = (newWidth: number, newHeight: number): void => {
+    setPreset(getPreset(newWidth, newHeight));
   };
 
-  changeProjectWidth = (widthAsNumber: number): void => {
+  const changeProjectName = (proposedName: string): void => {
+    setName(proposedName);
+  };
+
+  const changeProjectWidth = (widthAsNumber: number): void => {
     let cleanWidthAsNumber = !widthAsNumber
-      ? this.projectMinWidth
-      : Math.max(this.projectMinWidth, widthAsNumber);
-    this.setState({
-      width: cleanWidthAsNumber,
-    });
-
-    this.setPreset(cleanWidthAsNumber, this.state.height);
+      ? projectMinWidth
+      : Math.max(projectMinWidth, widthAsNumber);
+    setWidth(cleanWidthAsNumber);
+    updatePreset(cleanWidthAsNumber, height);
   };
 
-  changeProjectHeight = (heightAsNumber: number): void => {
+  const changeProjectHeight = (heightAsNumber: number): void => {
     let cleanHeightAsNumber = !heightAsNumber
-      ? this.projectMinHeight
-      : Math.max(this.projectMinHeight, heightAsNumber);
-    this.setState({
-      height: cleanHeightAsNumber,
-    });
-
-    this.setPreset(this.state.width, cleanHeightAsNumber);
+      ? projectMinHeight
+      : Math.max(projectMinHeight, heightAsNumber);
+    setHeight(cleanHeightAsNumber);
+    updatePreset(width, cleanHeightAsNumber);
   };
 
-  changeProjectFramerate = (framerateAsNumber: number): void => {
+  const changeProjectFramerate = (framerateAsNumber: number): void => {
     let cleanFramerateAsNumber = !framerateAsNumber
-      ? this.projectMinFramerate
-      : Math.max(this.projectMinFramerate, framerateAsNumber);
-    this.setState({
-      framerate: cleanFramerateAsNumber,
-    });
+      ? projectMinFramerate
+      : Math.max(projectMinFramerate, framerateAsNumber);
+    setFramerate(cleanFramerateAsNumber);
   };
 
-  changeProjectBackgroundColor = (color: string): void => {
-    this.setState({
-      backgroundColor: color,
-    });
+  const changeProjectBackgroundColor = (color: string): void => {
+    setBackgroundColor(color);
   };
 
-  acceptProjectSettings = (): void => {
+  const acceptProjectSettings = (): void => {
     let newSettings = {
-      name: this.state.name === "" ? this.defaultName : this.state.name,
-      width: this.state.width,
-      height: this.state.height,
-      backgroundColor: new window.Wick.Color(this.state.backgroundColor),
-      framerate: this.state.framerate,
+      name: name === "" ? defaultName : name,
+      width: width,
+      height: height,
+      backgroundColor: new window.Wick.Color(backgroundColor),
+      framerate: framerate,
     };
 
-    this.props.updateProjectSettings(newSettings);
-    this.props.toggle && this.props.toggle();
+    props.updateProjectSettings(newSettings);
+    props.toggle && props.toggle();
   };
 
-  reset = (): void => {
-    this.setState({
-      name: this.props.project.name,
-      width: this.props.project.width,
-      height: this.props.project.height,
-      framerate: this.props.project.framerate,
-      backgroundColor: this.props.project.backgroundColor.rgba,
-      preset: this.getPreset(
-        this.props.project.width,
-        this.props.project.height
-      ),
-    });
+  const resetAndToggle = (): void => {
+    reset();
+    if (props.toggle) props.toggle();
   };
 
-  resetAndToggle = (): void => {
-    this.reset();
-    if (this.props.toggle) this.props.toggle();
-  };
-
-  renderNameObject = (): JSX.Element => {
+  const renderNameObject = (): JSX.Element => {
     return (
       <div
         className={classNames(
           "project-setting-element",
-          this.props.isMobile && "mobile"
+          props.isMobile && "mobile"
         )}
       >
         <label
@@ -222,21 +185,21 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
           <WickInput
             id="project name"
             type="text"
-            value={this.state.name}
-            placeholder={this.defaultName}
-            onChange={this.changeProjectName}
+            value={name}
+            placeholder={defaultName}
+            onChange={changeProjectName}
           />
         </div>
       </div>
     );
   };
 
-  renderFramerateObject = (): JSX.Element => {
+  const renderFramerateObject = (): JSX.Element => {
     return (
       <div
         className={classNames(
           "project-setting-element",
-          this.props.isMobile && "mobile"
+          props.isMobile && "mobile"
         )}
       >
         <label
@@ -249,21 +212,21 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
           <WickInput
             id="project framerate"
             type="numeric"
-            min={this.projectMinFramerate}
-            value={this.state.framerate}
-            onChange={this.changeProjectFramerate}
+            min={projectMinFramerate}
+            value={framerate}
+            onChange={changeProjectFramerate}
           />
         </div>
       </div>
     );
   };
 
-  renderWidthObject = (): JSX.Element => {
+  const renderWidthObject = (): JSX.Element => {
     return (
       <div
         className={classNames(
           "project-setting-element",
-          this.props.isMobile && "mobile"
+          props.isMobile && "mobile"
         )}
       >
         <div className="project-settings-property-container project-settings-size-input-container">
@@ -277,9 +240,9 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
             <WickInput
               id="project width"
               type="numeric"
-              min={this.projectMinWidth}
-              value={this.state.width}
-              onChange={this.changeProjectWidth}
+              min={projectMinWidth}
+              value={width}
+              onChange={changeProjectWidth}
               className="project-settings-size-input"
             />
           </span>
@@ -296,9 +259,9 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
             <WickInput
               id="project height"
               type="numeric"
-              min={this.projectMinHeight}
-              value={this.state.height}
-              onChange={this.changeProjectHeight}
+              min={projectMinHeight}
+              value={height}
+              onChange={changeProjectHeight}
               className="project-settings-size-input"
             />
           </span>
@@ -307,7 +270,7 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
     );
   };
 
-  renderSizeObjectMobile = (): JSX.Element => {
+  const renderSizeObjectMobile = (): JSX.Element => {
     return (
       <div className={classNames("project-setting-element", "mobile")}>
         <div className="project-settings-property-container project-settings-size-input-container mobile">
@@ -320,9 +283,9 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
           <WickInput
             id="projectWidth"
             type="numeric"
-            min={this.projectMinWidth}
-            value={this.state.width}
-            onChange={this.changeProjectWidth}
+            min={projectMinWidth}
+            value={width}
+            onChange={changeProjectWidth}
             className="project-settings-size-input"
           />
         </div>
@@ -336,9 +299,9 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
           <WickInput
             id="projectHeight"
             type="numeric"
-            min={this.projectMinHeight}
-            value={this.state.height}
-            onChange={this.changeProjectHeight}
+            min={projectMinHeight}
+            value={height}
+            onChange={changeProjectHeight}
             className="project-settings-size-input"
           />
         </div>
@@ -346,12 +309,12 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
     );
   };
 
-  renderBackgroundColorObject = (): JSX.Element => {
+  const renderBackgroundColorObject = (): JSX.Element => {
     return (
       <div
         className={classNames(
           "project-setting-element",
-          this.props.isMobile && "mobile"
+          props.isMobile && "mobile"
         )}
       >
         <label
@@ -366,42 +329,40 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
             id="project-background-color-picker"
             disableAlpha={true}
             placement={"bottom"}
-            color={this.state.backgroundColor}
-            onChange={this.changeProjectBackgroundColor}
-            colorPickerType={this.props.colorPickerType}
-            changeColorPickerType={this.props.changeColorPickerType}
-            updateLastColors={this.props.updateLastColors}
-            lastColorsUsed={this.props.lastColorsUsed}
+            color={backgroundColor}
+            onChange={changeProjectBackgroundColor}
+            colorPickerType={props.colorPickerType}
+            changeColorPickerType={props.changeColorPickerType}
+            updateLastColors={props.updateLastColors}
+            lastColorsUsed={props.lastColorsUsed}
           />
         </div>
       </div>
     );
   };
 
-  selectPreset = (preset: { name: string; width: number; height: number }): void => {
-    this.setState({
-      width: preset.width,
-      height: preset.height,
-      preset: preset.name,
-    });
+  const selectPreset = (presetItem: { name: string; width: number; height: number }): void => {
+    setWidth(presetItem.width);
+    setHeight(presetItem.height);
+    setPreset(presetItem.name);
   };
 
-  renderPresetBoxes = (): JSX.Element => {
+  const renderPresetBoxes = (): JSX.Element => {
     return (
       <div className="preset-boxes">
-        {this.presets.map((preset, i) => {
+        {presets.map((presetItem, i) => {
           return (
             <ActionButton
               buttonProps={{ "aria-labelledby": "resolution-presets" }}
               key={"preset" + i}
               className="project-settings-modal-preset"
-              text={preset.name}
+              text={presetItem.name}
               textClassName={classNames(
                 "project-settings-modal-preset-text",
-                this.state.preset === preset.name && "selected"
+                preset === presetItem.name && "selected"
               )}
-              color={this.state.preset === preset.name ? "green" : "tool"}
-              action={() => this.selectPreset(preset)}
+              color={preset === presetItem.name ? "green" : "tool"}
+              action={() => selectPreset(presetItem)}
             />
           );
         })}
@@ -409,7 +370,7 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
     );
   };
 
-  renderPresets = (): JSX.Element => {
+  const renderPresets = (): JSX.Element => {
     return (
       <div className="project-setting-element project-settings-presets-container">
         <label
@@ -419,16 +380,16 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
           Presets
         </label>
         <div className="project-settings-presets-body-container">
-          {this.renderPresetBoxes()}
+          {renderPresetBoxes()}
         </div>
       </div>
     );
   };
 
-  renderPresetsMobile = (): JSX.Element => {
+  const renderPresetsMobile = (): JSX.Element => {
     const options: Array<{ value: string; label: string }> = [];
-    for (let i = 0; i < this.presets.length; i++) {
-      const preset = this.presets[i];
+    for (let i = 0; i < presets.length; i++) {
+      const preset = presets[i];
       if (preset) {
         options.push({
           value: preset.name,
@@ -442,11 +403,11 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
         <div className="project-settings-presets-body-container">
           <WickInput
             type="select"
-            value={this.state.preset}
-            onChange={(option) => {
-              const foundPreset = this.presets.find((preset) => option.value === preset.name);
+            value={preset}
+            onChange={(option: SelectOption) => {
+              const foundPreset = presets.find((preset) => option.value === preset.name);
               if (foundPreset) {
-                this.selectPreset(foundPreset);
+                selectPreset(foundPreset);
               }
             }}
             options={options}
@@ -456,12 +417,12 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
     );
   };
 
-  renderSizeObject = (): JSX.Element => {
+  const renderSizeObject = (): JSX.Element => {
     return (
       <div
         className={classNames(
           "project-setting-element",
-          this.props.isMobile && "mobile"
+          props.isMobile && "mobile"
         )}
       >
         <div className="project-settings-property-container project-settings-size-input-container">
@@ -475,9 +436,9 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
             <WickInput
               id="project width"
               type="numeric"
-              min={this.projectMinWidth}
-              value={this.state.width}
-              onChange={this.changeProjectWidth}
+              min={projectMinWidth}
+              value={width}
+              onChange={changeProjectWidth}
               className="project-settings-size-input"
             />
           </span>
@@ -494,9 +455,9 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
             <WickInput
               id="project height"
               type="numeric"
-              min={this.projectMinHeight}
-              value={this.state.height}
-              onChange={this.changeProjectHeight}
+              min={projectMinHeight}
+              value={height}
+              onChange={changeProjectHeight}
               className="project-settings-size-input"
             />
           </span>
@@ -505,21 +466,21 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
     );
   };
 
-  renderDesktop = (): JSX.Element => {
+  const renderDesktop = (): JSX.Element => {
     return (
       <div id="project-settings-interior-content">
         {/* Body */}
         <div id="project-settings-modal-body">
           <div className="project-settings-modal-row">
-            {this.renderNameObject()}
-            {this.renderBackgroundColorObject()}
+            {renderNameObject()}
+            {renderBackgroundColorObject()}
           </div>
           <div className="project-settings-modal-row">
-            {this.renderSizeObject()}
-            {this.renderFramerateObject()}
+            {renderSizeObject()}
+            {renderFramerateObject()}
           </div>
           <div className="project-settings-modal-row">
-            {this.renderPresets()}
+            {renderPresets()}
           </div>
         </div>
         {/* Footer */}
@@ -528,7 +489,7 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
             <ActionButton
               className="project-settings-modal-button"
               color="gray"
-              action={this.resetAndToggle}
+              action={resetAndToggle}
               text="Cancel"
             />
           </div>
@@ -536,7 +497,7 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
             <ActionButton
               className="project-settings-modal-button"
               color="green"
-              action={this.acceptProjectSettings}
+              action={acceptProjectSettings}
               text="Apply"
             />
           </div>
@@ -545,25 +506,25 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
     );
   };
 
-  renderMobile = (): JSX.Element => {
+  const renderMobile = (): JSX.Element => {
     return (
       <div id="project-settings-interior-content">
         {/* Body */}
         <div id="project-settings-modal-body">
           <div className="project-settings-modal-row">
-            {this.renderNameObject()}
+            {renderNameObject()}
           </div>
           <div className="project-settings-modal-row">
-            {this.renderBackgroundColorObject()}
+            {renderBackgroundColorObject()}
           </div>
           <div className="project-settings-modal-row">
-            {this.renderFramerateObject()}
+            {renderFramerateObject()}
           </div>
           <div className="project-settings-modal-row">
-            {this.renderPresetsMobile()}
+            {renderPresetsMobile()}
           </div>
           <div className="project-settings-modal-row">
-            {this.renderSizeObjectMobile()}
+            {renderSizeObjectMobile()}
           </div>
         </div>
         {/* Footer */}
@@ -572,7 +533,7 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
             <ActionButton
               className="project-settings-modal-button"
               color="gray"
-              action={this.resetAndToggle}
+              action={resetAndToggle}
               text="Cancel"
             />
           </div>
@@ -580,7 +541,7 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
             <ActionButton
               className="project-settings-modal-button"
               color="green"
-              action={this.acceptProjectSettings}
+              action={acceptProjectSettings}
               text="Apply"
             />
           </div>
@@ -589,13 +550,11 @@ class ProjectSettings extends Component<ProjectSettingsProps, ProjectSettingsSta
     );
   };
 
-  render(): JSX.Element {
-    if (this.props.isMobile) {
-      return this.renderMobile();
-    } else {
-      return this.renderDesktop();
-    }
+  if (props.isMobile) {
+    return renderMobile();
+  } else {
+    return renderDesktop();
   }
-}
+};
 
 export default ProjectSettings;
