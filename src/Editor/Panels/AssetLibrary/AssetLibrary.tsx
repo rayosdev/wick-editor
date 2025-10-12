@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component } from "react";
+import { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 import Asset from "./Asset/Asset";
@@ -61,31 +61,25 @@ interface AssetLibraryProps {
     toast?: (message: string, type?: ToastType, options?: ToastOptions) => void;
 }
 
-interface AssetLibraryState {
-    filterText: string;
-}
+const AssetLibrary: React.FC<AssetLibraryProps> = (props) => {
+    const [filterText, setFilterText] = useState("");
 
-class AssetLibrary extends Component<AssetLibraryProps, AssetLibraryState> {
-    state: AssetLibraryState = {
-        filterText: "",
+    const openFileDialog = (): void => {
+        props.openImportAssetFileDialog();
     };
 
-    openFileDialog = (): void => {
-        this.props.openImportAssetFileDialog();
+    const openBuiltinAssetLibrary = (): void => {
+        props.openModal("BuiltinLibrary");
     };
 
-    openBuiltinAssetLibrary = (): void => {
-        this.props.openModal("BuiltinLibrary");
-    };
-
-    updateFilter = (value: string | number): void => {
+    const updateFilter = (value: string | number): void => {
         const text = typeof value === "string" ? value : String(value);
-        this.setState({ filterText: text });
+        setFilterText(text);
     };
 
-    filterArray = (assets: AssetLibraryItem[]): AssetLibraryItem[] => {
-        const filterText = this.state.filterText.trim().toLowerCase();
-        if (!filterText) {
+    const filterArray = (assets: AssetLibraryItem[]): AssetLibraryItem[] => {
+        const filterTextTrimmed = filterText.trim().toLowerCase();
+        if (!filterTextTrimmed) {
             return assets.filter((item) => !item.isGifImage);
         }
 
@@ -95,11 +89,11 @@ class AssetLibrary extends Component<AssetLibraryProps, AssetLibraryState> {
             }
 
             const name = typeof item.name === "string" ? item.name : "";
-            return name.toLowerCase().includes(filterText);
+            return name.toLowerCase().includes(filterTextTrimmed);
         });
     };
 
-    sortAssets = (assets: AssetLibraryItem[]): AssetLibraryItem[] => {
+    const sortAssets = (assets: AssetLibraryItem[]): AssetLibraryItem[] => {
         return [...assets].sort((a, b) => {
             const aName = typeof a.name === "string" ? a.name : "";
             const bName = typeof b.name === "string" ? b.name : "";
@@ -107,37 +101,37 @@ class AssetLibrary extends Component<AssetLibraryProps, AssetLibraryState> {
         });
     };
 
-    makeNode = (assetObject: AssetLibraryItem, index: number): JSX.Element => {
+    const makeNode = (assetObject: AssetLibraryItem, index: number): JSX.Element => {
         const key = typeof assetObject.uuid === "string" ? assetObject.uuid : index;
 
         return (
             <Asset
                 key={key}
                 asset={assetObject}
-                isSelected={this.props.isObjectSelected(assetObject)}
+                isSelected={props.isObjectSelected(assetObject)}
                 onClick={() => {
-                    this.props.clearSelection();
-                    this.props.selectObjects([assetObject]);
+                    props.clearSelection();
+                    props.selectObjects([assetObject]);
                 }}
-                createAssets={this.props.createAssets}
-                importProjectAsWickFile={this.props.importProjectAsWickFile}
-                createImageFromAsset={this.props.createImageFromAsset}
-                deleteSelectedObjects={this.props.deleteSelectedObjects}
-                clearSelection={this.props.clearSelection}
-                selectObjects={this.props.selectObjects}
-                addSoundToActiveFrame={this.props.addSoundToActiveFrame}
+                createAssets={props.createAssets}
+                importProjectAsWickFile={props.importProjectAsWickFile}
+                createImageFromAsset={props.createImageFromAsset}
+                deleteSelectedObjects={props.deleteSelectedObjects}
+                clearSelection={props.clearSelection}
+                selectObjects={props.selectObjects}
+                addSoundToActiveFrame={props.addSoundToActiveFrame}
             />
         );
     };
 
-    renderTitle = (): JSX.Element => {
+    const renderTitle = (): JSX.Element => {
         return (
             <div className="asset-library-title-container">
                 <div className="asset-library-title-text">Asset Library</div>
                 <div className="btn-asset-upload">
                     <ActionButton
                         color="upload"
-                        action={this.openBuiltinAssetLibrary}
+                        action={openBuiltinAssetLibrary}
                         id="button-asset-builtin"
                         icon="add"
                         tooltip="Add Builtin Asset"
@@ -146,7 +140,7 @@ class AssetLibrary extends Component<AssetLibraryProps, AssetLibraryState> {
                 <div className="btn-asset-builtin">
                     <ActionButton
                         color="upload"
-                        action={this.openFileDialog}
+                        action={openFileDialog}
                         id="button-asset-upload"
                         icon="upload"
                         tooltip="Upload Assets"
@@ -156,38 +150,36 @@ class AssetLibrary extends Component<AssetLibraryProps, AssetLibraryState> {
         );
     };
 
-    render(): JSX.Element {
-        const assets = Array.isArray(this.props.assets)
-            ? this.props.assets
-            : [];
+    const assets = Array.isArray(props.assets)
+        ? props.assets
+        : [];
 
-        const filteredAssets = this.filterArray(assets);
-        const sortedFilteredAssets = this.sortAssets(filteredAssets);
+    const filteredAssets = filterArray(assets);
+    const sortedFilteredAssets = sortAssets(filteredAssets);
 
-        return (
-            <div className="docked-pane asset-library" aria-label="Asset Library">
-                {this.renderTitle()}
-                <div className="asset-library-body">
-                    <div className="asset-library-filter">
-                        <div className="asset-library-filter-icon">
-                            <ToolIcon name="search" />
-                        </div>
-                        <WickInput
-                            id="asset-library-filter-input"
-                            aria-label="filter"
-                            placeholder="filter..."
-                            type="text"
-                            onChange={this.updateFilter}
-                            value={this.state.filterText}
-                        />
+    return (
+        <div className="docked-pane asset-library" aria-label="Asset Library">
+            {renderTitle()}
+            <div className="asset-library-body">
+                <div className="asset-library-filter">
+                    <div className="asset-library-filter-icon">
+                        <ToolIcon name="search" />
                     </div>
-                    <div className="asset-library-asset-container">
-                        {sortedFilteredAssets.map(this.makeNode)}
-                    </div>
+                    <WickInput
+                        id="asset-library-filter-input"
+                        aria-label="filter"
+                        placeholder="filter..."
+                        type="text"
+                        onChange={updateFilter}
+                        value={filterText}
+                    />
+                </div>
+                <div className="asset-library-asset-container">
+                    {sortedFilteredAssets.map(makeNode)}
                 </div>
             </div>
-        );
-    }
-}
+        </div>
+    );
+};
 
 export default AssetLibrary;

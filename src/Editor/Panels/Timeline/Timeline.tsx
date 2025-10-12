@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component, createRef, type ComponentType } from "react";
+import { useRef, useEffect, type ComponentType } from "react";
 import {
     DropTarget,
     type ConnectDropTarget,
@@ -62,7 +62,7 @@ interface TimelineOwnProps {
     getOnionSkinOptions: () => OnionSkinOptions;
     setFocusObject: (object: WickClip | WickProject) => void;
     addTweenKeyframe: (frame: number) => void;
-    onRef?: (instance: Timeline | null) => void;
+    onRef?: (instance: any) => void;
     dragSoundOntoTimeline: (uuid: string, x: number, y: number, commit: boolean) => void;
 }
 
@@ -83,93 +83,11 @@ declare global {
     }
 }
 
-class Timeline extends Component<TimelineProps> {
-    private canvasContainer: React.RefObject<HTMLDivElement>;
-    private currentAttachedProject: any;
+const Timeline: React.FC<TimelineProps> = (props) => {
+    const canvasContainer = useRef<HTMLDivElement>(null);
+    const currentAttachedProject = useRef<any>(null);
 
-    constructor(props: TimelineProps) {
-        super(props);
-        this.canvasContainer = createRef<HTMLDivElement>();
-        this.currentAttachedProject = null;
-    }
-
-    componentDidMount(): void {
-        this.attachProject();
-    }
-
-    componentDidUpdate(prevProps: TimelineProps): void {
-        if (prevProps.project !== this.props.project) {
-            this.detachCurrentProject();
-        }
-
-        this.attachProject();
-    }
-
-    componentWillUnmount(): void {
-        this.detachCurrentProject();
-    }
-
-    render(): JSX.Element {
-        const { connectDropTarget, isOver } = this.props;
-
-        const timeline = (
-            <div id="animation-timeline-container" aria-label="Timeline">
-                {isOver && <div className="drag-drop-overlay" />}
-                <div id="animation-timeline" ref={this.canvasContainer} />
-            </div>
-        );
-
-        if (connectDropTarget) {
-            const wrapped = connectDropTarget(timeline);
-            return (wrapped ?? timeline) as JSX.Element;
-        }
-
-        return timeline;
-    }
-
-    private attachProject(): void {
-        const { project } = this.props;
-        const canvasContainerElem = this.canvasContainer.current;
-
-        if (!project || !project.guiElement || !canvasContainerElem) {
-            return;
-        }
-
-        if (project !== this.currentAttachedProject) {
-            this.initializeIcons();
-            this.detachCurrentProject();
-            this.currentAttachedProject = project;
-
-            if (typeof project.guiElement.onProjectModified === "function") {
-                project.guiElement.onProjectModified(this.onProjectModified);
-            } else {
-                project.guiElement.onProjectModified = this.onProjectModified;
-            }
-
-            if (typeof project.guiElement.onProjectSoftModified === "function") {
-                project.guiElement.onProjectSoftModified(this.onProjectSoftModified);
-            } else {
-                project.guiElement.onProjectSoftModified = this.onProjectSoftModified;
-            }
-        }
-
-        project.guiElement.canvasContainer = canvasContainerElem;
-
-        if (typeof project.guiElement.draw === "function") {
-            project.guiElement.draw();
-        }
-    }
-
-    private detachCurrentProject(): void {
-        if (this.currentAttachedProject && this.currentAttachedProject.guiElement) {
-            this.currentAttachedProject.guiElement.onProjectModified = () => { };
-            this.currentAttachedProject.guiElement.onProjectSoftModified = () => { };
-        }
-
-        this.currentAttachedProject = null;
-    }
-
-    private initializeIcons(): void {
+    const initializeIcons = (): void => {
         const Icons = window?.Wick?.GUIElement?.Icons;
 
         if (!Icons) {
@@ -192,18 +110,93 @@ class Timeline extends Component<TimelineProps> {
         Icons.loadIcon("gap_fill_menu_extend_frames", iconGapFillMenuExtendFrames);
         Icons.loadIcon("gap_fill_empty_frames", iconGapFillBlankFrames);
         Icons.loadIcon("gap_fill_extend_frames", iconGapFillExtendFrames);
-    }
-
-    private onProjectModified = (): void => {
-        this.props.projectDidChange({ actionName: "Timeline Action" });
     };
 
-    private onProjectSoftModified = (): void => {
-        if (this.props.project && this.props.project.view) {
-            this.props.project.view.render();
+    const onProjectModified = (): void => {
+        props.projectDidChange({ actionName: "Timeline Action" });
+    };
+
+    const onProjectSoftModified = (): void => {
+        if (props.project && props.project.view) {
+            props.project.view.render();
         }
     };
-}
+
+    const detachCurrentProject = (): void => {
+        if (currentAttachedProject.current && currentAttachedProject.current.guiElement) {
+            currentAttachedProject.current.guiElement.onProjectModified = () => { };
+            currentAttachedProject.current.guiElement.onProjectSoftModified = () => { };
+        }
+
+        currentAttachedProject.current = null;
+    };
+
+    const attachProject = (): void => {
+        const { project } = props;
+        const canvasContainerElem = canvasContainer.current;
+
+        if (!project || !project.guiElement || !canvasContainerElem) {
+            return;
+        }
+
+        if (project !== currentAttachedProject.current) {
+            initializeIcons();
+            detachCurrentProject();
+            currentAttachedProject.current = project;
+
+            if (typeof project.guiElement.onProjectModified === "function") {
+                project.guiElement.onProjectModified(onProjectModified);
+            } else {
+                project.guiElement.onProjectModified = onProjectModified;
+            }
+
+            if (typeof project.guiElement.onProjectSoftModified === "function") {
+                project.guiElement.onProjectSoftModified(onProjectSoftModified);
+            } else {
+                project.guiElement.onProjectSoftModified = onProjectSoftModified;
+            }
+        }
+
+        project.guiElement.canvasContainer = canvasContainerElem;
+
+        if (typeof project.guiElement.draw === "function") {
+            project.guiElement.draw();
+        }
+    };
+
+    useEffect(() => {
+        attachProject();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        attachProject();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.project]);
+
+    useEffect(() => {
+        return () => {
+            detachCurrentProject();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const { connectDropTarget, isOver } = props;
+
+    const timeline = (
+        <div id="animation-timeline-container" aria-label="Timeline">
+            {isOver && <div className="drag-drop-overlay" />}
+            <div id="animation-timeline" ref={canvasContainer} />
+        </div>
+    );
+
+    if (connectDropTarget) {
+        const wrapped = connectDropTarget(timeline);
+        return (wrapped ?? timeline) as JSX.Element;
+    }
+
+    return timeline;
+};
 
 const timelineTarget = {
     drop(props: TimelineProps, monitor: DropTargetMonitor) {
