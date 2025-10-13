@@ -1,13 +1,22 @@
+// @ts-ignore - no types available
 import { GIFEncoder, quantize, applyPalette } from "gifenc";
+
+interface CreateAnimatedGIFArgs {
+  project: any;
+  width?: number;
+  height?: number;
+  onProgress: (message: string, percentage: number) => void;
+  onFinish: (blob: Blob) => void;
+}
 
 class GIFExport {
   /**
    * Create an animated GIF from a Wick project.
-   * @param {Wick.Project} project - the Wick project to create a GIF out of.
-   * @param {function} done - Callback that passes the GIF file as a blob when the GIF is done rendering.
+   * @param project - the Wick project to create a GIF out of.
+   * @param onFinish - Callback that passes the GIF file as a blob when the GIF is done rendering.
    */
-  static createAnimatedGIFFromProject(args) {
-    let { project, onProgress, onFinish } = args;
+  static createAnimatedGIFFromProject(args: CreateAnimatedGIFArgs): void {
+    const { project, onProgress, onFinish } = args;
 
     const combiningProgress = 40;
     const renderingProgress = 70;
@@ -15,17 +24,17 @@ class GIFExport {
 
     onProgress("Creating Gif", 10);
 
-    let width = args.width || project.width;
-    let height = args.height || project.height;
+    const width = args.width || project.width;
+    const height = args.height || project.height;
 
     // Initialize gifenc GIFEncoder
-    let gif = new GIFEncoder();
+    const gif = new GIFEncoder();
 
-    let frameDelay = 1000 / project.framerate;
+    const frameDelay = 1000 / project.framerate;
     let framesProcessed = 0;
     let totalFrames = 0;
 
-    gif.on("finished", (gif) => {
+    gif.on("finished", (gif: any) => {
       onProgress(
         "Saving GIF file (this may take a while)...",
         finishedProgress
@@ -33,20 +42,24 @@ class GIFExport {
       onFinish(gif);
     });
 
-    gif.on("progress", (progress) => {
-      let prog = 100 * progress;
+    gif.on("progress", (progress: number) => {
+      const prog = 100 * progress;
       onProgress(
         `Rendering GIF: ${prog.toFixed(2)}%`,
         renderingProgress + progress * (finishedProgress - renderingProgress)
       );
     });
 
-    let combineImageSequence = (images) => {
+    const combineImageSequence = (
+      images: (HTMLCanvasElement | HTMLImageElement)[]
+    ) => {
       totalFrames = images.length;
 
       images.forEach((image, index) => {
         // Convert canvas/image to RGBA data
-        let canvas, ctx;
+        let canvas: HTMLCanvasElement;
+        let ctx: CanvasRenderingContext2D | null;
+
         if (image instanceof HTMLCanvasElement) {
           canvas = image;
           ctx = canvas.getContext("2d");
@@ -56,18 +69,20 @@ class GIFExport {
           canvas.width = width;
           canvas.height = height;
           ctx = canvas.getContext("2d");
-          ctx.drawImage(image, 0, 0, width, height);
+          ctx?.drawImage(image, 0, 0, width, height);
         }
 
-        let imageData = ctx.getImageData(0, 0, width, height);
-        let rgbaData = imageData.data;
+        if (!ctx) return;
+
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const rgbaData = imageData.data;
 
         // Quantize colors and apply palette
-        let palette = quantize(rgbaData, 256);
-        let indexedData = applyPalette(rgbaData, palette);
+        const palette = quantize(rgbaData, 256);
+        const indexedData = applyPalette(rgbaData, palette);
 
         // Add frame to gif
-        let frameOptions = {
+        const frameOptions: any = {
           palette: palette,
           delay: frameDelay,
         };
@@ -80,8 +95,8 @@ class GIFExport {
           // Last frame
           gif.writeFrame(indexedData, width, height, frameOptions);
           gif.finish();
-          let output = gif.bytes();
-          let blob = new Blob([output], { type: "image/gif" });
+          const output = gif.bytes();
+          const blob = new Blob([output], { type: "image/gif" });
           onProgress(
             "Saving GIF file (this may take a while)...",
             finishedProgress
@@ -92,7 +107,7 @@ class GIFExport {
         }
 
         framesProcessed++;
-        let progress = framesProcessed / totalFrames;
+        const progress = framesProcessed / totalFrames;
         onProgress(
           `Processing frame ${framesProcessed}/${totalFrames}`,
           combiningProgress + progress * (renderingProgress - combiningProgress)
@@ -100,10 +115,10 @@ class GIFExport {
       });
     };
 
-    let updateProgress = (completed, maxFrames) => {
+    const updateProgress = (completed: number, maxFrames: number) => {
       // Change visual of the loading bar
-      let message = "Rendered " + completed + "/" + maxFrames + " frames";
-      let percentage = combiningProgress * (completed / maxFrames);
+      const message = "Rendered " + completed + "/" + maxFrames + " frames";
+      const percentage = combiningProgress * (completed / maxFrames);
       onProgress(message, percentage);
     };
 
