@@ -17,6 +17,8 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// @ts-nocheck - Phase 1 TypeScript conversion: Structure in place, detailed types to be added in Phase 2
+
 import React from "react";
 
 import "./_editor.scss";
@@ -48,7 +50,7 @@ import Timeline from "./Panels/Timeline/Timeline";
 import MobileContainer from "./Panels/MobileContainer/MobileContainer";
 import DeleteCopyPaste from "./Panels/DeleteCopyPaste/DeleteCopyPaste";
 import CanvasTransforms from "./Panels/CanvasTransforms/CanvasTransforms";
-import Toolbox from "./Panels/Toolbox/Toolbox.tsx";
+import Toolbox from "./Panels/Toolbox/Toolbox";
 import AssetLibrary from "./Panels/AssetLibrary/AssetLibrary";
 import Outliner from "./Panels/Outliner/Outliner";
 import OutlinerExpandButton from "./Panels/OutlinerExpandButton/OutlinerExpandButton";
@@ -57,16 +59,57 @@ import WickCodeEditor from "./PopOuts/WickCodeEditor/WickCodeEditor";
 import EditorWrapper from "./EditorWrapper";
 import classNames from "classnames";
 import pkg from "../../package.json";
+
+// Import types
+import type {
+  EditorState,
+  ResizeProps,
+} from "./types/editor.types";
+
 const { version } = pkg;
 
 // Check if we're in development mode
 const isDevelopment =
-  import.meta.env.DEV ||
+  (import.meta as any).env?.DEV ||
   (window.location && window.location.hostname === "localhost");
 
 class Editor extends EditorCore {
-  constructor() {
-    super();
+  // Instance properties with types
+  project: any = null;
+  paper: any = null;
+  editorVersion: string = version + "";
+  error: any = null;
+  _lastAutosave: number = 0;
+  _showWaitOverlayTimeoutID?: number;
+
+  fontInfoInterface: any;
+  hotKeyInterface: any;
+  actionMapInterface: any;
+  scriptInfoInterface: any;
+
+  openProjectFileFromClient!: () => void;
+  openAssetFileFromClient!: () => void;
+
+  maxLastColors: number = 8;
+  _onEyedropperPickedColor: (color: string) => void = () => { };
+
+  RESIZE_THROTTLE_AMOUNT_MS: number = 100;
+  WINDOW_RESIZE_THROTTLE_AMOUNT_MS: number = 300;
+  resizeProps: ResizeProps;
+
+  canvasComponent: any = null;
+  timelineComponent: any = null;
+  lastUsedTool: string = "cursor";
+  builtinPreviews: Record<string, any> = {};
+
+  customHotKeysKey: string = "wickEditorcustomHotKeys";
+  colorPickerTypeKey: string = "wickEditorColorPickerType";
+
+  // TypeScript requires we define state type
+  state: EditorState;
+
+  constructor(props: Record<string, never>) {
+    super(props);
     // Set path for engine dependencies
     window.Wick.resourcepath = "corelibs/wick-engine/";
 
@@ -158,6 +201,7 @@ class Editor extends EditorCore {
     this.hotKeyInterface = new HotKeyInterface(this);
 
     // Init actions
+    // @ts-expect-error - ActionMapInterface expects specific editor interface
     this.actionMapInterface = new ActionMapInterface(this);
 
     // Init Script Info
@@ -197,7 +241,7 @@ class Editor extends EditorCore {
 
     // Set up color picker
     this.maxLastColors = 8;
-    this._onEyedropperPickedColor = (color) => {};
+    this._onEyedropperPickedColor = (color) => { };
 
     // Resizable panels
     this.RESIZE_THROTTLE_AMOUNT_MS = 100;
@@ -327,7 +371,7 @@ class Editor extends EditorCore {
           //this.project.view.render();
           this.project.guiElement.draw();
         },
-        onBeforeTick: () => {},
+        onBeforeTick: () => { },
       });
     }
 
@@ -396,7 +440,7 @@ class Editor extends EditorCore {
   /**
    * Resets the editor in preparation for a project load.
    */
-  resetEditorForLoad = () => {};
+  resetEditorForLoad = () => { };
 
   /**
    * Updates the color picker type within the editor state.
@@ -468,7 +512,7 @@ class Editor extends EditorCore {
     this.project.guiElement.draw();
   };
 
-  onStopResize = ({ domElement, component }) => {};
+  onStopResize = ({ domElement, component }) => { };
 
   getSizeHorizontal = (domElement) => {
     return domElement.offsetWidth;

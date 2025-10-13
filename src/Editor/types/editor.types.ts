@@ -346,3 +346,125 @@ export interface ActionOptions {
   actionName: string;
   [key: string]: unknown;
 }
+
+// ============================================================================
+// Editor Component State
+// ============================================================================
+
+/**
+ * Code editor window properties
+ */
+export interface CodeEditorWindowProperties {
+  width: number;
+  height: number;
+  x: number;
+  y: number;
+  minWidth: number;
+  minHeight: number;
+  consoleHeight: number;
+  consoleOpen: boolean;
+  fontSize: number;
+  theme: string;
+}
+
+/**
+ * Onion skinning color configuration
+ */
+export interface OnionSkinningColors {
+  backward: string;
+  forward: string;
+}
+
+/**
+ * Local saved file structure
+ */
+export interface LocalSavedFile {
+  name: string;
+  lastModified: number;
+  [key: string]: any;
+}
+
+/**
+ * Basic warning modal info (used in initial state)
+ */
+export interface BasicWarningModalInfo {
+  description: string;
+  title: string;
+  acceptText: string;
+  cancelText: string;
+  acceptAction: () => void;
+  cancelAction: () => void;
+}
+
+/**
+ * Resize event handler properties
+ */
+export interface ResizeProps {
+  onStopResize: (args: { domElement: HTMLElement; component: any }) => void;
+  onStopPopoutOutlinerResize: (args: {
+    domElement: HTMLElement;
+    component: any;
+  }) => void;
+  onStopInspectorResize: (args: {
+    domElement: HTMLElement;
+    component: any;
+  }) => void;
+  onStopAssetLibraryResize: (args: {
+    domElement: HTMLElement;
+    component: any;
+  }) => void;
+  onStopTimelineResize: (args: {
+    domElement: HTMLElement;
+    component: any;
+  }) => void;
+  onStopCodeEditorResize: (args: {
+    domElement: HTMLElement;
+    component: any;
+  }) => void;
+  onResize: () => void;
+  onWindowResize: () => void;
+}
+
+/**
+ * Main Editor component state interface
+ */
+export interface EditorState {
+  project: any; // Serialized Wick project
+  previewPlaying: boolean;
+  activeModalName: string | null;
+  activeModalQueue: string[];
+  codeEditorOpen: boolean;
+  scriptToEdit: string;
+  showCanvasActions: boolean;
+  showBrushModes: boolean;
+  showCodeErrors: boolean;
+  codeError: any; // Wick error object
+  popoutOutlinerSize: number;
+  outlinerPoppedOut: boolean;
+  inspectorSize: number;
+  timelineSize: number;
+  assetLibrarySize: number;
+  consoleLogs: ConsoleLogEntry[];
+  warningModalInfo: any; // Complex union type - using any for flexibility
+  renderProgress: number;
+  renderType: string;
+  renderStatusMessage: string;
+  customHotKeys: CustomHotKeys;
+  colorPickerType: string;
+  lastColorsUsed: string[];
+  exporting: boolean;
+  useCustomOnionSkinningColors: boolean;
+  customOnionSkinningColors: OnionSkinningColors;
+  onionSkinningWasOn: boolean;
+  localSavedFiles: LocalSavedFile[];
+  codeEditorWindowProperties?: CodeEditorWindowProperties;
+}
+
+/**
+ * Options for projectDidChange method
+ */
+export interface ProjectDidChangeOptions {
+  actionName?: string;
+  skipHistory?: boolean;
+  skipReactRender?: boolean;
+}
