@@ -18,21 +18,21 @@
  */
 
 /**
- * filehandler.ts creates several global save functions in the window that 
+ * filehandler.ts creates several global save functions in the window that
  * can be overridden in order to change the saving properties based
  * on the platform.
- * 
- * If no default handlers are defined, they are defaulted to the 
- * functions below. Files are saved in accordance with browser-based file 
+ *
+ * If no default handlers are defined, they are defaulted to the
+ * functions below. Files are saved in accordance with browser-based file
  * saving libraries.
- * 
- * Downloadable platforms should develop alternatives to these methods, and 
+ *
+ * Downloadable platforms should develop alternatives to these methods, and
  * load them prior to the editor being loaded.
  */
 
 // @ts-ignore - no types available
-import { saveAs } from 'file-saver';
-import timeStamp from '../Editor/Util/DataFunctions/timestamp';
+import { saveAs } from "file-saver";
+import timeStamp from "../Editor/Util/DataFunctions/timestamp";
 
 interface FileEntry {
   name: string;
@@ -54,7 +54,7 @@ interface FileInputArgs {
   accept?: string;
 }
 
-type ExportType = 'Animation' | 'Interactive' | 'Audio' | 'Images';
+type ExportType = "Animation" | "Interactive" | "Audio" | "Images";
 
 declare global {
   interface Window {
@@ -72,7 +72,7 @@ declare global {
       successCallback?: () => void,
       failureCallback?: () => void
     ) => void;
-    wickEditorFileSystemType?: 'local' | 'browser';
+    wickEditorFileSystemType?: "local" | "browser";
     allowedExportTypes?: ExportType[];
     enableAssetLibrary?: boolean;
     warnBeforeSave?: (args: WarningModalArgs) => void;
@@ -82,7 +82,7 @@ declare global {
 export default function initializeDefaultFileHandlers(): void {
   if (!window.saveFileFromWick) {
     /**
-     * Attempts to save a file to the device. 
+     * Attempts to save a file to the device.
      * @param file File to save.
      * @param name Name of file to save, including extension.
      * @param extension File extension that should be appended to the file. (ex. .zip, .wick)
@@ -122,12 +122,18 @@ export default function initializeDefaultFileHandlers(): void {
 
         if (warn && window.warnBeforeSave) {
           window.warnBeforeSave({
-            title: 'Overwrite Save?',
-            description: 'A previous save has this name!',
-            acceptText: 'Save',
+            title: "Overwrite Save?",
+            description: "A previous save has this name!",
+            acceptText: "Save",
             acceptAction: () =>
-              oldSave?.(file, name, extension, successCallback, failureCallback),
-            cancelText: 'Cancel',
+              oldSave?.(
+                file,
+                name,
+                extension,
+                successCallback,
+                failureCallback
+              ),
+            cancelText: "Cancel",
             cancelAction: () => {
               failureCallback && failureCallback();
             },
@@ -143,23 +149,27 @@ export default function initializeDefaultFileHandlers(): void {
     /**
      * Creates a hidden input on the document. Returns a callback that can be used to
      * activate the input.
-     * 
-     * @param args object takes 
+     *
+     * @param args object takes
      *  @param onChange function to call when change occurs.
      *  @param multiple if true, allows multiple elements to be chosen at once.
-     *  @param accept a comma separated string of file types to accept. 
+     *  @param accept a comma separated string of file types to accept.
      *                Accepts all files if not provided.
      *  @returns function to call when input should be activated.
      */
     window.createFileInput = (args: FileInputArgs) => {
-      const onChange = args.onChange || (() => { console.log('Updating Chosen Element'); });
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.style.display = 'none';
+      const onChange =
+        args.onChange ||
+        (() => {
+          console.log("Updating Chosen Element");
+        });
+      const input = document.createElement("input");
+      input.type = "file";
+      input.style.display = "none";
       args.accept && (input.accept = args.accept);
       input.onchange = onChange;
       args.multiple && (input.multiple = true);
-      input.className = 'wick-editor-hidden-file-input';
+      input.className = "wick-editor-hidden-file-input";
 
       function clickInput() {
         input.click();
@@ -170,12 +180,12 @@ export default function initializeDefaultFileHandlers(): void {
   }
 
   /**
-   * @param callback Callback to be sent array of file entries. 
-   * @returns undefined 
+   * @param callback Callback to be sent array of file entries.
+   * @returns undefined
    */
   if (!window.getSavedWickFiles) {
     window.getSavedWickFiles = (callback: (files: FileEntry[]) => void) => {
-      console.error('Get Saved Files Not Implemented');
+      console.error("Get Saved Files Not Implemented");
       callback([]);
     };
   }
@@ -192,7 +202,7 @@ export default function initializeDefaultFileHandlers(): void {
       successCallback?: () => void,
       failureCallback?: () => void
     ) => {
-      console.error('Delete Local Files Not Implemented');
+      console.error("Delete Local Files Not Implemented");
     };
   }
 
@@ -201,7 +211,7 @@ export default function initializeDefaultFileHandlers(): void {
    * should be set to "local", and all other functions in this file should be redefined.
    */
   if (!window.wickEditorFileSystemType) {
-    window.wickEditorFileSystemType = 'browser';
+    window.wickEditorFileSystemType = "browser";
   }
 
   /**
@@ -209,9 +219,9 @@ export default function initializeDefaultFileHandlers(): void {
    * Animation, Interactive, Sound, Image
    */
   if (!window.allowedExportTypes) {
-    window.allowedExportTypes = ['Animation', 'Interactive', 'Audio', 'Images'];
+    window.allowedExportTypes = ["Animation", "Interactive", "Audio", "Images"];
   } else if (window.allowedExportTypes.length === 0) {
-    window.allowedExportTypes = ['Animation', 'Interactive', 'Audio', 'Images'];
+    window.allowedExportTypes = ["Animation", "Interactive", "Audio", "Images"];
   }
 
   /**
