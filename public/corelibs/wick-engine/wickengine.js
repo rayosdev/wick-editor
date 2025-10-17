@@ -48,7 +48,7 @@ if (typeof __dirname === "undefined") { var __dirname = ""; }
 if (typeof __filename === "undefined") { var __filename = ""; }
 
 /*Wick Engine https://github.com/Wicklets/wick-engine*/
-var WICK_ENGINE_BUILD_VERSION = "2025.10.17.14.25.18";
+var WICK_ENGINE_BUILD_VERSION = "2025.10.17.16.13.22";
 
 /*!
  * Paper.js v0.12.4 - The Swiss Army Knife of Vector Graphics Scripting.
