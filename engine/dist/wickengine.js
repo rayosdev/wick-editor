@@ -48,7 +48,7 @@ if (typeof __dirname === "undefined") { var __dirname = ""; }
 if (typeof __filename === "undefined") { var __filename = ""; }
 
 /*Wick Engine https://github.com/Wicklets/wick-engine*/
-var WICK_ENGINE_BUILD_VERSION = "2025.10.17.16.13.22";
+var WICK_ENGINE_BUILD_VERSION = "2025.10.20.12.6.32";
 
 /*!
  * Paper.js v0.12.4 - The Swiss Army Knife of Vector Graphics Scripting.
@@ -45028,17 +45028,12 @@ TWEEN.Interpolation = {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-/**
- * This object creates a Wick namespace for wick-engine functionality and utilities.
- */
-Wick = {
+const Wick = {
   version: window.WICK_ENGINE_BUILD_VERSION || "dev",
-  resourcepath: '../dist/',
+  resourcepath: "../dist/",
   _originals: {} // Eventually store a single instance of each type of Wick.Base object (see Wick.Base constructor).
 };
 console.log('Wick Engine version "' + Wick.version + '" is available.');
-
 // Ensure that the Wick namespace is accessible in environments where globals are finicky (react, webpack, etc)
 window.Wick = Wick;
 /*
@@ -45059,7 +45054,6 @@ window.Wick = Wick;
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * A clipboard utility class for copy/paste functionality.
  */
@@ -45071,7 +45065,6 @@ Wick.Clipboard = class {
     // how many pixels should we shift objects over when we paste (canvas only)
     return 20;
   }
-
   /**
    * Create a new Clipboard object.
    */
@@ -45080,7 +45073,6 @@ Wick.Clipboard = class {
     this._copyLayerIndex = 0;
     this._originalObjects = [];
   }
-
   /**
    * The data of copied objects, stored as JSON.
    * @type {Object}
@@ -45093,14 +45085,12 @@ Wick.Clipboard = class {
   set clipboardData(clipboardData) {
     localStorage[Wick.Clipboard.LOCALSTORAGE_KEY] = JSON.stringify(clipboardData);
   }
-
   /**
    * Replace the current contents of the clipboard with new objects.
    * @param {Wick.Base[]} objects - the objects to copy to the clipboard
    */
   copyObjectsToClipboard(project, objects) {
     if (!project || !project instanceof Wick.Project) console.error('copyObjectsToClipboard(): project is required');
-
     // Get the playhead position of the "first" frame in the list of objects
     var playheadCopyOffset = null;
     objects.filter(object => {
@@ -45110,10 +45100,8 @@ Wick.Clipboard = class {
         playheadCopyOffset = frame.start;
       }
     });
-
     // Keep track of where objects were originally copied from
     this._copyLocation = project.activeFrame && project.activeFrame.uuid;
-
     // Keep track of the topmost layer of the selection (we use this later to position frames)
     this._copyLayerIndex = Infinity;
     objects.filter(object => {
@@ -45123,17 +45111,14 @@ Wick.Clipboard = class {
     }).forEach(i => {
       this._copyLayerIndex = Math.min(this._copyLayerIndex, i);
     });
-
     // Make deep copies of every object
     var exportedData = objects.map(object => {
       return object.export();
     });
-
     // Save references to the original objects
     this._originalObjects = objects.map(object => {
       return object;
     });
-
     // Shift frames and tweens so that they copy from the relative position of the first frame
     var startPlayheadPosition = Number.MAX_SAFE_INTEGER;
     exportedData.forEach(data => {
@@ -45157,11 +45142,9 @@ Wick.Clipboard = class {
         data.object.playheadPosition -= startPlayheadPosition - 1;
       }
     });
-
     // Set the new clipboard data
     this.clipboardData = exportedData;
   }
-
   /**
    * Paste the content of the clipboard into the project.
    * @param {Wick.Project} project - the project to paste objects into.
@@ -45172,12 +45155,10 @@ Wick.Clipboard = class {
     if (!this.clipboardData) {
       return false;
     }
-
     // Prevent crash when pasting into an empty space
     if (!project.activeFrame) {
       project.insertBlankFrame();
     }
-
     // Always paste in-place if the original objects are no longer visible
     var pasteInPlace = true;
     this._originalObjects.forEach(origObj => {
@@ -45185,7 +45166,6 @@ Wick.Clipboard = class {
         pasteInPlace = false;
       }
     });
-
     // Use this value later to position frames on the corrent pasted layer
     var layerIndicesMoved = project.activeLayer.index - this._copyLayerIndex;
     project.selection.clear();
@@ -45199,7 +45179,6 @@ Wick.Clipboard = class {
         object.start += project.focus.timeline.playheadPosition - 1;
         object.end += project.focus.timeline.playheadPosition - 1;
       }
-
       // Paste tweens at the position of the playhead
       if (object instanceof Wick.Tween) {
         object._originalLayerIndex += layerIndicesMoved;
@@ -45207,18 +45186,15 @@ Wick.Clipboard = class {
       }
       project.addObject(object);
       object.identifier = object._getUniqueIdentifier(object.identifier);
-
       // Add offset to Paths and Clips if pasteInPlace is NOT enabled.
       if (!pasteInPlace && (object instanceof Wick.Path || object instanceof Wick.Clip)) {
         object.view.render(); //This render call updates the json, I think... so without this call the path loses its data somehow :(
         object.x += Wick.Clipboard.PASTE_OFFSET;
         object.y += Wick.Clipboard.PASTE_OFFSET;
       }
-
       // Wait to select objects.
       objectsToSelect.push(object);
     });
-
     // Select newly added objects.
     if (objectsToSelect.length > 0) {
       project.selection.selectMultipleObjects(objectsToSelect);
@@ -45244,7 +45220,6 @@ Wick.Clipboard = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /* Small utility class for colors. */
 Wick.Color = class {
   /**
@@ -45258,7 +45233,6 @@ Wick.Color = class {
       this._color = new paper.Color();
     }
   }
-
   /**
    * The red value of the color. Ranges from 0.0 to 1.0.
    * @type {Number}
@@ -45269,7 +45243,6 @@ Wick.Color = class {
   set r(r) {
     this._color.red = r;
   }
-
   /**
    * The green value of the color. Ranges from 0.0 to 1.0.
    * @type {Number}
@@ -45280,7 +45253,6 @@ Wick.Color = class {
   set g(g) {
     this._color.green = g;
   }
-
   /**
    * The blue value of the color. Ranges from 0.0 to 1.0.
    * @type {Number}
@@ -45291,7 +45263,6 @@ Wick.Color = class {
   set b(b) {
     this._color.blue = b;
   }
-
   /**
    * The alpha value of the color. Ranges from 0.0 to 1.0.
    * @type {Number}
@@ -45302,7 +45273,6 @@ Wick.Color = class {
   set a(a) {
     this._color.alpha = a;
   }
-
   /**
    * The color as a hex string. Example: "#AABBCC"
    * @type {String}
@@ -45310,14 +45280,12 @@ Wick.Color = class {
   get hex() {
     return this._color.toCSS(true);
   }
-
   /**
    * The color as an rgba string. Example: "rgba(r,g,b,a)"
    */
   get rgba() {
     return this._color.toCSS();
   }
-
   /**
    * Adds together the r, g, and b values of both colors and produces a new color.
    * @param {Wick.Color} color - the color to add to this color
@@ -45330,7 +45298,6 @@ Wick.Color = class {
     newColor.b = this.b + color.b;
     return newColor;
   }
-
   /**
    * Multiplies the r, g, and b values of both colors to produce a new color.
    * @param {Wick.Color} color - the color to multiply with this color
@@ -45343,7 +45310,6 @@ Wick.Color = class {
     newColor.b = this.b * n;
     return newColor;
   }
-
   /**
    * Averages the r, g, and b values of two colors.
    * @param {Wick.Color} colorA - a color to average with another color (order does not matter)
@@ -45372,7 +45338,6 @@ Wick.Color = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Global utility class for storing and retrieving large file data.
  */
@@ -45384,7 +45349,6 @@ Wick.FileCache = class {
   static get FILE_LOCALFORAGE_KEY_PREFIX() {
     return 'filesrc_'; // This should never change.
   }
-
   /**
    * Add a file to the cache.
    * @param {string} src - The file source
@@ -45394,11 +45358,9 @@ Wick.FileCache = class {
     this._files[uuid] = {
       src: src
     };
-
     // Save asset to localforage
     localforage.setItem(this.getLocalForageKeyForUUID(uuid), src).then(() => {});
   }
-
   /**
    * Get info for a file by its UUID.
    * @param {string} uuid - The UUID of the file
@@ -45413,18 +45375,15 @@ Wick.FileCache = class {
       return file;
     }
   }
-
   /**
    * Removes a file from the FileCache with a given UUID.
    * @param {string} uuid - the UUID of the file to remove.
    */
   static removeFile(uuid) {
     delete this._files[uuid];
-
     // Remove file from localforage
     localforage.removeItem(this.getLocalForageKeyForUUID(uuid)).then(() => {});
   }
-
   /**
    * Loads all files from local forage associated with a previously saved project, if possible.
    * @param {Wick.Project} project - the project that we want to load assets for.
@@ -45440,7 +45399,6 @@ Wick.FileCache = class {
       callback();
     });
   }
-
   /**
    * On object containing all files in WickFileCache.
    * @returns {object} All the files in an object with the format:
@@ -45455,7 +45413,6 @@ Wick.FileCache = class {
     }
     return files;
   }
-
   /**
    * Clear the cache.
    */
@@ -45491,7 +45448,6 @@ Wick.FileCache._files = {};
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * History utility class for undo/redo functionality.
  */
@@ -45503,7 +45459,6 @@ Wick.History = class {
   static get VERBOSE() {
     return false;
   }
-
   /**
    * An Enum of all types of state saves.
    */
@@ -45514,7 +45469,6 @@ Wick.History = class {
       ONLY_VISIBLE_OBJECTS: 3
     };
   }
-
   /**
    * Creates a new history object
    */
@@ -45522,7 +45476,6 @@ Wick.History = class {
     this.reset();
     this.lastHistoryPush = Date.now();
   }
-
   /**
    * Resets history in the editor. This is non-reversible.
    */
@@ -45531,7 +45484,6 @@ Wick.History = class {
     this._redoStack = [];
     this._snapshots = {};
   }
-
   /**
    * Returns all objects that are currently referenced by the history.
    * @returns {Set} uuids of all objects currently referenced in the history.
@@ -45546,7 +45498,6 @@ Wick.History = class {
     }
     return objects;
   }
-
   /**
    * Push the current state of the ObjectCache to the undo stack.
    * @param {number} filter - the filter to choose which objects to serialize. See Wick.History.StateType
@@ -45567,7 +45518,6 @@ Wick.History = class {
     this._undoStack.push(stateObject);
     this._undoStack = this._undoStack.slice(-64); // get the last 64 items in the undo stack
   }
-
   /**
    * Pop the last state in the undo stack off and apply the new last state to the project.
    * @returns {boolean} True if the undo stack is non-empty, false otherwise
@@ -45579,7 +45529,6 @@ Wick.History = class {
     var lastState = this._undoStack.pop();
     this._redoStack.push(lastState);
     var currentStateObject = this._undoStack[this._undoStack.length - 1];
-
     // 1.17.1 History update, pull actual state information out, aside from names.
     var currentState = currentStateObject;
     if (currentStateObject.state) {
@@ -45588,7 +45537,6 @@ Wick.History = class {
     this._recoverState(currentState);
     return true;
   }
-
   /**
    * Recover a state that was undone.
    * @returns {boolean} True if the redo stack is non-empty, false otherwise
@@ -45602,7 +45550,6 @@ Wick.History = class {
     this._recoverState(recoveredState);
     return true;
   }
-
   /**
    *
    * @param {string} name - the name of the snapshot
@@ -45611,7 +45558,6 @@ Wick.History = class {
   saveSnapshot(name, filter) {
     this._snapshots[name] = this._generateState(filter || Wick.History.StateType.ALL_OBJECTS_WITHOUT_PATHS);
   }
-
   /**
    * Save a state to the list of snapshots to be recovered at any time.
    * @param {string} name - the name of the snapshot to recover
@@ -45619,7 +45565,6 @@ Wick.History = class {
   loadSnapshot(name) {
     this._recoverState(this._snapshots[name]);
   }
-
   /**
    * The number of states currently stored for undoing.
    * @type {number}
@@ -45627,7 +45572,6 @@ Wick.History = class {
   get numUndoStates() {
     return this._undoStack.length;
   }
-
   /**
    * The number of states currently stored for redoing.
    * @type {number}
@@ -45635,7 +45579,6 @@ Wick.History = class {
   get numRedoStates() {
     return this._redoStack.length;
   }
-
   // NOTE: State saving/recovery can be greatly optimized by only saving the state of the things that were actually changed.
   _generateState(stateType) {
     var objects = [];
@@ -45672,7 +45615,6 @@ Wick.History = class {
     objects.push(this.project);
     return objects;
   }
-
   // this is used for an optimization when snapshots are saved for preview playing.
   _getAllObjectsWithoutPaths() {
     return this._getAllObjects().filter(object => {
@@ -45681,34 +45623,26 @@ Wick.History = class {
   }
   _getVisibleObjects() {
     var stateObjects = [];
-
     // the project itself (for focus, options, etc)
     stateObjects.push(this.project);
-
     // the assets in the project
     this.project.getAssets().forEach(asset => {
       stateObjects.push(asset);
     });
-
     // the focused clip
     stateObjects.push(this.project.focus);
-
     // the focused timeline
     stateObjects.push(this.project.focus.timeline);
-
     // the selection
     stateObjects.push(this.project.selection);
-
     // layers on focused timeline
     this.project.activeTimeline.layers.forEach(layer => {
       stateObjects.push(layer);
     });
-
     // frames on focused timeline
     this.project.activeTimeline.frames.forEach(frame => {
       stateObjects.push(frame);
     });
-
     // objects+tweens on active frames
     this.project.activeFrames.forEach(frame => {
       frame.paths.forEach(path => {
@@ -45742,11 +45676,9 @@ Wick.History = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 // NOTE:
 // This should probably not be global, and instead, each Wick.Project should own an ObjectCache.
 // It's too hard to test if there's a shared ObjectCache between many projects.
-
 /**
  * Global utility class for storing and retrieving large file data.
  */
@@ -45758,19 +45690,16 @@ WickObjectCache = class {
     this._objects = {};
     this._objectsNeedAutosave = {};
   }
-
   /**
    * Add an object to the cache.
    * @param {Wick.Base} object - the object to add
    */
   addObject(object) {
     this._objects[object.uuid] = object;
-
     /*object.children.forEach(child => {
         this.addObject(child);
     });*/
   }
-
   /**
    * Remove an object from the cache.
    * @param {Wick.Base} object - the object to remove from the cache
@@ -45782,7 +45711,6 @@ WickObjectCache = class {
     }
     delete this._objects[object.uuid];
   }
-
   /**
    * Remove an object from the cache.
    * @param {string} uuid - uuid of the object to remove from the cache
@@ -45790,7 +45718,6 @@ WickObjectCache = class {
   removeObjectByUUID(uuid) {
     delete this._objects[uuid];
   }
-
   /**
    * Remove all objects from the Object Cache.
    */
@@ -45798,7 +45725,6 @@ WickObjectCache = class {
     this._objects = {};
     this._objectsNeedAutosave = {};
   }
-
   /**
    * Get an object by its UUID.
    * @returns {Wick.Base}
@@ -45815,7 +45741,6 @@ WickObjectCache = class {
       return object;
     }
   }
-
   /**
    * All objects in the cache.
    * @returns {Wick.Base[]}
@@ -45827,7 +45752,6 @@ WickObjectCache = class {
     }
     return allObjects;
   }
-
   /**
    * Remove all objects that are in the project, but are no longer linked to the root object.
    * This is basically a garbage collection function. This function attempts to keep objects
@@ -45838,7 +45762,6 @@ WickObjectCache = class {
     var activeObjects = this.getActiveObjects(project);
     let uuids = activeObjects.map(obj => obj.uuid);
     uuids.push(project.uuid); // Don't forget to include the project itself...
-
     let uuidSet = new Set(uuids);
     let historyIDs = project.history.getObjectUUIDs();
     uuidSet = new Set([...historyIDs, ...uuidSet]);
@@ -45848,7 +45771,6 @@ WickObjectCache = class {
       }
     });
   }
-
   /**
    * Removes all objects with the temporary flag set to true.
    */
@@ -45859,7 +45781,6 @@ WickObjectCache = class {
       }
     });
   }
-
   /**
    * Get all objects that are referenced in the given project.
    * @param {Wick.Project} project - the project to check if children are active in.
@@ -45871,7 +45792,6 @@ WickObjectCache = class {
       return this.getObjectByUUID(object.uuid);
     });
   }
-
   /**
    * Saves an object to be autosaved upon the next auto save.
    * @param {Wick.Base} object object to be saved.
@@ -45879,7 +45799,6 @@ WickObjectCache = class {
   markObjectToBeAutosaved(object) {
     this._objectsNeedAutosave[object.uuid] = true;
   }
-
   /**
    * Removes a given object from the list of objects that must be autosaved.
    * @param {Wick.Base} object - the object to remove from the list of objects to be autosaved.
@@ -45887,7 +45806,6 @@ WickObjectCache = class {
   clearObjectToBeAutosaved(object) {
     delete this._objectsNeedAutosave[object.uuid];
   }
-
   /**
    * Returns true if a given object is marked to be autosaved during the next autosave.
    * @param {Wick.Base} object - the object to check for autosave
@@ -45895,7 +45813,6 @@ WickObjectCache = class {
   objectNeedsAutosave(object) {
     return Wick.ObjectCache._objectsNeedAutosave[object.uuid];
   }
-
   /**
    * Returns an array of objects that currently need to be autosaved.
    * @returns {Wick.Base[]} The objects that are marked to be autosaved.
@@ -45923,7 +45840,6 @@ Wick.ObjectCache = new WickObjectCache();
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /** Class representing a transformation. */
 Wick.Transformation = class {
   /**
@@ -45944,7 +45860,6 @@ Wick.Transformation = class {
     this.rotation = args.rotation === undefined ? 0 : args.rotation;
     this.opacity = args.opacity === undefined ? 1 : args.opacity;
   }
-
   /**
    * An object containing the values of this transformation.
    */
@@ -45958,7 +45873,6 @@ Wick.Transformation = class {
       opacity: this.opacity
     };
   }
-
   /**
    * Creates a copy of this transformation.
    * @returns {Wick.Transformation} the copied transformation.
@@ -45985,7 +45899,6 @@ Wick.Transformation = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.ToolSettings = class {
   static get DEFAULT_SETTINGS() {
     return [{
@@ -46079,7 +45992,6 @@ Wick.ToolSettings = class {
       options: ['none', 'behind', 'inside']
     }];
   }
-
   /**
    * Create a new ToolSettings object.
    */
@@ -46089,7 +46001,6 @@ Wick.ToolSettings = class {
     this.resetAllSettings();
     this.loadSettingsFromLocalstorage();
   }
-
   /**
    * Returns the appropriate key to use to store a tool setting by name.
    * @param {String} settingName name of tool setting.
@@ -46098,7 +46009,6 @@ Wick.ToolSettings = class {
   getStorageKey(settingName) {
     return "WICK.TOOLSETTINGS." + settingName;
   }
-
   /**
    * Creates the tool settings at the start of the editor. Will open with previously used settings if they exist.
    */
@@ -46108,7 +46018,6 @@ Wick.ToolSettings = class {
     if (args.default === undefined) console.error('createSetting: args.default is required');
     let name = args.name;
     let type = args.type;
-
     // Create a default setting to start.
     this._settings[args.name] = {
       type: args.type,
@@ -46121,7 +46030,6 @@ Wick.ToolSettings = class {
       options: args.options
     };
   }
-
   /**
    * Update a value in the settings.
    * @param {string} name - The name of the setting to update.
@@ -46130,7 +46038,6 @@ Wick.ToolSettings = class {
   setSetting(name, value) {
     var setting = this._settings[name];
     if (!setting) return;
-
     // Check to make sure there's no type mismatch
     if (typeof value !== typeof setting.value) {
       console.warn('Warning: Wick.ToolSettings: Type mismatch while setting ' + name);
@@ -46153,7 +46060,6 @@ Wick.ToolSettings = class {
       localforage.setItem(this.getStorageKey(name), value);
     }
   }
-
   /**
    * Retrieve a value in the settings.
    * @param {string} name - The name of the setting to retrieve.
@@ -46166,7 +46072,6 @@ Wick.ToolSettings = class {
     }
     return setting.value;
   }
-
   /**
    * Returns an object with the setting restrictions for a provided setting.
    * @param {String} name name of tool setting
@@ -46182,7 +46087,6 @@ Wick.ToolSettings = class {
       options: setting.options
     };
   }
-
   /**
    * Returns an array containing all settings with all information.
    * @returns {Object[]} Array of settings objects.
@@ -46194,14 +46098,12 @@ Wick.ToolSettings = class {
     }
     return allSettings;
   }
-
   /**
    * Receives a call back that will be provided the name and value of the setting that was changed.
    */
   onSettingsChanged(callback) {
     this._onSettingsChangedCallback = callback;
   }
-
   /**
    * Reset settings to the deafults.
    */
@@ -46210,7 +46112,6 @@ Wick.ToolSettings = class {
       this.createSetting(setting);
     });
   }
-
   /**
    * Load settings from localstorage if they exist.
    */
@@ -46255,7 +46156,6 @@ Wick.ToolSettings = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 GlobalAPI = class {
   /**
    * Defines all api members such as functions and properties.
@@ -46268,14 +46168,12 @@ GlobalAPI = class {
     //'project','root','parent','parentObject',
     'isMouseDown', 'mouseX', 'mouseY', 'mouseMoveX', 'mouseMoveY', 'key', 'keys', 'isKeyDown', 'keyIsDown', 'isKeyJustPressed', 'keyIsJustPressed', 'random', 'playSound', 'stopAllSounds', 'onEvent', 'hideCursor', 'showCursor', 'hitTestOptions'];
   }
-
   /**
    * @param {object} scriptOwner The tickable object which owns the script being evaluated.
    */
   constructor(scriptOwner) {
     this.scriptOwner = scriptOwner;
   }
-
   /**
    * Returns a list of api members bound to the script owner.
    * @returns {object[]} Array of functions, properties, and api members.
@@ -46294,21 +46192,18 @@ GlobalAPI = class {
     });
     return members;
   }
-
   /**
    * Stops the timeline of the object's parent clip.
    */
   stop() {
     this.scriptOwner.parentClip.stop();
   }
-
   /**
    * Plays the timeline of the object's parent clip.
    */
   play() {
     this.scriptOwner.parentClip.play();
   }
-
   /**
    * Moves the plahead of the parent clip to a frame and stops the timeline of that parent clip.
    * @param {string | number} frame Frame name or number to move playhead to.
@@ -46316,7 +46211,6 @@ GlobalAPI = class {
   gotoAndStop(frame) {
     this.scriptOwner.parentClip.gotoAndStop(frame);
   }
-
   /**
    * Moves the plahead of the parent clip to a frame and plays the timeline of that parent clip.
    * @param {string | number} frame Frame name or number to move playhead to.
@@ -46324,14 +46218,12 @@ GlobalAPI = class {
   gotoAndPlay(frame) {
     this.scriptOwner.parentClip.gotoAndPlay(frame);
   }
-
   /**
    * Moves the playhead of the parent clip of the object to the next frame.
    */
   gotoNextFrame() {
     this.scriptOwner.parentClip.gotoNextFrame();
   }
-
   /**
    * Moves the playhead of the parent clip of this object to the previous frame.
    */
@@ -46341,7 +46233,6 @@ GlobalAPI = class {
   hitTestOptions(options) {
     this.scriptOwner.project.hitTestOptions = options;
   }
-
   /**
    * Returns an object representing the project with properties such as width, height, framerate, background color, and name.
    * @returns {object} Project object.
@@ -46359,7 +46250,6 @@ GlobalAPI = class {
     }
     return project;
   }
-
   /**
    * @deprecated
    * Legacy item which returns the project. Use 'project' instead.
@@ -46367,7 +46257,6 @@ GlobalAPI = class {
   get root() {
     return this.project;
   }
-
   /**
    * Returns a reference to the current object's parent.
    * @returns Current object's parent.
@@ -46375,7 +46264,6 @@ GlobalAPI = class {
   get parent() {
     return this.scriptOwner.parentClip;
   }
-
   /**
    * @deprecated
    * Legacy item which returns the parent clip. Use 'parent' instead.
@@ -46383,7 +46271,6 @@ GlobalAPI = class {
   get parentObject() {
     return this.scriptOwner.parentClip;
   }
-
   /**
    * Returns the last key pressed down.
    * @returns {string | null} Returns null if no key has been pressed yet.
@@ -46392,7 +46279,6 @@ GlobalAPI = class {
     if (!this.scriptOwner.project) return null;
     return this.scriptOwner.project.currentKey;
   }
-
   /**
    * Returns a list of all keys currently pressed down.
    * @returns {string[]} All keys represented as strings. If no keys are pressed, an empty array is returned.
@@ -46401,7 +46287,6 @@ GlobalAPI = class {
     if (!this.scriptOwner.project) return null;
     return this.scriptOwner.project.keysDown;
   }
-
   /**
    * Returns true if the given key is currently down.
    * @param {string} key
@@ -46411,7 +46296,6 @@ GlobalAPI = class {
     if (!this.scriptOwner.project) return null;
     return this.scriptOwner.project.isKeyDown(key);
   }
-
   /**
    * @deprecated
    * Legacy item, use 'isKeyDown' instead.
@@ -46419,7 +46303,6 @@ GlobalAPI = class {
   keyIsDown(key) {
     return this.isKeyDown(key.toLowerCase());
   }
-
   /**
    * Returns true if the given key was just pressed within the last tick.
    * @param {string} key
@@ -46429,7 +46312,6 @@ GlobalAPI = class {
     if (!this.scriptOwner.project) return null;
     return this.scriptOwner.project.isKeyJustPressed(key);
   }
-
   /**
    * @deprecated
    * Legacy item, use 'isKeyJustPressed' instead.
@@ -46437,7 +46319,6 @@ GlobalAPI = class {
   keyIsJustPressed(key) {
     return this.keyIsJustPressed(key.toLowerCase());
   }
-
   /**
    * Returns true if the mouse is currently held down.
    * @returns {bool | null} Returns null if the object does not have a project.
@@ -46446,7 +46327,6 @@ GlobalAPI = class {
     if (!this.scriptOwner.project) return null;
     return this.scriptOwner.project.isMouseDown;
   }
-
   /**
    * Returns the current x position of the mouse in relation to the canvas.
    * @returns {number}
@@ -46455,7 +46335,6 @@ GlobalAPI = class {
     if (!this.scriptOwner.project) return null;
     return this.scriptOwner.project.mousePosition.x;
   }
-
   /**
    * Returns the current y position of the mouse in relation to the canvas.
    * @returns {number}
@@ -46464,7 +46343,6 @@ GlobalAPI = class {
     if (!this.scriptOwner.project) return null;
     return this.scriptOwner.project.mousePosition.y;
   }
-
   /**
    * Returns the amount the mouse moved in the last tick on the x axis.
    * @returns {number}
@@ -46473,7 +46351,6 @@ GlobalAPI = class {
     if (!this.scriptOwner.project) return null;
     return this.scriptOwner.project.mouseMove.x;
   }
-
   /**
    * Returns the amount the mouse moved in the last tick on the y axis.
    * @returns {number}
@@ -46482,7 +46359,6 @@ GlobalAPI = class {
     if (!this.scriptOwner.project) return null;
     return this.scriptOwner.project.mouseMove.y;
   }
-
   /**
    * Returns a new random object.
    * @returns {GlobalAPI.Random}
@@ -46490,7 +46366,6 @@ GlobalAPI = class {
   get random() {
     return new GlobalAPI.Random();
   }
-
   /**
    * Plays a sound which is currently in the asset library.
    * @param {string} name - name of the sound asset in the library.
@@ -46501,7 +46376,6 @@ GlobalAPI = class {
     if (!this.scriptOwner.project) return null;
     return this.scriptOwner.project.playSound(assetName, options);
   }
-
   /**
    * Stops sound(s) currently playing.
    * @param {string} assetName - The name of the SoundAsset to stop.
@@ -46511,7 +46385,6 @@ GlobalAPI = class {
     if (!this.scriptOwner.project) return null;
     return this.scriptOwner.project.stopSound(assetName, id);
   }
-
   /**
    * Stops all currently playing sounds.
    */
@@ -46519,7 +46392,6 @@ GlobalAPI = class {
     if (!this.scriptOwner.project) return null;
     this.scriptOwner.project.stopAllSounds();
   }
-
   /**
    * Attach a function to an event with a given name.
    * @param {string} name - the name of the event to attach the function to
@@ -46528,7 +46400,6 @@ GlobalAPI = class {
   onEvent(name, fn) {
     this.scriptOwner.onEvent(name, fn);
   }
-
   /**
    * Hide the cursor while the project is running.
    */
@@ -46536,7 +46407,6 @@ GlobalAPI = class {
     if (!this.scriptOwner.project) return null;
     this.scriptOwner.project.hideCursor = true;
   }
-
   /**
    * Don't hide the cursor while the project is running.
    */
@@ -46547,7 +46417,6 @@ GlobalAPI = class {
 };
 GlobalAPI.Random = class {
   constructor() {}
-
   /**
    * Returns a random integer (whole number) between two given numbers, 0 and a given number, or 0 and 1. The random number is inclusive of the maximum range.
    * @param {number} min The minimum of the returned integer, or the maximum of the returned number if it is the only argument.
@@ -46564,11 +46433,9 @@ GlobalAPI.Random = class {
       min = 0;
     }
     if (max < min) return 0;
-
     // The maximum is inclusive and the minimum is inclusive
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
-
   /**
    * Returns a random floating point (decimal) number between two given numbers, 0 and a given number, or 0 and 1.
    * @param {number} num1 The minimum of the returned number, or the maximum of the returned number if it is the only argument.
@@ -46585,7 +46452,6 @@ GlobalAPI.Random = class {
       return Math.random();
     }
   }
-
   /**
    * Returns a random item from an array of items.
    * @param {array} An array of objects.
@@ -46615,7 +46481,6 @@ GlobalAPI.Random = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Global utility class for creating instances of builtin assets.
  */
@@ -46627,7 +46492,6 @@ BuiltinAssets = class {
       height: 480
     };
     var defaultCrosshairSize = 75;
-
     // Vcam outline (hidden when project plays)
     var vcamBorderPaths = [
     // Cam border
@@ -46657,7 +46521,6 @@ BuiltinAssets = class {
         path: vcamPath
       }));
     });
-
     // Vcam black borders (only visible when project is playing and showBlackBorders is set to true)
     var borderSize = 10000;
     var blackBorderPaths = [
@@ -46701,12 +46564,10 @@ BuiltinAssets = class {
         path: vcamPath
       }));
     });
-
     // Blank frame
     vcam.activeLayer.addFrame(new Wick.Frame({
       start: 3
     }));
-
     // Build script
     var vcamScript = "";
     vcamScript += "// Wick VCam Beta v0.02\n";
@@ -46761,28 +46622,22 @@ Wick.BuiltinAssets = new BuiltinAssets();
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.ExportUtils = class {
   // https://stackoverflow.com/questions/12168909/blob-from-dataurl
   static dataURItoBlob(dataURI) {
     // convert base64 to raw binary data held in a string
     // doesn't handle URLEncoded DataURIs - see SO answer #6850276 for code that does this
     var byteString = atob(dataURI.split(',')[1]);
-
     // separate out the mime component
     var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-
     // write the bytes of the string to an ArrayBuffer
     var ab = new ArrayBuffer(byteString.length);
-
     // create a view into the buffer
     var ia = new Uint8Array(ab);
-
     // set the bytes of the buffer to the correct values
     for (var i = 0; i < byteString.length; i++) {
       ia[i] = byteString.charCodeAt(i);
     }
-
     // write the ArrayBuffer to a blob, and you're done
     var blob = new Blob([ab], {
       type: mimeString
@@ -46808,7 +46663,6 @@ Wick.ExportUtils = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.AudioTrack = class {
   /**
    * @type {Wick.Project}
@@ -46819,7 +46673,6 @@ Wick.AudioTrack = class {
   set project(project) {
     this._project = project;
   }
-
   /**
    * Create a new AudioTrack
    * @param {Wick.Project} project - the project to use audio from
@@ -46827,7 +46680,6 @@ Wick.AudioTrack = class {
   constructor(project) {
     this._project = project;
   }
-
   /**
    * Generate an AudioBuffer of all the project's sounds as one audio track.
    * Can take sound information from a generated sequence.
@@ -46848,7 +46700,6 @@ Wick.AudioTrack = class {
         args.callback(audioArraybuffer);
       }, args.onProgress);
     };
-
     // If audio information is passed in from a previous render, use that. Otherwise, render it again.
     if (args.soundInfo) {
       genBuffer(args.soundInfo);
@@ -46859,7 +46710,6 @@ Wick.AudioTrack = class {
       });
     }
   }
-
   /**
    * Create an AudioBuffer from given sounds.
    * @param {object[]} projectAudioInfo - infor generated on sounds played in the project.
@@ -46888,7 +46738,6 @@ Wick.AudioTrack = class {
       this.base64ToAudioBuffer(audioInfo.src, ctx, audiobuffer => {
         let offset = audioInfo.offset || 0; // Milliseconds to offset.
         let offsetSeconds = offset / 1000; // Adjust to seconds.
-
         let startSeconds = audioInfo.start / 1000;
         let endSeconds = audioInfo.end / 1000;
         let lengthSeconds = endSeconds - startSeconds;
@@ -46905,7 +46754,6 @@ Wick.AudioTrack = class {
       });
     }
   }
-
   /*
    * Merges multiple audiobuffers into a single audiobuffer.
    * @param {AudioBuffer[]} buffers - the AudioBuffers to merge together
@@ -46914,15 +46762,12 @@ Wick.AudioTrack = class {
   static mergeBuffers(buffers, ac, onProgress) {
     // original function from:
     // https://github.com/meandavejustice/merge-audio-buffers/blob/master/index.js
-
     var maxChannels = 0;
     var maxDuration = 0;
-
     // Send back an empty buffer if no information was sent in.
     if (!buffers || buffers && buffers.length === 0) {
       return ac.createBuffer(2, 1000, 48000);
     }
-
     // Review the incoming audio to determine output buffer size.
     for (let i = 0; i < buffers.length; i++) {
       onProgress("Reviewing Audio " + (i + 1) + "/" + buffers.length, i + 1 + "/" + buffers.length);
@@ -46933,19 +46778,16 @@ Wick.AudioTrack = class {
         maxDuration = buffers[i].duration;
       }
     }
-
     // Create new output buffer.
     var out = ac.createBuffer(maxChannels, ac.sampleRate * maxDuration, ac.sampleRate);
     for (var i = 0; i < buffers.length; i++) {
       onProgress("Merging Audio " + (i + 1) + "/" + buffers.length, i + 1 + "/" + buffers.length);
-
       // Go through each channel of the new audio source and copy that data into the output buffer.
       for (var srcChannel = 0; srcChannel < buffers[i].numberOfChannels; srcChannel++) {
         var outt = out.getChannelData(srcChannel);
         var inn = buffers[i].getChannelData(srcChannel);
         for (let j = 0; j < inn.length; j++) {
           let val = inn[j];
-
           // Some sounds may have corrupted data... don't copy that over.
           if (val) {
             outt[j] += val;
@@ -46956,7 +46798,6 @@ Wick.AudioTrack = class {
     }
     return out;
   }
-
   /**
    * Offsets an audio buffer by a number of seconds.
    * @param {audioBuffer} originalBuffer - Buffer to offset.
@@ -46974,13 +46815,11 @@ Wick.AudioTrack = class {
     } else {
       copyfrom = offsetSeconds * ctx.sampleRate;
     }
-
     // Copy buffer information.
     for (var srcChannel = 0; srcChannel < offsetBuffer.numberOfChannels; srcChannel++) {
       // Retrieve sample data...
       var offsetBufferChannelData = offsetBuffer.getChannelData(srcChannel);
       var originalBufferChannelData = originalBuffer.getChannelData(srcChannel);
-
       // Copy samples from the original buffer to the adjusted buffer, adjusting for the number of seconds to offset.
       for (var i = 0; i < offsetBufferChannelData.length; i++) {
         if (i + copyfrom > originalBufferChannelData.length) {
@@ -46994,7 +46833,6 @@ Wick.AudioTrack = class {
     }
     return offsetBuffer;
   }
-
   /**
    * Crops an AudioBuffer to a given length.
    * @param {AudioBuffer} originalBuffer - the buffer to crop
@@ -47005,13 +46843,11 @@ Wick.AudioTrack = class {
   static cropAudioBuffer(originalBuffer, lengthSeconds, ctx) {
     // Create a blank buffer with a length of the crop amount
     var croppedBuffer = ctx.createBuffer(originalBuffer.numberOfChannels, ctx.sampleRate * lengthSeconds, ctx.sampleRate);
-
     // Copy data from the original buffer into the cropped buffer
     for (var srcChannel = 0; srcChannel < croppedBuffer.numberOfChannels; srcChannel++) {
       // Retrieve sample data...
       var croppedBufferChannelData = croppedBuffer.getChannelData(srcChannel);
       var originalBufferChannelData = originalBuffer.getChannelData(srcChannel);
-
       // Copy samples from the original buffer to the cropped buffer
       for (var i = 0; i < croppedBufferChannelData.length; i++) {
         croppedBufferChannelData[i] = originalBufferChannelData[i];
@@ -47020,7 +46856,6 @@ Wick.AudioTrack = class {
     }
     return croppedBuffer;
   }
-
   /**
    * Adjusts the volume of an audio buffer.
    * @param {*} originalBuffer - The original buffer to adjust.
@@ -47031,14 +46866,12 @@ Wick.AudioTrack = class {
   static adjustBufferVolume(originalBuffer, volume, ctx) {
     // Create a blank buffer with the length of the original buffer.
     var adjustedBuffer = ctx.createBuffer(originalBuffer.numberOfChannels, originalBuffer.length, ctx.sampleRate);
-
     // Volume should be at least 0.
     volume = Math.max(volume, 0);
     for (var srcChannel = 0; srcChannel < adjustedBuffer.numberOfChannels; srcChannel++) {
       // Retrieve sample data...
       var adjustedBufferChannelData = adjustedBuffer.getChannelData(srcChannel);
       var originalBufferChannelData = originalBuffer.getChannelData(srcChannel);
-
       // Copy samples from the original buffer to the adjusted buffer, adjusting for volume.
       for (var i = 0; i < adjustedBufferChannelData.length; i++) {
         adjustedBufferChannelData[i] = originalBufferChannelData[i] * volume;
@@ -47047,7 +46880,6 @@ Wick.AudioTrack = class {
     }
     return adjustedBuffer;
   }
-
   /**
    * Adds silence to the beginning of an AudioBuffer with a given length.
    * @param {AudioBuffer} originalBuffer - the buffer to pad with silence
@@ -47056,16 +46888,13 @@ Wick.AudioTrack = class {
    */
   static addStartDelayToAudioBuffer(originalBuffer, delaySeconds, ctx) {
     // Create buffer with a length equal to the original buffer's length plus the requested delay
-
     let lengthOfDelay = ctx.sampleRate * delaySeconds;
     let lengthOfOriginalSound = ctx.sampleRate * originalBuffer.duration;
     var delayedBuffer = ctx.createBuffer(originalBuffer.numberOfChannels, lengthOfDelay + lengthOfOriginalSound, ctx.sampleRate);
-
     // For each channel in the audiobuffer...
     for (var srcChannel = 0; srcChannel < originalBuffer.numberOfChannels; srcChannel++) {
       // Retrieve sample data...
       var originalBufferChannelData = originalBuffer.getChannelData(srcChannel);
-
       // Copy samples from the original buffer to the delayed buffer with an offset equal to the delay
       var delayOffset = ctx.sampleRate * delaySeconds;
       try {
@@ -47078,7 +46907,6 @@ Wick.AudioTrack = class {
     }
     return delayedBuffer;
   }
-
   /**
    * Convert a base64 string of an audio file into an AudioBuffer.
    * @param {string} base64 - a base64 dataURI of an audio file.
@@ -47114,7 +46942,6 @@ Wick.AudioTrack = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Utility class for autosaving projects.
  */
@@ -47126,7 +46953,6 @@ Wick.AutoSave = class {
   static get AUTOSAVES_LIST_KEY() {
     return 'autosaveList';
   }
-
   /**
    * The prefix to use for keys to save project autosave data.
    * @type {string}
@@ -47134,7 +46960,6 @@ Wick.AutoSave = class {
   static get AUTOSAVE_DATA_PREFIX() {
     return 'autosave_';
   }
-
   /**
    * Saves a given project to localforage.
    * @param {Wick.Project} project - the project to store in the AutoSave system.
@@ -47151,7 +46976,6 @@ Wick.AutoSave = class {
       });
     });
   }
-
   /**
    * Loads a given project from localforage.
    * @param {string} uuid - the UUID of the project to load from the AutoSave system.
@@ -47164,7 +46988,6 @@ Wick.AutoSave = class {
       });
     });
   }
-
   /**
    * Deletes a project with a given UUID in the autosaves.
    * @param {string} uuid - uuid of project ot delete.
@@ -47177,7 +47000,6 @@ Wick.AutoSave = class {
       });
     });
   }
-
   /**
    * Generates an object that is writable to localforage from a project.
    * @param {Wick.Project} project - The project to generate data for.
@@ -47199,7 +47021,6 @@ Wick.AutoSave = class {
       lastModified: lastModified
     };
   }
-
   /**
    * Creates a project from data loaded from the autosave system
    * @param {object} autosaveData - An autosave data object, use generateAutosaveData/readAutosaveData to get this object
@@ -47209,10 +47030,8 @@ Wick.AutoSave = class {
     autosaveData.objectsData.forEach(objectData => {
       var object = Wick.Base.fromData(objectData);
     });
-
     // Deserialize the project itself
     var project = Wick.Base.fromData(autosaveData.projectData);
-
     // Load source files for assets from localforage
     Wick.FileCache.loadFilesFromLocalforage(project, () => {
       project.loadAssets(() => {
@@ -47220,7 +47039,6 @@ Wick.AutoSave = class {
       });
     });
   }
-
   /**
    * Adds autosaved project data to the list of autosaved projects.
    * @param {Object} projectData -
@@ -47236,7 +47054,6 @@ Wick.AutoSave = class {
       });
     });
   }
-
   /**
    * Removes autosaved project data to the list of autosaved projects.
    * @param {string} uuid -
@@ -47251,7 +47068,6 @@ Wick.AutoSave = class {
       });
     });
   }
-
   /**
    * Get the list of autosaved projects currently in the AutoSave system.
    * @param {function} callback - function to be passed object containing all autosaved projects.
@@ -47259,7 +47075,6 @@ Wick.AutoSave = class {
   static getAutosavesList(callback) {
     localforage.getItem(this.AUTOSAVES_LIST_KEY).then(result => {
       var projectList = result || [];
-
       // Sort by lastModified
       projectList.sort((a, b) => {
         return b.lastModified - a.lastModified;
@@ -47267,7 +47082,6 @@ Wick.AutoSave = class {
       callback(projectList);
     });
   }
-
   /**
    * Updates the list of autosaved projects currently in the AutoSave system.
    * @param {Object} autosaveList - the list of projects
@@ -47278,7 +47092,6 @@ Wick.AutoSave = class {
       callback();
     });
   }
-
   /**
    * Save project data into the autosave system.
    * @param {Object} autosaveData - Autosave data of a project, use generateAutosaveData to create this object
@@ -47288,7 +47101,6 @@ Wick.AutoSave = class {
       callback();
     });
   }
-
   /**
    * Load project data from the autosave system.
    * @param {string} uuid - the UUID of the project to load
@@ -47301,7 +47113,6 @@ Wick.AutoSave = class {
       callback(result);
     });
   }
-
   /**
    * Deletes project data from the autosave system.
    * @param {string} uuid - the UUID of the project to delete
@@ -47331,7 +47142,6 @@ Wick.AutoSave.ENABLE_PERF_TIMERS = false;
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Utility class for creating and parsing wick files.
  */
@@ -47359,7 +47169,6 @@ Wick.WickFile = class {
       }
     };
   }
-
   /**
    * Create a project from a wick file.
    * @param {File} wickFile - Wick file containing project data.
@@ -47395,7 +47204,6 @@ Wick.WickFile = class {
         Wick.ObjectCache.addObject(project);
         var loadedAssetCount = 0;
         let corruptedFiles = []; // Store a list of all files that are now missing. 
-
         // Immediately end if the project has no assets.
         if (project.getAssets().length === 0) {
           this._prepareProject(project);
@@ -47405,9 +47213,8 @@ Wick.WickFile = class {
           let allAssets = project.getAssets().concat([]);
           allAssets.forEach(assetData => {
             var assetFile = contents.files['assets/' + assetData.uuid + '.' + assetData.fileExtension];
-
             /**
-             * Checks if we've loaded all assets, logs an error if an error occurred 
+             * Checks if we've loaded all assets, logs an error if an error occurred
              * while loading asset files.
              */
             var checkProjectLoad = () => {
@@ -47448,7 +47255,6 @@ Wick.WickFile = class {
       callback(null);
     });
   }
-
   /**
    * Create a wick file from the project.
    * @param {Wick.Project} project - the project to create a wick file from
@@ -47464,10 +47270,8 @@ Wick.WickFile = class {
       return;
     }
     var zip = new JSZip();
-
     // Create assets folder
     var assetsFolder = zip.folder("assets");
-
     // Populate assets folder with files
     project.getAssets().filter(asset => {
       return asset instanceof Wick.ImageAsset || asset instanceof Wick.SoundAsset || asset instanceof Wick.FontAsset || asset instanceof Wick.ClipAsset || asset instanceof Wick.SVGAsset;
@@ -47490,7 +47294,6 @@ Wick.WickFile = class {
         delete objectCacheSerialized[uuid];
       }
     }
-
     // Remove some extra data that we don't actually want to save
     // Clear selection:
     for (var uuid in objectCacheSerialized) {
@@ -47513,7 +47316,6 @@ Wick.WickFile = class {
         object.playheadPosition = 1;
       }
     }
-
     // Add project json to root directory of zip file
     var projectData = {
       project: projectSerialized,
@@ -47528,7 +47330,6 @@ Wick.WickFile = class {
       }
     }).then(callback);
   }
-
   /* Make any small backwards compatibility fixes needed */
   static _prepareProject(project) {
     // 1.16+ projects don't allow gaps between frames.
@@ -47656,7 +47457,6 @@ Wick.WickFile.Alpha = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Utility class for creating and parsing wickobject files.
  */
@@ -47678,7 +47478,6 @@ Wick.WickObjectFile = class {
     };
     fr.readAsText(wickObjectFile);
   }
-
   /**
    * Create a wick file from the project.
    * @param {Wick.Project} clip - the clip to create a wickobject file from
@@ -47722,7 +47521,6 @@ Wick.WickObjectFile = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Utility class for bundling Wick projects inside HTML files.
  */
@@ -47761,7 +47559,6 @@ Wick.HTMLExport = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Utility class for opening Wick projects inside popup windows.
  */
@@ -47803,7 +47600,6 @@ Wick.HTMLPreview = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Utility class for creating and parsing wickobject files.
  */
@@ -47823,7 +47619,6 @@ Wick.SVGFile = class {
     };
     fr.readAsText(svgFile);
   }
-
   /**
    * Create a wick file from the project.
    * @param {Wick.Timeline} timeline - the clip to create a wickobject file from
@@ -47858,7 +47653,6 @@ Wick.SVGFile = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Utility class for generating image sequences.
  */
@@ -47917,7 +47711,6 @@ Wick.ImageSequence = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Utility class for bundling Wick projects inside ZIP files.
  */
@@ -47978,7 +47771,6 @@ Wick.ZIPExport = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * The base class for all objects within the Wick Engine.
  */
@@ -48008,16 +47800,13 @@ Wick.Base = class {
     this._children = [];
     this._childrenData = null;
     this._parent = null;
-
     // If this is a project, use this object, otherwise use the passed in project if provided.
     this._project = this.classname === 'Project' ? this : args.project ? args.project : null;
     this.needsAutosave = true;
     this._cachedSerializeData = null;
     this._temporary = false; // Defines if this object is "temporary"
-
     Wick.ObjectCache.addObject(this);
   }
-
   /**
    * @param {object} data - Serialized data to use to create a new object.
    */
@@ -48038,7 +47827,6 @@ Wick.Base = class {
     }
     return object;
   }
-
   /**
    * Converts this Wick Base object into a plain javascript object contianing raw data (no references).
    * @return {object} Plain JavaScript object representing this Wick Base object.
@@ -48059,7 +47847,6 @@ Wick.Base = class {
       return this._cachedSerializeData;
     }
   }
-
   /**
    * Parses serialized data representing Base Objects which have been serialized using the serialize function of their class.
    * @param {object} data Serialized data that was returned by a Base Object's serialize function.
@@ -48068,7 +47855,6 @@ Wick.Base = class {
     this._deserialize(data);
     this._cacheSerializeData(data);
   }
-
   /* The internal serialize method that actually creates the data. Every class that inherits from Base must have one of these. */
   _serialize(args) {
     var data = {};
@@ -48081,7 +47867,6 @@ Wick.Base = class {
     });
     return data;
   }
-
   /* The internal deserialize method that actually reads the data. Every class that inherits from Base must have one of these. */
   _deserialize(data) {
     this._uuid = data.uuid;
@@ -48089,7 +47874,6 @@ Wick.Base = class {
     this._name = data.name;
     this._children = [];
     this._childrenData = data.children;
-
     // Clear any custom attributes set by scripts
     var compareObj = Wick._originals[this.classname];
     for (var name in this) {
@@ -48102,7 +47886,6 @@ Wick.Base = class {
     this._cachedSerializeData = data;
     this.needsAutosave = false;
   }
-
   /**
    * Returns a copy of a Wick Base object.
    * @return {Wick.Base} The object resulting from the copy
@@ -48112,14 +47895,12 @@ Wick.Base = class {
     data.uuid = uuidv4();
     var copy = Wick.Base.fromData(data);
     copy._childrenData = null;
-
     // Copy children
     this.getChildren().forEach(child => {
       copy.addChild(child.copy());
     });
     return copy;
   }
-
   /**
    * Returns an object containing serialied data of this object, as well as all of its children.
    * Use this to copy entire Wick.Base objects between projects, and to export individual Clips as files.
@@ -48128,15 +47909,12 @@ Wick.Base = class {
   export() {
     var copy = this.copy();
     copy._project = this.project;
-
     // the main object
     var object = copy.serialize();
-
     // children
     var children = copy.getChildrenRecursive().map(child => {
       return child.serialize();
     });
-
     // assets
     var assets = [];
     copy.getChildrenRecursive().concat(copy).forEach(child => {
@@ -48153,7 +47931,6 @@ Wick.Base = class {
       assets: assets
     };
   }
-
   /**
    * Import data created using Wick.Base.export().
    * @param {object} exportData - an object created from Wick.Base.export().
@@ -48162,7 +47939,6 @@ Wick.Base = class {
     if (!exportData) console.error('Wick.Base.import(): exportData is required');
     if (!exportData.object) console.error('Wick.Base.import(): exportData is missing data');
     if (!exportData.children) console.error('Wick.Base.import(): exportData is missing data');
-
     // Import assets first in case the objects need them!
     exportData.assets.forEach(assetData => {
       // Don't import assets if they exist in the project already
@@ -48174,7 +47950,6 @@ Wick.Base = class {
       project.addAsset(asset);
     });
     var object = Wick.Base.fromData(exportData.object, project);
-
     // Import children as well
     exportData.children.forEach(childData => {
       // Only need to call deserialize here, we just want the object to get added to ObjectCache
@@ -48182,7 +47957,6 @@ Wick.Base = class {
     });
     return object;
   }
-
   /**
    * Marks the object as possibly changed, so that next time autosave happens, this object is written to the save.
    * @type {boolean}
@@ -48197,7 +47971,6 @@ Wick.Base = class {
   get needsAutosave() {
     return Wick.ObjectCache.objectNeedsAutosave(this);
   }
-
   /**
    * Signals if an object is removed from the project while playing.
    * This is a temprary variable.
@@ -48209,7 +47982,6 @@ Wick.Base = class {
   set removed(bool) {
     this._removed = bool;
   }
-
   /**
    * Returns the classname of a Wick Base object.
    * @type {string}
@@ -48217,15 +47989,13 @@ Wick.Base = class {
   get classname() {
     return 'Base';
   }
-
   /**
-   * A marker if this object is temporary. Meaning it 
+   * A marker if this object is temporary. Meaning it
    * should be garbage collected after a play.
    */
   get temporary() {
     return this._temporary;
   }
-
   /**
    * The uuid of a Wick Base object.
    * @type {string}
@@ -48233,7 +48003,6 @@ Wick.Base = class {
   get uuid() {
     return this._uuid;
   }
-
   /**
    * Changes an object's uuid. This function should not be used consistently, as it creates an entire copy of the object
    * in the object cache. Avoid using this if possile.
@@ -48242,7 +48011,6 @@ Wick.Base = class {
     this._uuid = uuid;
     Wick.ObjectCache.addObject(this);
   }
-
   /**
    * The name of the object that is used to access the object through scripts. Must be a valid JS variable name.
    * @type {string}
@@ -48256,26 +48024,20 @@ Wick.Base = class {
       this._identifier = null;
       return;
     }
-
     // Make sure the identifier doesn't squash any attributes of the window
     if (this._identifierNameExistsInWindowContext(identifier)) return;
-
     // Make sure the identifier will not be squashed by Wick API functions
     if (this._identiferNameIsPartOfWickAPI(identifier)) return;
-
     // Make sure the identifier is a valid js variable name
     if (!isVarName(identifier)) {
       this.project && this.project.errorOccured('Identifier must be a valid variable name.');
       return;
     }
-
     // Make sure the identifier is not a reserved word in js
     if (reserved.check(identifier)) return;
-
     // Ensure no objects with duplicate identifiers can exist
     this._identifier = this._getUniqueIdentifier(identifier);
   }
-
   /**
    * The name of the object.
    * @type {string}
@@ -48288,7 +48050,6 @@ Wick.Base = class {
     if (name === '') this._name = null;
     this._name = name;
   }
-
   /**
    * The Wick.View object that is used for rendering this object on the canvas.
    */
@@ -48299,7 +48060,6 @@ Wick.Base = class {
     if (view) view.model = this;
     this._view = view;
   }
-
   /**
    * The object that is used for rendering this object in the timeline GUI.
    */
@@ -48310,7 +48070,6 @@ Wick.Base = class {
     if (guiElement) guiElement.model = this;
     this._guiElement = guiElement;
   }
-
   /**
    * Returns a single child of this object with a given classname.
    * @param {string} classname - the classname to use
@@ -48318,7 +48077,6 @@ Wick.Base = class {
   getChild(classname) {
     return this.getChildren(classname)[0];
   }
-
   /**
    * Gets all children with a given classname(s).
    * @param {Array|string} classname - (optional) A string, or list of strings, of classnames.
@@ -48347,7 +48105,6 @@ Wick.Base = class {
       return children || [];
     }
   }
-
   /**
    * Get an array of all children of this object, and the children of those children, recursively.
    * @type {Wick.Base[]}
@@ -48359,7 +48116,6 @@ Wick.Base = class {
     });
     return children;
   }
-
   /**
    * The parent of this object.
    * @type {Wick.Base}
@@ -48367,7 +48123,6 @@ Wick.Base = class {
   get parent() {
     return this._parent;
   }
-
   /**
    * The parent Clip of this object.
    * @type {Wick.Clip}
@@ -48375,7 +48130,6 @@ Wick.Base = class {
   get parentClip() {
     return this._getParentByClassName('Clip');
   }
-
   /**
    * The parent Layer of this object.
    * @type {Wick.Layer}
@@ -48383,7 +48137,6 @@ Wick.Base = class {
   get parentLayer() {
     return this._getParentByClassName('Layer');
   }
-
   /**
    * The parent Frame of this object.
    * @type {Wick.Frame}
@@ -48391,7 +48144,6 @@ Wick.Base = class {
   get parentFrame() {
     return this._getParentByClassName('Frame');
   }
-
   /**
    * The parent Timeline of this object.
    * @type {Wick.Timeline}
@@ -48399,7 +48151,6 @@ Wick.Base = class {
   get parentTimeline() {
     return this._getParentByClassName('Timeline');
   }
-
   /**
    * The project that this object belongs to. Can be null if the object is not in a project.
    * @type {Wick.Project}
@@ -48413,7 +48164,6 @@ Wick.Base = class {
       return null;
     }
   }
-
   /**
    * Check if an object is selected or not.
    * @type {boolean}
@@ -48422,7 +48172,6 @@ Wick.Base = class {
     if (!this.project) return false;
     return this.project.selection.isObjectSelected(this);
   }
-
   /**
    * Add a child to this object.
    * @param {Wick.Base} child - the child to add.
@@ -48436,17 +48185,16 @@ Wick.Base = class {
     child._setProject(this.project);
     this._children.push(child);
   }
-
   /**
    * Insert a child into this at specified index.
-   * 
+   *
    * The insertion is performed as if there is a dummy object placed
    * at index, then the child is moved one index past the dummy,
    * then the dummy is deleted. Therefore if the child starts out
    * inside this._children below index, then insertChild returns true and
    * this._children.indexOf(child) == index - 1. Otherwise, returns false and
    * this._children.indexOf(child) == index.
-   * 
+   *
    * @param {Wick.Base} child - the child to add.
    * @param {number} index - where to add the child
    * @returns {boolean} - true if an item before index was moved
@@ -48474,7 +48222,6 @@ Wick.Base = class {
     this._children.splice(index, 0, child);
     return 0;
   }
-
   /**
    * Remove a child from this object.
    * @param {Wick.Base} child - the child to remove.
@@ -48489,7 +48236,6 @@ Wick.Base = class {
       return seekChild !== child;
     });
   }
-
   /**
    * Assets attached to this object.
    * @returns {Wick.Base[]}
@@ -48578,7 +48324,6 @@ Wick.Base = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Represents a Wick Layer.
  */
@@ -48609,7 +48354,6 @@ Wick.Layer = class extends Wick.Base {
   get classname() {
     return 'Layer';
   }
-
   /**
    * The frames belonging to this layer.
    * @type {Wick.Frame[]}
@@ -48617,7 +48361,6 @@ Wick.Layer = class extends Wick.Base {
   get frames() {
     return this.getChildren('Frame');
   }
-
   /**
    * The order of the Layer in the timeline.
    * @type {number}
@@ -48625,14 +48368,12 @@ Wick.Layer = class extends Wick.Base {
   get index() {
     return this.parent && this.parent.layers.indexOf(this);
   }
-
   /**
    * Set this layer to be the active layer in its timeline.
    */
   activate() {
     this.parent.activeLayerIndex = this.index;
   }
-
   /**
    * True if this layer is the active layer in its timeline.
    * @type {boolean}
@@ -48640,7 +48381,6 @@ Wick.Layer = class extends Wick.Base {
   get isActive() {
     return this.parent && this === this.parent.activeLayer;
   }
-
   /**
    * The length of the layer in frames.
    * @type {number}
@@ -48654,7 +48394,6 @@ Wick.Layer = class extends Wick.Base {
     });
     return end;
   }
-
   /**
    * The active frame on the layer.
    * @type {Wick.Frame}
@@ -48663,7 +48402,6 @@ Wick.Layer = class extends Wick.Base {
     if (!this.parent) return null;
     return this.getFrameAtPlayheadPosition(this.parent.playheadPosition);
   }
-
   /**
    * Moves this layer to a different position, inserting it before/after other layers if needed.
    * @param {number} index - the new position to move the layer to.
@@ -48671,14 +48409,12 @@ Wick.Layer = class extends Wick.Base {
   move(index) {
     this.parentTimeline.moveLayer(this, index);
   }
-
   /**
    * Remove this layer from its timeline.
    */
   remove() {
     this.parentTimeline.removeLayer(this);
   }
-
   /**
    * Adds a frame to the layer.
    * @param {Wick.Frame} frame - The frame to add to the Layer.
@@ -48688,7 +48424,6 @@ Wick.Layer = class extends Wick.Base {
     this.resolveOverlap([frame]);
     this.resolveGaps([frame]);
   }
-
   /**
    * Adds a tween to the active frame of this layer (if one exists).
    * @param {Wick.Tween} tween - the tween to add
@@ -48696,7 +48431,6 @@ Wick.Layer = class extends Wick.Base {
   addTween(tween) {
     this.activeFrame && this.activeFrame.addChild(tween);
   }
-
   /**
    * Adds a frame to the layer. If there is an existing frame where the new frame is
    * inserted, then the existing frame will be cut, and the new frame will fill the
@@ -48711,7 +48445,6 @@ Wick.Layer = class extends Wick.Base {
       start: playheadPosition
     });
     this.addChild(frame);
-
     // If there is is overlap with an existing frame
     var existingFrame = this.getFrameAtPlayheadPosition(playheadPosition);
     if (existingFrame) {
@@ -48722,7 +48455,6 @@ Wick.Layer = class extends Wick.Base {
     this.resolveGaps([frame]);
     return frame;
   }
-
   /**
    * Removes a frame from the Layer.
    * @param  {Wick.Frame} frame Frame to remove.
@@ -48731,7 +48463,6 @@ Wick.Layer = class extends Wick.Base {
     this.removeChild(frame);
     this.resolveGaps();
   }
-
   /**
    * Gets the frame at a specific playhead position.
    * @param {number} playheadPosition - Playhead position to search for frame at.
@@ -48742,7 +48473,6 @@ Wick.Layer = class extends Wick.Base {
       return frame.inPosition(playheadPosition);
     }) || null;
   }
-
   /**
    * Gets all frames in the layer that are between the two given playhead positions.
    * @param {number} playheadPositionStart - The start of the range to search
@@ -48754,7 +48484,6 @@ Wick.Layer = class extends Wick.Base {
       return frame.inRange(playheadPositionStart, playheadPositionEnd);
     });
   }
-
   /**
    * Gets all frames in the layer that are contained within the two given playhead positions.
    * @param {number} playheadPositionStart - The start of the range to search
@@ -48766,14 +48495,12 @@ Wick.Layer = class extends Wick.Base {
       return frame.containedWithin(playheadPositionStart, playheadPositionEnd);
     });
   }
-
   /**
    * Prevents frames from overlapping each other by removing pieces of frames that are touching.
    * @param {Wick.Frame[]} newOrModifiedFrames - the frames that should take precedence when determining which frames should get "eaten".
    */
   resolveOverlap(newOrModifiedFrames) {
     newOrModifiedFrames = newOrModifiedFrames || [];
-
     // Ensure that frames never go beyond the beginning of the timeline
     newOrModifiedFrames.forEach(frame => {
       if (frame.start <= 1) {
@@ -48790,7 +48517,6 @@ Wick.Layer = class extends Wick.Base {
       containedFrames.filter(isEdible).forEach(existingFrame => {
         existingFrame.remove();
       });
-
       // "Right eat"
       // The frame takes a chunk out of the right side of another frame.
       this.frames.filter(isEdible).forEach(existingFrame => {
@@ -48798,7 +48524,6 @@ Wick.Layer = class extends Wick.Base {
           existingFrame.end = frame.start - 1;
         }
       });
-
       // "Left eat"
       // The frame takes a chunk out of the left side of another frame.
       this.frames.filter(isEdible).forEach(existingFrame => {
@@ -48808,7 +48533,6 @@ Wick.Layer = class extends Wick.Base {
       });
     });
   }
-
   /**
    * Prevents gaps between frames by extending frames to fill empty space between themselves.
    */
@@ -48833,7 +48557,6 @@ Wick.Layer = class extends Wick.Base {
           frameOnLeft.end = gap.end;
         }
       }
-
       // Method 2: Always create empty frames to fill gaps
       if (fillGapsMethod === 'blank_frames') {
         var empty = new Wick.Frame({
@@ -48844,7 +48567,6 @@ Wick.Layer = class extends Wick.Base {
       }
     });
   }
-
   /**
    * Generate a list of positions where there is empty space between frames.
    * @returns {Object[]} An array of objects with start/end positions describing gaps.
@@ -48854,13 +48576,11 @@ Wick.Layer = class extends Wick.Base {
     var currentGap = null;
     for (var i = 1; i <= this.length; i++) {
       var frame = this.getFrameAtPlayheadPosition(i);
-
       // Found the start of a gap
       if (!frame && !currentGap) {
         currentGap = {};
         currentGap.start = i;
       }
-
       // Found the end of a gap
       if (frame && currentGap) {
         currentGap.end = i - 1;
@@ -48889,7 +48609,6 @@ Wick.Layer = class extends Wick.Base {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Class representing a Wick Project.
  */
@@ -48939,7 +48658,6 @@ Wick.Project = class extends Wick.Base {
     this._isMouseDown = false;
     this._internalErrorMessages = [];
     this.soundsPlayed = []; // List of all sounds that have been played during this play through of the project.
-
     this._mouseTargets = [];
     this._keysDown = [];
     this._keysLastDown = [];
@@ -48985,7 +48703,6 @@ Wick.Project = class extends Wick.Base {
     this.history.project = this;
     this.history.pushState(Wick.History.StateType.ONLY_VISIBLE_OBJECTS);
   }
-
   /**
    * Prepares the project to be used in an editor.
    */
@@ -48995,7 +48712,6 @@ Wick.Project = class extends Wick.Base {
     this.project.view.prerender();
     this.project.view.render();
   }
-
   /**
    * Used to initialize the state of elements within the project. Should only be called after
    * deserialization of project and all objects within the project.
@@ -49006,14 +48722,12 @@ Wick.Project = class extends Wick.Base {
       clip.applySingleFramePosition();
     });
   }
-
   /**
    * Resets the cache and removes all unlinked items from the project.
    */
   resetCache() {
     Wick.ObjectCache.removeUnusedObjects(this);
   }
-
   /**
    * TODO: Remove all elements created by this project.
    */
@@ -49032,7 +48746,6 @@ Wick.Project = class extends Wick.Base {
     this._muted = false;
     this._renderBlackBars = true;
     this._hitTestOptions = this.getDefaultHitTestOptions();
-
     // reset rotation, but not pan/zoom.
     // not resetting pan/zoom is convenient when preview playing.
     this.rotation = 0;
@@ -49048,7 +48761,6 @@ Wick.Project = class extends Wick.Base {
     data.onionSkinSeekForwards = this.onionSkinSeekForwards;
     data.onionSkinSeekBackwards = this.onionSkinSeekBackwards;
     data.focus = this.focus.uuid;
-
     // Save some metadata which will eventually end up in the wick file
     data.metadata = Wick.WickFile.generateMetaData();
     return data;
@@ -49064,7 +48776,6 @@ Wick.Project = class extends Wick.Base {
   get classname() {
     return 'Project';
   }
-
   /**
    * Assign a function to be called when a user error happens (not script
    * errors - errors such as drawing tool errors, invalid selection props, etc)
@@ -49073,7 +48784,6 @@ Wick.Project = class extends Wick.Base {
   onError(fn) {
     this._userErrorCallback = fn;
   }
-
   /**
    * Called when an error occurs to forward to the onError function
    * @param {String} message - the message to display for the error
@@ -49082,7 +48792,6 @@ Wick.Project = class extends Wick.Base {
     if (this._userErrorCallback) this._userErrorCallback(message);
     this._internalErrorMessages.push(message);
   }
-
   /**
    * The width of the project.
    * @type {number}
@@ -49096,7 +48805,6 @@ Wick.Project = class extends Wick.Base {
     if (width > 200000) width = 200000;
     this._width = width;
   }
-
   /**
    * The height of the project.
    * @type {number}
@@ -49110,7 +48818,6 @@ Wick.Project = class extends Wick.Base {
     if (height > 200000) height = 200000;
     this._height = height;
   }
-
   /**
    * The framerate of the project.
    * @type {number}
@@ -49124,7 +48831,6 @@ Wick.Project = class extends Wick.Base {
     if (framerate > 9999) framerate = 9999;
     this._framerate = framerate;
   }
-
   /**
    * The background color of the project.
    * @type {string}
@@ -49154,7 +48860,6 @@ Wick.Project = class extends Wick.Base {
       }
     }
   }
-
   /**
    * The timeline of the active clip.
    * @type {Wick.Timeline}
@@ -49162,7 +48867,6 @@ Wick.Project = class extends Wick.Base {
   get activeTimeline() {
     return this.focus.timeline;
   }
-
   /**
    * The active layer of the active timeline.
    * @type {Wick.Layer}
@@ -49170,7 +48874,6 @@ Wick.Project = class extends Wick.Base {
   get activeLayer() {
     return this.activeTimeline.activeLayer;
   }
-
   /**
    * The active frame of the active layer.
    * @type {Wick.Frame}
@@ -49178,7 +48881,6 @@ Wick.Project = class extends Wick.Base {
   get activeFrame() {
     return this.activeLayer.activeFrame;
   }
-
   /**
    * The active frames of the active timeline.
    * @type {Wick.Frame[]}
@@ -49186,7 +48888,6 @@ Wick.Project = class extends Wick.Base {
   get activeFrames() {
     return this.focus.timeline.activeFrames;
   }
-
   /**
    * All frames in this project.
    * @type {Wick.Frame[]}
@@ -49194,7 +48895,6 @@ Wick.Project = class extends Wick.Base {
   getAllFrames() {
     return this.root.timeline.getAllFrames(true);
   }
-
   /**
    * The project selection.
    * @type {Wick.Selection}
@@ -49208,7 +48908,6 @@ Wick.Project = class extends Wick.Base {
     }
     this.addChild(selection);
   }
-
   /**
    * An instance of the Wick.History utility class for undo/redo functionality.
    * @type {Wick.History}
@@ -49219,7 +48918,6 @@ Wick.Project = class extends Wick.Base {
   set history(history) {
     this._history = history;
   }
-
   /**
    * Value used to determine the zoom of the canvas.
    */
@@ -49231,7 +48929,6 @@ Wick.Project = class extends Wick.Base {
     const min = .10;
     this._zoom = Math.max(min, Math.min(max, z));
   }
-
   /**
    * Undo the last action.
    * @returns {boolean} true if there was something to undo, false otherwise.
@@ -49246,7 +48943,6 @@ Wick.Project = class extends Wick.Base {
     var success = this.project.history.popState();
     return success;
   }
-
   /**
    * Redo the last action that was undone.
    * @returns {boolean} true if there was something to redo, false otherwise.
@@ -49256,7 +48952,6 @@ Wick.Project = class extends Wick.Base {
     var success = this.project.history.recoverState();
     return success;
   }
-
   /**
    * The assets belonging to the project.
    * @type {Wick.Asset[]}
@@ -49264,7 +48959,6 @@ Wick.Project = class extends Wick.Base {
   get assets() {
     return this.getChildren(['ImageAsset', 'SoundAsset', 'ClipAsset', 'FontAsset', 'SVGAsset']);
   }
-
   /**
    * Adds an asset to the project.
    * @param {Wick.Asset} asset - The asset to add to the project.
@@ -49274,7 +48968,6 @@ Wick.Project = class extends Wick.Base {
       this.addChild(asset);
     }
   }
-
   /**
    * Removes an asset from the project. Also removes all instances of that asset from the project.
    * @param {Wick.Asset} asset - The asset to remove from the project.
@@ -49283,7 +48976,6 @@ Wick.Project = class extends Wick.Base {
     asset.removeAllInstances();
     this.removeChild(asset);
   }
-
   /**
    * Retrieve an asset from the project by its UUID.
    * @param {string} uuid - The UUID of the asset to get.
@@ -49299,7 +48991,6 @@ Wick.Project = class extends Wick.Base {
       console.warn('Wick.Project.getAssetByUUID: No asset found with uuid ' + uuid);
     }
   }
-
   /**
    * Retrieve an asset from the project by its name.
    * @param {string} name - The name of the asset to get.
@@ -49310,7 +49001,6 @@ Wick.Project = class extends Wick.Base {
       return asset.name === name;
     });
   }
-
   /**
    * The assets belonging to the project.
    * @param {string} type - Optional, filter assets by type ("Sound"/"Image"/"Clip"/"Button")
@@ -49325,7 +49015,6 @@ Wick.Project = class extends Wick.Base {
       });
     }
   }
-
   /**
    * A list of all "fontFamily" in the asset library.
    * @returns {string[]}
@@ -49335,7 +49024,6 @@ Wick.Project = class extends Wick.Base {
       return asset.fontFamily;
     });
   }
-
   /**
    * Check if a FontAsset with a given fontFamily exists in the project.
    * @param {string} fontFamily - The font to check for
@@ -49346,7 +49034,6 @@ Wick.Project = class extends Wick.Base {
       return seekFontFamily === fontFamily;
     }) !== undefined;
   }
-
   /**
    * The root clip.
    * @type {Wick.Clip}
@@ -49360,7 +49047,6 @@ Wick.Project = class extends Wick.Base {
     }
     this.addChild(root);
   }
-
   /**
    * The currently focused clip.
    * @type {Wick.Clip}
@@ -49373,13 +49059,11 @@ Wick.Project = class extends Wick.Base {
     this._focus = focus.uuid;
     if (focusChanged) {
       this.selection.clear();
-
       // Reset timelines of subclips of the newly focused clip
       focus.timeline.clips.forEach(subclip => {
         subclip.timeline.playheadPosition = 1;
         subclip.applySingleFramePosition(); // Make sure to visualize single frame clips properly.
       });
-
       // Reset pan and zoom and clear selection on focus change
       this.resetZoomAndPan();
     } else {
@@ -49389,7 +49073,6 @@ Wick.Project = class extends Wick.Base {
       });
     }
   }
-
   /**
    * The position of the mouse
    * @type {object}
@@ -49404,7 +49087,6 @@ Wick.Project = class extends Wick.Base {
     };
     this._mousePosition = mousePosition;
   }
-
   /**
    * The amount the mouse has moved in the last tick
    * @type {object}
@@ -49417,7 +49099,6 @@ Wick.Project = class extends Wick.Base {
       y: moveY
     };
   }
-
   /**
    * Determine if the mouse is down.
    * @type {boolean}
@@ -49428,7 +49109,6 @@ Wick.Project = class extends Wick.Base {
   set isMouseDown(isMouseDown) {
     this._isMouseDown = isMouseDown;
   }
-
   /**
    * The keys that are currenty held down.
    * @type {string[]}
@@ -49439,7 +49119,6 @@ Wick.Project = class extends Wick.Base {
   set keysDown(keysDown) {
     this._keysDown = keysDown;
   }
-
   /**
    * The keys were just pressed (i.e., are currently held down, but were not last tick).
    * @type {string[]}
@@ -49450,7 +49129,6 @@ Wick.Project = class extends Wick.Base {
       return this._keysLastDown.indexOf(key) === -1;
     });
   }
-
   /**
    * The keys that were just released (i.e. were down last tick back are no longer down.)
    * @return {string[]}
@@ -49460,7 +49138,6 @@ Wick.Project = class extends Wick.Base {
       return this._keysDown.indexOf(key) === -1;
     });
   }
-
   /**
    * Check if a key is being pressed.
    * @param {string} key - The name of the key to check
@@ -49468,7 +49145,6 @@ Wick.Project = class extends Wick.Base {
   isKeyDown(key) {
     return this.keysDown.indexOf(key) !== -1;
   }
-
   /**
    * Check if a key was just pressed.
    * @param {string} key - The name of the key to check
@@ -49476,7 +49152,6 @@ Wick.Project = class extends Wick.Base {
   isKeyJustPressed(key) {
     return this.keysJustPressed.indexOf(key) !== -1;
   }
-
   /**
    * The key to be used in the global 'key' variable in the scripting API. Update currentKey before you run any key script.
    * @type {string[]}
@@ -49487,7 +49162,6 @@ Wick.Project = class extends Wick.Base {
   set currentKey(currentKey) {
     this._currentKey = currentKey;
   }
-
   /**
    * Creates an asset from a File object and adds that asset to the project.
    * @param {File} file - File object to be read and converted into an asset.
@@ -49504,7 +49178,6 @@ Wick.Project = class extends Wick.Base {
     let fontExtensions = Wick.FontAsset.getValidExtensions();
     let clipExtensions = Wick.ClipAsset.getValidExtensions();
     let svgExtensions = Wick.SVGAsset.getValidExtensions();
-
     // Fix missing mimetype for wickobj files
     var type = file.type;
     if (file.type === '' && file.name.endsWith('.wickobj')) {
@@ -49560,7 +49233,6 @@ Wick.Project = class extends Wick.Base {
     };
     reader.readAsDataURL(file);
   }
-
   /**
    * True if onion skinning is on. False otherwise.
    */
@@ -49569,18 +49241,15 @@ Wick.Project = class extends Wick.Base {
   }
   set onionSkinEnabled(bool) {
     if (typeof bool !== "boolean") return;
-
     // Get all onion skinned frames, if we're turning off onion skinning.
     let onionSkinnedFrames = [];
     if (!bool) onionSkinnedFrames = this.getAllOnionSkinnedFrames();
     this._onionSkinEnabled = bool;
-
     // Rerender any onion skinned frames.
     onionSkinnedFrames.forEach(frame => {
       frame.view.render();
     });
   }
-
   /**
    * Returns all frames that should currently be onion skinned.
    * @returns {Wick.Frame[]} Array of Wick frames that sould be onion skinned.
@@ -49595,7 +49264,6 @@ Wick.Project = class extends Wick.Base {
     });
     return onionSkinnedFrames;
   }
-
   /**
    * Deletes all objects in the selection.
    */
@@ -49612,7 +49280,6 @@ Wick.Project = class extends Wick.Base {
     });
     this.activeTimeline.resolveFrameGaps([]);
   }
-
   /**
    * Perform a boolean operation on all selected paths.
    * @param {string} booleanOpName - The name of the boolean op function to use. See Wick.Path.booleanOp.
@@ -49631,7 +49298,6 @@ Wick.Project = class extends Wick.Base {
     this.activeFrame.addPath(booleanOpResult);
     this.selection.select(booleanOpResult);
   }
-
   /**
    * Copy the contents of the selection to the clipboard.
    * @returns {boolean} True if there was something to copy, false otherwise
@@ -49645,7 +49311,6 @@ Wick.Project = class extends Wick.Base {
       return true;
     }
   }
-
   /**
    * Copy the contents of the selection to the clipboard, and delete what was copied.
    * @returns {boolean} True if there was something to cut, false otherwise
@@ -49658,7 +49323,6 @@ Wick.Project = class extends Wick.Base {
       return false;
     }
   }
-
   /**
    * Paste the contents of the clipboard into the project.
    * @returns {boolean} True if there was something to paste in the clipboard, false otherwise.
@@ -49666,7 +49330,6 @@ Wick.Project = class extends Wick.Base {
   pasteClipboardContents() {
     return this.clipboard.pasteObjectsFromClipboard(this);
   }
-
   /**
    * Copy and paste the current selection.
    * @returns {boolean} True if there was something to duplicate, false otherwise
@@ -49678,7 +49341,6 @@ Wick.Project = class extends Wick.Base {
       return this.pasteClipboardContents();
     }
   }
-
   /**
    * Move the current selection above, below, or inside target.
    * @param {object} target - The target object (to become parent of selection)
@@ -49737,7 +49399,6 @@ Wick.Project = class extends Wick.Base {
     }
     return true;
   }
-
   /**
    * Cut the currently selected frames.
    */
@@ -49746,7 +49407,6 @@ Wick.Project = class extends Wick.Base {
       frame.cut();
     });
   }
-
   /**
    * Inserts a blank frame into the timeline at the position of the playhead.
    * If the playhead is over an existing frame, that frame will be cut in half,
@@ -49755,7 +49415,6 @@ Wick.Project = class extends Wick.Base {
   insertBlankFrame() {
     var playheadPosition = this.activeTimeline.playheadPosition;
     var newFrames = [];
-
     // Insert new frames
     if (this.selection.numObjects > 0) {
       // Insert frames on all frames that are both active and selected
@@ -49771,12 +49430,10 @@ Wick.Project = class extends Wick.Base {
       // Insert one frame on the active layer
       newFrames.push(this.activeLayer.insertBlankFrame(playheadPosition));
     }
-
     // Select the newly added frames
     this.selection.clear();
     this.selection.selectMultipleObjects(newFrames);
   }
-
   /**
    * A tween can be created if frames are selected or if there is a frame under the playhead on the active layer.
    */
@@ -49793,7 +49450,6 @@ Wick.Project = class extends Wick.Base {
         return true;
       }
     }
-
     // There is a frame under the playhead on the active layer, a tween can be created
     var activeFrame = this.activeLayer.activeFrame;
     if (activeFrame) {
@@ -49802,7 +49458,6 @@ Wick.Project = class extends Wick.Base {
     }
     return false;
   }
-
   /**
    * Create a new tween on all selected frames OR on the active frame of the active layer.
    */
@@ -49818,7 +49473,6 @@ Wick.Project = class extends Wick.Base {
       this.activeLayer.activeFrame.createTween();
     }
   }
-
   /**
    * Tries to create a tween if there is an empty space between tweens.
    */
@@ -49828,7 +49482,6 @@ Wick.Project = class extends Wick.Base {
       frame.createTween();
     }
   }
-
   /**
    * Move the right edge of all frames right one frame.
    */
@@ -49839,7 +49492,6 @@ Wick.Project = class extends Wick.Base {
     this.activeTimeline.resolveFrameOverlap(frames);
     this.activeTimeline.resolveFrameGaps(frames);
   }
-
   /**
    * Move the right edge of all frames right one frame, and push other frames away.
    */
@@ -49848,7 +49500,6 @@ Wick.Project = class extends Wick.Base {
       frame.extendAndPushOtherFrames();
     });
   }
-
   /**
    * Move the right edge of all frames left one frame.
    */
@@ -49860,7 +49511,6 @@ Wick.Project = class extends Wick.Base {
     this.activeTimeline.resolveFrameOverlap(frames);
     this.activeTimeline.resolveFrameGaps(frames);
   }
-
   /**
    * Move the right edge of all frames left one frame, and pull other frames along.
    */
@@ -49869,7 +49519,6 @@ Wick.Project = class extends Wick.Base {
       frame.shrinkAndPullOtherFrames();
     });
   }
-
   /**
    * Shift all selected frames over one frame to the right
    */
@@ -49882,7 +49531,6 @@ Wick.Project = class extends Wick.Base {
     this.activeTimeline.resolveFrameOverlap(frames);
     this.activeTimeline.resolveFrameGaps();
   }
-
   /**
    * Shift all selected frames over one frame to the left
    */
@@ -49895,7 +49543,6 @@ Wick.Project = class extends Wick.Base {
     this.activeTimeline.resolveFrameOverlap(frames);
     this.activeTimeline.resolveFrameGaps();
   }
-
   /**
    * Selects all objects that are visible on the canvas (excluding locked layers and onion skinned objects)
    */
@@ -49914,7 +49561,6 @@ Wick.Project = class extends Wick.Base {
     });
     this.selection.selectMultipleObjects(objectsToAdd);
   }
-
   /**
    * Adds an image path to the active frame using a given asset as its image src.
    * @param {Wick.Asset} asset - the asset to use for the image src
@@ -49932,7 +49578,6 @@ Wick.Project = class extends Wick.Base {
       callback(path);
     });
   }
-
   /**
    * Adds an instance of a clip asset to the active frame.
    * @param {Wick.Asset} asset - the asset to create the clip instance from
@@ -49950,7 +49595,6 @@ Wick.Project = class extends Wick.Base {
       callback(clip);
     }, this);
   }
-
   /**
    * Adds an instance of a clip asset to the active frame.
    * @param {Wick.Asset} asset - the asset to create the SVG file instance from
@@ -49969,7 +49613,6 @@ Wick.Project = class extends Wick.Base {
       callback(svg);
     });
   }
-
   /**
    * Creates a symbol from the objects currently selected.
    * @param {string} identifier - the identifier to give the new symbol
@@ -50006,15 +49649,12 @@ Wick.Project = class extends Wick.Base {
       });
       clip.addObjects(this.selection.getSelectedObjects('Canvas'));
     }
-
     // Add the clip to the frame prior to adding objects.
     this.activeFrame.addClip(clip);
-
     // TODO add to asset library
     this.selection.clear();
     this.selection.select(clip);
   }
-
   /**
    * Breaks selected clips into their children clips and paths.
    */
@@ -50027,7 +49667,6 @@ Wick.Project = class extends Wick.Base {
     });
     this.selection.selectMultipleObjects(leftovers);
   }
-
   /**
    * Sets the project focus to the timeline of the selected clip.
    * @returns {boolean} True if selected clip is focused, false otherwise.
@@ -50039,7 +49678,6 @@ Wick.Project = class extends Wick.Base {
     }
     return false;
   }
-
   /**
    * Sets the project focus to the parent timeline of the currently focused clip.
    * @returns {boolean} True if parent clip is focused, false otherwise.
@@ -50051,7 +49689,6 @@ Wick.Project = class extends Wick.Base {
     }
     return false;
   }
-
   /**
    * Plays the sound in the asset library with the given name.
    * @param {string} assetName - Name of the sound asset to play
@@ -50067,7 +49704,6 @@ Wick.Project = class extends Wick.Base {
       return this.playSoundFromAsset(asset, options);
     }
   }
-
   /**
    * Generates information for a single sound that is being played.
    * @param {Wick.Asset} asset - Asset to be played.
@@ -50099,7 +49735,6 @@ Wick.Project = class extends Wick.Base {
     };
     return soundInfo;
   }
-
   /**
    * Plays a sound from a presented asset.
    * @param {Wick.SoundAsset} asset - Name of the sound asset to play.
@@ -50109,7 +49744,6 @@ Wick.Project = class extends Wick.Base {
     this.soundsPlayed.push(soundInfo);
     return asset.play(options);
   }
-
   /**
    * Stops sound(s) currently playing.
    * @param {string} assetName - The name of the SoundAsset to stop.
@@ -50125,7 +49759,6 @@ Wick.Project = class extends Wick.Base {
       return asset.stop(id);
     }
   }
-
   /**
    * Stops all sounds playing from frames and sounds played using playSound().
    */
@@ -50134,27 +49767,23 @@ Wick.Project = class extends Wick.Base {
     this.getAssets('Sound').forEach(soundAsset => {
       soundAsset.stop();
     });
-
     // Stop all sounds on frames
     this.getAllFrames().forEach(frame => {
       frame.stopSound();
     });
   }
-
   /**
    * Disable all sounds from playing
    */
   mute() {
     this._muted = true;
   }
-
   /**
    * Enable all sounds to play
    */
   unmute() {
     this._muted = false;
   }
-
   /**
    * Is the project currently muted?
    * @type {boolean}
@@ -50162,7 +49791,6 @@ Wick.Project = class extends Wick.Base {
   get muted() {
     return this._muted;
   }
-
   /**
    * Should the project render black bars around the canvas area?
    * (These only show up if the size of the window/element that the project
@@ -50175,7 +49803,6 @@ Wick.Project = class extends Wick.Base {
   set renderBlackBars(renderBlackBars) {
     this._renderBlackBars = renderBlackBars;
   }
-
   /**
    * In "Published Mode", all layers will be rendered even if they are set to be hidden.
    * This is enabled during GIF/Video export, and enabled when the project is run standalone.
@@ -50191,14 +49818,12 @@ Wick.Project = class extends Wick.Base {
     }
     this._publishedMode = publishedMode;
   }
-
   /**
    * Returns true if the project is published, false otherwise.
    */
   get isPublished() {
     return this.publishedMode !== false;
   }
-
   /**
    * Toggle whether or not to render borders around clips.
    * @type {boolean}
@@ -50209,7 +49834,6 @@ Wick.Project = class extends Wick.Base {
   set showClipBorders(showClipBorders) {
     this._showClipBorders = showClipBorders;
   }
-
   /**
    * The current error, if one was thrown, during the last tick.
    * @type {Object}
@@ -50225,7 +49849,6 @@ Wick.Project = class extends Wick.Base {
     }
     this._error = error;
   }
-
   /**
    * Schedules a script to be run at the end of the current tick.
    * @param {string} uuid - the UUID of the object running the script.
@@ -50239,7 +49862,6 @@ Wick.Project = class extends Wick.Base {
       parameters: parameters
     });
   }
-
   /**
    * Run scripts in schedule, in order based on Tickable.possibleScripts.
    */
@@ -50251,18 +49873,15 @@ Wick.Project = class extends Wick.Base {
           name,
           parameters
         } = scheduledScript;
-
         // Make sure we only run the script based on the current iteration through possibleScripts
         if (name !== scriptOrderName) {
           return;
         }
-
         // Run the script on the corresponding object!
         Wick.ObjectCache.getObjectByUUID(uuid).runScript(name, parameters);
       });
     });
   }
-
   /**
    * Checks if the project is currently playing.
    * @type {boolean}
@@ -50270,7 +49889,6 @@ Wick.Project = class extends Wick.Base {
   get playing() {
     return this._playing;
   }
-
   /**
    * Start playing the project.
    * Arguments: onError: Called when a script error occurs during a tick.
@@ -50292,7 +49910,6 @@ Wick.Project = class extends Wick.Base {
     this.error = null;
     this.history.saveSnapshot('state-before-play');
     this.selection.clear();
-
     // Start tick loop
     this._tickIntervalID = setInterval(() => {
       args.onBeforeTick();
@@ -50300,44 +49917,36 @@ Wick.Project = class extends Wick.Base {
       // console.time('tick');
       var error = this.tick();
       // console.timeEnd('tick');
-
       // console.time('update');
       this.view.paper.view.update();
       // console.timeEnd('update');
-
       if (error) {
         this.stop();
         return;
       }
-
       // console.time('afterTick');
       args.onAfterTick();
       // console.timeEnd('afterTick');
     }, 1000 / this.framerate);
   }
-
   /**
    * Ticks the project.
    * @returns {object} An object containing information about an error, if one occured while running scripts. Null otherwise.
    */
   tick() {
     this.root._identifier = 'Project';
-
     // Process input
     this._mousePosition = this.tools.interact.mousePosition;
     this._isMouseDown = this.tools.interact.mouseIsDown;
     this._keysDown = this.tools.interact.keysDown;
     this._currentKey = this.tools.interact.lastKeyDown;
     this._mouseTargets = this.tools.interact.mouseTargets;
-
     // Reset scripts before ticking
     this._scriptSchedule = [];
-
     // Tick the focused clip
     this.focus._attachChildClipReferences();
     this.focus.tick();
     this.runScheduledScripts();
-
     // Save the current keysDown
     this._lastMousePosition = {
       x: this._mousePosition.x,
@@ -50351,14 +49960,12 @@ Wick.Project = class extends Wick.Base {
       return null;
     }
   }
-
   /**
    * Stop playing the project.
    */
   stop() {
     this._playing = false;
     this.view.paper.view.autoUpdate = true;
-
     // Run unload scripts on all objects
     this.getAllFrames().forEach(frame => {
       frame.clips.forEach(clip => {
@@ -50369,23 +49976,18 @@ Wick.Project = class extends Wick.Base {
     this.stopAllSounds();
     clearInterval(this._tickIntervalID);
     this._tickIntervalID = null;
-
     // Loading the snapshot to restore project state also moves the playhead back to where it was originally.
     // We actually don't want this, preview play should actually move the playhead after it's stopped.
     var currentPlayhead = this.focus.timeline.playheadPosition;
-
     // Load the state of the project before it was played
     this.history.loadSnapshot('state-before-play');
     // Wick.ObjectCache.removeUnusedObjects(this);
-
     if (this.error) {
       // An error occured.
       var errorObjUUID = this._error.uuid;
       var errorObj = Wick.ObjectCache.getObjectByUUID(errorObjUUID);
-
       // Focus the parent of the object that caused the error so that we can select the error-causer.
       this.focus = errorObj.parentClip;
-
       // Select the object that caused the error
       this.selection.clear();
       this.selection.select(errorObj);
@@ -50396,7 +49998,6 @@ Wick.Project = class extends Wick.Base {
     this.resetCache();
     delete window._scriptOnErrorCallback;
   }
-
   /**
    * Inject the project into an element on a webpage and start playing the project.
    * @param {Element} element - the element to inject the project into
@@ -50423,7 +50024,6 @@ Wick.Project = class extends Wick.Base {
       }
     });
   }
-
   /**
    * Sets zoom and pan such that the canvas fits in the window, with some padding.
    */
@@ -50436,7 +50036,6 @@ Wick.Project = class extends Wick.Base {
     this.zoom = this.view.calculateFitZoom();
     this.zoom *= paddingResize;
   }
-
   /**
    * Resets zoom and pan (zoom resets to 1.0, pan resets to (0,0)).
    */
@@ -50447,21 +50046,18 @@ Wick.Project = class extends Wick.Base {
     };
     this.zoom = 1;
   }
-
   /**
    * Zooms the canvas in.
    */
   zoomIn() {
     this.zoom *= 1.25;
   }
-
   /**
    * Zooms the canvas out.
    */
   zoomOut() {
     this.zoom *= 0.8;
   }
-
   /**
    * Resets all tools in the project.
    */
@@ -50471,7 +50067,6 @@ Wick.Project = class extends Wick.Base {
       tool.reset();
     }
   }
-
   /**
    * All tools belonging to the project.
    * @type {Array<Wick.Tool>}
@@ -50479,7 +50074,6 @@ Wick.Project = class extends Wick.Base {
   get tools() {
     return this._tools;
   }
-
   /**
    * The tool settings for the project's tools.
    * @type {Wick.ToolSettings}
@@ -50487,7 +50081,6 @@ Wick.Project = class extends Wick.Base {
   get toolSettings() {
     return this._toolSettings;
   }
-
   /**
    * The currently activated tool.
    * @type {Wick.Tool}
@@ -50506,22 +50099,19 @@ Wick.Project = class extends Wick.Base {
     } else {
       newTool = activeTool;
     }
-
     // Clear selection if we changed between drawing tools
     if (newTool.name !== 'pan' && newTool.name !== 'eyedropper' && newTool.name !== 'cursor') {
       this.selection.clear();
     }
     this._activeTool = newTool;
   }
-
   /**
    * Returns an object associated with this project, by uuid.
-   * @param {string} uuid 
+   * @param {string} uuid
    */
   getObjectByUUID(uuid) {
     return Wick.ObjectCache.getObjectByUUID(uuid);
   }
-
   /**
    * Adds an object to the project.
    * @param {Wick.Base} object
@@ -50545,7 +50135,6 @@ Wick.Project = class extends Wick.Base {
     }
     return true;
   }
-
   /**
    * Create a sequence of images from every frame in the project.
    * @param {object} args - Options for generating the image sequence
@@ -50562,14 +50151,12 @@ Wick.Project = class extends Wick.Base {
     if (!args.height) args.height = this.height;
     var renderCopy = this;
     renderCopy.renderBlackBars = true; // Turn off black bars (removes black lines)
-
     var oldCanvasContainer = this.view.canvasContainer;
     this.history.saveSnapshot('before-gif-render');
     this.mute();
     this.selection.clear();
     this.publishedMode = "imageSequence";
     // this.tick();
-
     // Put the project canvas inside a div that's the same size as the project so the frames render at the correct resolution.
     let container = window.document.createElement('div');
     container.style.width = args.width / window.devicePixelRatio + 'px';
@@ -50577,7 +50164,6 @@ Wick.Project = class extends Wick.Base {
     window.document.body.appendChild(container);
     renderCopy.view.canvasContainer = container;
     renderCopy.view.resize();
-
     // Calculate the zoom needed to fit the project into the requested container width/height
     var zoom = 1;
     if (args.height < args.width) {
@@ -50585,7 +50171,6 @@ Wick.Project = class extends Wick.Base {
     } else {
       zoom = args.width / this.width;
     }
-
     // Set the initial state of the project.
     renderCopy.focus = renderCopy.root;
     renderCopy.focus.timeline.playheadPosition = 1;
@@ -50595,9 +50180,7 @@ Wick.Project = class extends Wick.Base {
       x: 0,
       y: 0
     };
-
     // renderCopy.tick();
-
     // We need full control over when paper.js renders, if we leave autoUpdate on, it's possible to lose frames if paper.js doesnt automatically render as fast as we are generating the images.
     // (See paper.js docs for info about autoUpdate)
     renderCopy.view.paper.view.autoUpdate = false;
@@ -50636,7 +50219,6 @@ Wick.Project = class extends Wick.Base {
   resetSoundsPlayed() {
     this.soundsPlayed = [];
   }
-
   /**
    * Play the project through to generate an audio track.
    */
@@ -50650,7 +50232,6 @@ Wick.Project = class extends Wick.Base {
     this.mute();
     this.selection.clear();
     this.publishedMode = "audioSequence";
-
     // Put the project canvas inside a div that's the same size as the project so the frames render at the correct resolution.
     let container = window.document.createElement('div');
     container.style.width = args.width / window.devicePixelRatio + 'px';
@@ -50658,13 +50239,10 @@ Wick.Project = class extends Wick.Base {
     window.document.body.appendChild(container);
     renderCopy.view.canvasContainer = container;
     renderCopy.view.resize();
-
     // Set the initial state of the project.
     renderCopy.focus = renderCopy.root;
     renderCopy.focus.timeline.playheadPosition = 1;
-
     // renderCopy.tick(); // This is commented out to not miss frame 1.
-
     renderCopy.view.paper.view.autoUpdate = false;
     var numMaxFrameImages = renderCopy.focus.timeline.length;
     var renderFrame = () => {
@@ -50690,7 +50268,6 @@ Wick.Project = class extends Wick.Base {
     this.resetSoundsPlayed();
     renderFrame();
   }
-
   /**
    * Create an object containing info on all sounds in the project.
    * Format:
@@ -50713,7 +50290,6 @@ Wick.Project = class extends Wick.Base {
       };
     });
   }
-
   /**
    * Generate an audiobuffer containing all the project's sounds merged together.
    * @param {object} args - takes soundInfo (list of soundInfo to use for audioGeneration).
@@ -50727,7 +50303,6 @@ Wick.Project = class extends Wick.Base {
       onProgress: args.onProgress
     });
   }
-
   /**
    * Check if an object is a mouse target (if the mouse is currently hovered over the object)
    * @param {Wick.Tickable} object - the object to check if it is a mouse target
@@ -50735,7 +50310,6 @@ Wick.Project = class extends Wick.Base {
   objectIsMouseTarget(object) {
     return this._mouseTargets.indexOf(object) !== -1;
   }
-
   /**
    * Whether or not to hide the cursor while project is playing.
    * @type {boolean}
@@ -50746,7 +50320,6 @@ Wick.Project = class extends Wick.Base {
   set hideCursor(hideCursor) {
     this._hideCursor = hideCursor;
   }
-
   /**
    * Returns true if there is currently an active frame to draw onto.
    * @type {boolean}
@@ -50754,7 +50327,6 @@ Wick.Project = class extends Wick.Base {
   get canDraw() {
     return !this.activeLayer.locked && !this.activeLayer.hidden;
   }
-
   /**
    * Loads all Assets in the project's asset library. This must be called after opening a project.
    * @param {function} callback - Called when all assets are done loading.
@@ -50774,7 +50346,6 @@ Wick.Project = class extends Wick.Base {
       });
     });
   }
-
   /**
    * Remove assets from the project that are never used.
    */
@@ -50804,7 +50375,6 @@ Wick.Project = class extends Wick.Base {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Class representing a Wick Selection.
  */
@@ -50812,7 +50382,6 @@ Wick.Selection = class extends Wick.Base {
   static get LOCATION_NAMES() {
     return ['Canvas', 'Timeline', 'AssetLibrary'];
   }
-
   /**
    * Create a Wick Selection.
    */
@@ -50856,7 +50425,6 @@ Wick.Selection = class extends Wick.Base {
   get classname() {
     return 'Selection';
   }
-
   /**
    * The names of all attributes of the selection that can be changed.
    * @type {string[]}
@@ -50864,7 +50432,6 @@ Wick.Selection = class extends Wick.Base {
   get allAttributeNames() {
     return ["strokeWidth", "fillColor", "strokeColor", "name", "filename", "fontSize", "fontFamily", "fontWeight", "fontStyle", "src", "frameLength", "x", "y", "originX", "originY", "width", "height", "rotation", "opacity", "sound", "soundVolume", "soundStart", "identifier", "easingType", "fullRotations", "scaleX", "scaleY", "animationType", "singleFrameNumber", "isSynced"];
   }
-
   /**
    * Returns true if an object is selectable.
    * @param {object} object object to check if selectable
@@ -50873,7 +50440,6 @@ Wick.Selection = class extends Wick.Base {
   isSelectable(object) {
     return this.SELECTABLE_OBJECT_TYPES_SET.has(object.classname);
   }
-
   /**
    * Add a wick object to the selection. If selecting multiple objects, you should use
    * selection.selectMultipleObjects.
@@ -50885,40 +50451,33 @@ Wick.Selection = class extends Wick.Base {
       console.warn("Tried to select a " + object.classname + " object. This type is not selectable");
       return;
     }
-
     // Don't do anything if the object is already selected
     if (this.isObjectSelected(object)) {
       return;
     }
-
     // Activate the cursor tool when selection changes
     if (this._locationOf(object) === 'Canvas') {
       this.project.activeTool = this.project.tools.cursor;
       object.parentLayer && object.parentLayer.activate();
     }
-
     // Only allow selection of objects of in the same location
     if (this._locationOf(object) !== this.location) {
       this.clear();
     }
-
     // Add the object to the selection!
     this._selectedObjectsUUIDs.push(object.uuid);
-
     // Select in between frames (for shift+click selecting frames)
     if (object instanceof Wick.Frame) {
       this._selectInBetweenFrames(object);
     }
     this._resetPositioningValues();
-
     // Make sure the view gets updated the next time its needed...
     this.view.dirty = true;
   }
-
   /**
    * Select multiple objects. Must be selectable objects. Significantly faster than selecting multiple elements
    * with a select() independently.
-   * @param {object[]} objects 
+   * @param {object[]} objects
    */
   selectMultipleObjects(objects) {
     let UUIDsToAdd = [];
@@ -50938,7 +50497,6 @@ Wick.Selection = class extends Wick.Base {
     this._resetPositioningValues();
     this.view.dirty = true;
   }
-
   /**
    * Remove a wick object from the selection.
    * @param {Wick.Base} object - The object to deselect.
@@ -50948,11 +50506,9 @@ Wick.Selection = class extends Wick.Base {
       return uuid !== object.uuid;
     });
     this._resetPositioningValues();
-
     // Make sure the view gets updated the next time its needed...
     this.view.dirty = true;
   }
-
   /**
    * Remove multiple objects from the selection. Does nothing if an object is not selected.
    * @param {object[]} objects objects to remove from the selection.
@@ -50965,7 +50521,6 @@ Wick.Selection = class extends Wick.Base {
     this._resetPositioningValues();
     this.view.dirty = true;
   }
-
   /**
    * Remove all objects from the selection with an optional filter.
    * @param {string} filter - A location or a type (see SELECTABLE_OBJECT_TYPES and LOCATION_NAMES)
@@ -50979,7 +50534,6 @@ Wick.Selection = class extends Wick.Base {
       this.deselectMultipleObjects(this.project.selection.getSelectedObjects(filter));
     }
   }
-
   /**
    * Checks if a given object is selected.
    * @param {Wick.Base} object - The object to check selection of.
@@ -50987,7 +50541,6 @@ Wick.Selection = class extends Wick.Base {
   isObjectSelected(object) {
     return this._selectedObjectsUUIDs.indexOf(object.uuid) !== -1;
   }
-
   /**
    * Get the first object in the selection if there is a single object in the selection.
    * @return {Wick.Base} The first object in the selection.
@@ -50999,7 +50552,6 @@ Wick.Selection = class extends Wick.Base {
       return null;
     }
   }
-
   /**
    * Get the objects in the selection with an optional filter.
    * @param {string} filter - A location or a type (see SELECTABLE_OBJECT_TYPES and LOCATION_NAMES)
@@ -51024,7 +50576,6 @@ Wick.Selection = class extends Wick.Base {
     }
     return objects;
   }
-
   /**
    * Get the UUIDs of the objects in the selection with an optional filter.
    * @param {string} filter - A location or a type (see SELECTABLE_OBJECT_TYPES and LOCATION_NAMES)
@@ -51035,7 +50586,6 @@ Wick.Selection = class extends Wick.Base {
       return object.uuid;
     });
   }
-
   /**
    * The location of the objects in the selection. (see LOCATION_NAMES)
    * @type {string}
@@ -51044,7 +50594,6 @@ Wick.Selection = class extends Wick.Base {
     if (this.numObjects === 0) return null;
     return this._locationOf(this.getSelectedObjects()[0]);
   }
-
   /**
    * The types of the objects in the selection. (see SELECTABLE_OBJECT_TYPES)
    * @type {string[]}
@@ -51056,7 +50605,6 @@ Wick.Selection = class extends Wick.Base {
     var uniqueTypes = [...new Set(types)];
     return uniqueTypes;
   }
-
   /**
    * A single string describing the contents of the selection.
    * @type {string}
@@ -51116,7 +50664,6 @@ Wick.Selection = class extends Wick.Base {
       return 'unknown';
     }
   }
-
   /**
    * The number of objects in the selection.
    * @type {number}
@@ -51124,7 +50671,6 @@ Wick.Selection = class extends Wick.Base {
   get numObjects() {
     return this._selectedObjectsUUIDs.length;
   }
-
   /**
    * The rotation of the selection (used for canvas selections)
    * @type {number}
@@ -51135,7 +50681,6 @@ Wick.Selection = class extends Wick.Base {
   set widgetRotation(widgetRotation) {
     this._widgetRotation = widgetRotation;
   }
-
   /**
    * The point that transformations to the selection will be based around.
    * @type {object}
@@ -51146,7 +50691,6 @@ Wick.Selection = class extends Wick.Base {
   set pivotPoint(pivotPoint) {
     this._pivotPoint = pivotPoint;
   }
-
   /**
    * The animation type of a clip.
    * @type {string}
@@ -51165,7 +50709,6 @@ Wick.Selection = class extends Wick.Base {
       console.error("Cannot set the animation type of multiple objects...");
     }
   }
-
   /**
    * If a clip is set to singleFrame, this number will be used to determine that frame.
    */
@@ -51183,7 +50726,6 @@ Wick.Selection = class extends Wick.Base {
       console.error("Cannot set singleFrameNumber of multiple objects...");
     }
   }
-
   /**
    * The position of the selection.
    * @type {number}
@@ -51195,7 +50737,6 @@ Wick.Selection = class extends Wick.Base {
     this.view.x = x;
     this.project.tryToAutoCreateTween();
   }
-
   /**
    * The position of the selection.
    * @type {number}
@@ -51207,7 +50748,6 @@ Wick.Selection = class extends Wick.Base {
     this.view.y = y;
     this.project.tryToAutoCreateTween();
   }
-
   /**
    * The origin position the selection.
    * @type {number}
@@ -51231,7 +50771,6 @@ Wick.Selection = class extends Wick.Base {
       this.x = x - this.width / 2;
     }
   }
-
   /**
    * The origin position the selection.
    * @type {number}
@@ -51255,7 +50794,6 @@ Wick.Selection = class extends Wick.Base {
       this.y = y - this.height / 2;
     }
   }
-
   /**
    * The width of the selection.
    * @type {number}
@@ -51267,7 +50805,6 @@ Wick.Selection = class extends Wick.Base {
     this.project.tryToAutoCreateTween();
     this.view.width = width;
   }
-
   /**
    * The height of the selection.
    * @type {number}
@@ -51279,7 +50816,6 @@ Wick.Selection = class extends Wick.Base {
     this.project.tryToAutoCreateTween();
     this.view.height = height;
   }
-
   /**
    * The rotation of the selection.
    * @type {number}
@@ -51291,7 +50827,6 @@ Wick.Selection = class extends Wick.Base {
     this.project.tryToAutoCreateTween();
     this.view.rotation = rotation;
   }
-
   /**
    * It is the original width of the selection at creation.
    * @type {number}
@@ -51302,7 +50837,6 @@ Wick.Selection = class extends Wick.Base {
   set originalWidth(originalWidth) {
     this._originalWidth = originalWidth;
   }
-
   /**
    * It is the original height of the selection at creation.
    * @type {number}
@@ -51313,7 +50847,6 @@ Wick.Selection = class extends Wick.Base {
   set originalHeight(originalHeight) {
     this._originalHeight = originalHeight;
   }
-
   /**
    * The scale of the selection on the X axis.
    * @type {number}
@@ -51335,7 +50868,6 @@ Wick.Selection = class extends Wick.Base {
       this.width = this.originalWidth * scaleX;
     }
   }
-
   /**
    * The scale of the selection on the Y axis.
    * @type {number}
@@ -51356,7 +50888,6 @@ Wick.Selection = class extends Wick.Base {
       this.height = this.originalHeight * scaleY;
     }
   }
-
   /**
    * Determines if a clip is synced to the timeline.
    */
@@ -51374,7 +50905,6 @@ Wick.Selection = class extends Wick.Base {
       this.getSelectedObject().isSynced = syncBool;
     }
   }
-
   /**
    * Flips the selected obejcts horizontally.
    */
@@ -51382,7 +50912,6 @@ Wick.Selection = class extends Wick.Base {
     this.project.tryToAutoCreateTween();
     this.view.flipHorizontally();
   }
-
   /**
    * Flips the selected obejcts vertically.
    */
@@ -51390,35 +50919,30 @@ Wick.Selection = class extends Wick.Base {
     this.project.tryToAutoCreateTween();
     this.view.flipVertically();
   }
-
   /**
    * Sends the selected objects to the back.
    */
   sendToBack() {
     this.view.sendToBack();
   }
-
   /**
    * Brings the selected objects to the front.
    */
   bringToFront() {
     this.view.bringToFront();
   }
-
   /**
    * Moves the selected objects forwards.
    */
   moveForwards() {
     this.view.moveForwards();
   }
-
   /**
    * Moves the selected objects backwards.
    */
   moveBackwards() {
     this.view.moveBackwards();
   }
-
   /**
    * The identifier of the selected object.
    * @type {string}
@@ -51429,7 +50953,6 @@ Wick.Selection = class extends Wick.Base {
   set identifier(identifier) {
     this._setSingleAttribute('identifier', identifier);
   }
-
   /**
    * The name of the selected object.
    * @type {string}
@@ -51440,7 +50963,6 @@ Wick.Selection = class extends Wick.Base {
   set name(name) {
     this._setSingleAttribute('name', name);
   }
-
   /**
    * The fill color of the selected object.
    * @type {paper.Color}
@@ -51451,7 +50973,6 @@ Wick.Selection = class extends Wick.Base {
   set fillColor(fillColor) {
     this._setSingleAttribute('fillColor', fillColor);
   }
-
   /**
    * The stroke color of the selected object.
    * @type {paper.Color}
@@ -51462,7 +50983,6 @@ Wick.Selection = class extends Wick.Base {
   set strokeColor(strokeColor) {
     this._setSingleAttribute('strokeColor', strokeColor);
   }
-
   /**
    * The stroke width of the selected object.
    * @type {number}
@@ -51473,7 +50993,6 @@ Wick.Selection = class extends Wick.Base {
   set strokeWidth(strokeWidth) {
     this._setSingleAttribute('strokeWidth', strokeWidth);
   }
-
   /**
    * The font family of the selected object.
    * @type {string}
@@ -51484,7 +51003,6 @@ Wick.Selection = class extends Wick.Base {
   set fontFamily(fontFamily) {
     this._setSingleAttribute('fontFamily', fontFamily);
   }
-
   /**
    * The font size of the selected object.
    * @type {number}
@@ -51495,7 +51013,6 @@ Wick.Selection = class extends Wick.Base {
   set fontSize(fontSize) {
     this._setSingleAttribute('fontSize', fontSize);
   }
-
   /**
    * The font weight of the selected object.
    * @type {number}
@@ -51506,7 +51023,6 @@ Wick.Selection = class extends Wick.Base {
   set fontWeight(fontWeight) {
     this._setSingleAttribute('fontWeight', fontWeight);
   }
-
   /**
    * The font style of the selected object. ('italic' or 'oblique')
    * @type {string}
@@ -51517,7 +51033,6 @@ Wick.Selection = class extends Wick.Base {
   set fontStyle(fontStyle) {
     this._setSingleAttribute('fontStyle', fontStyle);
   }
-
   /**
    * The opacity of the selected object.
    * @type {number}
@@ -51529,7 +51044,6 @@ Wick.Selection = class extends Wick.Base {
     this.project.tryToAutoCreateTween();
     this._setSingleAttribute('opacity', opacity);
   }
-
   /**
    * The sound attached to the selected frame.
    * @type {Wick.SoundAsset}
@@ -51540,7 +51054,6 @@ Wick.Selection = class extends Wick.Base {
   set sound(sound) {
     this._setSingleAttribute('sound', sound);
   }
-
   /**
    * The length of the selected frame.
    * @type {number}
@@ -51554,7 +51067,6 @@ Wick.Selection = class extends Wick.Base {
     layer.resolveOverlap(this.getSelectedObjects());
     layer.resolveGaps();
   }
-
   /**
    * The volume of the sound attached to the selected frame.
    * @type {number}
@@ -51565,7 +51077,6 @@ Wick.Selection = class extends Wick.Base {
   set soundVolume(soundVolume) {
     this._setSingleAttribute('soundVolume', soundVolume);
   }
-
   /**
    * The starting position of the sound on the frame in ms.
    * @type {number}
@@ -51576,7 +51087,6 @@ Wick.Selection = class extends Wick.Base {
   set soundStart(soundStart) {
     this._setSingleAttribute('soundStart', soundStart);
   }
-
   /**
    * The easing type of a selected tween. See Wick.Tween.VALID_EASING_TYPES.
    * @type {string}
@@ -51587,7 +51097,6 @@ Wick.Selection = class extends Wick.Base {
   set easingType(easingType) {
     return this._setSingleAttribute('easingType', easingType);
   }
-
   /**
    * The amount of rotations to perform during a tween. Positive value = clockwise rotation.
    * @type {Number}
@@ -51598,7 +51107,6 @@ Wick.Selection = class extends Wick.Base {
   set fullRotations(fullRotations) {
     return this._setSingleAttribute('fullRotations', fullRotations);
   }
-
   /**
    * The filename of the selected asset. Read only.
    * @type {string}
@@ -51606,7 +51114,6 @@ Wick.Selection = class extends Wick.Base {
   get filename() {
     return this._getSingleAttribute('filename');
   }
-
   /**
    * True if the selection is scriptable. Read only.
    * @type {boolean}
@@ -51614,7 +51121,6 @@ Wick.Selection = class extends Wick.Base {
   get isScriptable() {
     return this.numObjects === 1 && this.getSelectedObjects()[0].isScriptable;
   }
-
   /**
    * The source (dataURL) of the selected ImageAsset or SoundAsset. Read only.
    * @type {string}
@@ -51622,7 +51128,6 @@ Wick.Selection = class extends Wick.Base {
   get src() {
     return this.numObjects === 1 && this.getSelectedObjects()[0].src;
   }
-
   /**
    * Get a list of only the farthest right frames on each layer.
    * @returns {Wick.Frame[]}
@@ -51642,7 +51147,6 @@ Wick.Selection = class extends Wick.Base {
     }
     return result;
   }
-
   /**
    * Get a list of only the farthest left frames on each layer.
    * @returns {Wick.Frame[]}
@@ -51671,7 +51175,6 @@ Wick.Selection = class extends Wick.Base {
       return 'Canvas';
     }
   }
-
   /* Helper function: Calculate the selection x,y */
   _resetPositioningValues() {
     var selectedObject = this.getSelectedObject();
@@ -51690,33 +51193,28 @@ Wick.Selection = class extends Wick.Base {
         x: boundsCenter.x,
         y: boundsCenter.y
       };
-
       // Always pull original size values.
       this._originalWidth = this.view._getSelectedObjectsBounds().width;
       this._originalHeight = this.view._getSelectedObjectsBounds().height;
     }
   }
-
   /* helper function for getting a single value from multiple selected objects */
   _getSingleAttribute(attributeName) {
     if (this.numObjects === 0) return null;
     return this.getSelectedObjects()[0][attributeName];
   }
-
   /* helper function for updating the same attribute on all items in the selection  */
   _setSingleAttribute(attributeName, value) {
     this.getSelectedObjects().forEach(selectedObject => {
       selectedObject[attributeName] = value;
     });
   }
-
   /*helper function for shift+selecting frames*/
   _selectInBetweenFrames(selectedFrame) {
     var frameBounds = {
       playheadStart: null,
       playheadEnd: null
     };
-
     // Calculate bounding box of all selected frames
     var selectedFrames = this.getSelectedObjects('Frame');
     selectedFrames.filter(frame => {
@@ -51735,7 +51233,6 @@ Wick.Selection = class extends Wick.Base {
         frameBounds.playheadEnd = end;
       }
     });
-
     // Select all frames inside bounding box
     this.project.activeTimeline.getAllFrames().filter(frame => {
       return !frame.isSelected && frame.parentLayer === selectedFrame.parentLayer && frame.inRange(frameBounds.playheadStart, frameBounds.playheadEnd);
@@ -51762,7 +51259,6 @@ Wick.Selection = class extends Wick.Base {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Class representing a Wick Timeline.
  */
@@ -51793,7 +51289,6 @@ Wick.Timeline = class extends Wick.Base {
   get classname() {
     return 'Timeline';
   }
-
   /**
    * The layers that belong to this timeline.
    * @type {Wick.Layer}
@@ -51801,7 +51296,6 @@ Wick.Timeline = class extends Wick.Base {
   get layers() {
     return this.getChildren('Layer');
   }
-
   /**
    * The position of the playhead. Determines which frames are visible.
    * @type {number}
@@ -51819,31 +51313,27 @@ Wick.Timeline = class extends Wick.Base {
     if (this._playheadPosition < 1) {
       this._playheadPosition = 1;
     }
-
     // Automatically apply tween transforms on child frames when playhead moves
     this.activeFrames.forEach(frame => {
       frame.applyTweenTransforms();
       frame.updateClipTimelinesForAnimationType();
     });
   }
-
   /**
    * Forces timeline to move to the next frame.
-   * @param {number} frame 
+   * @param {number} frame
    */
   forceFrame(frame) {
     this.playheadPosition = frame;
     this._frameForced = true;
     this.makeTimelineInBounds();
   }
-
   /**
    * Returns true if the frame was forced previously.
    */
   get frameForced() {
     return this._frameForced;
   }
-
   /**
    * The index of the active layer. Determines which frame to draw onto.
    * @type {number}
@@ -51854,7 +51344,6 @@ Wick.Timeline = class extends Wick.Base {
   set activeLayerIndex(activeLayerIndex) {
     this._activeLayerIndex = activeLayerIndex;
   }
-
   /**
    * The total length of the timeline.
    * @type {number}
@@ -51869,7 +51358,6 @@ Wick.Timeline = class extends Wick.Base {
     });
     return length;
   }
-
   /**
    * The active layer.
    * @type {Wick.Layer}
@@ -51877,7 +51365,6 @@ Wick.Timeline = class extends Wick.Base {
   get activeLayer() {
     return this.layers[this.activeLayerIndex];
   }
-
   /**
    * The active frames, determined by the playhead position.
    * @type {Wick.Frame[]}
@@ -51892,7 +51379,6 @@ Wick.Timeline = class extends Wick.Base {
     });
     return frames;
   }
-
   /*
    * exports the project as an SVG file
    * @onError {function(message)}
@@ -51915,7 +51401,6 @@ Wick.Timeline = class extends Wick.Base {
   get activeFrame() {
     return this.activeLayer && this.activeLayer.activeFrame;
   }
-
   /**
    * All frames inside the timeline.
    * @type {Wick.Frame[]}
@@ -51929,7 +51414,6 @@ Wick.Timeline = class extends Wick.Base {
     });
     return frames;
   }
-
   /**
    * All clips inside the timeline.
    * @type {Wick.Clip[]}
@@ -51941,7 +51425,6 @@ Wick.Timeline = class extends Wick.Base {
     });
     return clips;
   }
-
   /**
    * Finds the frame with a given name.
    * @type {Wick.Frame|null}
@@ -51951,7 +51434,6 @@ Wick.Timeline = class extends Wick.Base {
       return frame.name === name;
     }) || null;
   }
-
   /**
    * Add a frame to one of the layers on this timeline. If there is no layer where the frame wants to go, the frame will not be added.
    * @param {Wick.Frame} frame - the frame to add
@@ -51964,7 +51446,6 @@ Wick.Timeline = class extends Wick.Base {
       this.layers[frame.originalLayerIndex].addFrame(frame);
     }
   }
-
   /**
    * Adds a layer to the timeline.
    * @param {Wick.Layer} layer - The layer to add.
@@ -51979,7 +51460,6 @@ Wick.Timeline = class extends Wick.Base {
       }
     }
   }
-
   /**
    * Adds a tween to a frame on this timeline.
    * @param {Wick.Tween} tween - the tween to add.
@@ -51992,7 +51472,6 @@ Wick.Timeline = class extends Wick.Base {
       this.layers[tween.originalLayerIndex].addTween(tween);
     }
   }
-
   /**
    * Remmoves a layer from the timeline.
    * @param {Wick.Layer} layer - The layer to remove.
@@ -52002,14 +51481,12 @@ Wick.Timeline = class extends Wick.Base {
     if (this.layers.length <= 1) {
       return;
     }
-
     // Activate the layer below the removed layer if we removed the active layer.
     if (this.activeLayerIndex === this.layers.length - 1) {
       this.activeLayerIndex--;
     }
     this.removeChild(layer);
   }
-
   /**
    * Moves a layer to a different position, inserting it before/after other layers if needed.
    * @param {Wick.Layer} layer - The layer to add.
@@ -52021,7 +51498,6 @@ Wick.Timeline = class extends Wick.Base {
     layers.splice(index, 0, layer);
     this._children = layers;
   }
-
   /**
    * Gets the frames at the given playhead position.
    * @param {number} playheadPosition - the playhead position to search.
@@ -52035,7 +51511,6 @@ Wick.Timeline = class extends Wick.Base {
     });
     return frames;
   }
-
   /**
    * Get all frames in this timeline.
    * @param {boolean} recursive - If set to true, will also include the children of all child timelines.
@@ -52054,7 +51529,6 @@ Wick.Timeline = class extends Wick.Base {
     });
     return allFrames;
   }
-
   /**
    * Gets all frames in the layer that are between the two given playhead positions and layer indices.
    * @param {number} playheadPositionStart - The start of the horizontal range to search
@@ -52072,7 +51546,6 @@ Wick.Timeline = class extends Wick.Base {
     });
     return framesInRange;
   }
-
   /**
    * Advances the timeline one frame forwards. Loops back to beginning if the end is reached.
    */
@@ -52083,7 +51556,6 @@ Wick.Timeline = class extends Wick.Base {
       this.makeTimelineInBounds();
     }
   }
-
   /**
    * Ensures playhead position is in bounds.
    */
@@ -52092,21 +51564,18 @@ Wick.Timeline = class extends Wick.Base {
       this.playheadPosition = 1;
     }
   }
-
   /**
    * Makes the timeline advance automatically during ticks.
    */
   play() {
     this._playing = true;
   }
-
   /**
    * Stops the timeline from advancing during ticks.
    */
   stop() {
     this._playing = false;
   }
-
   /**
    * Stops the timeline and moves to a given frame number or name.
    * @param {string|number} frame - A playhead position or name of a frame to move to.
@@ -52115,7 +51584,6 @@ Wick.Timeline = class extends Wick.Base {
     this.stop();
     this.gotoFrame(frame);
   }
-
   /**
    * Plays the timeline and moves to a given frame number or name.
    * @param {string|number} frame - A playhead position or name of a frame to move to.
@@ -52124,7 +51592,6 @@ Wick.Timeline = class extends Wick.Base {
     this.play();
     this.gotoFrame(frame);
   }
-
   /**
    * Moves the timeline forward one frame. Loops back to 1 if gotoNextFrame moves the playhead past the past frame.
    */
@@ -52136,7 +51603,6 @@ Wick.Timeline = class extends Wick.Base {
     }
     this.gotoFrame(nextFramePlayheadPosition);
   }
-
   /**
    * Moves the timeline backwards one frame. Loops to the last frame if gotoPrevFrame moves the playhead before the first frame.
    */
@@ -52147,7 +51613,6 @@ Wick.Timeline = class extends Wick.Base {
     }
     this.gotoFrame(prevFramePlayheadPosition);
   }
-
   /**
    * Moves the playhead to a given frame number or name.
    * @param {string|number} frame - A playhead position or name of a frame to move to.
@@ -52166,7 +51631,6 @@ Wick.Timeline = class extends Wick.Base {
       throw new Error('gotoFrame: Invalid argument: ' + frame);
     }
   }
-
   /**
    * The method to use to fill gaps in-beteen frames. Options: "blank_frames" or "auto_extend" (see Wick.Layer.resolveGaps)
    * @type {string}
@@ -52182,7 +51646,6 @@ Wick.Timeline = class extends Wick.Base {
       console.warn('Valid fillGapsMethod: "blank_frames", "auto_extend"');
     }
   }
-
   /**
    * Check if frame gap fixing should be deferred until later. Read only.
    * @type {boolean}
@@ -52190,14 +51653,12 @@ Wick.Timeline = class extends Wick.Base {
   get waitToFillFrameGaps() {
     return this._waitToFillFrameGaps;
   }
-
   /**
    * Disables frame gap filling until resolveFrameGaps is called again.
    */
   deferFrameGapResolve() {
     this._waitToFillFrameGaps = true;
   }
-
   /**
    * Fill in all gaps between frames in all layers in this timeline.
    * @param {Wick.Frame[]} newOrModifiedFrames - The frames that should not be affected by the gap fill by being extended or shrunk.
@@ -52211,7 +51672,6 @@ Wick.Timeline = class extends Wick.Base {
       }));
     });
   }
-
   /**
    * Prevents frames from overlapping each other by removing pieces of frames that are touching.
    * @param {Wick.Frame[]} newOrModifiedFrames - the frames that should take precedence when determining which frames should get "eaten".
@@ -52242,7 +51702,6 @@ Wick.Timeline = class extends Wick.Base {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Class representing a tween.
  */
@@ -52257,7 +51716,6 @@ Wick.Tween = class extends Wick.Base {
     var t = (playheadPosition - tweenAPlayhead) / dist;
     return t;
   }
-
   /**
    * Create a tween
    * @param {number} playheadPosition - the playhead position relative to the frame that the tween belongs to
@@ -52273,7 +51731,6 @@ Wick.Tween = class extends Wick.Base {
     this.easingType = args.easingType || 'none';
     this._originalLayerIndex = -1;
   }
-
   /**
    * Create a tween by interpolating two existing tweens.
    * @param {Wick.Tween} tweenA - The first tween
@@ -52282,10 +51739,8 @@ Wick.Tween = class extends Wick.Base {
    */
   static interpolate(tweenA, tweenB, playheadPosition) {
     var interpTween = new Wick.Tween();
-
     // Calculate value (0.0-1.0) to pass to tweening function
     var t = Wick.Tween._calculateTimeValue(tweenA, tweenB, playheadPosition);
-
     // Interpolate every transformation attribute using the t value
     ["x", "y", "scaleX", "scaleY", "rotation", "opacity"].forEach(propName => {
       var tweenFn = tweenA._getTweenFunction();
@@ -52327,7 +51782,6 @@ Wick.Tween = class extends Wick.Base {
     this.easingType = data.easingType;
     this._originalLayerIndex = data.originalLayerIndex;
   }
-
   /**
    * The playhead position of the tween.
    * @type {number}
@@ -52338,10 +51792,9 @@ Wick.Tween = class extends Wick.Base {
   set playheadPosition(playheadPosition) {
     this._playheadPosition = playheadPosition;
   }
-
   /**
    * The transformation representing the position, rotation and other elements of the tween.
-   * @type {object} 
+   * @type {object}
    */
   get transformation() {
     return this._transformation;
@@ -52349,7 +51802,6 @@ Wick.Tween = class extends Wick.Base {
   set transformation(transformation) {
     this._transformation = transformation;
   }
-
   /**
    * The type of interpolation to use for easing.
    * @type {string}
@@ -52365,14 +51817,12 @@ Wick.Tween = class extends Wick.Base {
     }
     this._easingType = easingType;
   }
-
   /**
    * Remove this tween from its parent frame.
    */
   remove() {
     this.parent.removeTween(this);
   }
-
   /**
    * Set the transformation of a clip to this tween's transformation.
    * @param {Wick.Clip} clip - the clip to apply the tween transforms to.
@@ -52380,7 +51830,6 @@ Wick.Tween = class extends Wick.Base {
   applyTransformsToClip(clip) {
     clip.transformation = this.transformation.copy();
   }
-
   /**
    * The tween that comes after this tween in the parent frame.
    * @returns {Wick.Tween}
@@ -52390,19 +51839,16 @@ Wick.Tween = class extends Wick.Base {
     var frontTween = this.parentFrame.seekTweenInFront(this.playheadPosition + 1);
     return frontTween;
   }
-
   /**
    * Prevents tweens from existing outside of the frame's length. Call this after changing the length of the parent frame.
    */
   restrictToFrameSize() {
     var playheadPosition = this.playheadPosition;
-
     // Remove tween if playheadPosition is out of bounds
     if (playheadPosition < 1 || playheadPosition > this.parentFrame.length) {
       this.remove();
     }
   }
-
   /**
    * The index of the parent layer of this tween.
    * @type {number}
@@ -52410,7 +51856,6 @@ Wick.Tween = class extends Wick.Base {
   get layerIndex() {
     return this.parentLayer ? this.parentLayer.index : -1;
   }
-
   /**
    * The index of the layer that this tween last belonged to. Used when copying and pasting tweens.
    * @type {number}
@@ -52418,7 +51863,6 @@ Wick.Tween = class extends Wick.Base {
   get originalLayerIndex() {
     return this._originalLayerIndex;
   }
-
   /* retrieve Tween.js easing functions by name */
   _getTweenFunction() {
     return {
@@ -52447,7 +51891,6 @@ Wick.Tween = class extends Wick.Base {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * Represents a Wick Path.
  */
@@ -52479,7 +51922,6 @@ Wick.Path = class extends Wick.Base {
     }
     this.needReimport = true;
   }
-
   /**
    * Create a path containing an image from an ImageAsset.
    * @param {Wick.ImageAsset} asset - The asset from which the image src will be loaded from
@@ -52498,7 +51940,6 @@ Wick.Path = class extends Wick.Base {
       callback(path);
     };
   }
-
   /**
    * Create a path (synchronously) containing an image from an ImageAsset.
    * @param {Wick.ImageAsset} asset - The asset from which the image src will be loaded from
@@ -52519,7 +51960,6 @@ Wick.Path = class extends Wick.Base {
     var data = super._serialize(args);
     data.json = this.json;
     delete data.json[1].data;
-
     // optimization: replace dataurls with asset uuids
     if (data.json[0] === 'Raster' && data.json[1].source.startsWith('data:')) {
       if (!this.project) {
@@ -52544,14 +51984,12 @@ Wick.Path = class extends Wick.Base {
     this._fontWeight = data.fontWeight || 400;
     this._isPlaceholder = data.isPlaceholder;
   }
-
   /**
    * Determines if this Path is visible in the project.
    */
   get onScreen() {
     return this.parent.onScreen;
   }
-
   /**
    * The type of path that this path is. Can be 'path', 'text', or 'image'
    * @returns {string}
@@ -52565,7 +52003,6 @@ Wick.Path = class extends Wick.Base {
       return 'path';
     }
   }
-
   /**
    * Path data exported from paper.js using exportJSON({asString:false}).
    * @type {object}
@@ -52578,7 +52015,6 @@ Wick.Path = class extends Wick.Base {
     this.needReimport = true;
     this.view.render();
   }
-
   /**
    * The bounding box of the path.
    * @type {object}
@@ -52594,7 +52030,6 @@ Wick.Path = class extends Wick.Base {
       height: paperBounds.height
     };
   }
-
   /**
    * The position of the path.
    * @type {number}
@@ -52606,7 +52041,6 @@ Wick.Path = class extends Wick.Base {
     this.view.item.position.x = x;
     this.updateJSON();
   }
-
   /**
    * The position of the path.
    * @type {number}
@@ -52618,7 +52052,6 @@ Wick.Path = class extends Wick.Base {
     this.view.item.position.y = y;
     this.updateJSON();
   }
-
   /**
    * The fill color of the path.
    * @type {paper.Color}
@@ -52630,7 +52063,6 @@ Wick.Path = class extends Wick.Base {
     this.view.item.fillColor = fillColor;
     this.updateJSON();
   }
-
   /**
    * The stroke color of the path.
    * @type {paper.Color}
@@ -52642,7 +52074,6 @@ Wick.Path = class extends Wick.Base {
     this.view.item.strokeColor = strokeColor;
     this.updateJSON();
   }
-
   /**
    * The stroke width of the path.
    * @type {number}
@@ -52654,7 +52085,6 @@ Wick.Path = class extends Wick.Base {
     this.view.item.strokeWidth = strokeWidth;
     this.updateJSON();
   }
-
   /**
    * The opacity of the path.
    * @type {number}
@@ -52669,7 +52099,6 @@ Wick.Path = class extends Wick.Base {
     this.view.item.opacity = opacity;
     this.updateJSON();
   }
-
   /**
    * The font family of the path.
    * @type {string}
@@ -52683,7 +52112,6 @@ Wick.Path = class extends Wick.Base {
     this.fontStyle = 'normal';
     this.updateJSON();
   }
-
   /**
    * The font size of the path.
    * @type {number}
@@ -52696,7 +52124,6 @@ Wick.Path = class extends Wick.Base {
     this.view.item.leading = fontSize * 1.2;
     this.updateJSON();
   }
-
   /**
    * The font weight of the path.
    * @type {number}
@@ -52712,7 +52139,6 @@ Wick.Path = class extends Wick.Base {
     this._fontWeight = fontWeight;
     this.updateJSON();
   }
-
   /**
    * The font style of the path ('italic' or 'oblique').
    * @type {string}
@@ -52724,7 +52150,6 @@ Wick.Path = class extends Wick.Base {
     this._fontStyle = fontStyle;
     this.updateJSON();
   }
-
   /**
    * The original style of the path (used to recover the path's style if it was changed by a custom onion skin style)
    * @type {object}
@@ -52735,7 +52160,6 @@ Wick.Path = class extends Wick.Base {
   set originalStyle(originalStyle) {
     this._originalStyle = originalStyle;
   }
-
   /**
    * The content of the text.
    * @type {string}
@@ -52746,21 +52170,18 @@ Wick.Path = class extends Wick.Base {
   set textContent(textContent) {
     this.view.item.content = textContent;
   }
-
   /**
    * Update the JSON of the path based on the path on the view.
    */
   updateJSON() {
     this.json = this.view.exportJSON();
   }
-
   /**
    * API function to change the textContent of dynamic text paths.
    */
   setText(newTextContent) {
     this.textContent = newTextContent;
   }
-
   /**
    * Check if this path is a dynamic text object.
    * @type {boolean}
@@ -52768,7 +52189,6 @@ Wick.Path = class extends Wick.Base {
   get isDynamicText() {
     return this.pathType === 'text' && this.identifier !== null;
   }
-
   /**
    * The image asset that this path uses, if this path is a Raster path.
    * @returns {Wick.Asset[]}
@@ -52783,14 +52203,12 @@ Wick.Path = class extends Wick.Base {
     }
     return linkedAssets;
   }
-
   /**
    * Removes this path from its parent frame.
    */
   remove() {
     this.parentFrame.removePath(this);
   }
-
   /**
    * Creates a new path using boolean unite on multiple paths. The resulting path will use the fillColor, strokeWidth, and strokeColor of the first path in the array.
    * @param {Wick.Path[]} paths - an array containing the paths to process.
@@ -52799,7 +52217,6 @@ Wick.Path = class extends Wick.Base {
   static unite(paths) {
     return Wick.Path.booleanOp(paths, 'unite');
   }
-
   /**
    * Creates a new path using boolean subtration on multiple paths. The resulting path will use the fillColor, strokeWidth, and strokeColor of the first path in the array.
    * @param {Wick.Path[]} paths - an array containing the paths to process.
@@ -52808,7 +52225,6 @@ Wick.Path = class extends Wick.Base {
   static subtract(paths) {
     return Wick.Path.booleanOp(paths, 'subtract');
   }
-
   /**
    * Creates a new path using boolean intersection on multiple paths. The resulting path will use the fillColor, strokeWidth, and strokeColor of the first path in the array.
    * @param {Wick.Path[]} paths - an array containing the paths to process.
@@ -52817,7 +52233,6 @@ Wick.Path = class extends Wick.Base {
   static intersect(paths) {
     return Wick.Path.booleanOp(paths, 'intersect');
   }
-
   /**
    * Perform a paper.js boolean operation on a list of paths.
    * @param {Wick.Path[]} paths - a list of paths to perform the boolean operation on.
@@ -52833,12 +52248,10 @@ Wick.Path = class extends Wick.Base {
     if (!paths || paths.length === 0) {
       console.error('Wick.Path.booleanOp: a non-empty list of paths is required');
     }
-
     // Single path? Nothing to do.
     if (paths.length === 1) {
       return paths[0];
     }
-
     // Get paper.js path objects
     paths = paths.map(path => {
       return path.view.item;
@@ -52858,7 +52271,6 @@ Wick.Path = class extends Wick.Base {
     });
     return resultWickPath;
   }
-
   /**
    * Converts a stroke into fill. Only works with paths that have a strokeWidth and strokeColor, and have no fillColor. Does nothing otherwise.
    * @returns {Wick.Path} A flattened version of this path. Can be null if the path cannot be flattened.
@@ -52878,7 +52290,6 @@ Wick.Path = class extends Wick.Base {
     flatPath.fillColor = this.strokeColor;
     return flatPath;
   }
-
   /**
    * Is this path used as a placeholder for preventing empty clips?
    * @type {bool}
@@ -52908,7 +52319,6 @@ Wick.Path = class extends Wick.Base {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Asset = class extends Wick.Base {
   /**
    * Creates a new Wick Asset.
@@ -52928,14 +52338,12 @@ Wick.Asset = class extends Wick.Base {
     super._deserialize(data);
     this.name = data.name;
   }
-
   /**
    * A list of all objects using this asset.
    */
   getInstances() {
     // Implemented by subclasses
   }
-
   /**
    * Check if there are any objects in the project that use this asset.
    * @returns {boolean}
@@ -52943,7 +52351,6 @@ Wick.Asset = class extends Wick.Base {
   hasInstances() {
     // Implemented by sublasses
   }
-
   /**
    * Remove all instances of this asset from the project. (Implemented by ClipAsset, ImageAsset, and SoundAsset)
    */
@@ -52972,7 +52379,6 @@ Wick.Asset = class extends Wick.Base {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.FileAsset = class extends Wick.Asset {
   /**
    * Returns all valid MIME types for files which can be converted to Wick Assets.
@@ -52987,7 +52393,6 @@ Wick.FileAsset = class extends Wick.Asset {
     let gifTypes = Wick.GIFAsset.getValidMIMETypes();
     return imageTypes.concat(soundTypes).concat(fontTypes).concat(clipTypes).concat(svgTypes).concat(gifTypes);
   }
-
   /**
    * Returns all valid extensions types for files which can be attempted to be
    * converted to Wick Assets.
@@ -53002,7 +52407,6 @@ Wick.FileAsset = class extends Wick.Asset {
     let gifExtensions = Wick.GIFAsset.getValidExtensions();
     return imageExtensions.concat(soundExtensions).concat(fontExtensions).concat(clipExtensions).concat(svgExtensions).concat(gifExtensions);
   }
-
   /**
    * Create a new FileAsset.
    * @param {string} filename - the filename of the file being used as this asset's source.
@@ -53039,7 +52443,6 @@ Wick.FileAsset = class extends Wick.Asset {
   get classname() {
     return 'FileAsset';
   }
-
   /**
    * The source of the data of the asset, in base64. Returns null if the file is not found.
    * @type {string}
@@ -53056,14 +52459,12 @@ Wick.FileAsset = class extends Wick.Asset {
       this.MIMEType = this._MIMETypeOfString(src);
     }
   }
-
   /**
    * Loads data about the file into the asset.
    */
   load(callback) {
     callback();
   }
-
   /**
    * Copies the FileAsset and also copies the src in FileCache.
    * @return {Wick.FileAsset}
@@ -53099,7 +52500,6 @@ Wick.FileAsset = class extends Wick.Asset {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.FontAsset = class extends Wick.FileAsset {
   /**
    * Valid MIME types for font assets.
@@ -53108,7 +52508,6 @@ Wick.FontAsset = class extends Wick.FileAsset {
   static getValidMIMETypes() {
     return ['font/ttf', 'application/x-font-ttf', 'application/x-font-truetype'];
   }
-
   /**
    * Valid extensions for font assets.
    * @returns {string[]} Array of strings representing extensions.
@@ -53116,7 +52515,6 @@ Wick.FontAsset = class extends Wick.FileAsset {
   static getValidExtensions() {
     return ['.ttf'];
   }
-
   /**
    * The default font to use if a font couldn't load, or if a FontAsset was deleted
    * @type {string}
@@ -53124,7 +52522,6 @@ Wick.FontAsset = class extends Wick.FileAsset {
   static get MISSING_FONT_DEFAULT() {
     return 'Helvetica, Arial, sans-serif';
   }
-
   /**
    * Create a new FontAsset.
    * @param {object} args - Asset constructor args. see constructor for Wick.Asset
@@ -53142,7 +52539,6 @@ Wick.FontAsset = class extends Wick.FileAsset {
   get classname() {
     return 'FontAsset';
   }
-
   /**
    * Loads the font into the window.
    * @param {function} callback - function to call when the font is done being loaded.
@@ -53165,7 +52561,6 @@ Wick.FontAsset = class extends Wick.FileAsset {
       callback(); // Make the callback so that the page doesn't freeze.
     });
   }
-
   /**
    * A list of Wick Paths that use this font as their fontFamily.
    * @returns {Wick.Path[]}
@@ -53181,7 +52576,6 @@ Wick.FontAsset = class extends Wick.FileAsset {
     });
     return paths;
   }
-
   /**
    * Check if there are any objects in the project that use this asset.
    * @returns {boolean}
@@ -53189,7 +52583,6 @@ Wick.FontAsset = class extends Wick.FileAsset {
   hasInstances() {
     return this.getInstances().length > 0;
   }
-
   /**
    * Finds all PointText paths using this font as their fontFamily and replaces that font with a default font.
    */
@@ -53198,7 +52591,6 @@ Wick.FontAsset = class extends Wick.FileAsset {
       path.fontFamily = Wick.FontAsset.MISSING_FONT_DEFAULT;
     });
   }
-
   /**
    * The name of the font that this FontAsset represents.
    * @type {string}
@@ -53225,7 +52617,6 @@ Wick.FontAsset = class extends Wick.FileAsset {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.ImageAsset = class extends Wick.FileAsset {
   /**
    * Valid MIME types for image assets.
@@ -53236,7 +52627,6 @@ Wick.ImageAsset = class extends Wick.FileAsset {
     let pngTypes = ['image/png'];
     return jpgTypes.concat(pngTypes);
   }
-
   /**
    * Valid extensions for image assets.
    * @returns {string[]} Array of strings representing extensions.
@@ -53244,7 +52634,6 @@ Wick.ImageAsset = class extends Wick.FileAsset {
   static getValidExtensions() {
     return ['.jpeg', '.jpg', '.png'];
   }
-
   /**
    * Create a new ImageAsset.
    * @param {object} args - Asset constructor args. see constructor for Wick.Asset
@@ -53265,7 +52654,6 @@ Wick.ImageAsset = class extends Wick.FileAsset {
   get classname() {
     return 'ImageAsset';
   }
-
   /**
    * A list of Wick Paths that use this image as their image source.
    * @returns {Wick.Path[]}
@@ -53281,7 +52669,6 @@ Wick.ImageAsset = class extends Wick.FileAsset {
     });
     return paths;
   }
-
   /**
    * Check if there are any objects in the project that use this asset.
    * @returns {boolean}
@@ -53289,7 +52676,6 @@ Wick.ImageAsset = class extends Wick.FileAsset {
   hasInstances() {
     return this.getInstances().length > 0;
   }
-
   /**
    * Removes all paths using this asset as their image source from the project.
    * @returns {boolean}
@@ -53299,7 +52685,6 @@ Wick.ImageAsset = class extends Wick.FileAsset {
       path.remove();
     });
   }
-
   /**
    * Load data in the asset
    * @param {function} callback - function to call when the data is done being loaded.
@@ -53318,7 +52703,6 @@ Wick.ImageAsset = class extends Wick.FileAsset {
       callback();
     };
   }
-
   /**
    * Creates a new Wick Path that uses this asset's image data as it's image source.
    * @param {function} callback - called when the path is done loading.
@@ -53328,7 +52712,6 @@ Wick.ImageAsset = class extends Wick.FileAsset {
       callback(path);
     });
   }
-
   /**
    * Is this image asset part of a GIF? (if this is set to true, this asset won't appear in the asset library GUI)
    * @type {boolean}
@@ -53355,7 +52738,6 @@ Wick.ImageAsset = class extends Wick.FileAsset {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.ClipAsset = class extends Wick.FileAsset {
   /**
    * Returns all valid MIME types for files which can be converted to ClipAssets.
@@ -53364,7 +52746,6 @@ Wick.ClipAsset = class extends Wick.FileAsset {
   static getValidMIMETypes() {
     return ['application/json', 'application/octet-stream'];
   }
-
   /**
    * Returns all valid extensions types for files which can be attempted to be
    * converted to ClipAssets.
@@ -53373,7 +52754,6 @@ Wick.ClipAsset = class extends Wick.FileAsset {
   static getValidExtensions() {
     return ['.wickobj'];
   }
-
   /**
    * Creates a ClipAsset from the data of a given Clip.
    * @param {Wick.Clip} - the clip to use as a source
@@ -53396,7 +52776,6 @@ Wick.ClipAsset = class extends Wick.FileAsset {
       a.readAsDataURL(file);
     });
   }
-
   /**
    * Create a new ClipAsset.
    * @param {object} args
@@ -53414,7 +52793,6 @@ Wick.ClipAsset = class extends Wick.FileAsset {
   get classname() {
     return 'ClipAsset';
   }
-
   /**
    * A list of Wick Clips that use this ClipAsset as their source.
    * @returns {Wick.Clip[]}
@@ -53430,7 +52808,6 @@ Wick.ClipAsset = class extends Wick.FileAsset {
     });
     return clips;
   }
-
   /**
    * Check if there are any objects in the project that use this asset.
    * @returns {boolean}
@@ -53438,7 +52815,6 @@ Wick.ClipAsset = class extends Wick.FileAsset {
   hasInstances() {
     return this.getInstances().length > 0;
   }
-
   /**
    * Removes all Clips using this asset as their source from the project.
    * @returns {boolean}
@@ -53447,7 +52823,6 @@ Wick.ClipAsset = class extends Wick.FileAsset {
     this.getInstances().forEach(instance => {
       instance.remove();
     });
-
     // Also remove any ImageAssets that are part of this clip, and are GIF frames
     this.project.getAllFrames().forEach(frame => {
       frame.paths.forEach(path => {
@@ -53458,7 +52833,6 @@ Wick.ClipAsset = class extends Wick.FileAsset {
       });
     });
   }
-
   /**
    * Load data in the asset
    * @param {function} callback - function to call when the data is done being loaded.
@@ -53467,7 +52841,6 @@ Wick.ClipAsset = class extends Wick.FileAsset {
     // We don't need to do anything here, the data for ClipAssets is just json
     callback();
   }
-
   /**
    * Creates a new Wick Clip that uses this asset's data.
    * @param {function} callback - called when the Clip is done loading.
@@ -53504,7 +52877,6 @@ Wick.ClipAsset = class extends Wick.FileAsset {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GIFAsset = class extends Wick.ClipAsset {
   /**
    * Returns all valid MIME types for files which can be converted to GIFAssets.
@@ -53513,7 +52885,6 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
   static getValidMIMETypes() {
     return ['image/gif'];
   }
-
   /**
    * Returns all valid extensions types for files which can be attempted to be
    * converted to GIFAssets.
@@ -53522,7 +52893,6 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
   static getValidExtensions() {
     return ['.gif'];
   }
-
   /**
    * Create a new GIFAsset from a series of images.
    * @param {Wick.ImageAsset} images - The ImageAssets, in order of where they will appear in the timeline, which are used to create a ClipAsset
@@ -53540,7 +52910,6 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
         });
         frame.addPath(imagePath);
         clip.activeLayer.addFrame(frame);
-
         // Check if all images have been created
         imagesCreatedCount++;
         if (imagesCreatedCount === images.length) {
@@ -53559,7 +52928,6 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
     };
     processNextImage();
   }
-
   /**
    * Create a new GIFAsset.
    * @param {object} args - Asset args, see Wick.Asset constructor
@@ -53577,7 +52945,6 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
   get classname() {
     return 'GIFAsset';
   }
-
   /**
    * A list of objects that use this asset as their source.
    * @returns {Wick.Clip[]}
@@ -53586,7 +52953,6 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
     // Inherited from ClipAsset
     return super.getInstances();
   }
-
   /**
    * Check if there are any objects in the project that use this asset.
    * @returns {boolean}
@@ -53595,7 +52961,6 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
     // Inherited from ClipAsset
     return super.hasInstances();
   }
-
   /**
    * Removes all objects using this asset as their source from the project.
    * @returns {boolean}
@@ -53604,7 +52969,6 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
     // Inherited from ClipAsset
     super.removeAllInstances();
   }
-
   /**
    * Load data in the asset
    */
@@ -53631,7 +52995,6 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.SoundAsset = class extends Wick.FileAsset {
   /**
    * Returns valid MIME types for a Sound Asset.
@@ -53643,7 +53006,6 @@ Wick.SoundAsset = class extends Wick.FileAsset {
     let wavTypes = ['audio/wave', 'audio/wav', 'audio/x-wav', 'audio/x-pn-wav'];
     return mp3Types.concat(oggTypes).concat(wavTypes);
   }
-
   /**
    * Returns valid extensions for a sound asset.
    * @returns {string[]} Array of strings representing valid
@@ -53651,7 +53013,6 @@ Wick.SoundAsset = class extends Wick.FileAsset {
   static getValidExtensions() {
     return ['.mp3', '.ogg', '.wav'];
   }
-
   /**
    * Creates a new SoundAsset.
    * @param {object} args - Asset constructor args. see constructor for Wick.Asset
@@ -53670,7 +53031,6 @@ Wick.SoundAsset = class extends Wick.FileAsset {
   get classname() {
     return 'SoundAsset';
   }
-
   /**
    * Plays this asset's sound.
    * @param {number} seekMS - the amount of time in milliseconds into the sound the sound should start at.
@@ -53683,7 +53043,6 @@ Wick.SoundAsset = class extends Wick.FileAsset {
     if (options.seekMS === undefined) options.seekMS = 0;
     if (options.volume === undefined) options.volume = 1.0;
     if (options.loop === undefined) options.loop = false;
-
     // don't do anything if the project is muted...
     if (this.project.muted) {
       return;
@@ -53694,7 +53053,6 @@ Wick.SoundAsset = class extends Wick.FileAsset {
     this._howl.loop(options.loop, id);
     return id;
   }
-
   /**
    * Stops this asset's sound.
    * @param {number} id - (optional) the ID of the instance to stop. If ID is not given, every instance of this sound will stop.
@@ -53710,7 +53068,6 @@ Wick.SoundAsset = class extends Wick.FileAsset {
       this._howl.stop(id);
     }
   }
-
   /**
    * The length of the sound in seconds
    * @type {number}
@@ -53718,7 +53075,6 @@ Wick.SoundAsset = class extends Wick.FileAsset {
   get duration() {
     return this._howl.duration();
   }
-
   /**
    * A list of frames that use this sound.
    * @returns {Wick.Frame[]}
@@ -53732,7 +53088,6 @@ Wick.SoundAsset = class extends Wick.FileAsset {
     });
     return frames;
   }
-
   /**
    * Check if there are any objects in the project that use this asset.
    * @returns {boolean}
@@ -53740,7 +53095,6 @@ Wick.SoundAsset = class extends Wick.FileAsset {
   hasInstances() {
     return this.getInstances().length > 0;
   }
-
   /**
    * Remove the sound from any frames in the project that use this asset as their sound.
    */
@@ -53749,7 +53103,6 @@ Wick.SoundAsset = class extends Wick.FileAsset {
       frame.removeSound();
     });
   }
-
   /**
    * Loads data about the sound into the asset.
    * @param {function} callback - function to call when the data is done being loaded.
@@ -53761,7 +53114,6 @@ Wick.SoundAsset = class extends Wick.FileAsset {
       });
     });
   }
-
   /**
    * Image of the waveform of this sound.
    * @type {Image}
@@ -53827,7 +53179,6 @@ Wick.SoundAsset = class extends Wick.FileAsset {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.SVGAsset = class extends Wick.FileAsset {
   /**
    * Returns all valid MIME types for files which can be converted to SVGAssets.
@@ -53836,7 +53187,6 @@ Wick.SVGAsset = class extends Wick.FileAsset {
   static getValidMIMETypes() {
     return ['image/svg+xml'];
   }
-
   /**
    * Returns all valid extensions types for files which can be attempted to be
    * converted to SVGAssets.
@@ -53845,7 +53195,6 @@ Wick.SVGAsset = class extends Wick.FileAsset {
   static getValidExtensions() {
     return ['.svg'];
   }
-
   /**
    * Create a new SVGAsset.
    * @param {object} args
@@ -53863,7 +53212,6 @@ Wick.SVGAsset = class extends Wick.FileAsset {
   get classname() {
     return 'SVGAsset';
   }
-
   /**
    * A list of Wick Paths, Clips and Layers that use this SVGAsset as their image source.
    * I think this should return Assets not Paths
@@ -53872,7 +53220,6 @@ Wick.SVGAsset = class extends Wick.FileAsset {
   getInstances() {
     return []; // TODO
   }
-
   /**
    * Check if there are any objects in the project that use this asset.
    * @returns {boolean}
@@ -53880,7 +53227,6 @@ Wick.SVGAsset = class extends Wick.FileAsset {
   hasInstances() {
     return false;
   }
-
   /**
    * Removes all Items using this asset as their source from the project.
    * @returns {boolean}
@@ -53888,7 +53234,6 @@ Wick.SVGAsset = class extends Wick.FileAsset {
   removeAllInstances() {
     // TODO
   }
-
   /**
    * Load data in the asset
    */
@@ -53896,7 +53241,6 @@ Wick.SVGAsset = class extends Wick.FileAsset {
     // We don't need to do anything here, the data for SVGAssets is just SVG
     callback();
   }
-
   /**
    * Walks through the items tree creating the apprptiate wick object for each node*
    * @param {paper.Item} item - called when the Path is done loading.
@@ -53907,11 +53251,9 @@ Wick.SVGAsset = class extends Wick.FileAsset {
     // 'Group', 'Layer', 'Path', 'CompoundPath', 'Shape', 'Raster', 'SymbolItem', 'PointText'
     // I think path automatically handles this, but maybe not layer or group
     var wickItem = null; // Groups (clips) and layers do this differently so they must be handled separately
-
     if (item instanceof paper.Layer || item.name !== null && item.name.startsWith("layer") && item instanceof paper.Group) {
       wickItem = new Wick.Layer(); // If we've just added a layer set it to be the active layer
       //TODO: Find out how multiple layers are handled
-
       var frame = new Wick.Frame();
       wickItem.addFrame(frame);
       var groupChildren = Array.from(item.children); //prevent any side effects
@@ -53967,7 +53309,6 @@ Wick.SVGAsset = class extends Wick.FileAsset {
    * Walks through the items tree creating the appropriate wick object for each node
    * @param {Paper.Item} item - the item to turn into paths
    */
-
   /**
    * Walks through the items tree converting shapes into paths. This should be possible to do in the walkitems routine
    * @param {Paper.Item} item - called when the Path is done loading.
@@ -53988,16 +53329,13 @@ Wick.SVGAsset = class extends Wick.FileAsset {
       item.replaceWith(path);
     }
   }
-
   /**
    * Creates a new Wick SVG that uses this asset's data.
    * @param {function} callback - called when the SVG is done loading.
    */
-
   createInstance(callback) {
     // needs to take a base64 encoded string.
     //we need a viewSVG and an SVG object that extends base by the looks of things.
-
     /*
             var myPath = new paper.Path();
             myPath.strokeColor = 'black';
@@ -54052,7 +53390,6 @@ Wick.SVGAsset = class extends Wick.FileAsset {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * A class that is extended by any wick object that ticks.
  */
@@ -54063,7 +53400,6 @@ Wick.Tickable = class extends Wick.Base {
   static get LOG_ERRORS() {
     return false;
   }
-
   /**
    * Returns a list of all possible events for this object.
    * @return {string[]} Array of all possible scripts.
@@ -54071,7 +53407,6 @@ Wick.Tickable = class extends Wick.Base {
   static get possibleScripts() {
     return ['default', 'mouseenter', 'mousedown', 'mousepressed', 'mousereleased', 'mouseleave', 'mousehover', 'mousedrag', 'mouseclick', 'keypressed', 'keyreleased', 'keydown', 'load', 'update', 'unload'];
   }
-
   /**
    * Create a new tickable object.
    */
@@ -54109,7 +53444,6 @@ Wick.Tickable = class extends Wick.Base {
   get classname() {
     return 'Tickable';
   }
-
   /**
    * The scripts on this object.
    * @type {object[]}
@@ -54117,7 +53451,6 @@ Wick.Tickable = class extends Wick.Base {
   get scripts() {
     return this._scripts;
   }
-
   /**
    * Checks if this object has a non-empty script.
    * @type {boolean}
@@ -54131,7 +53464,6 @@ Wick.Tickable = class extends Wick.Base {
     }
     return hasContentfulScripts;
   }
-
   /**
    * Check if this object is currently visible in the project, based on its parent.
    * @type {boolean}
@@ -54140,7 +53472,6 @@ Wick.Tickable = class extends Wick.Base {
     if (!this.parent) return false;
     return this.parent.onScreen;
   }
-
   /**
    * Add a function to be called when an event happens.
    * @param {string} name - The name of the event to attach the function to.
@@ -54153,7 +53484,6 @@ Wick.Tickable = class extends Wick.Base {
     }
     this.addEventFn(name, fn);
   }
-
   /**
    * Attach a function to a given event.
    * @param {string} name - the name of the event to attach a function to.
@@ -54162,7 +53492,6 @@ Wick.Tickable = class extends Wick.Base {
   addEventFn(name, fn) {
     this.getEventFns(name).push(fn);
   }
-
   /**
    * Gets all functions attached to an event with a given name.
    * @param {string} - The name of the event
@@ -54173,7 +53502,6 @@ Wick.Tickable = class extends Wick.Base {
     }
     return this._onEventFns[name];
   }
-
   /**
    * Check if an object can have scripts attached to it. Helpful when iterating through a lot of different wick objects that may or may not be tickables. Always returns true.
    * @type {boolean}
@@ -54181,7 +53509,6 @@ Wick.Tickable = class extends Wick.Base {
   get isScriptable() {
     return true;
   }
-
   /**
    * Add a new script to an object.
    * @param {string} name - The name of the event that will trigger the script. See Wick.Tickable.possibleScripts
@@ -54197,7 +53524,6 @@ Wick.Tickable = class extends Wick.Base {
       name: name,
       src: ''
     });
-
     // Sort scripts by where they appear in the possibleScripts list
     var possibleScripts = Wick.Tickable.possibleScripts;
     this._scripts.sort((a, b) => {
@@ -54207,7 +53533,6 @@ Wick.Tickable = class extends Wick.Base {
       this.updateScript(name, src);
     }
   }
-
   /**
    * Get the script of this object that is triggered when the given event name happens.
    * @param {string} name - The name of the event. See Wick.Tickable.possibleScripts
@@ -54230,7 +53555,6 @@ Wick.Tickable = class extends Wick.Base {
         };
         return script;
       }
-
       // If the script is missing, add an empty.
       if (!script.src) {
         script.src = "";
@@ -54238,7 +53562,6 @@ Wick.Tickable = class extends Wick.Base {
       return script;
     }
   }
-
   /**
    * Returns a list of script names which are not currently in use for this object.
    * @return {string[]} Available script names.
@@ -54246,7 +53569,6 @@ Wick.Tickable = class extends Wick.Base {
   getAvailableScripts() {
     return Wick.Tickable.possibleScripts.filter(script => !this.hasScript(script));
   }
-
   /**
    * Check if the object has a script with the given event name.
    * @param {string} name - The name of the event. See Wick.Tickable.possibleScripts
@@ -54259,7 +53581,6 @@ Wick.Tickable = class extends Wick.Base {
     }
     return false;
   }
-
   /**
    * Check if the object has a non-empty script with a given name.
    * @param {string} name - The name of the event. See Wick.Tickable.possibleScripts
@@ -54275,7 +53596,6 @@ Wick.Tickable = class extends Wick.Base {
     }
     return false;
   }
-
   /**
    * Changes the source of the script with the given event name.
    * @param {string} name - The name of the event that will trigger the script. See Wick.Tickable.possibleScripts
@@ -54286,7 +53606,6 @@ Wick.Tickable = class extends Wick.Base {
     this.getScript(name).src = src;
     delete this._cachedScripts[name];
   }
-
   /**
    * Remove the script that corresponds to a given event name.
    * @param {string} name - The name of the event. See Wick.Tickable.possibleScripts
@@ -54296,7 +53615,6 @@ Wick.Tickable = class extends Wick.Base {
       return script.name !== name;
     });
   }
-
   /**
    * Schedule a script to run at the end of the tick.
    * @param {string} name - The name of the script to run. See Tickable.possibleScripts
@@ -54306,7 +53624,6 @@ Wick.Tickable = class extends Wick.Base {
     if (!this.project) return;
     this.project.scheduleScript(this.uuid, name, parameters);
   }
-
   /**
    * Run the script with the corresponding event name. Will not run the script if the object is marked as removed.
    * @param {string} name - The name of the event. See Wick.Tickable.possibleScripts
@@ -54325,7 +53642,6 @@ Wick.Tickable = class extends Wick.Base {
     if (this.project && this.project.focus === this) {
       return null;
     }
-
     // Run functions attached using onEvent
     var eventFnError = null;
     this.getEventFns(name).forEach(eventFn => {
@@ -54336,7 +53652,6 @@ Wick.Tickable = class extends Wick.Base {
       this.project.error = eventFnError;
       return;
     }
-
     // Run function inside tab
     if (this.scriptIsContentful(name)) {
       var script = this.getScript(name);
@@ -54352,7 +53667,6 @@ Wick.Tickable = class extends Wick.Base {
       }
     }
   }
-
   /**
    * The tick routine to be called when the object ticks.
    * @returns {object} - An object with information about the result from ticking. Null if no errors occured, and the script ran successfully.
@@ -54360,11 +53674,9 @@ Wick.Tickable = class extends Wick.Base {
   tick() {
     // Update named child references
     this._attachChildClipReferences();
-
     // Update onScreen flags.
     this._onscreenLastTick = this._onscreen;
     this._onscreen = this.onScreen;
-
     // Update mouse states.
     this._lastMouseState = this._mouseState;
     if (this.project && this.project.objectIsMouseTarget(this)) {
@@ -54376,7 +53688,6 @@ Wick.Tickable = class extends Wick.Base {
     } else {
       this._mouseState = 'out';
     }
-
     // Call tick event function that corresponds to state.
     if (!this._onscreen && !this._onscreenLastTick) {
       this._onInactive();
@@ -54399,49 +53710,40 @@ Wick.Tickable = class extends Wick.Base {
     this.scheduleScript('update');
     var current = this._mouseState;
     var last = this._lastMouseState;
-
     // Mouse enter
     if (last === 'out' && current !== 'out') {
       this.scheduleScript('mouseenter');
     }
-
     // Mouse down
     if (current === 'down') {
       this.scheduleScript('mousedown');
     }
-
     // Mouse pressed
     if (last === 'over' && current === 'down') {
       this._isClickTarget = true;
       this.scheduleScript('mousepressed');
     }
-
     // Mouse click
     if (last === 'down' && current === 'over' && this._isClickTarget) {
       this.scheduleScript('mouseclick');
     }
-
     // Mouse released
     if (last === 'down' && current === 'over') {
       this._isClickTarget = false;
       this.scheduleScript('mousereleased');
     }
-
     // Mouse leave
     if (last !== 'out' && current === 'out') {
       this.scheduleScript('mouseleave');
     }
-
     // Mouse hover
     if (current === 'over') {
       this.scheduleScript('mousehover');
     }
-
     // Mouse drag
     if (last === 'down' && current === 'down') {
       this.scheduleScript('mousedrag');
     }
-
     // Key down
     this.project.keysDown.forEach(key => {
       this.project.currentKey = key;
@@ -54449,7 +53751,6 @@ Wick.Tickable = class extends Wick.Base {
         key: key
       });
     });
-
     // Key press
     this.project.keysJustPressed.forEach(key => {
       this.project.currentKey = key;
@@ -54457,7 +53758,6 @@ Wick.Tickable = class extends Wick.Base {
         key: key
       });
     });
-
     // Key released
     this.project.keysJustReleased.forEach(key => {
       this.project.currentKey = key;
@@ -54472,7 +53772,6 @@ Wick.Tickable = class extends Wick.Base {
   }
   _evalScript(name, src) {
     var fn = null;
-
     // Check for syntax/parsing errors
     try {
       esprima.parseScript(src);
@@ -54480,7 +53779,6 @@ Wick.Tickable = class extends Wick.Base {
       this.project.error = this._generateEsprimaErrorInfo(e, name);
       return;
     }
-
     // Attempt to create valid function...
     try {
       fn = new Function([], src);
@@ -54492,7 +53790,6 @@ Wick.Tickable = class extends Wick.Base {
     }
     return fn;
   }
-
   /**
    * _runFunction runs an event function while passing in necessary global and local parameters.
    * @param {string} fn - Function to run.
@@ -54501,7 +53798,6 @@ Wick.Tickable = class extends Wick.Base {
    */
   _runFunction(fn, name, parameters) {
     var error = null;
-
     // Attach API methods
     var globalAPI = new GlobalAPI(this);
     var otherObjects = this.parentClip ? this.parentClip.activeNamedChildren : [];
@@ -54511,7 +53807,6 @@ Wick.Tickable = class extends Wick.Base {
         fn: otherObject
       };
     }));
-
     // Add in parameters, if necessary.
     if (parameters) {
       Object.keys(parameters).forEach(parameter => {
@@ -54524,7 +53819,6 @@ Wick.Tickable = class extends Wick.Base {
     apiMembers.forEach(apiMember => {
       window[apiMember.name] = apiMember.fn;
     });
-
     // These are currently hacked in here for performance reasons...
     var project = this.project;
     var root = project && project.root;
@@ -54541,7 +53835,6 @@ Wick.Tickable = class extends Wick.Base {
     window.root = root;
     window.parent = this.parentClip;
     window.parentObject = this.parentObject;
-
     // Run the function
     var thisScope = this instanceof Wick.Frame ? this.parentClip : this;
     try {
@@ -54551,13 +53844,11 @@ Wick.Tickable = class extends Wick.Base {
       console.error(e);
       error = this._generateErrorInfo(e, name);
     }
-
     // These are currently hacked in here for performance reasons...
     delete window.project;
     delete window.root;
     delete window.parent;
     delete window.parentObject;
-
     // Detatch API methods
     apiMembers.forEach(apiMember => {
       delete window[apiMember.name];
@@ -54619,7 +53910,6 @@ Wick.Tickable = class extends Wick.Base {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * A class representing a frame.
  */
@@ -54665,7 +53955,6 @@ Wick.Frame = class extends Wick.Tickable {
   get classname() {
     return 'Frame';
   }
-
   /**
    * The length of the frame.
    * @type {number}
@@ -54678,7 +53967,6 @@ Wick.Frame = class extends Wick.Tickable {
     var diff = length - this.length;
     this.end += diff;
   }
-
   /**
    * The midpoint of the frame.
    * @type {number}
@@ -54686,7 +53974,6 @@ Wick.Frame = class extends Wick.Tickable {
   get midpoint() {
     return this.start + (this.end - this.start) / 2;
   }
-
   /**
    * Is true if the frame is currently visible.
    * @type {boolean}
@@ -54695,7 +53982,6 @@ Wick.Frame = class extends Wick.Tickable {
     if (!this.parent) return true;
     return this.inPosition(this.parentTimeline.playheadPosition) && this.parentClip.onScreen;
   }
-
   /**
    * The sound attached to the frame.
    * @type {Wick.SoundAsset}
@@ -54711,7 +53997,6 @@ Wick.Frame = class extends Wick.Tickable {
     }
     this._soundAssetUUID = soundAsset.uuid;
   }
-
   /**
    * The volume of the sound attached to the frame.
    * @type {number}
@@ -54722,7 +54007,6 @@ Wick.Frame = class extends Wick.Tickable {
   set soundVolume(soundVolume) {
     this._soundVolume = soundVolume;
   }
-
   /**
    * Whether or not the sound loops.
    * @type {boolean}
@@ -54733,7 +54017,6 @@ Wick.Frame = class extends Wick.Tickable {
   set soundLoop(soundLoop) {
     this._soundLoop = soundLoop;
   }
-
   /**
    * True if this frame should currently be onion skinned.
    */
@@ -54741,26 +54024,22 @@ Wick.Frame = class extends Wick.Tickable {
     if (!this.project || !this.project.onionSkinEnabled) {
       return false;
     }
-
     // Don't onion skin if we're in the playhead's position.
     var playheadPosition = this.project.focus.timeline.playheadPosition;
     if (this.inPosition(playheadPosition)) {
       return false;
     }
-
     // Determine if we're in onion skinning range.
     var onionSkinSeekBackwards = this.project.onionSkinSeekBackwards;
     var onionSkinSeekForwards = this.project.onionSkinSeekForwards;
     return this.inRange(playheadPosition - onionSkinSeekBackwards, playheadPosition + onionSkinSeekForwards);
   }
-
   /**
    * Removes the sound attached to this frame.
    */
   removeSound() {
     this._soundAssetUUID = null;
   }
-
   /**
    * Plays the sound attached to this frame.
    */
@@ -54776,7 +54055,6 @@ Wick.Frame = class extends Wick.Tickable {
     };
     this._soundID = this.project.playSoundFromAsset(this.sound, options);
   }
-
   /**
    * Stops the sound attached to this frame.
    */
@@ -54786,7 +54064,6 @@ Wick.Frame = class extends Wick.Tickable {
       this._soundID = null;
     }
   }
-
   /**
    * Check if the sound on this frame is playing.
    * @returns {boolean} true if the sound is playing
@@ -54794,7 +54071,6 @@ Wick.Frame = class extends Wick.Tickable {
   isSoundPlaying() {
     return this._soundID !== null;
   }
-
   /**
    * The amount of time, in milliseconds, that the frame's sound should play before stopping.
    * @type {number}
@@ -54804,7 +54080,6 @@ Wick.Frame = class extends Wick.Tickable {
     var offsetMS = 1000 / this.project.framerate * offsetFrames;
     return offsetMS;
   }
-
   /**
    * The amount of time the sound playing should be offset, in milliseconds. If this is 0,
    * the sound plays normally. A negative value means the sound should start at a later point
@@ -54817,7 +54092,6 @@ Wick.Frame = class extends Wick.Tickable {
   set soundStart(val) {
     this._soundStart = val;
   }
-
   /**
    * When should the sound start, in milliseconds.
    * @type {number}
@@ -54825,7 +54099,6 @@ Wick.Frame = class extends Wick.Tickable {
   get soundStartMS() {
     return 1000 / this.project.framerate * (this.start - 1);
   }
-
   /**
    * When should the sound end, in milliseconds.
    * @type {number}
@@ -54833,7 +54106,6 @@ Wick.Frame = class extends Wick.Tickable {
   get soundEndMS() {
     return 1000 / this.project.framerate * this.end;
   }
-
   /**
    * Returns the frame's start position in relation to the root timeline.
    */
@@ -54845,7 +54117,6 @@ Wick.Frame = class extends Wick.Tickable {
       return val;
     }
   }
-
   /**
    * The paths on the frame.
    * @type {Wick.Path[]}
@@ -54853,7 +54124,6 @@ Wick.Frame = class extends Wick.Tickable {
   get paths() {
     return this.getChildren('Path');
   }
-
   /**
    * The paths that are text and have identifiers, for dynamic text.
    * @type {Wick.Path[]}
@@ -54863,7 +54133,6 @@ Wick.Frame = class extends Wick.Tickable {
       return path.isDynamicText;
     });
   }
-
   /**
    * The clips on the frame.
    * @type {Wick.Clip[]}
@@ -54871,7 +54140,6 @@ Wick.Frame = class extends Wick.Tickable {
   get clips() {
     return this.getChildren(['Clip', 'Button']);
   }
-
   /**
    * The drawable objectson the frame.
    * @type {Wick.Base[]}
@@ -54879,7 +54147,6 @@ Wick.Frame = class extends Wick.Tickable {
   get drawable() {
     return this.getChildren(['Clip', 'Button', 'Path']);
   }
-
   /**
    * The tweens on this frame.
    * @type {Wick.Tween[]}
@@ -54892,7 +54159,6 @@ Wick.Frame = class extends Wick.Tickable {
     });
     return this.getChildren('Tween');
   }
-
   /**
    * True if there are clips or paths on the frame.
    * @type {boolean}
@@ -54902,7 +54168,6 @@ Wick.Frame = class extends Wick.Tickable {
       return !path.view.item.data._isPlaceholder;
     }).length > 0 || this.clips.length > 0;
   }
-
   /**
    * The index of the parent layer.
    * @type {number}
@@ -54910,7 +54175,6 @@ Wick.Frame = class extends Wick.Tickable {
   get layerIndex() {
     return this.parentLayer ? this.parentLayer.index : -1;
   }
-
   /**
    * The index of the layer that this frame last belonged to. Used when copying and pasting frames.
    * @type {number}
@@ -54918,14 +54182,12 @@ Wick.Frame = class extends Wick.Tickable {
   get originalLayerIndex() {
     return this._originalLayerIndex;
   }
-
   /**
    * Removes this frame from its parent layer.
    */
   remove() {
     this.parent.removeFrame(this);
   }
-
   /**
    * True if the playhead is on this frame.
    * @param {number} playheadPosition - the position of the playhead.
@@ -54934,7 +54196,6 @@ Wick.Frame = class extends Wick.Tickable {
   inPosition(playheadPosition) {
     return this.start <= playheadPosition && this.end >= playheadPosition;
   }
-
   /**
    * True if the frame exists within the given range.
    * @param {number} start - the start of the range to check.
@@ -54944,7 +54205,6 @@ Wick.Frame = class extends Wick.Tickable {
   inRange(start, end) {
     return this.inPosition(start) || this.inPosition(end) || this.start >= start && this.start <= end || this.end >= start && this.end <= end;
   }
-
   /**
    * True if the frame is contained fully within a given range.
    * @param {number} start - the start of the range to check.
@@ -54954,7 +54214,6 @@ Wick.Frame = class extends Wick.Tickable {
   containedWithin(start, end) {
     return this.start >= start && this.end <= end;
   }
-
   /**
    * The number of frames that this frame is from a given playhead position.
    * @param {number} playheadPosition
@@ -54964,7 +54223,6 @@ Wick.Frame = class extends Wick.Tickable {
     if (this.start <= playheadPosition && this.end >= playheadPosition) {
       return 0;
     }
-
     // otherwise, find the distance from the nearest end
     if (this.start >= playheadPosition) {
       return this.start - playheadPosition;
@@ -54972,7 +54230,6 @@ Wick.Frame = class extends Wick.Tickable {
       return playheadPosition - this.end;
     }
   }
-
   /**
    * Add a clip to the frame.
    * @param {Wick.Clip} clip - the clip to add.
@@ -54982,14 +54239,12 @@ Wick.Frame = class extends Wick.Tickable {
       clip.remove();
     }
     this.addChild(clip);
-
     // Pre-render the clip's frames
     // (this fixes an issue where clips created from ClipAssets would be "missing" frames)
     clip.timeline.getAllFrames(true).forEach(frame => {
       frame.view.render();
     });
   }
-
   /**
    * Remove a clip from the frame.
    * @param {Wick.Clip} clip - the clip to remove.
@@ -54997,7 +54252,6 @@ Wick.Frame = class extends Wick.Tickable {
   removeClip(clip) {
     this.removeChild(clip);
   }
-
   /**
    * Add a path to the frame.
    * @param {Wick.Path} path - the path to add.
@@ -55008,7 +54262,6 @@ Wick.Frame = class extends Wick.Tickable {
     }
     this.addChild(path);
   }
-
   /**
    * Remove a path from the frame.
    * @param {Wick.Path} path - the path to remove.
@@ -55016,7 +54269,6 @@ Wick.Frame = class extends Wick.Tickable {
   removePath(path) {
     this.removeChild(path);
   }
-
   /**
    * Add a tween to the frame.
    * @param {Wick.Tween} tween - the tween to add.
@@ -55030,7 +54282,6 @@ Wick.Frame = class extends Wick.Tickable {
     this.addChild(tween);
     tween.restrictToFrameSize();
   }
-
   /**
    * Automatically creates a tween at the current playhead position. Converts all objects into one clip if needed.
    */
@@ -55040,7 +54291,6 @@ Wick.Frame = class extends Wick.Tickable {
     if (this.getTweenAtPosition(playheadPosition)) {
       return;
     }
-
     // If more than one object exists on the frame, or if there is only one path, create a clip from those objects
     var clips = this.clips;
     var paths = this.paths;
@@ -55056,7 +54306,6 @@ Wick.Frame = class extends Wick.Tickable {
       this.addClip(clip);
       clip.addObjects(allDrawables);
     }
-
     // Create the tween (if there's not already a tween at the current playhead position)
     var clip = this.clips[0];
     this.addTween(new Wick.Tween({
@@ -55064,7 +54313,6 @@ Wick.Frame = class extends Wick.Tickable {
       transformation: clip ? clip.transformation.copy() : new Wick.Transformation()
     }));
   }
-
   /**
    * Remove a tween from the frame.
    * @param {Wick.Tween} tween - the tween to remove.
@@ -55072,7 +54320,6 @@ Wick.Frame = class extends Wick.Tickable {
   removeTween(tween) {
     this.removeChild(tween);
   }
-
   /**
    * Remove all tweens from this frame.
    */
@@ -55081,7 +54328,6 @@ Wick.Frame = class extends Wick.Tickable {
       tween.remove();
     });
   }
-
   /**
    * Get the tween at the given playhead position. Returns null if there is no tween.
    * @param {number} playheadPosition - the playhead position to look for tweens at.
@@ -55092,7 +54338,6 @@ Wick.Frame = class extends Wick.Tickable {
       return tween.playheadPosition === playheadPosition;
     }) || null;
   }
-
   /**
    * Returns the tween at the current playhead position, if one exists on the frame. Null otherwise.
    * @returns {Wick.Tween || null}
@@ -55101,7 +54346,6 @@ Wick.Frame = class extends Wick.Tickable {
     let playheadPosition = this.getRelativePlayheadPosition();
     return this.getTweenAtPosition(playheadPosition);
   }
-
   /**
    * The tween being used to transform the objects on the frame.
    * @returns {Wick.Tween || null} tween - the active tween. Null if there is no active tween.
@@ -55125,7 +54369,6 @@ Wick.Frame = class extends Wick.Tickable {
       return null;
     }
   }
-
   /**
    * Applies the transformation of current tween to the objects on the frame.
    */
@@ -55137,7 +54380,6 @@ Wick.Frame = class extends Wick.Tickable {
       });
     }
   }
-
   /**
    * Applies single frame positions to timelines if necessary.
    */
@@ -55146,7 +54388,6 @@ Wick.Frame = class extends Wick.Tickable {
       clip.applySingleFramePosition();
     });
   }
-
   /**
    * Update all clip timelines for their animation type.
    */
@@ -55155,7 +54396,6 @@ Wick.Frame = class extends Wick.Tickable {
       clip.updateTimelineForAnimationType();
     });
   }
-
   /**
    * The asset of the sound attached to this frame, if one exists
    * @returns {Wick.Asset[]}
@@ -55167,35 +54407,28 @@ Wick.Frame = class extends Wick.Tickable {
     }
     return linkedAssets;
   }
-
   /**
    * Cut this frame in half using the parent timeline's playhead position.
    */
   cut() {
     // Can't cut a frame that doesn't beolong to a timeline + layer
     if (!this.parentTimeline) return;
-
     // Can't cut a frame with length 1
     if (this.length === 1) return;
-
     // Can't cut a frame that isn't under the playhead
     var playheadPosition = this.parentTimeline.playheadPosition;
     if (!this.inPosition(playheadPosition)) return;
-
     // Create right half (leftover) frame
     var rightHalf = this.copy();
     rightHalf.identifier = null;
     rightHalf.removeSound();
     rightHalf.removeAllTweens();
     rightHalf.start = playheadPosition = playheadPosition;
-
     // Cut this frame shorter
     this.end = playheadPosition - 1;
-
     // Add right frame
     this.parentLayer.addFrame(rightHalf);
   }
-
   /**
    * Extend this frame by one and push all frames right of this frame to the right.
    */
@@ -55206,7 +54439,6 @@ Wick.Frame = class extends Wick.Tickable {
     });
     this.end += 1;
   }
-
   /**
    * Shrink this frame by one and pull all frames left of this frame to the left.
    */
@@ -55218,7 +54450,6 @@ Wick.Frame = class extends Wick.Tickable {
     });
     this.end -= 1;
   }
-
   /**
    * Import SVG data into this frame. SVGs containing mulitple paths will be split into multiple Wick Paths.
    * @param {string} svg - the SVG data to parse and import.
@@ -55235,7 +54466,6 @@ Wick.Frame = class extends Wick.Tickable {
   getRelativePlayheadPosition() {
     return this.parentTimeline.playheadPosition - this.start + 1;
   }
-
   /**
    * Find the first tween on this frame that exists behind the given playhead position.
    * @returns {Wick.Tween}
@@ -55250,7 +54480,6 @@ Wick.Frame = class extends Wick.Tickable {
     }
     return seekBackwardsTween;
   }
-
   /**
    * Find the first tween on this frame that exists past the given playhead position.
    * @returns {Wick.Tween}
@@ -55315,7 +54544,6 @@ Wick.Frame = class extends Wick.Tickable {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * A class representing a Wick Clip.
  */
@@ -55331,7 +54559,6 @@ Wick.Clip = class extends Wick.Tickable {
       'playOnce': 'Play Once'
     };
   }
-
   /**
    * Create a new clip.
    * @param {string} identifier - The identifier of the new clip.
@@ -55353,7 +54580,6 @@ Wick.Clip = class extends Wick.Tickable {
     this._isClone = false;
     this._sourceClipUUID = null;
     this._assetSourceUUID = null;
-
     /* If objects are passed in, add them to the clip and reposition them */
     if (args.objects) {
       this.addObjects(args.objects);
@@ -55384,7 +54610,6 @@ Wick.Clip = class extends Wick.Tickable {
   get classname() {
     return 'Clip';
   }
-
   /**
    * Determines whether or not the clip is visible in the project.
    * @type {boolean}
@@ -55396,7 +54621,6 @@ Wick.Clip = class extends Wick.Tickable {
       return this.parentFrame.onScreen;
     }
   }
-
   /**
    * Determines whether or not the clip is the root clip in the project.
    * @type {boolean}
@@ -55404,10 +54628,9 @@ Wick.Clip = class extends Wick.Tickable {
   get isRoot() {
     return this.project && this === this.project.root;
   }
-
   /**
    * True if the clip should sync to the timeline's position.
-   * @type {boolean} 
+   * @type {boolean}
    */
   get isSynced() {
     let isSingle = this.animationType === 'single';
@@ -55424,7 +54647,6 @@ Wick.Clip = class extends Wick.Tickable {
       this.timeline.playheadPosition = 1;
     }
   }
-
   /**
    * Determines whether or not the clip is the currently focused clip in the project.
    * @type {boolean}
@@ -55432,7 +54654,6 @@ Wick.Clip = class extends Wick.Tickable {
   get isFocus() {
     return this.project && this === this.project.focus;
   }
-
   /**
    * Check if a Clip is a clone of another object.
    * @type {boolean}
@@ -55440,7 +54661,6 @@ Wick.Clip = class extends Wick.Tickable {
   get isClone() {
     return this._isClone;
   }
-
   /**
    * The uuid of the clip that this clip was cloned from.
    * @type {string}
@@ -55448,16 +54668,14 @@ Wick.Clip = class extends Wick.Tickable {
   get sourceClipUUID() {
     return this._sourceClipUUID;
   }
-
   /**
    * Returns the source clip of this clip if this clip is a clone. Null otherwise.
-   * 
+   *
    */
   get sourceClip() {
     if (!this.sourceClipUUID) return null;
     return this.project.getObjectByUUID(this.sourceClipUUID);
   }
-
   /**
    * The uuid of the ClipAsset that this clip was created from.
    * @type {string}
@@ -55468,7 +54686,6 @@ Wick.Clip = class extends Wick.Tickable {
   set assetSourceUUID(assetSourceUUID) {
     this._assetSourceUUID = assetSourceUUID;
   }
-
   /**
    * The timeline of the clip.
    * @type {Wick.Timeline}
@@ -55482,7 +54699,6 @@ Wick.Clip = class extends Wick.Tickable {
     }
     this.addChild(timeline);
   }
-
   /**
    * The animation type of the clip. Must be of a type represented within animationTypes;
    * @type {string}
@@ -55500,7 +54716,6 @@ Wick.Clip = class extends Wick.Tickable {
       this.resetTimelinePosition();
     }
   }
-
   /**
    * The frame to display when animation type is set to singleFrame.
    * @type {number}
@@ -55522,23 +54737,19 @@ Wick.Clip = class extends Wick.Tickable {
     this._singleFrameNumber = frame;
     this.applySingleFramePosition();
   }
-
   /**
    * The frame to display when the clip is synced
    * @type {number}
    */
   get syncFrame() {
     let timelineOffset = this.parentClip.timeline.playheadPosition - this.parentFrame.start;
-
     // Show the last frame if we're past it on a playOnce Clip.
     if (this.animationType === 'playOnce' && timelineOffset >= this.timeline.length) {
       return this.timeline.length;
     }
-
     // Otherwise, show the correct frame.
     return timelineOffset % this.timeline.length + 1;
   }
-
   /**
    * Returns true if the clip has been played through fully once.
    * @type {boolean}
@@ -55549,7 +54760,6 @@ Wick.Clip = class extends Wick.Tickable {
   set playedOnce(bool) {
     return this._playedOnce = bool;
   }
-
   /**
    * The active layer of the clip's timeline.
    * @type {Wick.Layer}
@@ -55557,7 +54767,6 @@ Wick.Clip = class extends Wick.Tickable {
   get activeLayer() {
     return this.timeline.activeLayer;
   }
-
   /**
    * The active frame of the clip's timeline.
    * @type {Wick.Frame}
@@ -55565,7 +54774,6 @@ Wick.Clip = class extends Wick.Tickable {
   get activeFrame() {
     return this.activeLayer.activeFrame;
   }
-
   /**
    * An array containing every clip and frame that is a child of this clip and has an identifier.
    * @type {Wick.Base[]}
@@ -55574,19 +54782,16 @@ Wick.Clip = class extends Wick.Tickable {
     var namedChildren = [];
     this.timeline.frames.forEach(frame => {
       // Objects that can be accessed by their identifiers:
-
       // Frames
       if (frame.identifier) {
         namedChildren.push(frame);
       }
-
       // Clips
       frame.clips.forEach(clip => {
         if (clip.identifier) {
           namedChildren.push(clip);
         }
       });
-
       // Dynamic text paths
       frame.dynamicTextPaths.forEach(path => {
         namedChildren.push(path);
@@ -55594,7 +54799,6 @@ Wick.Clip = class extends Wick.Tickable {
     });
     return namedChildren;
   }
-
   /**
    * An array containing every clip and frame that is a child of this clip and has an identifier, and also is visible on screen.
    * @type {Wick.Base[]}
@@ -55604,7 +54808,6 @@ Wick.Clip = class extends Wick.Tickable {
       return child.onScreen;
     });
   }
-
   /**
    * Resets the clip's timeline position.
    */
@@ -55615,7 +54818,6 @@ Wick.Clip = class extends Wick.Tickable {
       this.timeline.playheadPosition = 1; // Reset timeline position if we are not on single frame.
     }
   }
-
   /**
    * Updates the frame's single frame positions if necessary. Only works if the clip's animationType is 'single'.
    */
@@ -55625,7 +54827,6 @@ Wick.Clip = class extends Wick.Tickable {
       this.timeline.playheadPosition = this.singleFrameNumber;
     }
   }
-
   /**
    * Updates the clip's playhead position if the Clip is in sync mode
    */
@@ -55634,7 +54835,6 @@ Wick.Clip = class extends Wick.Tickable {
       this.timeline.playheadPosition = this.syncFrame;
     }
   }
-
   /**
    * Updates the timeline of the clip based on the animation type of the clip.
    */
@@ -55646,16 +54846,14 @@ Wick.Clip = class extends Wick.Tickable {
       this.applySyncPosition();
     }
   }
-
   /**
    * Remove a clone from the clones array by uuid.
-   * @param {string} uuid 
+   * @param {string} uuid
    */
   removeClone(uuid) {
     if (this.isClone) return;
     this._clones = this.clones.filter(obj => obj.uuid !== uuid);
   }
-
   /**
    * Remove this clip from its parent frame.
    */
@@ -55664,16 +54862,13 @@ Wick.Clip = class extends Wick.Tickable {
     // (This is caused by calling remove() multiple times on one object inside a script.)
     if (!this.parent || this._willBeRemoved) return;
     this._willBeRemoved = true;
-
     // Force unload to run now, before object is removed;
     this.runScript('unload');
-
     // Remove from the clones array.
     this.sourceClip && this.sourceClip.removeClone(this.uuid);
     this.parent.removeClip(this);
     this.removed = true;
   }
-
   /**
    * Remove this clip and add all of its paths and clips to its parent frame.
    * @returns {Wick.Base[]} the objects that were inside the clip.
@@ -55697,7 +54892,6 @@ Wick.Clip = class extends Wick.Tickable {
     this.remove();
     return leftovers;
   }
-
   /**
    * Add paths and clips to this clip.
    * @param {Wick.Base[]} objects - the paths and clips to add to the clip
@@ -55716,21 +54910,18 @@ Wick.Clip = class extends Wick.Tickable {
       }
     });
   }
-
   /**
    * Stops a clip's timeline on that clip's current playhead position.
    */
   stop() {
     this.timeline.stop();
   }
-
   /**
    * Plays a clip's timeline from that clip's current playhead position.
    */
   play() {
     this.timeline.play();
   }
-
   /**
    * Moves a clip's playhead to a specific position and stops that clip's timeline on that position.
    * @param {number|string} frame - number or string representing the frame to move the playhead to.
@@ -55739,7 +54930,6 @@ Wick.Clip = class extends Wick.Tickable {
     this.timeline.gotoAndStop(frame);
     this.applySingleFramePosition();
   }
-
   /**
    * Moves a clip's playhead to a specific position and plays that clip's timeline from that position.
    * @param {number|string} frame - number or string representing the frame to move the playhead to.
@@ -55748,7 +54938,6 @@ Wick.Clip = class extends Wick.Tickable {
     this.timeline.gotoAndPlay(frame);
     this.applySingleFramePosition();
   }
-
   /**
    * Move the playhead of the clips timeline forward one frame. Does nothing if the clip is on its last frame.
    */
@@ -55756,7 +54945,6 @@ Wick.Clip = class extends Wick.Tickable {
     this.timeline.gotoNextFrame();
     this.applySingleFramePosition();
   }
-
   /**
    * Move the playhead of the clips timeline backwards one frame. Does nothing if the clip is on its first frame.
    */
@@ -55764,7 +54952,6 @@ Wick.Clip = class extends Wick.Tickable {
     this.timeline.gotoPrevFrame();
     this.applySingleFramePosition();
   }
-
   /**
    * Returns the name of the frame which is currently active. If multiple frames are active, returns the name of the first active frame.
    * @returns {string} Active Frame name. If the active frame does not have an identifier, returns empty string.
@@ -55780,7 +54967,6 @@ Wick.Clip = class extends Wick.Tickable {
     });
     return name;
   }
-
   /**
    * @deprecated
    * Returns the current playhead position. This is a legacy function, you should use clip.playheadPosition instead.
@@ -55789,7 +54975,6 @@ Wick.Clip = class extends Wick.Tickable {
   get currentFrameNumber() {
     return this.timeline.playheadPosition;
   }
-
   /**
    * The current transformation of the clip.
    * @type {Wick.Transformation}
@@ -55799,7 +54984,6 @@ Wick.Clip = class extends Wick.Tickable {
   }
   set transformation(transformation) {
     this._transformation = transformation;
-
     // When the transformation changes, update the current tween, if one exists
     if (this.parentFrame) {
       // This tween must only ever be the tween over the current playhead position.
@@ -55810,7 +54994,6 @@ Wick.Clip = class extends Wick.Tickable {
       }
     }
   }
-
   /**
    * Perform circular hit test with other clip.
    * @param {Wick.Clip} other - the clip to hit test with
@@ -55834,7 +55017,6 @@ Wick.Clip = class extends Wick.Tickable {
       x = x / magnitude;
       y = y / magnitude;
       // <x,y> is now a normalized vector from c2 to c1 
-
       let result = {};
       if (options.overlap) {
         result.overlapX = overlap * x;
@@ -55866,7 +55048,6 @@ Wick.Clip = class extends Wick.Tickable {
     }
     return null;
   }
-
   /**
    * Perform rectangular hit test with other clip.
    * @param {Wick.Clip} other - the clip to hit test with
@@ -55876,7 +55057,6 @@ Wick.Clip = class extends Wick.Tickable {
   rectangleHits(other, options) {
     let bounds1 = this.absoluteBounds;
     let bounds2 = other.absoluteBounds;
-
     // TODO: write intersects so we don't rely on paper Rectangle objects
     if (bounds1.intersects(bounds2)) {
       let result = {};
@@ -55903,7 +55083,6 @@ Wick.Clip = class extends Wick.Tickable {
         let magnitude = Math.sqrt(vectorX * vectorX + vectorY * vectorY);
         vectorX /= magnitude;
         vectorY /= magnitude;
-
         // Choose p1, p2, based on quadrant of center to center vector
         let p1 = vectorX > 0 ? vectorY > 0 ? bounds1.topLeft : bounds1.bottomLeft : vectorY > 0 ? bounds1.topRight : bounds1.bottomRight;
         let p2 = vectorX > 0 ? vectorY > 0 ? bounds2.bottomRight : bounds2.topRight : vectorY > 0 ? bounds2.bottomLeft : bounds2.topLeft;
@@ -55926,7 +55105,6 @@ Wick.Clip = class extends Wick.Tickable {
             let b = ps1[(i + 1) % 4];
             let c = ps2[j];
             let d = ps2[(j + 1) % 4];
-
             // Perpendicular lines will intersect, we'll use parametric line intersection
             //<x,y> = a + (b - a)t1
             //<x,y> = c + (d - c)t2
@@ -55956,14 +55134,12 @@ Wick.Clip = class extends Wick.Tickable {
       return null;
     }
   }
-
   // Return whether triangle p1 p2 p3 is clockwise (in screen space,
   // means counterclockwise in a normal space with y axis pointed up)
   cw(x1, y1, x2, y2, x3, y3) {
     const cw = (y3 - y1) * (x2 - x1) - (y2 - y1) * (x3 - x1);
     return cw >= 0; // colinear ?
   }
-
   /**
    * Perform convex hull hit test with other clip.
    * @param {Wick.Clip} other - the clip to hit test with
@@ -55980,7 +55156,6 @@ Wick.Clip = class extends Wick.Tickable {
     }
     let c1 = bounds1.center;
     let c2 = bounds2.center;
-
     // clockwise arrays of points in format [[x1, y1], [x2, y2], ...]
     let hull1 = this.convexHull;
     let hull2 = other.convexHull;
@@ -55998,7 +55173,6 @@ Wick.Clip = class extends Wick.Tickable {
         b = hull1[((i1 - 1) % hull1.length + hull1.length) % hull1.length],
         c = hull2[i2],
         d = hull2[((i2 - 1) % hull2.length + hull2.length) % hull2.length];
-
       //Use parametric line intersection
       //<x,y> = a + (b - a)t1
       //<x,y> = c + (d - c)t2
@@ -56076,7 +55250,6 @@ Wick.Clip = class extends Wick.Tickable {
       // from this center to that center,
       // Then, the offset is a vector in the direction from that center to this center
       // with magnitude of that radius
-
       let targetTheta = Math.atan2(c2.y - c1.y, c2.x - c1.x); //from c1 to c2
       let r = this.radiusAtPointInDirection(hull1, avgIntersection, targetTheta);
       targetTheta = (targetTheta + Math.PI) % (2 * Math.PI);
@@ -56093,7 +55266,6 @@ Wick.Clip = class extends Wick.Tickable {
       //same as offset except instead of center to center, 
       //we will move perpendicular to the best fit line
       //of the intersection points
-
       let directionX, directionY;
       if (intersections.length < 2) {
         directionX = c2.x - c1.x;
@@ -56133,7 +55305,6 @@ Wick.Clip = class extends Wick.Tickable {
     }
     return result;
   }
-
   /**
    * Casts a ray from p in the direction targetTheta and intersects it with the hull ch,
    * returns the distance from p to the surface of ch.
@@ -56169,7 +55340,6 @@ Wick.Clip = class extends Wick.Tickable {
     let t1 = (c[0] + (d[0] - c[0]) * t2 - a[0]) / (b[0] - a[0]);
     return Math.hypot(a[0] + (b[0] - a[0]) * t1 - p.x, a[1] + (b[1] - a[1]) * t1 - p.y);
   }
-
   /**
    * Perform hit test with other clip.
    * @param {Wick.Clip} other - the clip to hit test with
@@ -56178,9 +55348,7 @@ Wick.Clip = class extends Wick.Tickable {
    */
   hits(other, options) {
     // Get hit options
-    let finalOptions = {
-      ...this.project.hitTestOptions
-    };
+    let finalOptions = Object.assign({}, this.project.hitTestOptions);
     if (options) {
       if (options.mode === 'CIRCLE' || options.mode === 'RECTANGLE' || options.mode === 'CONVEX') {
         finalOptions.mode = options.mode;
@@ -56206,7 +55374,6 @@ Wick.Clip = class extends Wick.Tickable {
       return this.rectangleHits(other, finalOptions);
     }
   }
-
   /**
    * Returns true if this clip collides with another clip.
    * @param {Wick.Clip} other - The other clip to check collision with.
@@ -56216,7 +55383,6 @@ Wick.Clip = class extends Wick.Tickable {
     // TODO: write intersects so we don't rely on paper Rectangle objects
     return this.absoluteBounds.intersects(other.absoluteBounds);
   }
-
   /**
    * The bounding box of the clip.
    * @type {object}
@@ -56237,7 +55403,6 @@ Wick.Clip = class extends Wick.Tickable {
     // Use length of half diagonal of bounding box
     let b = this.absoluteBounds;
     return Math.sqrt(b.width * b.width + b.height * b.height) / 2 / Math.sqrt(2);
-
     // Alternative: use largest distance from center to a point on the object
     /*
     let center = this.absoluteBounds.center;
@@ -56252,11 +55417,9 @@ Wick.Clip = class extends Wick.Tickable {
      return Math.sqrt(max_r);
     */
   }
-
   // Gives clockwise in screen space, which is ccw in regular axes
   get convexHull() {
     let points = this.points;
-
     // Infinity gets us the convex hull
     let ch = hull(points, Infinity);
     let removedDuplicates = [];
@@ -56272,7 +55435,6 @@ Wick.Clip = class extends Wick.Tickable {
     }
     return removedDuplicates;
   }
-
   /**
    * The X position of the clip.
    * @type {number}
@@ -56283,7 +55445,6 @@ Wick.Clip = class extends Wick.Tickable {
   set x(x) {
     this.transformation.x = x;
   }
-
   /**
    * The Y position of the clip.
    * @type {number}
@@ -56294,7 +55455,6 @@ Wick.Clip = class extends Wick.Tickable {
   set y(y) {
     this.transformation.y = y;
   }
-
   /**
    * The X scale of the clip.
    * @type {number}
@@ -56306,7 +55466,6 @@ Wick.Clip = class extends Wick.Tickable {
     if (scaleX === 0) scaleX = 0.001; // Protects against NaN issues
     this.transformation.scaleX = scaleX;
   }
-
   /**
    * The Y scale of the clip.
    * @type {number}
@@ -56318,7 +55477,6 @@ Wick.Clip = class extends Wick.Tickable {
     if (scaleY === 0) scaleY = 0.001; // Protects against NaN issues
     this.transformation.scaleY = scaleY;
   }
-
   /**
    * The width of the clip.
    * @type {number}
@@ -56329,7 +55487,6 @@ Wick.Clip = class extends Wick.Tickable {
   set width(width) {
     this.scaleX = width / this.width * this.scaleX;
   }
-
   /**
    * The height of the clip.
    * @type {number}
@@ -56340,7 +55497,6 @@ Wick.Clip = class extends Wick.Tickable {
   set height(height) {
     this.scaleY = height / this.height * this.scaleY;
   }
-
   /**
    * The rotation of the clip.
    * @type {number}
@@ -56351,7 +55507,6 @@ Wick.Clip = class extends Wick.Tickable {
   set rotation(rotation) {
     this.transformation.rotation = rotation;
   }
-
   /**
    * The opacity of the clip.
    * @type {number}
@@ -56364,7 +55519,6 @@ Wick.Clip = class extends Wick.Tickable {
     opacity = Math.max(0, opacity);
     this.transformation.opacity = opacity;
   }
-
   /**
    * Copy this clip, and add the copy to the same frame as the original clip.
    * @returns {Wick.Clip} the result of the clone.
@@ -56378,7 +55532,6 @@ Wick.Clip = class extends Wick.Tickable {
     clone._sourceClipUUID = this.uuid;
     return clone;
   }
-
   /**
    * An array containing all objects that were created by calling clone() on this Clip.
    * @type {Wick.Clip[]}
@@ -56386,14 +55539,12 @@ Wick.Clip = class extends Wick.Tickable {
   get clones() {
     return this._clones;
   }
-
   /**
    * This is a stopgap to prevent users from using setText with a Clip.
    */
   setText() {
     throw new Error('setText() can only be used with text objects.');
   }
-
   /**
    * The list of parents, grandparents, grand-grandparents...etc of the clip.
    * @returns {Wick.Clip[]} Array of all parents
@@ -56405,7 +55556,6 @@ Wick.Clip = class extends Wick.Tickable {
       return [this].concat(this.parentClip.lineage);
     }
   }
-
   /**
    * Add a placeholder path to this clip to ensure the Clip is always selectable when rendered.
    */
@@ -56415,7 +55565,6 @@ Wick.Clip = class extends Wick.Tickable {
     if (!firstLayerExists) {
       this.timeline.addLayer(new Wick.Layer());
     }
-
     // Ensure active frame exists
     var playheadPosition = this.timeline.playheadPosition;
     var activeFrameExists = this.timeline.getFramesAtPlayheadPosition(playheadPosition).length > 0;
@@ -56424,14 +55573,12 @@ Wick.Clip = class extends Wick.Tickable {
         start: playheadPosition
       }));
     }
-
     // Clear placeholders
     var frame = this.timeline.getFramesAtPlayheadPosition(playheadPosition)[0];
     frame.paths.forEach(path => {
       if (!path.isPlaceholder) return;
       path.remove();
     });
-
     // Check if active frame is contentful
     var firstFramesAreContentful = false;
     this.timeline.getFramesAtPlayheadPosition(playheadPosition).forEach(frame => {
@@ -56439,7 +55586,6 @@ Wick.Clip = class extends Wick.Tickable {
         firstFramesAreContentful = true;
       }
     });
-
     // Ensure active frame is contentful
     if (!firstFramesAreContentful) {
       // Clear placeholders
@@ -56447,7 +55593,6 @@ Wick.Clip = class extends Wick.Tickable {
       frame.paths.forEach(path => {
         path.remove();
       });
-
       // Generate crosshair
       var size = Wick.View.Clip.PLACEHOLDER_SIZE;
       var line1 = new paper.Path.Line({
@@ -56524,7 +55669,6 @@ Wick.Clip = class extends Wick.Tickable {
           clip._attachChildClipReferences();
         }
       });
-
       // Dynamic text paths can be accessed by their identifiers.
       frame.dynamicTextPaths.forEach(path => {
         this[path.identifier] = path;
@@ -56550,7 +55694,6 @@ Wick.Clip = class extends Wick.Tickable {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * A class representing a Wick Button.
  * Buttons are just clips with special timelines controlled by mouse interactions.
@@ -56638,7 +55781,6 @@ Wick.Button = class extends Wick.Clip {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Tool = class {
   static get DOUBLE_CLICK_TIME() {
     return 300;
@@ -56646,28 +55788,23 @@ Wick.Tool = class {
   static get DOUBLE_CLICK_MAX_DISTANCE() {
     return 20;
   }
-
   /**
    * Creates a new Wick Tool.
    */
   constructor() {
     this.paperTool = new this.paper.Tool();
-
     // Attach onActivate event
     this.paperTool.onActivate = e => {
       this.onActivate(e);
     };
-
     // Attach onDeactivate event
     this.paperTool.onDeactivate = e => {
       this.onDeactivate(e);
     };
-
     // Attach mouse move event
     this.paperTool.onMouseMove = e => {
       this.onMouseMove(e);
     };
-
     // Attach mouse down + double click event
     this.paperTool.onMouseDown = e => {
       if (this.doubleClickEnabled && this._lastMousedownTimestamp !== null && e.timeStamp - this._lastMousedownTimestamp < Wick.Tool.DOUBLE_CLICK_TIME && e.point.subtract(this._lastMousedownPoint).length < Wick.Tool.DOUBLE_CLICK_MAX_DISTANCE) {
@@ -56678,7 +55815,6 @@ Wick.Tool = class {
       this._lastMousedownTimestamp = e.timeStamp;
       this._lastMousedownPoint = e.point;
     };
-
     // Attach key events
     this.paperTool.onKeyDown = e => {
       this.onKeyDown(e);
@@ -56686,12 +55822,10 @@ Wick.Tool = class {
     this.paperTool.onKeyUp = e => {
       this.onKeyUp(e);
     };
-
     // Attach mouse move event
     this.paperTool.onMouseDrag = e => {
       this.onMouseDrag(e);
     };
-
     // Attach mouse up event
     this.paperTool.onMouseUp = e => {
       this.onMouseUp(e);
@@ -56699,80 +55833,66 @@ Wick.Tool = class {
     this._eventCallbacks = {};
     this._lastMousedownTimestamp = null;
   }
-
   /**
    * The paper.js scope to use.
    */
   get paper() {
     return Wick.View.paperScope;
   }
-
   /**
    * The CSS cursor to display for this tool.
    */
   get cursor() {
     console.warn("Warning: Tool is missing a cursor!");
   }
-
   /**
    * Called when the tool is activated
    */
   onActivate(e) {}
-
   /**
    * Called when the tool is deactivated (another tool is activated)
    */
   onDeactivate(e) {}
-
   /**
    * Called when the mouse moves and the tool is active.
    */
   onMouseMove(e) {
     this.setCursor(this.cursor);
   }
-
   /**
    * Called when the mouse clicks the paper.js canvas and this is the active tool.
    */
   onMouseDown(e) {}
-
   /**
    * Called when the mouse is dragged on the paper.js canvas and this is the active tool.
    */
   onMouseDrag(e) {}
-
   /**
    * Called when the mouse is clicked on the paper.js canvas and this is the active tool.
    */
   onMouseUp(e) {}
-
   /**
    * Called when the mouse double clicks on the paper.js canvas and this is the active tool.
    */
   onDoubleClick(e) {}
-
   /**
    * Called when a key is pressed and this is the active tool.
    */
   onKeyDown(e) {}
-
   /**
    * Called when a key is released and this is the active tool.
    */
   onKeyUp(e) {}
-
   /**
    * Should reset the state of the tool.
    */
   reset() {}
-
   /**
    * Activates this tool in paper.js.
    */
   activate() {
     this.paperTool.activate();
   }
-
   /**
    * Sets the cursor of the paper.js canvas that the tool belongs to.
    * @param {string} cursor - a CSS cursor style
@@ -56780,7 +55900,6 @@ Wick.Tool = class {
   setCursor(cursor) {
     this.paper.view._element.style.cursor = cursor;
   }
-
   /**
    * Attach a function to get called when an event happens.
    * @param {string} eventName - the name of the event
@@ -56789,7 +55908,6 @@ Wick.Tool = class {
   on(eventName, fn) {
     this._eventCallbacks[eventName] = fn;
   }
-
   /**
    * Call the functions attached to a given event.
    * @param {string} eventName - the name of the event to fire
@@ -56811,7 +55929,6 @@ Wick.Tool = class {
     var fn = this._eventCallbacks[eventName];
     fn && fn(e, actionName);
   }
-
   /**
    *
    * @param {paper.Color} color - the color of the cursor
@@ -56826,7 +55943,6 @@ Wick.Tool = class {
     var context = canvas.getContext('2d');
     var centerX = canvas.width / 2;
     var centerY = canvas.height / 2;
-
     // Prefer globally exposed invert function, but fall back to a safe default
     const inv = typeof invert === 'function' ? invert : typeof window !== 'undefined' && typeof window.invert === 'function' ? window.invert : null;
     context.beginPath();
@@ -56846,7 +55962,6 @@ Wick.Tool = class {
     }
     return 'url(' + canvas.toDataURL() + ') ' + (radius + 1) + ' ' + (radius + 1) + ',default';
   }
-
   /**
    * Get a tool setting from the project. See Wick.ToolSettings for all options
    * @param {string} name - the name of the setting to get
@@ -56854,7 +55969,6 @@ Wick.Tool = class {
   getSetting(name) {
     return this.project.toolSettings.getSetting(name);
   }
-
   /**
    * Does this tool have a double click action? (override this in classes that extend Wick.Tool)
    * @type {boolean}
@@ -56862,7 +55976,6 @@ Wick.Tool = class {
   get doubleClickEnabled() {
     return true;
   }
-
   /**
    * Adds a paper.Path to the active frame's paper.Layer.
    * @param {paper.Path} path - the path to add
@@ -56924,7 +56037,6 @@ Wick.Tools = {};
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Tools.Brush = class extends Wick.Tool {
   static get CROQUIS_WAIT_AMT_MS() {
     return 100;
@@ -56932,7 +56044,6 @@ Wick.Tools.Brush = class extends Wick.Tool {
   get doubleClickEnabled() {
     return false;
   }
-
   /**
    * Creates the brush tool.
    */
@@ -56951,12 +56062,10 @@ Wick.Tools.Brush = class extends Wick.Tool {
     this.errorOccured = false;
     this._isInProgress = false;
     this._croquisStartTimeout = null;
-
     // These are used to crop the final path image.
     this.strokeBounds = new paper.Rectangle();
     this._lastMousePoint = new paper.Point(0, 0);
     this._lastMousePressure = 1;
-
     // The frame that the brush started the current stroke on.
     this._currentDrawingFrame = null;
   }
@@ -57006,7 +56115,6 @@ Wick.Tools.Brush = class extends Wick.Tool {
     clearTimeout(this._croquisStartTimeout);
     this._isInProgress = true;
     this._updateCanvasAttributes();
-
     // Update croquis params
     this.croquisBrush.setSize(this._getRealBrushSize());
     this.croquisBrush.setColor(this.getSetting('fillColor').hex);
@@ -57014,7 +56122,6 @@ Wick.Tools.Brush = class extends Wick.Tool {
     this.croquis.setToolStabilizeLevel(this.BRUSH_STABILIZER_LEVEL);
     this.croquis.setToolStabilizeWeight(this.getSetting('brushStabilizerWeight') / 100.0 + 0.3);
     this.croquis.setToolStabilizeInterval(1);
-
     // Forward mouse event to croquis canvas
     var point = this._croquisToPaperPoint(e.point);
     this._updateStrokeBounds(point);
@@ -57028,7 +56135,6 @@ Wick.Tools.Brush = class extends Wick.Tool {
   }
   onMouseDrag(e) {
     if (!this._isInProgress) return;
-
     // Forward mouse event to croquis canvas
     var point = this._croquisToPaperPoint(e.point);
     this._updateStrokeBounds(point);
@@ -57054,7 +56160,6 @@ Wick.Tools.Brush = class extends Wick.Tool {
     }
     this._potraceCroquisCanvas(point);
   }
-
   /**
    * The current amount of pressure applied to the paper js canvas this tool belongs to.
    */
@@ -57066,7 +56171,6 @@ Wick.Tools.Brush = class extends Wick.Tool {
       return 1;
     }
   }
-
   /**
    * Croquis throws a lot of errrors. This is a helpful function to handle those errors gracefully.
    */
@@ -57079,7 +56183,6 @@ Wick.Tools.Brush = class extends Wick.Tool {
     }
     this.errorOccured = true;
   }
-
   /**
    * Is the brush currently making a stroke?
    * @type {boolean}
@@ -57087,41 +56190,33 @@ Wick.Tools.Brush = class extends Wick.Tool {
   isInProgress() {
     return this._isInProgress;
   }
-
   /**
    * Discard the current brush stroke.
    */
   discard() {
     if (!this._isInProgress) return;
     this._isInProgress = false;
-
     // "Give up" on the current stroke by forcing a mouseup
     this.croquis.up(this._lastMousePoint.x, this._lastMousePoint.y, this._lastMousePressure);
-
     // Clear the current croquis canvas
     setTimeout(() => {
       this.croquis.clearLayer();
     }, 10);
   }
-
   /**
    * Force the current stroke to be finished, and add the stroke to the project.
    */
   finishStrokeEarly() {
     if (!this._isInProgress) return;
     this._isInProgress = false;
-
     // Hide the croquis canvas so that the current stroke is never seen on the new frame.
     this.croquisDOMElement.style.opacity = 0;
-
     // "Give up" on the current stroke by forcing a mouseup
     this.croquis.up(this._lastMousePoint.x, this._lastMousePoint.y, this._lastMousePressure);
-
     // Add path to project
     this._calculateStrokeBounds(this._lastMousePoint);
     this._potraceCroquisCanvas(this._lastMousePoint);
   }
-
   /* Generate a new circle cursor based on the brush size. */
   _regenCursor() {
     var size = this._getRealBrushSize();
@@ -57129,7 +56224,6 @@ Wick.Tools.Brush = class extends Wick.Tool {
     this.cachedCursor = this.createDynamicCursor(color, size, this.getSetting('pressureEnabled'));
     this.setCursor(this.cachedCursor);
   }
-
   /* Get the actual pixel size of the brush to send to Croquis. */
   _getRealBrushSize() {
     var size = this.getSetting('brushSize') + 1;
@@ -57138,44 +56232,36 @@ Wick.Tools.Brush = class extends Wick.Tool {
     }
     return size;
   }
-
   /* Update Croquis and the div containing croquis to reflect all current options. */
   _updateCanvasAttributes() {
     if (!this.paper.view._element.parentElement) {
       return;
     }
-
     // Update croquis element and pressure options
     if (!this.paper.view._element.parentElement.contains(this.croquisDOMElement)) {
       this.paper.view.enablePressure();
       this.paper.view._element.parentElement.appendChild(this.croquisDOMElement);
     }
-
     // Update croquis element canvas size
     if (this.croquis.getCanvasWidth() !== this.paper.view._element.width || this.croquis.getCanvasHeight() !== this.paper.view._element.height) {
       this.croquis.setCanvasSize(this.paper.view._element.width, this.paper.view._element.height);
     }
-
     // Fake brush opacity in croquis by changing the opacity of the croquis canvas
     this.croquisDOMElement.style.opacity = this.getSetting('fillColor').a;
   }
-
   /* Convert a point in Croquis' canvas space to paper.js's canvas space. */
   _croquisToPaperPoint(croquisPoint) {
     var paperPoint = this.paper.view.projectToView(croquisPoint.x, croquisPoint.y);
     return paperPoint;
   }
-
   /* Used for calculating the crop amount for potrace. */
   _resetStrokeBounds(point) {
     this.strokeBounds = new paper.Rectangle(point.x, point.y, 1, 1);
   }
-
   /* Used for calculating the crop amount for potrace. */
   _updateStrokeBounds(point) {
     this.strokeBounds = this.strokeBounds.include(point);
   }
-
   /* Used for saving information on the mouse (croquis does not save this.) */
   _updateLastMouseState(point, pressure) {
     this._lastMousePoint = new paper.Point(point.x, point.y);
@@ -57187,19 +56273,16 @@ Wick.Tools.Brush = class extends Wick.Tool {
     // This prevents cropping out edges of the brush stroke
     this.strokeBounds = this.strokeBounds.expand(this._getRealBrushSize());
   }
-
   /* Create a paper.js path by potracing the croquis canvas, and add the resulting path to the project. */
   _potraceCroquisCanvas(point) {
     this.errorOccured = false;
     var strokeBounds = this.strokeBounds.clone();
-
     // Attempting to draw with a transparent fill color. Throw an error.
     if (this.getSetting('fillColor').a === 0) {
       this.handleBrushError('transparentColor');
       this.project.errorOccured("Fill Color is Transparent!");
       return;
     }
-
     // Give croquis just a little bit to get the canvas ready...
     this._croquisStartTimeout = setTimeout(() => {
       // Retrieve Croquis canvas
@@ -57209,7 +56292,6 @@ Wick.Tools.Brush = class extends Wick.Tool {
         this.handleBrushError('misingCroquisCanvas');
         return;
       }
-
       // Rip image data out of Croquis.js canvas
       // (and crop out empty space using strokeBounds - this massively speeds up potrace)
       var croppedCanvas = document.createElement("canvas");
@@ -57219,7 +56301,6 @@ Wick.Tools.Brush = class extends Wick.Tool {
       if (strokeBounds.x < 0) strokeBounds.x = 0;
       if (strokeBounds.y < 0) strokeBounds.y = 0;
       croppedCanvasCtx.drawImage(canvas, strokeBounds.x, strokeBounds.y, strokeBounds.width, strokeBounds.height, 0, 0, croppedCanvas.width, croppedCanvas.height);
-
       // Run potrace and add the resulting path to the project
       var svg = potrace.fromImage(croppedCanvas).toSVG(1 / this.POTRACE_RESOLUTION / this.paper.view.zoom);
       var potracePath = this.paper.project.importSVG(svg);
@@ -57233,7 +56314,6 @@ Wick.Tools.Brush = class extends Wick.Tool {
       potracePath.children[0].closed = true;
       potracePath.children[0].applyMatrix = true;
       var result = potracePath.children[0];
-
       // Do special brush mode action
       var brushMode = this.getSetting('brushMode');
       if (this._currentDrawingFrame && this._currentDrawingFrame.view) {
@@ -57241,13 +56321,10 @@ Wick.Tools.Brush = class extends Wick.Tool {
         // (the frame is added during addPathToProject)
         result = this._applyBrushMode(brushMode, result, this._currentDrawingFrame.view.objectsLayer);
       }
-
       // Done! Add the path to the project
       this.addPathToProject(result, this._currentDrawingFrame);
-
       // We're done potracing using the current croquis canvas, reset the stroke bounds
       this._resetStrokeBounds(point);
-
       // Clear croquis canvas
       this.croquis.clearLayer();
       this.fireEvent({
@@ -57314,7 +56391,6 @@ Wick.Tools.Brush = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Tools.Cursor = class extends Wick.Tool {
   /**
    * Creates a cursor tool.
@@ -57342,7 +56418,6 @@ Wick.Tools.Cursor = class extends Wick.Tool {
     this.selectedItems = [];
     this.currentCursorIcon = '';
   }
-
   /**
    * Generate the current cursor.
    * @type {string}
@@ -57356,10 +56431,8 @@ Wick.Tools.Cursor = class extends Wick.Tool {
   onDeactivate(e) {}
   onMouseMove(e) {
     super.onMouseMove(e);
-
     // Find the thing that is currently under the cursor.
     this.hitResult = this._updateHitResult(e);
-
     // Update the image being used for the cursor
     this._setCursor(this._getCursor());
   }
@@ -57461,7 +56534,6 @@ Wick.Tools.Cursor = class extends Wick.Tool {
         return item.data.wickUUID;
       });
       this._selectItems(selectables);
-
       // Only modify the canvas if you actually selected something.
       if (this.selectionBox.items.length > 0) {
         this.fireEvent({
@@ -57498,7 +56570,6 @@ Wick.Tools.Cursor = class extends Wick.Tool {
       if (newHitResult.item.parent.className === 'CompoundPath') {
         newHitResult.item = newHitResult.item.parent;
       }
-
       // You can't select individual children in a group, you can only select the whole thing.
       if (newHitResult.item.parent.parent) {
         newHitResult.type = 'fill';
@@ -57506,18 +56577,15 @@ Wick.Tools.Cursor = class extends Wick.Tool {
           newHitResult.item = newHitResult.item.parent;
         }
       }
-
       // this.paper.js has two names for strokes+curves, we don't need that extra info
       if (newHitResult.type === 'stroke') {
         newHitResult.type = 'curve';
       }
-
       // Mousing over rasters acts the same as mousing over fills.
       if (newHitResult.type === 'pixel') {
         newHitResult.type = 'fill';
       }
       ;
-
       // Disable curve and segment selection. (this was moved to the PathCursor)
       if (newHitResult.type === 'segment' || newHitResult.type === 'curve') {
         newHitResult.type = 'fill';
@@ -57534,12 +56602,9 @@ Wick.Tools.Cursor = class extends Wick.Tool {
       if (this.hitResult.item.name === 'border') {
         return this.CURSOR_DEFAULT;
       }
-
       // Calculate the angle in which the scale handle scales the selection.
       // Use that angle to determine the cursor graphic to use.
-
       // Here is a handy diagram showing the cursors that correspond to the angles:
-
       // 315       0       45
       //     o-----o-----o
       //     |           |
@@ -57549,7 +56614,6 @@ Wick.Tools.Cursor = class extends Wick.Tool {
       //     |           |
       //     o-----o-----o
       // 225      180      135
-
       var baseAngle = {
         topCenter: 0,
         topRight: 45,
@@ -57564,12 +56628,10 @@ Wick.Tools.Cursor = class extends Wick.Tool {
       // It makes angle math easier if we dont allow angles >360 or <0 degrees:
       if (angle < 0) angle += 360;
       if (angle > 360) angle -= 360;
-
       // Round the angle to the nearest 45 degree interval.
       var angleRoundedToNearest45 = Math.round(angle / 45) * 45;
       angleRoundedToNearest45 = Math.round(angleRoundedToNearest45); // just incase of float weirdness
       angleRoundedToNearest45 = '' + angleRoundedToNearest45; // convert to string
-
       // Now we know which of eight directions the handle is pointing, so we choose the correct cursor
       if (this.hitResult.item.data.handleType === 'scale') {
         var cursorGraphicFromAngle = {
@@ -57620,10 +56682,9 @@ Wick.Tools.Cursor = class extends Wick.Tool {
     var object = this._wickObjectFromPaperItem(item);
     this._selection.select(object);
   }
-
   /**
    * Select multiple items simultaneously.
-   * @param {object[]} items paper items 
+   * @param {object[]} items paper items
    */
   _selectItems(items) {
     let objects = [];
@@ -57667,7 +56728,6 @@ Wick.Tools.Cursor = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Tools.Ellipse = class extends Wick.Tool {
   /**
    * Creates an instance of the ellipse tool.
@@ -57682,7 +56742,6 @@ Wick.Tools.Ellipse = class extends Wick.Tool {
   get doubleClickEnabled() {
     return false;
   }
-
   /**
    * A crosshair cursor.
    * @type {string}
@@ -57707,7 +56766,6 @@ Wick.Tools.Ellipse = class extends Wick.Tool {
   onMouseDrag(e) {
     if (this.path) this.path.remove();
     this.bottomRight = e.point;
-
     // Lock width and height if shift is held down
     if (e.modifiers.shift) {
       var d = this.bottomRight.subtract(this.topLeft);
@@ -57752,7 +56810,6 @@ Wick.Tools.Ellipse = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Tools.Eraser = class extends Wick.Tool {
   /**
    *
@@ -57767,7 +56824,6 @@ Wick.Tools.Eraser = class extends Wick.Tool {
   get doubleClickEnabled() {
     return false;
   }
-
   /**
    *
    * @type {string}
@@ -57804,7 +56860,6 @@ Wick.Tools.Eraser = class extends Wick.Tool {
         strokeWidth: (this.getSetting('eraserSize') + 1) / this.paper.view.zoom
       });
     }
-
     // Add two points so we always at least have a dot.
     this.path.add(e.point);
     this.path.add(e.point);
@@ -57850,7 +56905,6 @@ Wick.Tools.Eraser = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Tools.Eyedropper = class extends Wick.Tool {
   /**
    *
@@ -57865,7 +56919,6 @@ Wick.Tools.Eyedropper = class extends Wick.Tool {
   get doubleClickEnabled() {
     return false;
   }
-
   /**
    *
    * @type {string}
@@ -57942,7 +56995,6 @@ Wick.Tools.Eyedropper = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Tools.FillBucket = class extends Wick.Tool {
   /**
    *
@@ -57954,7 +57006,6 @@ Wick.Tools.FillBucket = class extends Wick.Tool {
   get doubleClickEnabled() {
     return false;
   }
-
   /**
    *
    * @type {string}
@@ -58027,7 +57078,6 @@ Wick.Tools.FillBucket = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Tools.Interact = class extends Wick.Tool {
   /**
    * Creates an Interact tool.
@@ -58086,7 +57136,6 @@ Wick.Tools.Interact = class extends Wick.Tool {
   get doubleClickEnabled() {
     return false;
   }
-
   /**
    * Use the current position of the mouse to determine which object(s) are under the mouse
    */
@@ -58098,7 +57147,6 @@ Wick.Tools.Interact = class extends Wick.Tool {
       curves: true,
       segments: true
     });
-
     // Check for clips under the mouse.
     if (hitResult) {
       var uuid = hitResult.item.data.wickUUID;
@@ -58117,7 +57165,6 @@ Wick.Tools.Interact = class extends Wick.Tool {
     } else {
       targets = [];
     }
-
     // Update cursor
     if (this.project.hideCursor) {
       this.setCursor('none');
@@ -58148,7 +57195,6 @@ Wick.Tools.Interact = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Tools.Line = class extends Wick.Tool {
   /**
    *
@@ -58165,7 +57211,6 @@ Wick.Tools.Line = class extends Wick.Tool {
   get doubleClickEnabled() {
     return false;
   }
-
   /**
    *
    * @type {string}
@@ -58220,7 +57265,6 @@ Wick.Tools.Line = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Tools.None = class extends Wick.Tool {
   /**
    * Creates a none tool.
@@ -58229,7 +57273,6 @@ Wick.Tools.None = class extends Wick.Tool {
     super();
     this.name = 'none';
   }
-
   /**
    * The "no-sign" cursor.
    * @type {string}
@@ -58273,7 +57316,6 @@ Wick.Tools.None = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Tools.Pan = class extends Wick.Tool {
   /**
    *
@@ -58285,7 +57327,6 @@ Wick.Tools.Pan = class extends Wick.Tool {
   get doubleClickEnabled() {
     return false;
   }
-
   /**
    *
    * @type {string}
@@ -58324,7 +57365,6 @@ Wick.Tools.Pan = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Tools.PathCursor = class extends Wick.Tool {
   constructor() {
     super();
@@ -58360,16 +57400,12 @@ Wick.Tools.PathCursor = class extends Wick.Tool {
   }
   onMouseMove(e) {
     super.onMouseMove(e);
-
     // Remove the hover preview, a new one will be generated if needed
     this.hoverPreview.remove();
-
     // Find the thing that is currently under the cursor.
     this.hitResult = this._updateHitResult(e);
-
     // Update the image being used for the cursor
     this._setCursor(this._getCursor());
-
     // Regen hover preview
     if (this.hitResult.type === 'segment' && !this.hitResult.item.data.isSelectionBoxGUI) {
       // Hovering over a segment, draw a circle where the segment is
@@ -58480,7 +57516,6 @@ Wick.Tools.PathCursor = class extends Wick.Tool {
       handleIn.y += e.delta.y;
       handleOut.x += e.delta.x;
       handleOut.y += e.delta.y;
-
       // Update the hover preview to match the curve we just changed
       this.hoverPreview.segments[0].handleOut = this.draggingCurve.handle1;
       this.hoverPreview.segments[1].handleIn = this.draggingCurve.handle2;
@@ -58547,7 +57582,6 @@ Wick.Tools.PathCursor = class extends Wick.Tool {
       if (newHitResult.item.parent.className === 'CompoundPath') {
         newHitResult.item = newHitResult.item.parent;
       }
-
       // You can't select individual children in a group, you can only select the whole thing.
       if (newHitResult.item.parent.parent) {
         newHitResult.type = 'fill';
@@ -58555,12 +57589,10 @@ Wick.Tools.PathCursor = class extends Wick.Tool {
           newHitResult.item = newHitResult.item.parent;
         }
       }
-
       // this.paper.js has two names for strokes+curves, we don't need that extra info
       if (newHitResult.type === 'stroke') {
         newHitResult.type = 'curve';
       }
-
       // Mousing over rasters acts the same as mousing over fills.
       if (newHitResult.type === 'pixel') {
         newHitResult.type = 'fill';
@@ -58618,12 +57650,10 @@ Wick.Tools.PathCursor = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Tools.Pencil = class extends Wick.Tool {
   static get MIN_ADD_POINT_MOVEMENT() {
     return 2;
   }
-
   /**
    * Creates a pencil tool.
    */
@@ -58636,7 +57666,6 @@ Wick.Tools.Pencil = class extends Wick.Tool {
   get doubleClickEnabled() {
     return false;
   }
-
   /**
    * The pencil cursor.
    * @type {string}
@@ -58700,7 +57729,6 @@ Wick.Tools.Pencil = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Tools.Rectangle = class extends Wick.Tool {
   /**
    *
@@ -58715,7 +57743,6 @@ Wick.Tools.Rectangle = class extends Wick.Tool {
   get doubleClickEnabled() {
     return false;
   }
-
   /**
    *
    * @type {string}
@@ -58740,7 +57767,6 @@ Wick.Tools.Rectangle = class extends Wick.Tool {
   onMouseDrag(e) {
     if (this.path) this.path.remove();
     this.bottomRight = e.point;
-
     // Lock width and height if shift is held down
     if (e.modifiers.shift) {
       var d = this.bottomRight.subtract(this.topLeft);
@@ -58788,7 +57814,6 @@ Wick.Tools.Rectangle = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Tools.Text = class extends Wick.Tool {
   /**
    *
@@ -58802,7 +57827,6 @@ Wick.Tools.Text = class extends Wick.Tool {
   get doubleClickEnabled() {
     return false;
   }
-
   /**
    *
    * @type {string}
@@ -58851,7 +57875,6 @@ Wick.Tools.Text = class extends Wick.Tool {
       this.project.view.render();
       this.editingText = wickText.view.item;
       this.editingText.edit(this.project.view.paper);
-
       //this.fireEvent('canvasModified');
     }
   }
@@ -58860,7 +57883,6 @@ Wick.Tools.Text = class extends Wick.Tool {
   reset() {
     this.finishEditingText();
   }
-
   /**
    * Stop editing the current text and apply changes.
    */
@@ -58895,7 +57917,6 @@ Wick.Tools.Text = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.Tools.Zoom = class extends Wick.Tool {
   /**
    *
@@ -58911,7 +57932,6 @@ Wick.Tools.Zoom = class extends Wick.Tool {
   get doubleClickEnabled() {
     return false;
   }
-
   /**
    *
    * @type {string}
@@ -58979,7 +57999,6 @@ Wick.Tools.Zoom = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Paper.js-drawing-tools.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /*
     paper-erase.js
     Adds erase() to the paper Layer class which erases paths in that layer using
@@ -58987,7 +58006,6 @@ Wick.Tools.Zoom = class extends Wick.Tool {
 
     by zrispo (github.com/zrispo) (zach@wickeditor.com)
  */
-
 (function () {
   // Splits a CompoundPath with multiple CW children into individual pieces
   function splitCompoundPath(compoundPath) {
@@ -59006,7 +58024,6 @@ Wick.Tools.Zoom = class extends Wick.Tool {
         parts.push(part);
       }
     });
-
     // Find hole ownership for each 'part'
     var resolvedHoles = [];
     parts.forEach(function (part) {
@@ -59032,7 +58049,6 @@ Wick.Tools.Zoom = class extends Wick.Tool {
         }
       });
     });
-
     // If any holes could not find a path to be a part of, turn them into their own paths
     holes.filter(hole => {
       return resolvedHoles.indexOf(hole) === -1;
@@ -59147,7 +58163,6 @@ Wick.Tools.Zoom = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Paper.js-drawing-tools.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /*
     paper-hole.js
     Adds hole() to the paper Layer class which finds the shape of the hole
@@ -59156,7 +58171,6 @@ Wick.Tools.Zoom = class extends Wick.Tool {
     Adapted from the FillBucket tool from old Wick
     by zrispo (github.com/zrispo) (zach@wickeditor.com)
  */
-
 (function () {
   var VERBOSE = false;
   var PREVIEW_IMAGE = false;
@@ -59186,7 +58200,6 @@ Wick.Tools.Zoom = class extends Wick.Tool {
           var clone = child.clone({
             insert: false
           });
-
           //experiment: bump out all strokes a bit by expanding their stroke widths
           if (!clone.strokeColor && clone.fillColor) {
             clone.strokeColor = clone.fillColor;
@@ -59330,7 +58343,6 @@ Wick.Tools.Zoom = class extends Wick.Tool {
       }
     });
   }
-
   // http://www.felixeve.co.uk/how-to-rotate-a-point-around-an-origin-with-javascript/
   function rotate_point(pointX, pointY, originX, originY, angle) {
     angle = angle * Math.PI / 180.0;
@@ -59349,7 +58361,6 @@ Wick.Tools.Zoom = class extends Wick.Tool {
       a: imageData[offset + 3]
     };
   }
-
   /* Add hole() method to paper */
   paper.PaperScope.inject({
     hole: function (args) {
@@ -59388,7 +58399,6 @@ Wick.Tools.Zoom = class extends Wick.Tool {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 class PaperJSOrderingUtils {
   /**
    * Moves the selected items forwards.
@@ -59402,7 +58412,6 @@ class PaperJSOrderingUtils {
       });
     });
   }
-
   /**
    * Moves the selected items backwards.
    */
@@ -59415,7 +58424,6 @@ class PaperJSOrderingUtils {
       });
     });
   }
-
   /**
    * Brings the selected objects to the front.
    */
@@ -59426,7 +58434,6 @@ class PaperJSOrderingUtils {
       });
     });
   }
-
   /**
    * Sends the selected objects to the back.
    */
@@ -59445,11 +58452,9 @@ class PaperJSOrderingUtils {
       if (!layerLists[layerID]) {
         layerLists[layerID] = [];
       }
-
       // Add this item to its corresponding layer list
       layerLists[layerID].push(item);
     });
-
     // Convert id->array object to array of arrays
     var layerItemsArrays = [];
     for (var layerID in layerLists) {
@@ -59485,7 +58490,6 @@ paper.PaperScope.inject({
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 class SelectionWidget {
   /**
    * Creates a SelectionWidget
@@ -59498,14 +58502,12 @@ class SelectionWidget {
       insert: false
     });
   }
-
   /**
    * The item containing the widget GUI
    */
   get item() {
     return this._item;
   }
-
   /**
    * The layer to add the widget GUI item to.
    */
@@ -59515,7 +58517,6 @@ class SelectionWidget {
   set layer(layer) {
     this._layer = layer;
   }
-
   /**
    * The rotation of the selection box GUI.
    */
@@ -59525,14 +58526,12 @@ class SelectionWidget {
   set boxRotation(boxRotation) {
     this._boxRotation = boxRotation;
   }
-
   /**
    * The items currently inside the selection widget
    */
   get itemsInSelection() {
     return this._itemsInSelection;
   }
-
   /**
    * The point to rotate/scale the widget around.
    */
@@ -59542,7 +58541,6 @@ class SelectionWidget {
   set pivot(pivot) {
     this._pivot = pivot;
   }
-
   /**
    * The position of the top left corner of the selection box.
    */
@@ -59553,7 +58551,6 @@ class SelectionWidget {
     var d = position.subtract(this.position);
     this.translateSelection(d);
   }
-
   /**
    * The width of the selection.
    */
@@ -59565,7 +58562,6 @@ class SelectionWidget {
     if (d === 0) d = 0.001;
     this.scaleSelection(new paper.Point(d, 1.0));
   }
-
   /**
    * The height of the selection.
    */
@@ -59576,7 +58572,6 @@ class SelectionWidget {
     var d = height / this.height;
     this.scaleSelection(new paper.Point(1.0, d));
   }
-
   /**
    * The rotation of the selection.
    */
@@ -59587,28 +58582,24 @@ class SelectionWidget {
     var d = rotation - this.rotation;
     this.rotateSelection(d);
   }
-
   /**
    * Flip the selected items horizontally.
    */
   flipHorizontally() {
     this.scaleSelection(new paper.Point(-1.0, 1.0));
   }
-
   /**
    * Flip the selected items vertically.
    */
   flipVertically() {
     this.scaleSelection(new paper.Point(1.0, -1.0));
   }
-
   /**
    * The bounding box of the widget.
    */
   get boundingBox() {
     return this._boundingBox;
   }
-
   /**
    * The current transformation being done to the selection widget.
    * @type {string}
@@ -59624,7 +58615,6 @@ class SelectionWidget {
       this._currentTransformation = currentTransformation;
     }
   }
-
   /**
    * Build a new SelectionWidget GUI around some items.
    * @param {number} boxRotation - the rotation of the selection GUI. Optional, defaults to 0
@@ -59654,7 +58644,6 @@ class SelectionWidget {
       this.layer.addChild(this.item);
     }
   }
-
   /**
    *
    */
@@ -59671,7 +58660,6 @@ class SelectionWidget {
     this._ghost.data.initialPosition = this._ghost.position;
     this._ghost.data.scale = new paper.Point(1, 1);
   }
-
   /**
    *
    */
@@ -59686,7 +58674,6 @@ class SelectionWidget {
       var pivotToLastPointVector = lastPoint.subtract(this.pivot);
       var pivotToCurrentPointVector = currentPoint.subtract(this.pivot);
       var scaleAmt = pivotToCurrentPointVector.divide(pivotToLastPointVector);
-
       // Lock scaling in a direction if the side handles are being dragged.
       if (item.data.handleEdge === 'topCenter' || item.data.handleEdge === 'bottomCenter') {
         scaleAmt.x = 1.0;
@@ -59694,7 +58681,6 @@ class SelectionWidget {
       if (item.data.handleEdge === 'leftCenter' || item.data.handleEdge === 'rightCenter') {
         scaleAmt.y = 1.0;
       }
-
       // Holding shift locks aspect ratio
       if (e.modifiers.shift) {
         scaleAmt.y = scaleAmt.x;
@@ -59716,7 +58702,6 @@ class SelectionWidget {
       this.boxRotation += rotation;
     }
   }
-
   /**
    *
    */
@@ -59733,7 +58718,6 @@ class SelectionWidget {
     }
     this._currentTransformation = null;
   }
-
   /**
    *
    */
@@ -59743,7 +58727,6 @@ class SelectionWidget {
     });
     this.pivot = this.pivot.add(delta);
   }
-
   /**
    *
    */
@@ -59754,7 +58737,6 @@ class SelectionWidget {
       item.rotate(this.boxRotation, this.pivot);
     });
   }
-
   /**
    *
    */
@@ -59864,7 +58846,6 @@ class SelectionWidget {
   }
   _buildRotationHotspot(cornerName) {
     // Build the not-yet-rotated hotspot, which starts out like this:
-
     //       |
     //       +---+
     //       |   |
@@ -59872,14 +58853,12 @@ class SelectionWidget {
     //    |      |
     //    +------+
     //       |
-
     const zoom2 = paper && paper.view && Number.isFinite(paper.view.zoom) ? paper.view.zoom : 1;
     var r = SelectionWidget.ROTATION_HOTSPOT_RADIUS / zoom2;
     var hotspot = new paper.Path([new paper.Point(0, 0), new paper.Point(0, r), new paper.Point(r, r), new paper.Point(r, -r), new paper.Point(-r, -r), new paper.Point(-r, 0)]);
     hotspot.fillColor = SelectionWidget.ROTATION_HOTSPOT_FILLCOLOR;
     hotspot.position.x = this.boundingBox[cornerName].x;
     hotspot.position.y = this.boundingBox[cornerName].y;
-
     // Orient the rotation handles in the correct direction, even if the selection is flipped
     hotspot.rotate({
       'topRight': 0,
@@ -59887,7 +58866,6 @@ class SelectionWidget {
       'bottomLeft': 180,
       'topLeft': 270
     }[cornerName]);
-
     // Some metadata.
     hotspot.data.handleType = 'rotation';
     hotspot.data.handleEdge = cornerName;
@@ -59982,7 +58960,6 @@ paper.PaperScope.inject({
  * You should have received a copy of the GNU General Public License
  * along with Paper.js-drawing-tools.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 paper.SelectionBox = class {
   /*
    *
@@ -59998,7 +58975,6 @@ paper.SelectionBox = class {
     });
     this._mode = 'intersects';
   }
-
   /*
    *
    */
@@ -60008,7 +58984,6 @@ paper.SelectionBox = class {
     this._end = point;
     this._rebuildBox();
   }
-
   /*
    *
    */
@@ -60016,7 +58991,6 @@ paper.SelectionBox = class {
     this._end = point;
     this._rebuildBox();
   }
-
   /*
    *
    */
@@ -60027,21 +59001,18 @@ paper.SelectionBox = class {
     this._box.remove();
     this._items = this._itemsInBox(this._box);
   }
-
   /*
    *
    */
   get items() {
     return this._items;
   }
-
   /*
    *
    */
   get active() {
     return this._active;
   }
-
   /*
    *
    */
@@ -60131,7 +59102,6 @@ paper.PaperScope.inject({
  * You should have received a copy of the GNU General Public License
  * along with Paper.js-drawing-tools.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /*
     paper-potrace.js
     Adds a potrace() method to paper Items that runs potrace on a rasterized
@@ -60139,7 +59109,6 @@ paper.PaperScope.inject({
 
     by zrispo (github.com/zrispo) (zach@wickeditor.com)
  */
-
 paper.Path.inject({
   potrace: function (args) {
     var self = this;
@@ -60153,7 +59122,6 @@ paper.Path.inject({
     if (rasterDataURL === 'data:,') {
       args.done(null);
     }
-
     // https://oov.github.io/potrace/
     var img = new Image();
     img.onload = function () {
@@ -60187,7 +59155,6 @@ paper.Path.inject({
  * You should have received a copy of the GNU General Public License
  * along with Paper.js-drawing-tools.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 (function () {
   // Create textarea element with native DOM API (no jQuery)
   var editElem = document.createElement('textarea');
@@ -60219,7 +59186,6 @@ paper.Path.inject({
       clone.scaling = new paper.Point(1, 1);
       clone.remove();
       var extraPadding = 3; // Extra padding so edit item doesn't get cut off.
-
       var width = clone.bounds.width * paper.view.zoom + extraPadding;
       var height = clone.bounds.height * paper.view.zoom + extraPadding;
       editElem.style.width = width + 'px';
@@ -60276,13 +59242,11 @@ paper.Path.inject({
  * You should have received a copy of the GNU General Public License
  * along with Paper.js-drawing-tools.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 paper.View.inject({
   pressure: 1,
   enablePressure: function (args) {
     let self = this;
     const element = this.element.parentElement;
-
     // Use native Pointer Events API for pressure sensitivity
     const handlePointerMove = function (event) {
       // PointerEvent.pressure ranges from 0.0 to 1.0
@@ -60316,7 +59280,6 @@ paper.View.inject({
  * You should have received a copy of the GNU General Public License
  * along with Paper.js-drawing-tools.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 paper.View.inject({
   enableGestures: function (args) {
     // TODO
@@ -60340,7 +59303,6 @@ paper.View.inject({
  * You should have received a copy of the GNU General Public License
  * along with Paper.js-drawing-tools.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 paper.View.inject({
   enableScrollToZoom: function (args) {
     // TODO
@@ -60364,7 +59326,6 @@ paper.View.inject({
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.View = class {
   /**
    * The paper.js scope that all Wick.View subclasses will use to render to.
@@ -60372,20 +59333,16 @@ Wick.View = class {
   static get paperScope() {
     if (!this._paperScope) {
       this._paperScope = new paper.PaperScope();
-
       // Create dummy paper.js instance so we can access paper classes
       var canvas = window.document.createElement('canvas');
       this._paperScope.setup(canvas);
     }
-
     // Use active paper scope for window.paper alias
     window.paper = this._paperScope;
-
     // Activate the paper scope
     this._paperScope.activate();
     return this._paperScope;
   }
-
   /**
    *
    */
@@ -60393,7 +59350,6 @@ Wick.View = class {
     this.model = model;
     this._eventHandlers = {};
   }
-
   /**
    *
    */
@@ -60403,19 +59359,16 @@ Wick.View = class {
   get model() {
     return this._model;
   }
-
   /**
    *
    */
   get paper() {
     return Wick.View.paperScope;
   }
-
   /**
    *
    */
   render() {}
-
   /**
    *
    */
@@ -60425,7 +59378,6 @@ Wick.View = class {
     }
     this._eventHandlers[eventName].push(fn);
   }
-
   /**
    *
    */
@@ -60455,7 +59407,6 @@ Wick.View = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.View.Project = class extends Wick.View {
   static get DEFAULT_CANVAS_BG_COLOR() {
     return 'rgb(187, 187, 187)';
@@ -60484,7 +59435,6 @@ Wick.View.Project = class extends Wick.View {
   static get PAN_LIMIT() {
     return 10000;
   }
-
   /*
    * Create a new Project View.
    */
@@ -60503,12 +59453,10 @@ Wick.View.Project = class extends Wick.View {
       y: 0
     };
     this._zoom = 1;
-
     // Throttle scroll-to-zoom to animation frames to avoid event storms
     this._pendingZoomDelta = 0;
     this._zoomRAF = null;
   }
-
   /*
    * Determines the way the project will scale itself based on its container.
    * 'center' will keep the project at its original resolution, and center it inside its container.
@@ -60527,14 +59475,12 @@ Wick.View.Project = class extends Wick.View {
   get fitMode() {
     return this._fitMode;
   }
-
   /**
    * The current canvas being rendered to.
    */
   get canvas() {
     return this._svgCanvas;
   }
-
   /**
    * Get the current width/height of the canvas.
    */
@@ -60544,7 +59490,6 @@ Wick.View.Project = class extends Wick.View {
       height: this._svgCanvas.offsetHeight
     };
   }
-
   /**
    * The zoom amount. 1 = 100% zoom
    */
@@ -60554,7 +59499,6 @@ Wick.View.Project = class extends Wick.View {
   set zoom(zoom) {
     this._zoom = zoom;
   }
-
   /**
    * The amount to pan the view. (0,0) is the center.
    */
@@ -60579,7 +59523,6 @@ Wick.View.Project = class extends Wick.View {
       this._pan.y -= this.model.height / 2;
     }
   }
-
   /*
    * The element to insert the project's canvas into.
    */
@@ -60589,7 +59532,6 @@ Wick.View.Project = class extends Wick.View {
   get canvasContainer() {
     return this._canvasContainer;
   }
-
   /**
    * The background color of the canvas.
    */
@@ -60599,7 +59541,6 @@ Wick.View.Project = class extends Wick.View {
   get canvasBGColor() {
     return this._canvasBGColor;
   }
-
   /**
    * Render the view.
    */
@@ -60612,7 +59553,6 @@ Wick.View.Project = class extends Wick.View {
     this._renderSVGCanvas();
     this._updateCanvasContainerBGColor();
   }
-
   /**
    * Render all frames in the project to make sure everything is loaded correctly.
    */
@@ -60622,7 +59562,6 @@ Wick.View.Project = class extends Wick.View {
       frame.view.render();
     });
   }
-
   /*
    * Resize the canvas to fit it's container div.
    * Resize is called automatically before each render, but you must call it if you manually change the size of the container div.
@@ -60634,7 +59573,6 @@ Wick.View.Project = class extends Wick.View {
     this.paper.view.viewSize.width = containerWidth;
     this.paper.view.viewSize.height = containerHeight;
   }
-
   /**
    * Write the SVG data in the view to the project.
    */
@@ -60644,7 +59582,6 @@ Wick.View.Project = class extends Wick.View {
       frame.view.applyChanges();
     });
   }
-
   /**
    * Returns how much the zoom level must be to optimally fit the canvas inside a div.
    * @type {Number}
@@ -60658,7 +59595,6 @@ Wick.View.Project = class extends Wick.View {
     var hr = h / this.model.height;
     return Math.min(wr, hr);
   }
-
   /**
    * Modern scroll-to-zoom functionality using native wheel events
    * Supports both zooming (with ctrl/cmd key or pinch) and panning (two-finger scroll)
@@ -60667,10 +59603,8 @@ Wick.View.Project = class extends Wick.View {
    */
   scrollToZoom(event) {
     if (this.model.isPublished) return;
-
     // Detect if this is a zoom gesture (pinch or ctrl+scroll) vs pan gesture (two-finger scroll)
     const isZoomGesture = event.ctrlKey || event.metaKey;
-
     // Handle different deltaMode values for cross-browser compatibility
     let multiplier = 1;
     if (event.deltaMode === 1) {
@@ -60684,15 +59618,12 @@ Wick.View.Project = class extends Wick.View {
       // ZOOM: Pinch-to-zoom or ctrl/cmd + scroll
       const deltaY = event.deltaY || 0;
       const d = deltaY * multiplier * 0.001;
-
       // Get mouse position in view coordinates for zoom-to-point
       const rect = this._svgCanvas.getBoundingClientRect();
       const point = new this.paper.Point(event.clientX - rect.left, event.clientY - rect.top);
       const viewPoint = this.paper.view.viewToProject(point);
-
       // Store zoom point for animation frame
       this._zoomPoint = viewPoint;
-
       // Accumulate deltas and apply at next animation frame
       this._pendingZoomDelta = (this._pendingZoomDelta || 0) + d;
       if (!this._zoomRAF) {
@@ -60700,7 +59631,6 @@ Wick.View.Project = class extends Wick.View {
           try {
             const oldZoom = Number.isFinite(this.paper.view.zoom) ? this.paper.view.zoom : 1;
             const newZoom = Math.max(Wick.View.Project.ZOOM_MIN, Math.min(Wick.View.Project.ZOOM_MAX, oldZoom + this._pendingZoomDelta));
-
             // Zoom toward cursor position (zoom-to-point)
             if (this._zoomPoint && Math.abs(newZoom - oldZoom) > 0.001) {
               const beta = oldZoom / newZoom;
@@ -60723,7 +59653,6 @@ Wick.View.Project = class extends Wick.View {
       // PAN: Two-finger scroll (no ctrl/cmd key)
       const deltaX = (event.deltaX || 0) * multiplier;
       const deltaY = (event.deltaY || 0) * multiplier;
-
       // Accumulate pan deltas
       this._pendingPanDeltaX = (this._pendingPanDeltaX || 0) + deltaX;
       this._pendingPanDeltaY = (this._pendingPanDeltaY || 0) + deltaY;
@@ -60751,14 +59680,12 @@ Wick.View.Project = class extends Wick.View {
     }, {
       passive: false
     });
-
     // Add pinch-to-zoom support for trackpads and touch devices
     // More responsive with zoom-to-point functionality
     this._svgCanvas.addEventListener('gesturestart', e => {
       e.preventDefault();
       this._gestureStartZoom = this.paper.view.zoom;
       this._gestureStartCenter = this.paper.view.center.clone();
-
       // Get gesture center point for zoom-to-point
       const rect = this._svgCanvas.getBoundingClientRect();
       const point = new this.paper.Point(e.clientX - rect.left, e.clientY - rect.top);
@@ -60774,7 +59701,6 @@ Wick.View.Project = class extends Wick.View {
         const adjustedScale = 1 + (e.scale - 1) * scaleFactor;
         const newZoom = this._gestureStartZoom * adjustedScale;
         const clampedZoom = Math.max(Wick.View.Project.ZOOM_MIN, Math.min(Wick.View.Project.ZOOM_MAX, newZoom));
-
         // Apply zoom-to-point for gestures (zoom toward pinch center)
         const oldZoom = this._gestureStartZoom;
         if (Math.abs(clampedZoom - oldZoom) > 0.001) {
@@ -60799,7 +59725,6 @@ Wick.View.Project = class extends Wick.View {
     }, {
       passive: false
     });
-
     // Add standard touch events for mobile support (Android, iOS, etc.)
     // These work on all touch devices, not just Safari
     // ONE FINGER = tool interaction (select, draw, etc.)
@@ -60816,16 +59741,13 @@ Wick.View.Project = class extends Wick.View {
         e.preventDefault();
         const touch1 = e.touches[0];
         const touch2 = e.touches[1];
-
         // Calculate initial distance between touches
         const dx = touch2.clientX - touch1.clientX;
         const dy = touch2.clientY - touch1.clientY;
         this._touchStartDistance = Math.sqrt(dx * dx + dy * dy);
-
         // Store zoom and center for transformation
         this._touchStartZoom = this.paper.view.zoom;
         this._touchStartCenter = this.paper.view.center.clone();
-
         // Calculate center point between fingers
         const rect = this._svgCanvas.getBoundingClientRect();
         const centerX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
@@ -60849,22 +59771,18 @@ Wick.View.Project = class extends Wick.View {
         const touch1 = e.touches[0];
         const touch2 = e.touches[1];
         const rect = this._svgCanvas.getBoundingClientRect();
-
         // Calculate current center point
         const currentCenterX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
         const currentCenterY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
-
         // Calculate current distance between touches
         const dx = touch2.clientX - touch1.clientX;
         const dy = touch2.clientY - touch1.clientY;
         const currentDistance = Math.sqrt(dx * dx + dy * dy);
-
         // Determine if this is primarily a pan or a zoom gesture
         const distanceChange = Math.abs(currentDistance - this._touchStartDistance);
         const panDeltaX = currentCenterX - this._lastTwoFingerCenter.x;
         const panDeltaY = currentCenterY - this._lastTwoFingerCenter.y;
         const panDistance = Math.sqrt(panDeltaX * panDeltaX + panDeltaY * panDeltaY);
-
         // Apply pan (always pan when two fingers move)
         if (panDistance > 1) {
           const panOffset = new this.paper.Point(-panDeltaX / this.paper.view.zoom, -panDeltaY / this.paper.view.zoom);
@@ -60874,7 +59792,6 @@ Wick.View.Project = class extends Wick.View {
             y: currentCenterY
           };
         }
-
         // Apply zoom only if distance changed significantly (pinch gesture)
         if (distanceChange > 5) {
           const scaleFactor = 1.5;
@@ -60882,7 +59799,6 @@ Wick.View.Project = class extends Wick.View {
           const adjustedScale = 1 + (scale - 1) * scaleFactor;
           const newZoom = this._touchStartZoom * adjustedScale;
           const clampedZoom = Math.max(Wick.View.Project.ZOOM_MIN, Math.min(Wick.View.Project.ZOOM_MAX, newZoom));
-
           // Apply zoom-to-point (zoom toward center of pinch)
           if (this._touchStartPoint && Math.abs(clampedZoom - this._touchStartZoom) > 0.001) {
             const beta = this._touchStartZoom / clampedZoom;
@@ -60913,7 +59829,6 @@ Wick.View.Project = class extends Wick.View {
     }, {
       passive: false
     });
-
     // Connect all Wick Tools into the paper.js project
     for (var toolName in this.model.tools) {
       var tool = this.model.tools[toolName];
@@ -60977,7 +59892,6 @@ Wick.View.Project = class extends Wick.View {
   }
   _renderSVGCanvas() {
     this.paper.project.clear();
-
     // Lazily setup tools
     if (!this._toolsSetup) {
       this._toolsSetup = true;
@@ -60992,7 +59906,6 @@ Wick.View.Project = class extends Wick.View {
     } else {
       this.model.activeTool.activate();
     }
-
     // Update zoom and pan
     if (this._fitMode === 'center') {
       this.paper.view.zoom = this.model.zoom;
@@ -61004,7 +59917,6 @@ Wick.View.Project = class extends Wick.View {
     var pan = this._pan;
     this.paper.view.center = new paper.Point(-pan.x, -pan.y);
     this.paper.view.rotation = this.model.rotation;
-
     // Generate background layer
     this._svgBackgroundLayer.removeChildren();
     this._svgBackgroundLayer.locked = true;
@@ -61018,7 +59930,6 @@ Wick.View.Project = class extends Wick.View {
       var originCrosshair = this._generateSVGOriginCrosshair();
       this._svgBackgroundLayer.addChild(originCrosshair);
     }
-
     // Generate frame layers
     this.model.focus.timeline.view.render();
     this.model.focus.timeline.view.frameLayers.forEach(layer => {
@@ -61027,11 +59938,9 @@ Wick.View.Project = class extends Wick.View {
         layer.activate();
       }
     });
-
     // Render selection
     this.model.selection.view.render();
     this.paper.project.addLayer(this.model.selection.view.layer);
-
     // Render GUI Layer
     this._svgGUILayer.removeChildren();
     this._svgGUILayer.locked = true;
@@ -61039,7 +59948,6 @@ Wick.View.Project = class extends Wick.View {
       this._svgGUILayer.addChildren(this._generateClipBorders());
       this.paper.project.addLayer(this._svgGUILayer);
     }
-
     // Render black bars (for published projects)
     if (this.model.isPublished && this.model.renderBlackBars) {
       this._svgBordersLayer.removeChildren();
@@ -61069,7 +59977,6 @@ Wick.View.Project = class extends Wick.View {
     originCrosshair.position.y = 0;
     return originCrosshair;
   }
-
   /* Renders the off-screen borders that hide content out of the project bounds. */
   _generateSVGBorders() {
     /**
@@ -61083,11 +59990,9 @@ Wick.View.Project = class extends Wick.View {
      * |           bottom           +
      * +----------------------------+
      */
-
     var borderMin = -10000,
       borderMax = 10000;
     var strokeOffset = 0.5; // prevents gaps between border rects
-
     var bottom = this.model.height;
     var right = this.model.width;
     if (this.model.publishedMode === "imageSequence") {
@@ -61130,7 +60035,6 @@ Wick.View.Project = class extends Wick.View {
     var border = new paper.Group();
     border.applyMatrix = false;
     border.addChildren(borderPieces);
-
     // Adjust borders based on zoom/pan (this fixes borders hiding things while using a vcam)
     border.scaling = new paper.Point(this.model.zoom, this.model.zoom);
     border.position = new paper.Point(-this.model.pan.x, -this.model.pan.y);
@@ -61159,7 +60063,6 @@ Wick.View.Project = class extends Wick.View {
     // limit zoom to min and max
     this.paper.view.zoom = Math.min(Wick.View.Project.ZOOM_MAX, this.paper.view.zoom);
     this.paper.view.zoom = Math.max(Wick.View.Project.ZOOM_MIN, this.paper.view.zoom);
-
     // limit pan
     if (!Number.isFinite(this.pan.x)) this.pan.x = 0;
     if (!Number.isFinite(this.pan.y)) this.pan.y = 0;
@@ -61194,7 +60097,6 @@ Wick.View.Project = class extends Wick.View {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.View.Selection = class extends Wick.View {
   /**
    * Create a new Selection view.
@@ -61207,7 +60109,6 @@ Wick.View.Selection = class extends Wick.View {
     });
     this.paper.project.selectionWidget = this._widget;
   }
-
   /**
    * The selection widget
    */
@@ -61218,7 +60119,6 @@ Wick.View.Selection = class extends Wick.View {
     }
     return this._widget;
   }
-
   /**
    *
    */
@@ -61229,7 +60129,6 @@ Wick.View.Selection = class extends Wick.View {
       y: this.widget.pivot.y
     };
   }
-
   /**
    *
    */
@@ -61240,7 +60139,6 @@ Wick.View.Selection = class extends Wick.View {
     this.widget.position = new paper.Point(x, this.widget.position.y);
     this.model.project.view.applyChanges();
   }
-
   /**
    *
    */
@@ -61251,7 +60149,6 @@ Wick.View.Selection = class extends Wick.View {
     this.widget.position = new paper.Point(this.widget.position.x, y);
     this.model.project.view.applyChanges();
   }
-
   /**
    *
    */
@@ -61262,7 +60159,6 @@ Wick.View.Selection = class extends Wick.View {
     this.widget.width = width;
     this.model.project.view.applyChanges();
   }
-
   /**
    *
    */
@@ -61273,7 +60169,6 @@ Wick.View.Selection = class extends Wick.View {
     this.widget.height = height;
     this.model.project.view.applyChanges();
   }
-
   /**
    *
    */
@@ -61285,7 +60180,6 @@ Wick.View.Selection = class extends Wick.View {
     this.model.project.view.applyChanges();
     this.model.widgetRotation = rotation;
   }
-
   /**
    *
    */
@@ -61293,7 +60187,6 @@ Wick.View.Selection = class extends Wick.View {
     this.widget.flipHorizontally();
     this.model.project.view.applyChanges();
   }
-
   /**
    *
    */
@@ -61301,7 +60194,6 @@ Wick.View.Selection = class extends Wick.View {
     this.widget.flipVertically();
     this.model.project.view.applyChanges();
   }
-
   /**
    *
    */
@@ -61309,7 +60201,6 @@ Wick.View.Selection = class extends Wick.View {
     paper.OrderingUtils.sendToBack(this._getSelectedObjectViews());
     this.model.project.view.applyChanges();
   }
-
   /**
    *
    */
@@ -61317,7 +60208,6 @@ Wick.View.Selection = class extends Wick.View {
     paper.OrderingUtils.bringToFront(this._getSelectedObjectViews());
     this.model.project.view.applyChanges();
   }
-
   /**
    *
    */
@@ -61325,7 +60215,6 @@ Wick.View.Selection = class extends Wick.View {
     paper.OrderingUtils.moveForwards(this._getSelectedObjectViews());
     this.model.project.view.applyChanges();
   }
-
   /**
    *
    */
@@ -61376,7 +60265,6 @@ Wick.View.Selection = class extends Wick.View {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.View.Clip = class extends Wick.View {
   static get BORDER_STROKE_WIDTH() {
     return 2;
@@ -61393,7 +60281,6 @@ Wick.View.Clip = class extends Wick.View {
   static get PLACEHOLDER_SIZE() {
     return 10;
   }
-
   /**
    * Creates a new Button view.
    */
@@ -61411,33 +60298,25 @@ Wick.View.Clip = class extends Wick.View {
   get absoluteBounds() {
     return this.group.bounds;
   }
-
   // get radius () {
   //     if (this._radius) {
   //         return this._radius;
   //     }
-
   //     let center = this.absoluteBounds.center;
   //     let convert = (point) => point.getDistance(center, true);
   //     let compare = (a, b) => Math.max(a,b);
   //     let initial = 0;
-
   //     this._radius = Math.sqrt(this.reducePointsFromGroup(this.group, initial, convert, compare));
-
   //     return this._radius;
   // }
-
   // get convexHull () {
   //     let group = this.group;
   //     let initial = [];
   //     let convert = (point) => [[point.x, point.y]];
   //     let compare = (list1, list2) => list1.concat(list2);
-
   //     let points = this.reducePointsFromGroup(group, initial, convert, compare);
-
   //     // Infinity gets us the convex hull
   //     let ch = hull(points, Infinity);
-
   //     let removedDuplicates = [];
   //     let epsilon = 0.01;
   //     for (let i = 0; i < ch.length; i++) {
@@ -61453,10 +60332,8 @@ Wick.View.Clip = class extends Wick.View {
   //             removedDuplicates.push(ch[i]);
   //         }
   //     }
-
   //     return removedDuplicates;
   // }
-
   get points() {
     let group = this.group;
     let initial = [];
@@ -61464,7 +60341,6 @@ Wick.View.Clip = class extends Wick.View {
     let compare = (list1, list2) => list1.concat(list2);
     return this.reducePointsFromGroup(group, initial, convert, compare);
   }
-
   // group: the paper group of objects
   // initial: the initial value, should be of return type
   // convert: point -> return type
@@ -61502,24 +60378,18 @@ Wick.View.Clip = class extends Wick.View {
     // Prevent an unselectable object from being rendered
     // due to a clip having no content on the first frame.
     this.model.ensureActiveFrameIsContentful();
-
     // Render timeline view
     this.model.timeline.view.render();
-
     // Add some debug info to the paper group
     this.group.data.wickType = 'clip';
     this.group.data.wickUUID = this.model.uuid;
-
     // Add frame views from timeline
     this.group.removeChildren();
     this.group.addChildren(this.model.timeline.view.frameLayers);
-
     // Update transformations
     this.group.matrix.set(new paper.Matrix());
     this._bounds = this.group.bounds.clone();
-
     //this._radius = null;
-
     this.group.pivot = new this.paper.Point(0, 0);
     this.group.position.x = this.model.transformation.x;
     this.group.position.y = this.model.transformation.y;
@@ -61535,7 +60405,6 @@ Wick.View.Clip = class extends Wick.View {
     group.locked = true;
     group.data.wickType = 'clip_border_' + this.model.uuid;
     var bounds = this.bounds;
-
     // Change border colors based on if the Clip caused an error
     var strokeColor = Wick.View.Clip.BORDER_STROKE_COLOR_NORMAL;
     if (this.model.project.error && this.model.project.error.uuid === this.model.uuid) {
@@ -61579,7 +60448,6 @@ Wick.View.Clip = class extends Wick.View {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.View.Button = class extends Wick.View.Clip {};
 /*
  * Copyright 2020 WICKLETS LLC
@@ -61599,7 +60467,6 @@ Wick.View.Button = class extends Wick.View.Clip {};
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.View.Timeline = class extends Wick.View {
   constructor(wickTimeline) {
     super();
@@ -61636,7 +60503,6 @@ Wick.View.Timeline = class extends Wick.View {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.View.Layer = class extends Wick.View {
   static get BASE_ONION_OPACITY() {
     return 0.35;
@@ -61657,7 +60523,6 @@ Wick.View.Layer = class extends Wick.View {
       frame.view.objectsLayer.locked = false;
       frame.view.objectsLayer.opacity = 1.0;
     }
-
     // Disable mouse events on layers if they are locked.
     // (However, this is ignored while the project is playing so the interact tool always works.)
     // (This is also ignored for layers which are inside clips and not the current focus.)
@@ -61668,7 +60533,6 @@ Wick.View.Layer = class extends Wick.View {
         layer.locked = this.model.locked;
       }
     });
-
     // Add onion skinning, if necessary.
     this.onionSkinnedFramesLayers = [];
     if (this.model.project && this.model.project.onionSkinEnabled && !this.model.project.playing && this.model.parentClip.isFocus) {
@@ -61720,7 +60584,6 @@ Wick.View.Layer = class extends Wick.View {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.View.Frame = class extends Wick.View {
   /**
    * A multiplier for the resolution for the rasterization process.
@@ -61732,7 +60595,6 @@ Wick.View.Frame = class extends Wick.View {
   static get RASTERIZE_RESOLUTION_MODIFIER_FOR_DEVICE() {
     return Wick.View.Frame.RASTERIZE_RESOLUTION_MODIFIER / window.devicePixelRatio;
   }
-
   /**
    * Create a frame view.
    */
@@ -61741,14 +60603,12 @@ Wick.View.Frame = class extends Wick.View {
     this.objectsLayer = new this.paper.Layer();
     this.objectsLayer.remove();
   }
-
   /**
    * Write the changes made to the view to the frame.
    */
   applyChanges() {
     this._applyDrawableChanges();
   }
-
   /**
    * Update the view based on the model
    */
@@ -61759,7 +60619,6 @@ Wick.View.Frame = class extends Wick.View {
     this.objectsLayer.data.wickUUID = this.model.uuid;
     this.objectsLayer.data.wickType = 'clipsandpaths';
     this.objectsLayer.removeChildren();
-
     // Remove placeholder paths if
     // 1) this frame is focused, or
     // 2) the project is playing
@@ -61786,7 +60645,6 @@ Wick.View.Frame = class extends Wick.View {
     }).forEach(path => {
       path.view.item.bringToFront();
     }); // Clear all WickPaths from the frame
-
     // Reorder clips
     var drawables = this.model.drawable.concat([]);
     drawables.forEach(drawable => {
@@ -61814,7 +60672,6 @@ Wick.View.Frame = class extends Wick.View {
         child.name = wickPath.uuid;
       }
     }); // Update clip transforms
-
     this.objectsLayer.children.filter(child => {
       return child.data.wickType !== 'gui';
     }).forEach(child => {
@@ -61830,7 +60687,6 @@ Wick.View.Frame = class extends Wick.View {
         });
       }
     });
-
     /*
     var originalWickPath = child.data.wickUUID ? Wick.ObjectCache.getObjectByUUID(child.data.wickUUID) : null;
     var pathJSON = Wick.View.Path.exportJSON(child);
@@ -61862,7 +60718,6 @@ Wick.View.Frame = class extends Wick.View {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.View.Path = class extends Wick.View {
   /**
    * Create a path view.
@@ -61871,7 +60726,6 @@ Wick.View.Path = class extends Wick.View {
     super();
     this._item = null;
   }
-
   /**
    * The paper.js representation of the Wick Path.
    */
@@ -61881,7 +60735,6 @@ Wick.View.Path = class extends Wick.View {
     }
     return this._item;
   }
-
   /**
    *
    */
@@ -61891,7 +60744,6 @@ Wick.View.Path = class extends Wick.View {
       return;
     }
     this.importJSON(this.model.json);
-
     // Apply onion skin style if Needed
     // (This is done here in the Path code because we actually change the style of the path
     // if the current onion skin mode is set to "outlines" or "tint")
@@ -61905,7 +60757,6 @@ Wick.View.Path = class extends Wick.View {
       }
     }
   }
-
   /**
    * Import paper.js path data into this Wick Path, replacing the current path data if necessary.
    * Uses cached data otherwise.
@@ -61913,21 +60764,17 @@ Wick.View.Path = class extends Wick.View {
    */
   importJSON(json) {
     // if(this.model.project && this.model.project.playing) return;
-
     // Don't import the information if we don't need to...
     if (this._item && !this.model.needReimport) {
       return;
     }
-
     // Imports rasters if this json is a raster item.
     if (json[0] === 'Raster') {
       if (!this.importRaster(json)) return false;
     }
-
     // Import JSON data into paper.js
     this._item = this.paper.importJSON(json);
     this._item.remove();
-
     // Check if we need to recover the UUID from the paper path
     if (this._item.data.wickUUID) {
       this.model.uuid = this._item.data.wickUUID;
@@ -61938,14 +60785,12 @@ Wick.View.Path = class extends Wick.View {
     this._item.fontWeight = `${this.model.fontWeight} ${this.model.fontStyle}`;
     this.model.needReimport = false;
   }
-
   /**
    * Export this path as paper.js Path json data.
    */
   exportJSON() {
     return Wick.View.Path.exportJSON(this.item);
   }
-
   /**
    * Export a path as paper.js Path json data.
    */
@@ -61960,10 +60805,9 @@ Wick.View.Path = class extends Wick.View {
       asString: false
     });
   }
-
   /**
    * Imports raster image from Wick Object cache.
-   * @param {*} json 
+   * @param {*} json
    * @returns {boolean} True if successful import, false otherwise.
    */
   importRaster(json) {
@@ -61972,7 +60816,6 @@ Wick.View.Path = class extends Wick.View {
       // console.warn("Project not attached to raster path. Image will not be rendered")
       return false;
     }
-
     // Backwards compatibility check for old raster formats:
     let JSONsrc = json[1].source;
     if (JSONsrc.startsWith('data')) {
@@ -61991,7 +60834,6 @@ Wick.View.Path = class extends Wick.View {
       console.error('WARNING: raster source format not recognized:');
       return;
     }
-
     // Get image source from assets
     if (JSONsrc.startsWith('asset:')) {
       var assetUUID = JSONsrc.split(':')[1];
@@ -62045,7 +60887,6 @@ Wick.View.Path = class extends Wick.View {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement = class {
   /**
    * Create a new GUIElement
@@ -62057,7 +60898,6 @@ Wick.GUIElement = class {
     this.canAutoScrollY = false;
     this.cursor = 'default';
   }
-
   /**
    * The object to use the data from to create this GUIElement
    * @type {Wick.Base}
@@ -62068,7 +60908,6 @@ Wick.GUIElement = class {
   get model() {
     return this._model;
   }
-
   /**
    * The root GUIElement.
    * @type {Wick.GUIElement}
@@ -62079,21 +60918,18 @@ Wick.GUIElement = class {
     }
     return this._root;
   }
-
   /**
    * The canvas that this GUIElement belongs to.
    */
   get canvas() {
     return this.project._canvas;
   }
-
   /**
    * The context of the canvas that this GUIElement belongs to.
    */
   get ctx() {
     return this.model.project.guiElement._ctx;
   }
-
   /**
    * The current translation of the canvas. NOTE: This won't work without the following polyfill:
    * https://github.com/goessner/canvas-currentTransform
@@ -62106,7 +60942,6 @@ Wick.GUIElement = class {
       y: transform.f
     };
   }
-
   /**
    * A copy of the transformation of the canvas when this object was drawn.
    * @type {object}
@@ -62114,7 +60949,6 @@ Wick.GUIElement = class {
   get localTranslation() {
     return this._localTranslation;
   }
-
   /**
    * The current grid cell width that all GUIElements are based off of.
    * @type {number}
@@ -62122,7 +60956,6 @@ Wick.GUIElement = class {
   get gridCellWidth() {
     return Wick.GUIElement.GRID_DEFAULT_CELL_WIDTH;
   }
-
   /**
    * The current grid cell height that all GUIElements are based off of.
    * @type {number}
@@ -62130,7 +60963,6 @@ Wick.GUIElement = class {
   get gridCellHeight() {
     return Wick.GUIElement.GRID_DEFAULT_CELL_HEIGHT;
   }
-
   /**
    * The bounding box of the hit area for mouse interactions.
    * @type {object}
@@ -62139,7 +60971,6 @@ Wick.GUIElement = class {
     // Implemeneted by subclasses
     return null;
   }
-
   /**
    * The position of the mouse relative to this elements translation.
    * @type {object}
@@ -62152,7 +60983,6 @@ Wick.GUIElement = class {
     };
     return localMouse;
   }
-
   /**
    * Checks if this object is touching the mouse.
    * @returns {boolean}
@@ -62163,7 +60993,6 @@ Wick.GUIElement = class {
     var bounds = this.bounds;
     return localMouse.x > bounds.x && localMouse.y > bounds.y && localMouse.x < bounds.x + bounds.width && localMouse.y < bounds.y + bounds.height;
   }
-
   /**
    * Check if the mouse is hovering or clicking this element.
    * @type {string}
@@ -62179,7 +61008,6 @@ Wick.GUIElement = class {
       return 'out';
     }
   }
-
   /**
    * Draw this GUIElement
    */
@@ -62187,35 +61015,30 @@ Wick.GUIElement = class {
     this._localTranslation = this.currentTranslation;
     this.project.markElementAsDrawn(this);
   }
-
   /**
    * The function to call when the mouse clicks this element.
    */
   onMouseDown(e) {
     // Implemeneted by subclasses.
   }
-
   /**
    * The function to call when the mouse drags this element.
    */
   onMouseDrag(e) {
     // Implemeneted by subclasses.
   }
-
   /**
    * The function to call when the mouse finishes a click on this element.
    */
   onMouseUp(e) {
     // Implemeneted by subclasses.
   }
-
   /**
    * Causes the project to call it's onProjectModified function. Call this after modifying the project.
    */
   projectWasModified() {
     this.project._onProjectModified();
   }
-
   /**
    * Causes the project to call it's onProjectSoftModified function. Call this after modifying the project.
    */
@@ -62230,7 +61053,6 @@ Wick.GUIElement.GRID_NORMAL_CELL_WIDTH = 38;
 Wick.GUIElement.GRID_NORMAL_CELL_HEIGHT = 42;
 Wick.GUIElement.GRID_LARGE_CELL_WIDTH = 62;
 Wick.GUIElement.GRID_LARGE_CELL_HEIGHT = 52;
-
 /* Automatically choose larger frames if we're on a tablet */
 const userAgent = navigator.userAgent.toLowerCase();
 const isTablet = /(ipad|tablet|(android(?!.*mobile))|(windows(?!.*phone)(.*touch))|kindle|playbook|silk|(puffin(?!.*(IP|AP|WP))))/.test(userAgent);
@@ -62256,7 +61078,6 @@ Wick.GUIElement.BREADCRUMBS_HIGHLIGHT_HEIGHT = 3;
 Wick.GUIElement.BREADCRUMBS_PADDING = 5;
 Wick.GUIElement.LAYERS_CONTAINER_LARGE = 160;
 Wick.GUIElement.LAYERS_CONTAINER_SMALL = 100;
-
 // Shrink the Layer Container if the screen is small.
 Wick.GUIElement.LAYERS_CONTAINER_WIDTH = Wick.GUIElement.IS_MOBILE ? Wick.GUIElement.LAYERS_CONTAINER_SMALL : Wick.GUIElement.LAYERS_CONTAINER_LARGE;
 Wick.GUIElement.NUMBER_LINE_HEIGHT = 35;
@@ -62322,7 +61143,6 @@ Wick.GUIElement.LAYER_LABEL_FONT_WEIGHT = '600';
 Wick.GUIElement.LAYER_LABEL_FONT_FAMILY = 'Nunito Sans';
 Wick.GUIElement.LAYER_LABEL_GHOST_COLOR = Wick.GUIElement.SELECTED_ITEM_BORDER_COLOR;
 Wick.GUIElement.LAYER_LABEL_HOVER_COLOR = '#F5A623';
-
 /* These icons must be loaded externally. */
 Wick.GUIElement.LAYER_BUTTON_ICON_COLOR = '#000000';
 Wick.GUIElement.LAYER_BUTTON_ICON_RADIUS = 10;
@@ -62361,7 +61181,6 @@ Wick.GUIElement.AUTO_SCROLL_SPEED = 0.17;
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.Button = class extends Wick.GUIElement {
   /**
    * Create a new button.
@@ -62384,7 +61203,6 @@ Wick.GUIElement.Button = class extends Wick.GUIElement {
   onMouseDown(e) {
     let now = Date.now();
     let timeSince = now - this.lastPressed;
-
     // Require 100 ms between clicks.
     // This helps ensure that double events are not counted immediately.
     if (timeSince > 150) {
@@ -62411,7 +61229,6 @@ Wick.GUIElement.Button = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.Ghost = class extends Wick.GUIElement {
   constructor(model) {
     super(model);
@@ -62430,7 +61247,6 @@ Wick.GUIElement.Ghost = class extends Wick.GUIElement {
       x: this._mouseEnd.x - this._mouseStart.x,
       y: this._mouseEnd.y - this._mouseStart.y
     };
-
     // Save how many rows/columns we've moved for later
     var moveRowCols = this._roundToGrid(this._mouseDiff.x, this._mouseDiff.y);
     this.moveCols = moveRowCols.col;
@@ -62470,7 +61286,6 @@ Wick.GUIElement.Ghost = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.Icons = class {
   static get dummyIcon() {
     if (!this._dummyIcon) {
@@ -62520,7 +61335,6 @@ Wick.GUIElement.Icons = class {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.ActionButton = class extends Wick.GUIElement.Button {
   constructor(model, args) {
     super(model, args);
@@ -62532,14 +61346,12 @@ Wick.GUIElement.ActionButton = class extends Wick.GUIElement.Button {
   draw(isActive) {
     super.draw();
     var ctx = this.ctx;
-
     // Disable pointer cursor if the button isn't active
     if (isActive) {
       this.cursor = 'pointer';
     } else {
       this.cursor = 'default';
     }
-
     // Button Circle
     if (isActive && this.mouseState == 'over' || this.toggled) {
       ctx.fillStyle = Wick.GUIElement.FRAME_HOVERED_OVER;
@@ -62547,7 +61359,6 @@ Wick.GUIElement.ActionButton = class extends Wick.GUIElement.Button {
       ctx.roundRect(-this.width, -this.height, this.width * 2, this.height * 2, 3);
       ctx.fill();
     }
-
     // Button Icon
     var w = this.width * 0.8;
     var h = this.height * 0.8;
@@ -62580,7 +61391,6 @@ Wick.GUIElement.ActionButton = class extends Wick.GUIElement.Button {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.ActionButtonsContainer = class extends Wick.GUIElement {
   constructor(model) {
     super(model);
@@ -62640,19 +61450,16 @@ Wick.GUIElement.ActionButtonsContainer = class extends Wick.GUIElement {
   }
   draw() {
     var ctx = this.ctx;
-
     // Top background
     ctx.fillStyle = Wick.GUIElement.TIMELINE_BACKGROUND_COLOR;
     ctx.beginPath();
     ctx.rect(0, 0, Wick.GUIElement.LAYERS_CONTAINER_WIDTH, Wick.GUIElement.NUMBER_LINE_HEIGHT);
     ctx.fill();
-
     // Bottom background
     ctx.fillStyle = '#111';
     ctx.beginPath();
     ctx.rect(0, this.canvas.height - Wick.GUIElement.BREADCRUMBS_HEIGHT - Wick.GUIElement.SCROLLBAR_SIZE, Wick.GUIElement.LAYERS_CONTAINER_WIDTH, Wick.GUIElement.SCROLLBAR_SIZE);
     ctx.fill();
-
     // Only draw action buttons on bottom if we're not on mobile.
     if (!Wick.GUIElement.IS_MOBILE) {
       // Gap Fill Mode button
@@ -62666,7 +61473,6 @@ Wick.GUIElement.ActionButtonsContainer = class extends Wick.GUIElement {
       ctx.translate(18, this.canvas.height - Wick.GUIElement.NUMBER_LINE_HEIGHT - 4);
       this.fillGapsModeButton.draw(true);
       ctx.restore();
-
       // Frame Size button
       ctx.save();
       ctx.translate(54, this.canvas.height - Wick.GUIElement.NUMBER_LINE_HEIGHT - 4);
@@ -62687,14 +61493,12 @@ Wick.GUIElement.ActionButtonsContainer = class extends Wick.GUIElement {
     ctx.translate(0, 20);
     this.deleteFrameButton.draw(deleteButtonIsActive);
     ctx.restore();
-
     // Insert Blank Frame Button
     ctx.save();
     ctx.globalAlpha = 1.0;
     ctx.translate(30, 20);
     this.insertBlankFrameButton.draw(true); // Insert frame is always active...
     ctx.restore();
-
     // Add Tween button
     ctx.save();
     ctx.globalAlpha = tweenButtonIsActive ? 1.0 : 0.3;
@@ -62723,7 +61527,6 @@ Wick.GUIElement.ActionButtonsContainer = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.Breadcrumbs = class extends Wick.GUIElement {
   /**
    * Create a new GUIElement
@@ -62737,13 +61540,11 @@ Wick.GUIElement.Breadcrumbs = class extends Wick.GUIElement {
    */
   draw() {
     var ctx = this.ctx;
-
     // Background rectangle to cover rest of the GUI
     ctx.fillStyle = Wick.GUIElement.BREADCRUMBS_BG_COLOR;
     ctx.beginPath();
     ctx.rect(0, 0, this.canvas.width, Wick.GUIElement.BREADCRUMBS_HEIGHT);
     ctx.fill();
-
     // Generate buttons for each Clip in the lineage
     var totalWidth = 0;
     this.model.project.focus.lineage.reverse().forEach(clip => {
@@ -62753,7 +61554,6 @@ Wick.GUIElement.Breadcrumbs = class extends Wick.GUIElement {
         button = new Wick.GUIElement.BreadcrumbsButton(clip);
         this._buttons[clip.uuid] = button;
       }
-
       // Draw the button
       ctx.save();
       ctx.translate(totalWidth, 0);
@@ -62781,7 +61581,6 @@ Wick.GUIElement.Breadcrumbs = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.BreadcrumbsButton = class extends Wick.GUIElement.Button {
   constructor(model) {
     super(model, {
@@ -62794,14 +61593,12 @@ Wick.GUIElement.BreadcrumbsButton = class extends Wick.GUIElement.Button {
   draw() {
     super.draw();
     var ctx = this.ctx;
-
     // Button label settings
     ctx.font = "14px Nunito Sans";
     var textContent = this.model.identifier || 'Clip';
     var textWidth = ctx.measureText(textContent).width;
     var textX = Wick.GUIElement.BREADCRUMBS_PADDING;
     var textY = Wick.GUIElement.BREADCRUMBS_HEIGHT / 2 + Wick.GUIElement.BREADCRUMBS_PADDING;
-
     // Fill color based on mouse interactions
     var buttonBodyColor = 'red';
     if (this.model === this.model.project.focus) {
@@ -62815,7 +61612,6 @@ Wick.GUIElement.BreadcrumbsButton = class extends Wick.GUIElement.Button {
     }
     var buttonWidth = textWidth + Wick.GUIElement.BREADCRUMBS_PADDING * 2;
     this.buttonWidth = buttonWidth; // Save how large the button is to use in other places...
-
     // Button body
     ctx.fillStyle = buttonBodyColor;
     ctx.beginPath();
@@ -62824,7 +61620,6 @@ Wick.GUIElement.BreadcrumbsButton = class extends Wick.GUIElement.Button {
     ctx.beginPath();
     ctx.rect(0, Wick.GUIElement.BREADCRUMBS_HEIGHT / 2, buttonWidth, Wick.GUIElement.BREADCRUMBS_HEIGHT / 2);
     ctx.fill();
-
     // Add the active highlight to the tab if necessary.
     if (this.model === this.model.project.focus) {
       ctx.fillStyle = Wick.GUIElement.BREADCRUMBS_ACTIVE_BORDER_COLOR;
@@ -62832,7 +61627,6 @@ Wick.GUIElement.BreadcrumbsButton = class extends Wick.GUIElement.Button {
       ctx.rect(0, Wick.GUIElement.BREADCRUMBS_HEIGHT - Wick.GUIElement.BREADCRUMBS_HIGHLIGHT_HEIGHT, buttonWidth, Wick.GUIElement.BREADCRUMBS_HIGHLIGHT_HEIGHT);
       ctx.fill();
     }
-
     // Button label text
     ctx.fillStyle = '#BBBBBB';
     ctx.fillText(textContent, textX, textY);
@@ -62864,7 +61658,6 @@ Wick.GUIElement.BreadcrumbsButton = class extends Wick.GUIElement.Button {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.Frame = class extends Wick.GUIElement {
   constructor(model) {
     super(model);
@@ -62875,10 +61668,8 @@ Wick.GUIElement.Frame = class extends Wick.GUIElement {
   draw() {
     super.draw();
     var ctx = this.ctx;
-
     // Fade out frames is layer is hidden
     if (this.model.parentLayer.hidden) ctx.globalAlpha = 0.3;
-
     // Frame body
     var widthPx = this.model.length * this.gridCellWidth - 1;
     var heightPx = this.gridCellHeight - 1;
@@ -62896,14 +61687,12 @@ Wick.GUIElement.Frame = class extends Wick.GUIElement {
       ctx.strokeStyle = Wick.GUIElement.FRAME_HOVERED_OVER;
       ctx.stroke();
     }
-
     // Add selection highlight if necessary
     if (this.model.isSelected) {
       ctx.strokeStyle = Wick.GUIElement.SELECTED_ITEM_BORDER_COLOR;
       ctx.lineWidth = Wick.GUIElement.FRAME_HIGHLIGHT_STROKEWIDTH;
       ctx.stroke();
     }
-
     // Frame body edge
     if (edge) {
       this.cursor = 'ew-resize';
@@ -62926,7 +61715,6 @@ Wick.GUIElement.Frame = class extends Wick.GUIElement {
     } else {
       this.cursor = 'grab';
     }
-
     // Frame scripts dot
     if (this.model.hasContentfulScripts) {
       ctx.fillStyle = Wick.GUIElement.FRAME_SCRIPT_DOT_COLOR;
@@ -62934,7 +61722,6 @@ Wick.GUIElement.Frame = class extends Wick.GUIElement {
       ctx.arc(this.gridCellWidth / 2, 0, Wick.GUIElement.FRAME_CONTENT_DOT_RADIUS * 1.3, 0, Math.PI);
       ctx.fill();
     }
-
     // Frame identifier
     if (this.model.identifier) {
       ctx.save();
@@ -62948,7 +61735,6 @@ Wick.GUIElement.Frame = class extends Wick.GUIElement {
     }
     if (this.model.tweens.length === 0 && !this.model.sound) {
       // Frame contentful dot
-
       ctx.fillStyle = Wick.GUIElement.FRAME_CONTENT_DOT_COLOR;
       if (this.model.contentful) {
         ctx.strokeStyle = Wick.GUIElement.FRAME_CONTENT_DOT_COLOR;
@@ -62970,7 +61756,6 @@ Wick.GUIElement.Frame = class extends Wick.GUIElement {
       ctx.stroke();
     } else if (this.model.sound) {
       // Sound waveform
-
       var framerate = this.model.project.framerate;
       var sound = this.model.sound;
       var waveform = sound.waveform;
@@ -62978,7 +61763,6 @@ Wick.GUIElement.Frame = class extends Wick.GUIElement {
       var frameLengthMS = 1 / framerate * this.model.length * 1000;
       var frameLengthPx = this.model.length * this.gridCellWidth;
       var cropPx = frameLengthMS / soundLengthMS * 1200; // base waveform image size: 1200px
-
       // Determining Pxls/milliseconds to shift waveform.
       var msPerFrame = 1000 / framerate;
       var pxPerMS = msPerFrame / this.gridCellWidth;
@@ -62987,7 +61771,6 @@ Wick.GUIElement.Frame = class extends Wick.GUIElement {
       ctx.drawImage(waveform, 0, volumeCropAmt, cropPx, waveform.height - volumeCropAmt * 2, shiftSoundStart, 0, frameLengthPx, this.gridCellHeight);
     } else if (this.model.tweens.length > 0) {
       // Tweens
-
       this.model.tweens.forEach(tween => {
         ctx.save();
         ctx.translate((tween.playheadPosition - 1) * this.gridCellWidth + this.gridCellWidth / 2, this.gridCellHeight / 2);
@@ -62996,7 +61779,6 @@ Wick.GUIElement.Frame = class extends Wick.GUIElement {
       });
     }
     ctx.globalAlpha = 1.0;
-
     // Draw drag ghost
     if (this._ghost) {
       this._ghost.draw();
@@ -63046,7 +61828,6 @@ Wick.GUIElement.Frame = class extends Wick.GUIElement {
       height: this.gridCellHeight + 1
     };
   }
-
   /* helper function for frame edge dragging */
   _mouseOverFrameEdge() {
     var widthPx = this.model.length * this.gridCellWidth;
@@ -63082,7 +61863,6 @@ Wick.GUIElement.Frame = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.FrameEdgeGhost = class extends Wick.GUIElement.Ghost {
   constructor(model, edge) {
     super(model);
@@ -63099,12 +61879,10 @@ Wick.GUIElement.FrameEdgeGhost = class extends Wick.GUIElement.Ghost {
     super.draw();
     var ctx = this.ctx;
     var mainFrame = this._mainFrame;
-
     // Calculate position values...
     var start = mainFrame.start - this._mainFrame.start;
     var row = mainFrame.parentLayer.index - this._mainFrame.parentLayer.index;
     this.moveCols = Math.round(this._mouseDiff.x / this.gridCellWidth);
-
     // Prevent 'inside out' frames
     var movePx = this._mouseDiff.x;
     this._frames.forEach(frame => {
@@ -63125,13 +61903,11 @@ Wick.GUIElement.FrameEdgeGhost = class extends Wick.GUIElement.Ghost {
       var y = row * this.gridCellHeight;
       var width = frame.length * this.gridCellWidth;
       var height = this.gridCellHeight;
-
       // Offset frame by it's position
       var gridDiffX = frame.start - mainFrame.start;
       var gridDiffY = frame.parentLayer.index - mainFrame.parentLayer.index;
       ctx.save();
       ctx.translate(gridDiffX * this.gridCellWidth, gridDiffY * this.gridCellHeight);
-
       // New length of frames based on mouse x,y
       // (this makes things feel more responsive)
       ctx.save();
@@ -63145,7 +61921,6 @@ Wick.GUIElement.FrameEdgeGhost = class extends Wick.GUIElement.Ghost {
       }
       ctx.fill();
       ctx.restore();
-
       // New length of frames based on grid cells moved
       // (this makes it easy to tell where frames will land)
       ctx.strokeStyle = '#00ff00';
@@ -63176,7 +61951,6 @@ Wick.GUIElement.FrameEdgeGhost = class extends Wick.GUIElement.Ghost {
         frame.start += this.moveCols;
       }
     });
-
     // Re-add frames to trigger overlap/gap cleanup
     this._frames.forEach(frame => {
       frame._originalLayer.addFrame(frame);
@@ -63202,7 +61976,6 @@ Wick.GUIElement.FrameEdgeGhost = class extends Wick.GUIElement.Ghost {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.FrameGhost = class extends Wick.GUIElement.Ghost {
   constructor(model) {
     super(model);
@@ -63221,7 +61994,6 @@ Wick.GUIElement.FrameGhost = class extends Wick.GUIElement.Ghost {
       var y = row * this.gridCellHeight;
       var width = length * this.gridCellWidth;
       var height = this.gridCellHeight;
-
       // New position of frames based on mouse x,y
       // (this makes things feel more responsive)
       ctx.save();
@@ -63232,7 +62004,6 @@ Wick.GUIElement.FrameGhost = class extends Wick.GUIElement.Ghost {
       ctx.roundRect(x, y, width, height, Wick.GUIElement.FRAME_BORDER_RADIUS);
       ctx.fill();
       ctx.restore();
-
       // New position of frames based on grid cells moved
       // (this makes it easy to tell where frames will land)
       ctx.save();
@@ -63258,7 +62029,6 @@ Wick.GUIElement.FrameGhost = class extends Wick.GUIElement.Ghost {
     var timeline = this.model.parentTimeline;
     timeline.playheadPosition += this.moveCols;
     timeline.deferFrameGapResolve();
-
     // Remove all frames, then re-add them in their new places
     this._frames.forEach(frame => {
       frame._originalLayerIndex = frame.parentLayer.index;
@@ -63296,7 +62066,6 @@ Wick.GUIElement.FrameGhost = class extends Wick.GUIElement.Ghost {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.FramesContainer = class extends Wick.GUIElement {
   constructor(model) {
     super(model);
@@ -63311,17 +62080,14 @@ Wick.GUIElement.FramesContainer = class extends Wick.GUIElement {
     this.addFrameCol = Math.floor(this.localMouse.x / this.gridCellWidth);
     this.addFrameRow = Math.floor(this.localMouse.y / this.gridCellHeight);
     var ctx = this.ctx;
-
     // Background
     ctx.fillStyle = Wick.GUIElement.TIMELINE_BACKGROUND_COLOR;
     ctx.beginPath();
     ctx.rect(this.project.scrollX, this.project.scrollY, this.canvas.width, this.canvas.height);
     ctx.fill();
-
     // Add a small buffer to prevent some graphics from being cut off
     ctx.save();
     ctx.translate(2, 2);
-
     // Draw frame strips
     var layers = this.model.layers;
     layers.forEach(layer => {
@@ -63340,7 +62106,6 @@ Wick.GUIElement.FramesContainer = class extends Wick.GUIElement {
       ctx.fill();
       ctx.restore();
     });
-
     // Draw grid
     ctx.lineWidth = 1;
     ctx.strokeStyle = Wick.GUIElement.FRAMES_CONTAINER_VERTICAL_GRID_STROKE_COLOR;
@@ -63352,7 +62117,6 @@ Wick.GUIElement.FramesContainer = class extends Wick.GUIElement {
       ctx.lineTo(x, this.project.scrollY + this.canvas.height);
       ctx.stroke();
     }
-
     // Draw frames
     var frames = this.model.getAllFrames();
     var draggingFrames = frames.filter(frame => {
@@ -63368,12 +62132,10 @@ Wick.GUIElement.FramesContainer = class extends Wick.GUIElement {
       if (draggingFrames.indexOf(frame) !== -1) return;
       this._drawFrame(frame, true);
     });
-
     // Make sure to render the frames being dragged last.
     draggingFrames.forEach(frame => {
       this._drawFrame(frame, false);
     });
-
     // Add frame overlay
     if (this.mouseState === 'over' && !this._selectionBox && this._addFrameOverlayIsActive()) {
       this.cursor = 'pointer';
@@ -63383,7 +62145,6 @@ Wick.GUIElement.FramesContainer = class extends Wick.GUIElement {
       ctx.beginPath();
       ctx.roundRect(x, y, this.gridCellWidth, this.gridCellHeight, Wick.GUIElement.FRAME_BORDER_RADIUS);
       ctx.fill();
-
       // Plus sign
       ctx.font = '30px bold Courier New';
       ctx.fillStyle = Wick.GUIElement.ADD_FRAME_OVERLAY_PLUS_COLOR;
@@ -63393,12 +62154,10 @@ Wick.GUIElement.FramesContainer = class extends Wick.GUIElement {
     } else {
       this.cursor = 'default';
     }
-
     // Selection box
     if (this._selectionBox) {
       this._selectionBox.draw();
     }
-
     // Top drop shadow
     var dropShadow;
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
@@ -63412,7 +62171,6 @@ Wick.GUIElement.FramesContainer = class extends Wick.GUIElement {
   }
   _drawFrame(frame, enableCull) {
     var ctx = this.ctx;
-
     // Optimization: don't render frames that are outside the scroll area
     // This really speeds things up!!
     var frameStartX = (frame.start - 1) * this.gridCellWidth;
@@ -63431,7 +62189,6 @@ Wick.GUIElement.FramesContainer = class extends Wick.GUIElement {
         return;
       }
     }
-
     // Draw the frame
     ctx.save();
     ctx.translate(frameStartX, frameStartY);
@@ -63442,7 +62199,6 @@ Wick.GUIElement.FramesContainer = class extends Wick.GUIElement {
     if (!this._selectionBox) {
       this._selectionBox = new Wick.GUIElement.SelectionBox(this.model);
     }
-
     // Move the playhead when the selection box is dragged.
     var newPlayhead = this.addFrameCol + 1;
     if (this.model.playheadPosition !== newPlayhead) {
@@ -63455,24 +62211,20 @@ Wick.GUIElement.FramesContainer = class extends Wick.GUIElement {
       if (!e.shiftKey) {
         this.model.project.selection.clear();
       }
-
       // The selection box was just finished, select frames with the box bounds
       this._selectionBox.finish();
     } else if (this._addFrameOverlayIsActive()) {
       var playheadPosition = this.addFrameCol + 1;
       var layerIndex = this.addFrameRow;
-
       // Create a new frame and add that frame to the project
       var newFrame = new Wick.Frame({
         start: playheadPosition
       });
       this.model.layers[layerIndex].addFrame(newFrame);
-
       // Select that frame and activate the layer it belongs to
       this.model.project.selection.clear();
       this.model.project.selection.select(newFrame);
       newFrame.parentLayer.activate();
-
       // Move the playhead onto the new frame
       this.model.project.activeTimeline.playheadPosition = playheadPosition;
       this.projectWasModified();
@@ -63513,7 +62265,6 @@ Wick.GUIElement.FramesContainer = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.Layer = class extends Wick.GUIElement {
   constructor(model) {
     super(model);
@@ -63551,18 +62302,15 @@ Wick.GUIElement.Layer = class extends Wick.GUIElement {
   draw() {
     super.draw();
     var ctx = this.ctx;
-
     // Save where the mouse is if the user wants to drag the playhead around
     var mouseY = this.localMouse.y + this.model.index * this.gridCellHeight;
     this.mouseLayerIndex = Math.round(mouseY / this.gridCellHeight) + 1;
     this.mouseLayerIndex = Math.max(1, this.mouseLayerIndex);
     this.mouseLayerIndex = Math.min(this.model.parentTimeline.layers.length + 1, this.mouseLayerIndex);
     this.mouseLayerIndex -= this.model.index;
-
     // Calculate absolute width of layer label
     var width = Wick.GUIElement.LAYERS_CONTAINER_WIDTH - Wick.GUIElement.LAYER_LABEL_MARGIN_SIDES * 2;
     var height = this.gridCellHeight - Wick.GUIElement.LAYER_LABEL_MARGIN_TOP_BOTTOM * 2;
-
     // Body
     if (this.model.hidden) {
       ctx.fillStyle = Wick.GUIElement.LAYER_LABEL_HIDDEN_FILL_COLOR;
@@ -63588,7 +62336,6 @@ Wick.GUIElement.Layer = class extends Wick.GUIElement {
     ctx.fill();
     ctx.stroke();
     ctx.restore();
-
     // Label text
     var maxWidth = Wick.GUIElement.LAYERS_CONTAINER_WIDTH - 10;
     ctx.save();
@@ -63599,7 +62346,6 @@ Wick.GUIElement.Layer = class extends Wick.GUIElement {
     ctx.fillStyle = this.model.isActive ? Wick.GUIElement.LAYER_LABEL_ACTIVE_FONT_COLOR : Wick.GUIElement.LAYER_LABEL_INACTIVE_FONT_COLOR;
     ctx.fillText(this.model.name, 57, this.gridCellHeight / 2 + 6);
     ctx.restore();
-
     // Buttons
     ctx.save();
     ctx.translate(20, this.gridCellHeight / 2);
@@ -63609,7 +62355,6 @@ Wick.GUIElement.Layer = class extends Wick.GUIElement {
     ctx.translate(40, this.gridCellHeight / 2);
     this.lockButton.draw(this.model.locked ? 'lock_closed' : 'lock_open', this.model.locked);
     ctx.restore();
-
     // Reordering ghost
     if (this.mouseState === 'down') {
       ctx.fillStyle = 'red';
@@ -63664,7 +62409,6 @@ Wick.GUIElement.Layer = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.LayerButton = class extends Wick.GUIElement.Button {
   constructor(model, args) {
     super(model, args);
@@ -63674,7 +62418,6 @@ Wick.GUIElement.LayerButton = class extends Wick.GUIElement.Button {
     this.untoggledTooltip = args.untoggledTooltip;
     this.isToggledFn = args.isToggledFn;
   }
-
   /**
    * Draw this layer button.
    * @param {string} icon - The name of the icon to draw.
@@ -63682,11 +62425,9 @@ Wick.GUIElement.LayerButton = class extends Wick.GUIElement.Button {
    */
   draw(isToggled) {
     super.draw();
-
     // Check if the button is toggled
     var isToggled = this.isToggledFn && this.isToggledFn();
     var ctx = this.ctx;
-
     // Render different options depending on isToggledFn
     var icon = null;
     if (isToggled) {
@@ -63696,7 +62437,6 @@ Wick.GUIElement.LayerButton = class extends Wick.GUIElement.Button {
       this.tooltip.label = this.untoggledTooltip;
       icon = this.untoggledIcon;
     }
-
     // Change fill color depending on mouse interactions
     var fillColor;
     if (this.mouseState == 'down') {
@@ -63709,12 +62449,10 @@ Wick.GUIElement.LayerButton = class extends Wick.GUIElement.Button {
       fillColor = Wick.GUIElement.LAYER_BUTTON_TOGGLE_INACTIVE_COLOR;
     }
     ctx.fillStyle = fillColor;
-
     // Button circle
     ctx.beginPath();
     ctx.arc(0, 0, Wick.GUIElement.LAYER_BUTTON_ICON_RADIUS, 0, 2 * Math.PI);
     ctx.fill();
-
     // Button icon
     var r = Wick.GUIElement.LAYER_BUTTON_ICON_RADIUS * 0.8;
     ctx.globalAlpha = 0.5;
@@ -63749,7 +62487,6 @@ Wick.GUIElement.LayerButton = class extends Wick.GUIElement.Button {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.LayerCreateLabel = class extends Wick.GUIElement {
   constructor(model) {
     super(model);
@@ -63761,7 +62498,6 @@ Wick.GUIElement.LayerCreateLabel = class extends Wick.GUIElement {
     ctx.fillStyle = this.mouseState === 'over' ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.3)';
     var width = Wick.GUIElement.LAYERS_CONTAINER_WIDTH - Wick.GUIElement.LAYER_LABEL_MARGIN_SIDES * 2;
     var height = this.gridCellHeight - Wick.GUIElement.LAYER_LABEL_MARGIN_TOP_BOTTOM * 2;
-
     // Body
     ctx.save();
     ctx.translate(Wick.GUIElement.LAYER_LABEL_MARGIN_SIDES, Wick.GUIElement.LAYER_LABEL_MARGIN_TOP_BOTTOM);
@@ -63769,7 +62505,6 @@ Wick.GUIElement.LayerCreateLabel = class extends Wick.GUIElement {
     ctx.roundRect(0, 0, width, height, Wick.GUIElement.LAYER_LABEL_BORDER_RADIUS);
     ctx.fill();
     ctx.restore();
-
     // Plus sign
     ctx.font = "20px " + Wick.GUIElement.LAYER_LABEL_FONT_FAMILY;
     ctx.fillStyle = Wick.GUIElement.ADD_FRAME_OVERLAY_PLUS_COLOR;
@@ -63810,7 +62545,6 @@ Wick.GUIElement.LayerCreateLabel = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.LayersContainer = class extends Wick.GUIElement {
   constructor(model) {
     super(model);
@@ -63818,13 +62552,11 @@ Wick.GUIElement.LayersContainer = class extends Wick.GUIElement {
   }
   draw() {
     var ctx = this.ctx;
-
     // Background
     ctx.fillStyle = Wick.GUIElement.TIMELINE_BACKGROUND_COLOR;
     ctx.beginPath();
     ctx.rect(0, this.project.scrollY, Wick.GUIElement.LAYERS_CONTAINER_WIDTH, this.canvas.height);
     ctx.fill();
-
     // Draw layers
     this.model.layers.forEach(layer => {
       ctx.save();
@@ -63832,7 +62564,6 @@ Wick.GUIElement.LayersContainer = class extends Wick.GUIElement {
       layer.guiElement.draw();
       ctx.restore();
     });
-
     // New layer creation label
     ctx.save();
     ctx.translate(0, this.model.layers.length * this.gridCellHeight);
@@ -63858,7 +62589,6 @@ Wick.GUIElement.LayersContainer = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.NumberLine = class extends Wick.GUIElement {
   constructor(model) {
     super(model);
@@ -63871,28 +62601,23 @@ Wick.GUIElement.NumberLine = class extends Wick.GUIElement {
   draw() {
     super.draw();
     var ctx = this.ctx;
-
     // Shift over 2px for some breathing room
     ctx.save();
     ctx.translate(2, 0);
-
     // Save where the mouse is if the user wants to drag the playhead around
     this.mousePlayheadPosition = Math.floor(this.localMouse.x / this.gridCellWidth) + 1;
     var width = this.canvas.width - Wick.GUIElement.LAYERS_CONTAINER_WIDTH;
     var height = Wick.GUIElement.NUMBER_LINE_HEIGHT;
-
     // Draw background cover
     ctx.fillStyle = Wick.GUIElement.TIMELINE_BACKGROUND_COLOR;
     ctx.beginPath();
     ctx.rect(this.project.scrollX - 2, 0, width, height);
     ctx.fill();
-
     // Draw number line cells
     for (var i = -1; i < width / this.gridCellWidth + 1; i++) {
       var skip = Math.round(this.project.scrollX / this.gridCellWidth);
       this._drawCell(i + skip);
     }
-
     // Draw onion skin range
     if (this.model.project.onionSkinEnabled) {
       ctx.save();
@@ -63901,17 +62626,14 @@ Wick.GUIElement.NumberLine = class extends Wick.GUIElement {
       this.onionSkinRangeRight.draw();
       ctx.restore();
     }
-
     // Draw playhead
     this.playhead.draw();
     ctx.restore();
   }
-
   // Helper function for drawing each cell of the numberline (draws the border and the number)
   _drawCell(i) {
     var ctx = this.ctx;
     var highlight = i === 0 || i % 5 === 4;
-
     // Draw cell number
     if (this.project.frameSizeMode !== 'small' || highlight) {
       var fontSize = i >= 99 ? 13 : 16;
@@ -63926,7 +62648,6 @@ Wick.GUIElement.NumberLine = class extends Wick.GUIElement {
       var textWidth = ctx.measureText(textContent).width;
       ctx.fillText(textContent, i * this.gridCellWidth + this.gridCellWidth / 2 - textWidth / 2, Wick.GUIElement.NUMBER_LINE_HEIGHT - 5);
     }
-
     // Draw cell wall
     ctx.lineWidth = Wick.GUIElement.FRAMES_CONTAINER_VERTICAL_GRID_STROKE_WIDTH;
     if (highlight) {
@@ -63957,7 +62678,6 @@ Wick.GUIElement.NumberLine = class extends Wick.GUIElement {
       height: Wick.GUIElement.NUMBER_LINE_HEIGHT
     };
   }
-
   /* Helper function for dragging the playhead around */
   _movePlayhead() {
     var timeline = this.project.model.activeTimeline;
@@ -63985,9 +62705,7 @@ Wick.GUIElement.NumberLine = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 // Thanks to FlyOrBoom (https://github.com/FlyOrBoom) for the styling of these sliders!
-
 Wick.GUIElement.OnionSkinRange = class extends Wick.GUIElement {
   constructor(model, direction) {
     super(model);
@@ -63998,16 +62716,13 @@ Wick.GUIElement.OnionSkinRange = class extends Wick.GUIElement {
   draw() {
     super.draw();
     var ctx = this.ctx;
-
     // Save where the mouse is if the user wants to drag the sliders around
     this.mousePlayheadPosition = Math.round(this.localMouse.x / this.gridCellWidth);
-
     // Calculate positions of the handle
     var seek = this.direction === 'right' ? this.model.project.onionSkinSeekForwards : this.model.project.onionSkinSeekBackwards;
     var width = Math.max(seek * this.gridCellWidth, this.gridCellWidth / 2);
     var edgeWidth = this.gridCellWidth - Wick.GUIElement.PLAYHEAD_MARGIN * 2;
     var height = Wick.GUIElement.NUMBER_LINE_HEIGHT * 0.9;
-
     // Draw handle
     var grd = ctx.createLinearGradient(0, 0, width + edgeWidth, 0);
     grd.addColorStop(0, 'rgba(255,92,92,0.2)');
@@ -64071,7 +62786,6 @@ Wick.GUIElement.OnionSkinRange = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.Playhead = class extends Wick.GUIElement {
   constructor(model) {
     super(model);
@@ -64113,7 +62827,6 @@ Wick.GUIElement.Playhead = class extends Wick.GUIElement {
     ctx.lineTo(0, 0);
     ctx.fill();
     ctx.stroke();
-
     // Gnurl handles
     var handleMargin = 3;
     var handleSpacing = 4;
@@ -64149,7 +62862,6 @@ Wick.GUIElement.Playhead = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.PopupMenu = class extends Wick.GUIElement {
   constructor(model, args) {
     super(model, args);
@@ -64216,7 +62928,6 @@ Wick.GUIElement.PopupMenu = class extends Wick.GUIElement {
     ctx.beginPath();
     ctx.roundRect(0, 0, 80, 40, 3);
     ctx.fill();
-
     // Buttons
     ctx.save();
     ctx.translate(20, 20);
@@ -64243,7 +62954,6 @@ Wick.GUIElement.PopupMenu = class extends Wick.GUIElement {
     ctx.beginPath();
     ctx.roundRect(0, 0, 120, 40, 3);
     ctx.fill();
-
     // Buttons
     ctx.save();
     ctx.translate(20, 20);
@@ -64281,7 +62991,6 @@ Wick.GUIElement.PopupMenu = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * The Project GUIElement handles the creation of the canvas and drawing the rest of the GUIElements.
  */
@@ -64311,7 +63020,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
     this._attachedDocumentEvents = [];
     this._attachedCanvasEvents = [];
   }
-
   /**
    * Create an event on the document. Saves a reference to the event internally.
    */
@@ -64322,7 +63030,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
       fn: callback
     });
   }
-
   /**
    * Create an event on the canvas. Saves a reference to the event internally.
    */
@@ -64333,7 +63040,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
       fn: callback
     });
   }
-
   /**
    * Removes all events from the document and canvas.
    */
@@ -64345,7 +63051,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
       this._canvas.removeEventListener(evt.event, evt.fn);
     });
   }
-
   /**
    * The div containing the GUI canvas
    */
@@ -64373,7 +63078,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
         if (e.touches) return;
         this._timeline_onMouseDown(e);
       }, false);
-
       // Auto-close popup menu if there is a click off-canvas
       this.createDocumentEvent('mousedown', e => {
         if (e.touches) return;
@@ -64382,7 +63086,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
           this.draw();
         }
       }, false);
-
       // Scroll events - using native wheel event
       this._canvas.addEventListener('wheel', this._onMouseWheel.bind(this), {
         passive: false
@@ -64391,7 +63094,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
       this._wheelPendingDX = 0;
       this._wheelPendingDY = 0;
       this._wheelRAF = null;
-
       // Touch events
       this.createCanvasEvent('touchstart', e => {
         e.buttons = 0;
@@ -64420,7 +63122,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
       this._mouseEventsAttached = true;
     }
   }
-
   /**
    * Resize the canvas so that it fits inside the canvas container, call this when the size of the canvas container changes.
    */
@@ -64428,7 +63129,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
     if (!this._canvasContainer || !this._canvas) return;
     var containerWidth = this.canvasContainer.offsetWidth;
     var containerHeight = this.canvasContainer.offsetHeight;
-
     // Round off canvas size to avoid blurryness.
     containerWidth = Math.floor(containerWidth) - 2;
     containerHeight = Math.floor(containerHeight) - 1;
@@ -64444,22 +63144,17 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
    */
   draw() {
     var ctx = this.ctx;
-
     // Make sure canvas is the correct size
     this.resize();
-
     // Reset drawn objects list
     this._drawnElements = [];
-
     // Draw the entire GUI
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.model.activeTimeline.guiElement.draw();
-
     // Draw current popup menu
     if (this._popupMenu) {
       this._popupMenu.draw();
     }
-
     // Draw tooltips
     this._mouseHoverTargets.forEach(target => {
       if (target.tooltip) {
@@ -64467,7 +63162,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
       }
     });
   }
-
   /**
    * Give a function to call when the timeline modifies the project.
    * @param {function} fn - the function to call
@@ -64475,7 +63169,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
   onProjectModified(fn) {
     this._onProjectModified = fn;
   }
-
   /**
    * Give a function to call when the timeline "soft modifies" the project (moving the playhead, etc).
    * @param {function} fn - the function to call
@@ -64483,7 +63176,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
   onProjectSoftModified(fn) {
     this._onProjectSoftModified = fn;
   }
-
   /**
    * Add a GUIElement to the list of objects that were drawn in the last draw call.
    * @param {Wick.GUIElement} elem - the GUIElement to add
@@ -64491,7 +63183,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
   markElementAsDrawn(elem) {
     this._drawnElements.push(elem);
   }
-
   /**
    * The amount the timeline is scrolled horizontally.
    * @type {number}
@@ -64504,7 +63195,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
     if (scrollX > this.horizontalScrollSpace) scrollX = this.horizontalScrollSpace;
     this._scrollX = scrollX;
   }
-
   /**
    * The amount the timeline is scrolled vertically.
    * @type {number}
@@ -64517,7 +63207,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
     if (scrollY > this.verticalScrollSpace) scrollY = this.verticalScrollSpace;
     this._scrollY = scrollY;
   }
-
   /**
    * The amount of distance the timeline can be scrolled horizontally. Depends on the number of frames.
    * @type {number}
@@ -64525,7 +63214,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
   get horizontalScrollSpace() {
     return this.model.activeTimeline.length * this.gridCellWidth * 3 + 500;
   }
-
   /**
    * The amount of distance the timeline can be scrolled vertically. Depends on the number of layers.
    * @type {number}
@@ -64533,7 +63221,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
   get verticalScrollSpace() {
     return this.model.activeTimeline.layers.length * this.gridCellHeight + this.gridCellHeight * 2;
   }
-
   /**
    * Open a popup menu
    * @param {Wick.GUIElement.PopupMenu} popupMenu - the PopupMenu to open
@@ -64542,7 +63229,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
     this._popupMenu = popupMenu;
     this.draw();
   }
-
   /**
    * Close the current popup menu
    */
@@ -64550,7 +63236,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
     this._popupMenu = null;
     this.draw();
   }
-
   /**
    * String representation of the current frame size, can be "small", "normal", or "large".
    * @type {string}
@@ -64564,7 +63249,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
       return 'large';
     }
   }
-
   /**
    * Drop an asset onto the timeline.
    * @param {string} uuid - The UUID of the desired asset.
@@ -64597,7 +63281,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
       }
     }
   }
-
   /**
    * Auto scrolls the timeline if the playhead is considered off-screen.
    * This is built specifically for moving the playead with hotkeys.
@@ -64627,7 +63310,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
     };
-
     // Optimization: Only update if the mouse is on the canvas (unless something is being dragged)
     var mouseOffCanvas = this._mouse.x < 0 || this._mouse.y < 0 || this._mouse.x > this.canvas.width || this._mouse.y > this.canvas.height;
     if (e.buttons === 0 && !this.canvasClicked && mouseOffCanvas) {
@@ -64637,14 +63319,12 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
       }
       return;
     }
-
     // Update mouse targets
     if (e.buttons === 0) {
       // Mouse moved - find new hover targets
       this._mouseHoverTargets = this._drawnElements.filter(elem => {
         return elem.model.project && elem.mouseInBounds(this._mouse);
       });
-
       // Update cursor
       var top = this._getTopMouseTarget();
       if (top) {
@@ -64695,7 +63375,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
     this.canvasClicked = false;
     this._isDragging = false;
     this.draw();
-
     // Call mousemove so that the next mouse targets can be found without having to move the mouse again
     this._onMouseMove(e);
     clearInterval(this.autoscrollInterval);
@@ -64703,7 +63382,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
   }
   _onMouseDrag(e) {
     this._isDragging = true;
-
     // Call event functons on the elements interacted with
     var target = this._getTopMouseTarget();
     if (target) {
@@ -64712,14 +63390,12 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
       this._doAutoScroll(target);
     }
   }
-
   /**
    * Handles wheel events on the timeline with native wheel API
    * @param {WheelEvent} e - Native wheel event
    */
   _onMouseWheel(e) {
     if (this.model.isPublished) return;
-
     // Only handle scroll events if the mouse is actually over the timeline canvas
     // Check if the event target is the timeline canvas element
     if (e.target !== this._canvas) {
@@ -64727,10 +63403,8 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
       // This allows the view canvas to handle zoom events
       return;
     }
-
     // Only preventDefault and handle scrolling when over the timeline
     e.preventDefault();
-
     // Handle different deltaMode values for cross-browser compatibility
     let multiplier = 1;
     if (e.deltaMode === 1) {
@@ -64818,7 +63492,6 @@ Wick.GUIElement.Project = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.Scrollbar = class extends Wick.GUIElement {
   constructor(model, direction) {
     super(model);
@@ -64831,13 +63504,11 @@ Wick.GUIElement.Scrollbar = class extends Wick.GUIElement {
     this.maxWidth = this.canvas.width - this.localTranslation.x - Wick.GUIElement.SCROLLBAR_SIZE;
     this.maxHeight = this.canvas.height - this.localTranslation.y - Wick.GUIElement.SCROLLBAR_SIZE;
     var size = Wick.GUIElement.SCROLLBAR_SIZE;
-
     // Don't render the scrollbar if there's not enough content to scroll
     if (!this._canScrollVertically() && this.direction === 'vertical') {
       this.project.scrollY = 0;
       return;
     }
-
     // Background
     ctx.fillStyle = Wick.GUIElement.SCROLLBAR_BACKGROUND_COLOR;
     ctx.beginPath();
@@ -64847,7 +63518,6 @@ Wick.GUIElement.Scrollbar = class extends Wick.GUIElement {
       ctx.rect(0, 0, size, this.maxHeight);
     }
     ctx.fill();
-
     // Background corner piece
     if (this.direction === 'horizontal') {
       ctx.fillStyle = Wick.GUIElement.SCROLLBAR_BACKGROUND_COLOR;
@@ -64855,7 +63525,6 @@ Wick.GUIElement.Scrollbar = class extends Wick.GUIElement {
       ctx.roundRect(this.maxWidth, 0, this.maxWidth + size, size, 0);
       ctx.fill();
     }
-
     // Grabber piece
     ctx.save();
     var pos = this._getScrollbarPosition();
@@ -64864,7 +63533,6 @@ Wick.GUIElement.Scrollbar = class extends Wick.GUIElement {
     } else if (this.direction === 'vertical') {
       ctx.translate(0, pos.y);
     }
-
     // Calculate "scroll ratio" (used to convert between scrollbar's position and the actual pixel scroll amount)
     this.grabber.scrollRatioX = this.project.horizontalScrollSpace / (this.maxWidth - Wick.GUIElement.SCROLLBAR_HORIZONTAL_LENGTH);
     this.grabber.scrollRatioY = this.project.verticalScrollSpace / (this.maxHeight - Wick.GUIElement.SCROLLBAR_VERTICAL_LENGTH);
@@ -64899,7 +63567,6 @@ Wick.GUIElement.Scrollbar = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.ScrollbarGrabber = class extends Wick.GUIElement {
   constructor(model, direction) {
     super(model);
@@ -64911,12 +63578,10 @@ Wick.GUIElement.ScrollbarGrabber = class extends Wick.GUIElement {
   draw() {
     super.draw();
     var ctx = this.ctx;
-
     // Set color based on if the mouse is hovered over the bar
     var fillColor = this.mouseState === 'over' ? Wick.GUIElement.SCROLLBAR_ACTIVE_FILL_COLOR : Wick.GUIElement.SCROLLBAR_FILL_COLOR;
     var r = Wick.GUIElement.SCROLLBAR_BORDER_RADIUS;
     var s = Wick.GUIElement.SCROLLBAR_SIZE - Wick.GUIElement.SCROLLBAR_MARGIN;
-
     // Draw the bar
     ctx.fillStyle = fillColor;
     ctx.save();
@@ -64975,7 +63640,6 @@ Wick.GUIElement.ScrollbarGrabber = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.SelectionBox = class extends Wick.GUIElement.Ghost {
   constructor(model) {
     super(model);
@@ -64983,7 +63647,6 @@ Wick.GUIElement.SelectionBox = class extends Wick.GUIElement.Ghost {
   draw() {
     super.draw();
     var ctx = this.ctx;
-
     // Draw selection box (using mouse position - this is drawn just so it feels more responsive)
     // (Disabled for now - didn't look good.)
     /*
@@ -64997,7 +63660,6 @@ Wick.GUIElement.SelectionBox = class extends Wick.GUIElement.Ghost {
         this._mouseDiff.y);
     ctx.fill();
     */
-
     this.gridStart = {
       x: Math.floor(this._mouseStart.x / this.gridCellWidth),
       y: Math.floor(this._mouseStart.y / this.gridCellHeight)
@@ -65006,7 +63668,6 @@ Wick.GUIElement.SelectionBox = class extends Wick.GUIElement.Ghost {
       x: Math.floor(this._mouseEnd.x / this.gridCellWidth),
       y: Math.floor(this._mouseEnd.y / this.gridCellHeight)
     };
-
     // Make sure min is always less than max
     // (This makes calculating bounds and finding items contained within the selection box easier)
     if (this.gridStart.x > this.gridEnd.x) {
@@ -65019,7 +63680,6 @@ Wick.GUIElement.SelectionBox = class extends Wick.GUIElement.Ghost {
       this.gridEnd.y = this.gridStart.y;
       this.gridStart.y = temp;
     }
-
     // Draw selection box (using grid position - this shows what will actually be selected)
     ctx.strokeStyle = 'rgba(66, 111, 200, 1.0)';
     ctx.fillStyle = 'rgba(66, 111, 200, 0.4)';
@@ -65035,7 +63695,6 @@ Wick.GUIElement.SelectionBox = class extends Wick.GUIElement.Ghost {
     var playheadRangeEnd = this.gridEnd.x + 1;
     var layerRangeStart = this.gridStart.y;
     var layerRangeEnd = this.gridEnd.y;
-
     // Find all frames within selection box bounds and select them.
     this.model.getAllFrames().filter(frame => {
       return frame.inRange(playheadRangeStart, playheadRangeEnd) && frame.parentLayer.index >= layerRangeStart && frame.parentLayer.index <= layerRangeEnd;
@@ -65062,7 +63721,6 @@ Wick.GUIElement.SelectionBox = class extends Wick.GUIElement.Ghost {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 /**
  * The Timeline is responsible for drawing the following GUI elements:
  * - Breadcrumbs
@@ -65085,7 +63743,6 @@ Wick.GUIElement.Timeline = class extends Wick.GUIElement {
     this.horizontalScrollbar = new Wick.GUIElement.Scrollbar(model, 'horizontal');
     this.verticalScrollbar = new Wick.GUIElement.Scrollbar(model, 'vertical');
   }
-
   /**
    * Draw this GUIElement
    */
@@ -65105,13 +63762,11 @@ Wick.GUIElement.Timeline = class extends Wick.GUIElement {
     ctx.restore();
     ctx.restore();
     ctx.restore();
-
     // Number Line
     ctx.save();
     ctx.translate(-this.project.scrollX + Wick.GUIElement.LAYERS_CONTAINER_WIDTH, 0);
     this.numberLine.draw();
     ctx.restore();
-
     // Layers
     ctx.save();
     ctx.translate(0, Wick.GUIElement.NUMBER_LINE_HEIGHT);
@@ -65120,11 +63775,9 @@ Wick.GUIElement.Timeline = class extends Wick.GUIElement {
     this.layersContainer.draw();
     ctx.restore();
     ctx.restore();
-
     // Action buttons
     this.actionButtonsContainer.draw();
     ctx.restore();
-
     // Scrollbars
     ctx.save();
     ctx.translate(Wick.GUIElement.LAYERS_CONTAINER_WIDTH, Wick.GUIElement.BREADCRUMBS_HEIGHT + Wick.GUIElement.NUMBER_LINE_HEIGHT);
@@ -65137,10 +63790,8 @@ Wick.GUIElement.Timeline = class extends Wick.GUIElement {
     this.verticalScrollbar.draw();
     ctx.restore();
     ctx.restore();
-
     // Breadcrumbs
     this.breadcrumbs.draw();
-
     // Drop shadows
     ctx.save();
     ctx.translate(Wick.GUIElement.LAYERS_CONTAINER_WIDTH, Wick.GUIElement.BREADCRUMBS_HEIGHT);
@@ -65172,7 +63823,6 @@ Wick.GUIElement.Timeline = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.Tooltip = class extends Wick.GUIElement {
   constructor(model, label) {
     super(model);
@@ -65180,22 +63830,18 @@ Wick.GUIElement.Tooltip = class extends Wick.GUIElement {
   }
   draw(x, y) {
     super.draw();
-
     // No label was given yet - don't render.
     if (!this.label) return;
     var ctx = this.ctx;
-
     // Font settings
     ctx.font = "14px Nunito Sans";
     var textContent = this.label;
     var textWidth = ctx.measureText(textContent).width;
     var textHeight = 14;
-
     // Tooltip
     ctx.save();
     var tx = x - textWidth / 2;
     var ty = y + textHeight;
-
     // Restrict tooltip so it's always on-screen
     var xMin = 3;
     if (tx < xMin) tx = xMin;
@@ -65205,7 +63851,6 @@ Wick.GUIElement.Tooltip = class extends Wick.GUIElement {
       ty = this.canvas.height - 20;
     }
     ctx.translate(tx, ty);
-
     // Body
     var margin = 4;
     var r = Wick.GUIElement.FRAME_BORDER_RADIUS;
@@ -65213,7 +63858,6 @@ Wick.GUIElement.Tooltip = class extends Wick.GUIElement {
     ctx.beginPath();
     ctx.roundRect(-margin / 2, -margin / 2, textWidth + margin, textHeight + margin, r);
     ctx.fill();
-
     // Label text
     ctx.fillStyle = '#FFFFFF';
     ctx.fillText(textContent, 0, 12);
@@ -65238,7 +63882,6 @@ Wick.GUIElement.Tooltip = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.Tween = class extends Wick.GUIElement {
   constructor(model) {
     super(model);
@@ -65253,7 +63896,6 @@ Wick.GUIElement.Tween = class extends Wick.GUIElement {
     if (this.project.frameSizeMode === 'large') {
       r *= 1.25;
     }
-
     // Tween diamond
     ctx.save();
     ctx.rotate(Math.PI / 4);
@@ -65266,7 +63908,6 @@ Wick.GUIElement.Tween = class extends Wick.GUIElement {
     ctx.roundRect(-r, -r, r * 2, r * 2, 3);
     ctx.fill();
     ctx.restore();
-
     // Tween diamond right half
     ctx.save();
     ctx.beginPath();
@@ -65282,7 +63923,6 @@ Wick.GUIElement.Tween = class extends Wick.GUIElement {
     ctx.roundRect(-r, -r, r * 2, r * 2, 3);
     ctx.fill();
     ctx.restore();
-
     // Selection border
     if (this.model.isSelected) {
       ctx.save();
@@ -65294,17 +63934,14 @@ Wick.GUIElement.Tween = class extends Wick.GUIElement {
       ctx.stroke();
       ctx.restore();
     }
-
     // Tween arrows
     var linePadding = 18;
     var nextTween = this.model.getNextTween();
     if (nextTween) {
       // Draw an arrow pointing towards the next tween
-
       var nextTweenGridPosition = nextTween.playheadPosition - this.model.playheadPosition;
       var nextTweenPosition = nextTweenGridPosition * this.gridCellWidth;
       var arrowSize = 5;
-
       // Line
       ctx.strokeStyle = Wick.GUIElement.TWEEN_ARROW_STROKE_COLOR;
       ctx.lineWidth = Wick.GUIElement.TWEEN_ARROW_STROKE_WIDTH;
@@ -65312,7 +63949,6 @@ Wick.GUIElement.Tween = class extends Wick.GUIElement {
       ctx.moveTo(linePadding, 0);
       ctx.lineTo(nextTweenPosition - linePadding, 0);
       ctx.stroke();
-
       // Arrow head
       ctx.fillStyle = Wick.GUIElement.TWEEN_ARROW_STROKE_COLOR;
       ctx.beginPath();
@@ -65325,11 +63961,9 @@ Wick.GUIElement.Tween = class extends Wick.GUIElement {
       ctx.stroke();
     } else if (this.model.playheadPosition !== this.model.parentFrame.length) {
       // There is no tween in front of this tween, so draw a dotted line to the end of the frame
-
       var tweenPos = this.model.playheadPosition * this.gridCellWidth;
       var frameLength = this.model.parentFrame.length * this.gridCellWidth;
       var frameRightEdge = frameLength - tweenPos + this.gridCellWidth / 2;
-
       // Dotted line
       ctx.save();
       ctx.strokeStyle = Wick.GUIElement.TWEEN_ARROW_STROKE_COLOR;
@@ -65405,7 +64039,6 @@ Wick.GUIElement.Tween = class extends Wick.GUIElement {
  * You should have received a copy of the GNU General Public License
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 Wick.GUIElement.TweenGhost = class extends Wick.GUIElement.Ghost {
   constructor(model) {
     super(model);
@@ -65415,7 +64048,6 @@ Wick.GUIElement.TweenGhost = class extends Wick.GUIElement.Ghost {
   draw() {
     super.draw();
     var ctx = this.ctx;
-
     // Save how many rows/columns we've moved for later
     this.moveCols = Math.round(this._mouseDiff.x / this.gridCellWidth);
     this.moveRows = Math.round(this._mouseDiff.y / this.gridCellHeight);
@@ -65426,7 +64058,6 @@ Wick.GUIElement.TweenGhost = class extends Wick.GUIElement.Ghost {
       var relativeLayer = tween.parentLayer.index - this._mainTween.parentLayer.index;
       var x = relativePlayhead * this.gridCellWidth;
       var y = relativeLayer * this.gridCellHeight;
-
       // Translate all tweens relative to the tween originally clicked and dragged
       ctx.save();
       ctx.translate(x, y);
@@ -65441,7 +64072,6 @@ Wick.GUIElement.TweenGhost = class extends Wick.GUIElement.Ghost {
       ctx.roundRect(-r, -r, r * 2, r * 2, 3);
       ctx.fill();
       ctx.restore();
-
       // New tween position (grid based)
       ctx.save();
       ctx.strokeStyle = '#00ff00';
@@ -65460,7 +64090,6 @@ Wick.GUIElement.TweenGhost = class extends Wick.GUIElement.Ghost {
   finish() {
     var timeline = this._mainTween.project.activeTimeline;
     timeline.playheadPosition += this.moveCols;
-
     // Move all tweens by how much the mouse moved.
     this._tweens.forEach(tween => {
       tween._originalFrame = tween.parentFrame;

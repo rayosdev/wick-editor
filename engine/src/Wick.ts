@@ -20,13 +20,21 @@
 /**
  * This object creates a Wick namespace for wick-engine functionality and utilities.
  */
-Wick = {
-    version: window.WICK_ENGINE_BUILD_VERSION || "dev",
-    resourcepath: '../dist/',
-    _originals: {}, // Eventually store a single instance of each type of Wick.Base object (see Wick.Base constructor).
+
+interface WickNamespace {
+  version: string;
+  resourcepath: string;
+  _originals: Record<string, any>;
+  [key: string]: any;
 }
+
+const Wick: WickNamespace = {
+  version: (window as any).WICK_ENGINE_BUILD_VERSION || "dev",
+  resourcepath: "../dist/",
+  _originals: {}, // Eventually store a single instance of each type of Wick.Base object (see Wick.Base constructor).
+};
 
 console.log('Wick Engine version "' + Wick.version + '" is available.');
 
 // Ensure that the Wick namespace is accessible in environments where globals are finicky (react, webpack, etc)
-window.Wick = Wick;
+(window as any).Wick = Wick;

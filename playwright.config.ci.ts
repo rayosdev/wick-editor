@@ -3,12 +3,13 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * Playwright config for CI/CD environments
  * Auto-starts and manages dev server
- * 
+ *
  * Usage:
  *   npm run test:e2e:ci
  */
 export default defineConfig({
   testDir: "./tests",
+  testMatch: "**/*.spec.ts",
   fullyParallel: false, // Sequential in CI for stability
   forbidOnly: true,
   retries: 2, // Retry flaky tests in CI
@@ -16,9 +17,9 @@ export default defineConfig({
   reporter: [
     ["list"],
     ["html", { outputFolder: "playwright-report" }],
-    ["json", { outputFile: "test-results.json" }]
+    ["json", { outputFile: "test-results.json" }],
   ],
-  
+
   webServer: {
     command: "npm start",
     url: "http://localhost:3002",
@@ -27,14 +28,14 @@ export default defineConfig({
     stdout: "pipe", // Capture output
     stderr: "pipe",
   },
-  
+
   use: {
     baseURL: "http://localhost:3002",
     trace: "on-first-retry",
     screenshot: "on",
     video: "retain-on-failure",
   },
-  
+
   projects: [
     {
       name: "chromium",
