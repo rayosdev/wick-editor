@@ -49,7 +49,15 @@ var module = { exports: {} }; // Dummy module
 var exports = module.exports;
 var global = window; // Map global to window
 var self = window; // Map self to window
-if (typeof console === "undefined") { var console = { log: function() {}, error: function() {} }; }
+if (typeof console === "undefined") { 
+  var console = { 
+    log: function() {}, 
+    error: function() {}, 
+    warn: function() {}, 
+    info: function() {}, 
+    debug: function() {} 
+  }; 
+}
 if (typeof process === "undefined") { var process = { env: {} }; }
 if (typeof Buffer === "undefined") { var Buffer = function() {}; }
 if (typeof __dirname === "undefined") { var __dirname = ""; }

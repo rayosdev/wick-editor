@@ -62,9 +62,18 @@
   var global = window;
   var self = window;
   if (typeof console === "undefined") {
-    var console = { log: function() {
-    }, error: function() {
-    } };
+    var console = {
+      log: function() {
+      },
+      error: function() {
+      },
+      warn: function() {
+      },
+      info: function() {
+      },
+      debug: function() {
+      }
+    };
   }
   if (typeof process === "undefined") {
     var process = { env: {} };
@@ -79,7 +88,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.13.10.2";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.19.48.50";
   (function() {
 
     const Wick$1 = {

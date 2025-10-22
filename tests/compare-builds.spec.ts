@@ -20,7 +20,7 @@ test('compare Gulp vs Vite - check for setFullySelected error', async ({ page })
   
   await page.goto('/');
   await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(6000);
   
   console.log('\n=== BUILD INFO ===');
   const buildInfo = await page.evaluate(() => {
