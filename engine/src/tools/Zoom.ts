@@ -18,8 +18,14 @@
  */
 
 Wick.Tools.Zoom = class extends Wick.Tool {
+    public name: string;
+    public ZOOM_IN_AMOUNT: number;
+    public ZOOM_OUT_AMOUNT: number;
+    public MIN_ZOOMBOX_SIZE: number;
+    public zoomBox: any; // paper.Path
+
     /**
-     *
+     * Creates a zoom tool.
      */
     constructor () {
         super();
@@ -34,36 +40,36 @@ Wick.Tools.Zoom = class extends Wick.Tool {
         this.zoomBox = null;
     }
 
-    get doubleClickEnabled () {
+    get doubleClickEnabled (): boolean {
         return false;
     }
 
     /**
-     *
+     * A zoom-in cursor.
      * @type {string}
      */
-    get cursor () {
+    get cursor (): string {
         return 'zoom-in';
     }
 
-    onActivate (e) {
+    onActivate (e: any): void {
 
     }
 
-    onDeactivate (e) {
+    onDeactivate (e: any): void {
         this.deleteZoomBox();
     }
 
-    onMouseDown (e) {
+    onMouseDown (e: any): void {
 
     }
 
-    onMouseDrag (e) {
+    onMouseDrag (e: any): void {
         this.deleteZoomBox();
         this.createZoomBox(e);
     }
 
-    onMouseUp (e) {
+    onMouseUp (e: any): void {
         if(this.zoomBox && this.zoomBoxIsValidSize()) {
             var bounds = this.zoomBox.bounds;
             var viewBounds = this.paper.view.bounds;
@@ -82,7 +88,7 @@ Wick.Tools.Zoom = class extends Wick.Tool {
         this.fireEvent({eventName: 'canvasViewTransformed'});
     }
 
-    createZoomBox (e) {
+    createZoomBox (e: any): void {
         var bounds = new this.paper.Rectangle(e.downPoint, e.point);
         bounds.x += 0.5;
         bounds.y += 0.5;
@@ -91,14 +97,14 @@ Wick.Tools.Zoom = class extends Wick.Tool {
         this.zoomBox.strokeWidth = 1.0 / this.paper.view.zoom;
     }
 
-    deleteZoomBox () {
+    deleteZoomBox (): void {
         if(this.zoomBox) {
             this.zoomBox.remove();
             this.zoomBox = null;
         }
     }
 
-    zoomBoxIsValidSize () {
+    zoomBoxIsValidSize (): boolean {
         return this.zoomBox.bounds.width > this.MIN_ZOOMBOX_SIZE
             && this.zoomBox.bounds.height > this.MIN_ZOOMBOX_SIZE;
     }

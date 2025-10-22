@@ -18,6 +18,25 @@
  */
 
 Wick.Tools.PathCursor = class extends Wick.Tool {
+    public name: string;
+    public SELECTION_TOLERANCE: number;
+    public CURSOR_DEFAULT: string;
+    public CURSOR_SEGMENT: string;
+    public CURSOR_CURVE: string;
+    public HOVER_PREVIEW_SEGMENT_STROKE_COLOR: string;
+    public HOVER_PREVIEW_SEGMENT_STROKE_WIDTH: number;
+    public HOVER_PREVIEW_SEGMENT_FILL_COLOR: string;
+    public HOVER_PREVIEW_SEGMENT_RADIUS: number;
+    public HOVER_PREVIEW_CURVE_STROKE_WIDTH: number;
+    public HOVER_PREVIEW_CURVE_STROKE_COLOR: string;
+
+    public hitResult: any; // paper.HitResult
+    public draggingCurve: any; // paper.Curve
+    public draggingSegment: any; // paper.Segment
+    public hoverPreview: any; // paper.Item
+    public detailedEditing: any; // paper.Item
+    public currentCursorIcon: string;
+
     constructor () {
         super();
 
@@ -44,22 +63,22 @@ Wick.Tools.PathCursor = class extends Wick.Tool {
         this.currentCursorIcon = '';
     }
 
-    get doubleClickEnabled () {
+    get doubleClickEnabled (): boolean {
         return true;
     }
 
-    get cursor () {
+    get cursor (): string {
         return 'url("'+this.currentCursorIcon+'") 32 32, auto';
     }
 
-    onActivate (e) {
+    onActivate (e: any): void {
     }
 
-    onDeactivate (e) {
+    onDeactivate (e: any): void {
         this._leaveDetailedEditing();
     }
 
-    onMouseMove (e) {
+    onMouseMove (e: any): void {
         super.onMouseMove(e);
 
         // Remove the hover preview, a new one will be generated if needed
@@ -91,7 +110,7 @@ Wick.Tools.PathCursor = class extends Wick.Tool {
         this.hoverPreview.data.wickType = 'gui';
     }
 
-    onMouseDown (e) {
+    onMouseDown (e: any): void {
         super.onMouseDown(e);
 
         if(!e.modifiers) e.modifiers = {};
@@ -119,7 +138,7 @@ Wick.Tools.PathCursor = class extends Wick.Tool {
         }
     }
 
-    onDoubleClick (e) {
+    onDoubleClick (e: any): void {
         this.hitResult = this._updateHitResult(e);
 
         if (this.detailedEditing == null) {
@@ -185,7 +204,7 @@ Wick.Tools.PathCursor = class extends Wick.Tool {
 
     }
 
-    onMouseDrag (e) {
+    onMouseDrag (e: any): void {
         if(!e.modifiers) e.modifiers = {};
 
         if(this.hitResult.item && this.hitResult.type === 'segment') {
@@ -219,8 +238,8 @@ Wick.Tools.PathCursor = class extends Wick.Tool {
         }
 
         if (this.hitResult.type && this.hitResult.type.startsWith('handle')) {
-            var otherHandle;
-            var handle;
+            var otherHandle: any;
+            var handle: any;
             if(this.hitResult.type === 'handle-in') {
                 handle = this.hitResult.segment.handleIn;
                 otherHandle = this.hitResult.segment.handleOut;
@@ -238,13 +257,13 @@ Wick.Tools.PathCursor = class extends Wick.Tool {
         }
     }
 
-    onMouseUp (e) {
+    onMouseUp (e: any): void {
         if (this.hitResult.type === 'segment' || this.hitResult.type === 'curve') {
             this.fireEvent({eventName: 'canvasModified', actionName:'pathcursor'});
         }
     }
 
-    onKeyDown(e) {
+    onKeyDown(e: any): void {
         if (this.detailedEditing !== null && e.key == "<") {
             var wick = Wick.ObjectCache.getObjectByUUID(
                 this._getWickUUID(this.detailedEditing));
@@ -254,7 +273,7 @@ Wick.Tools.PathCursor = class extends Wick.Tool {
         }
     }
 
-    _updateHitResult (e) {
+    _updateHitResult (e: any): any {
         var newHitResult = this.paper.project.hitTest(e.point, {
             fill: true,
             stroke: true,
@@ -310,7 +329,7 @@ Wick.Tools.PathCursor = class extends Wick.Tool {
         return newHitResult;
     }
 
-    _getCursor () {
+    _getCursor (): string {
         if(!this.hitResult.item) {
             return this.CURSOR_DEFAULT;
         } else if (this.hitResult.type === 'curve') {
@@ -320,11 +339,11 @@ Wick.Tools.PathCursor = class extends Wick.Tool {
         }
     }
 
-    _setCursor (cursor) {
+    _setCursor (cursor: string): void {
         this.currentCursorIcon = cursor;
     }
 
-    _leaveDetailedEditing () {
+    _leaveDetailedEditing (): void {
         if (this.detailedEditing !== null) {
             this.paper.project.deselectAll();
 
@@ -340,7 +359,7 @@ Wick.Tools.PathCursor = class extends Wick.Tool {
         }
     }
 
-    _getWickUUID (item) {
+    _getWickUUID (item: any): string | undefined {
         if (item) {
             return item.data.wickUUID;
         } else {

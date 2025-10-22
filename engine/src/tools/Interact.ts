@@ -18,6 +18,13 @@
  */
 
 Wick.Tools.Interact = class extends Wick.Tool {
+    public name: string;
+    private _keysDown: string[];
+    private _lastKeyDown: string | null;
+    private _mouseIsDown: boolean;
+    private _mousePosition: any; // paper.Point
+    private _mouseTargets: any[];
+
     /**
      * Creates an Interact tool.
      */
@@ -33,33 +40,33 @@ Wick.Tools.Interact = class extends Wick.Tool {
         this._mouseTargets = [];
     }
 
-    onActivate (e) {
+    onActivate (e: any): void {
 
     }
 
-    onDeactivate (e) {
+    onDeactivate (e: any): void {
 
     }
 
-    onMouseMove (e) {
+    onMouseMove (e: any): void {
         this._mousePosition = e.point;
     }
 
-    onMouseDrag (e) {
+    onMouseDrag (e: any): void {
         this._mousePosition = e.point;
     }
 
-    onMouseDown (e) {
+    onMouseDown (e: any): void {
         this._mousePosition = e.point;
         this._mouseIsDown = true;
     }
 
-    onMouseUp (e) {
+    onMouseUp (e: any): void {
         this._mousePosition = e.point;
         this._mouseIsDown = false;
     }
 
-    onKeyDown (e) {
+    onKeyDown (e: any): void {
         this._lastKeyDown = e.key;
 
         if(this._keysDown.indexOf(e.key) === -1) {
@@ -67,41 +74,41 @@ Wick.Tools.Interact = class extends Wick.Tool {
         }
     }
 
-    onKeyUp (e) {
+    onKeyUp (e: any): void {
         this._keysDown = this._keysDown.filter(key => {
             return key !== e.key;
         });
     }
 
-    get mousePosition () {
+    get mousePosition (): any {
         return this._mousePosition;
     }
 
-    get mouseIsDown () {
+    get mouseIsDown (): boolean {
         return this._mouseIsDown;
     }
 
-    get keysDown () {
+    get keysDown (): string[] {
         return this._keysDown;
     }
 
-    get lastKeyDown () {
+    get lastKeyDown (): string | null {
         return this._lastKeyDown;
     }
 
-    get mouseTargets () {
+    get mouseTargets (): any[] {
         return this._mouseTargets;
     }
 
-    get doubleClickEnabled () {
+    get doubleClickEnabled (): boolean {
         return false;
     }
 
     /**
      * Use the current position of the mouse to determine which object(s) are under the mouse
      */
-    determineMouseTargets () {
-        var targets = [];
+    determineMouseTargets (): void {
+        var targets: any[] = [];
 
         var hitResult = this.paper.project.hitTest(this.mousePosition, {
             fill: true,
@@ -135,7 +142,7 @@ Wick.Tools.Interact = class extends Wick.Tool {
             this.setCursor('none');
         } else {
             if (targets) {
-                clip = targets[0];
+                var clip = targets[0];
                 clip && this.setCursor(clip.cursor)
             }
         }

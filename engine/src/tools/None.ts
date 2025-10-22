@@ -18,6 +18,8 @@
  */
 
 Wick.Tools.None = class extends Wick.Tool {
+    public name: string;
+
     /**
      * Creates a none tool.
      */
@@ -31,20 +33,20 @@ Wick.Tools.None = class extends Wick.Tool {
      * The "no-sign" cursor.
      * @type {string}
      */
-    get cursor () {
+    get cursor (): string {
         return 'not-allowed'
     }
 
-    onActivate (e) {
+    onActivate (e: any): void {
 
     }
 
-    onDeactivate (e) {
+    onDeactivate (e: any): void {
 
     }
 
-    onMouseDown (e) {
-        var message = '';
+    onMouseDown (e: any): void {
+        var message: string = '';
 
         if(!this.project.activeFrame) {
             message = 'CLICK_NOT_ALLOWED_NO_FRAME';
@@ -59,11 +61,11 @@ Wick.Tools.None = class extends Wick.Tool {
         this.project.errorOccured(message);
     }
 
-    onMouseDrag (e) {
+    onMouseDrag (e: any): void {
 
     }
 
-    onMouseUp (e) {
+    onMouseUp (e: any): void {
 
     }
 }

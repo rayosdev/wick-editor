@@ -18,8 +18,10 @@
  */
 
 Wick.Tools.Pan = class extends Wick.Tool {
+    public name: string;
+
     /**
-     *
+     * Creates a pan tool.
      */
     constructor () {
         super();
@@ -27,36 +29,36 @@ Wick.Tools.Pan = class extends Wick.Tool {
         this.name = 'pan';
     }
 
-    get doubleClickEnabled () {
+    get doubleClickEnabled (): boolean {
         return false;
     }
 
     /**
-     *
+     * A move cursor.
      * @type {string}
      */
-    get cursor () {
+    get cursor (): string {
         return 'move';
     }
 
-    onActivate (e) {
+    onActivate (e: any): void {
 
     }
 
-    onDeactivate (e) {
+    onDeactivate (e: any): void {
 
     }
 
-    onMouseDown (e) {
+    onMouseDown (e: any): void {
 
     }
 
-    onMouseDrag (e) {
+    onMouseDrag (e: any): void {
         var d = e.downPoint.subtract(e.point);
         this.paper.view.center = this.paper.view.center.add(d);
     }
 
-    onMouseUp (e) {
+    onMouseUp (e: any): void {
         this.fireEvent({eventName: 'canvasViewTransformed'});
     }
 }

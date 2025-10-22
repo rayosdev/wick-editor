@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.23.48.53";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.23.53.39";
   (function() {
 
     var _a;
@@ -47059,7 +47059,7 @@
           this.setCursor("none");
         } else {
           if (targets) {
-            clip = targets[0];
+            var clip = targets[0];
             clip && this.setCursor(clip.cursor);
           }
         }
@@ -47153,7 +47153,7 @@
     };
     Wick.Tools.Pan = class extends Wick.Tool {
       /**
-       *
+       * Creates a pan tool.
        */
       constructor() {
         super();
@@ -47163,7 +47163,7 @@
         return false;
       }
       /**
-       *
+       * A move cursor.
        * @type {string}
        */
       get cursor() {
@@ -47641,8 +47641,9 @@
       }
     };
     Wick.Tools.Zoom = class extends Wick.Tool {
+      // paper.Path
       /**
-       *
+       * Creates a zoom tool.
        */
       constructor() {
         super();
@@ -47656,7 +47657,7 @@
         return false;
       }
       /**
-       *
+       * A zoom-in cursor.
        * @type {string}
        */
       get cursor() {
