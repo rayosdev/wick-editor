@@ -19,11 +19,13 @@
 
 /* Small utility class for colors. */
 Wick.Color = class {
+    private _color: any; // paper.Color
+
     /**
      * Creates a Transformation.
      * @param {string} color - (Optional) Hex or Rgba color to create a Wick.Color from.
      */
-    constructor (color) {
+    constructor (color?: string) {
         if(color) {
             this._color = new paper.Color(color);
         } else {
@@ -35,11 +37,11 @@ Wick.Color = class {
      * The red value of the color. Ranges from 0.0 to 1.0.
      * @type {Number}
      */
-    get r () {
+    get r (): number {
         return this._color.red;
     }
 
-    set r (r) {
+    set r (r: number) {
         this._color.red = r;
     }
 
@@ -47,11 +49,11 @@ Wick.Color = class {
      * The green value of the color. Ranges from 0.0 to 1.0.
      * @type {Number}
      */
-    get g () {
+    get g (): number {
         return this._color.green;
     }
 
-    set g (g) {
+    set g (g: number) {
         this._color.green = g;
     }
 
@@ -59,11 +61,11 @@ Wick.Color = class {
      * The blue value of the color. Ranges from 0.0 to 1.0.
      * @type {Number}
      */
-    get b () {
+    get b (): number {
         return this._color.blue;
     }
 
-    set b (b) {
+    set b (b: number) {
         this._color.blue = b;
     }
 
@@ -71,11 +73,11 @@ Wick.Color = class {
      * The alpha value of the color. Ranges from 0.0 to 1.0.
      * @type {Number}
      */
-    get a () {
+    get a (): number {
         return this._color.alpha;
     }
 
-    set a (a) {
+    set a (a: number) {
         this._color.alpha = a;
     }
 
@@ -83,14 +85,14 @@ Wick.Color = class {
      * The color as a hex string. Example: "#AABBCC"
      * @type {String}
      */
-    get hex () {
+    get hex (): string {
         return this._color.toCSS(true);
     }
 
     /**
      * The color as an rgba string. Example: "rgba(r,g,b,a)"
      */
-    get rgba () {
+    get rgba (): string {
         return this._color.toCSS();
     }
 
@@ -99,7 +101,7 @@ Wick.Color = class {
      * @param {Wick.Color} color - the color to add to this color
      * @returns {Wick.Color} the resulting color
      */
-    add (color) {
+    add (color: Wick.Color): Wick.Color {
         var newColor = new Wick.Color();
         newColor.r = this.r + color.r;
         newColor.g = this.g + color.g;
@@ -112,7 +114,7 @@ Wick.Color = class {
      * @param {Wick.Color} color - the color to multiply with this color
      * @returns {Wick.Color} the resulting color
      */
-    multiply (n) {
+    multiply (n: number): Wick.Color {
         var newColor = new Wick.Color();
         newColor.r = this.r * n;
         newColor.g = this.g * n;
@@ -126,7 +128,7 @@ Wick.Color = class {
      * @param {Wick.Color} colorB - a color to average with another color (order does not matter)
      * @returns {Wick.Color} The resulting averaged color.
      */
-    static average (colorA, colorB) {
+    static average (colorA: Wick.Color, colorB: Wick.Color): Wick.Color {
         return colorA.multiply(0.5).add(colorB.multiply(0.5));
     }
 }

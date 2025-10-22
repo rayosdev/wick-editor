@@ -31,10 +31,10 @@ import "../lib/uuid.js";
 
 // 3. Load all source files in concatenation order
 import "./Clipboard.js";
-import "./Color.js";
-import "./FileCache.js";
+import "./Color.ts";
+import "./FileCache.ts";
 import "./History.js";
-import "./ObjectCache.js";
+import "./ObjectCache.ts";
 import "./Transformation.js";
 import "./ToolSettings.js";
 import "./GlobalAPI.js";

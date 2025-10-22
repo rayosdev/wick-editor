@@ -17,15 +17,21 @@
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+interface FileInfo {
+    src: string;
+}
+
 /**
  * Global utility class for storing and retrieving large file data.
  */
 Wick.FileCache = class {
+    private static _files: { [uuid: string]: FileInfo } = {};
+
     /**
      * A prefix to use in localforage so we can identify which items in localforage are files.
      * @type {string}
      */
-    static get FILE_LOCALFORAGE_KEY_PREFIX () {
+    static get FILE_LOCALFORAGE_KEY_PREFIX (): string {
         return 'filesrc_'; // This should never change.
     }
 
@@ -34,7 +40,7 @@ Wick.FileCache = class {
      * @param {string} src - The file source
      * @param {string} uuid - The UUID of the file
      */
-    static addFile (src, uuid) {
+    static addFile (src: string, uuid: string): void {
         this._files[uuid] = {
             src: src
         };
@@ -50,7 +56,7 @@ Wick.FileCache = class {
      * @param {string} uuid - The UUID of the file
      * @returns {object} The file info
      */
-    static getFile (uuid) {
+    static getFile (uuid: string): FileInfo | null {
         var file = this._files[uuid];
         if(!file) {
             console.error('Asset with UUID ' + uuid + ' was not found in FileCache!');
@@ -64,7 +70,7 @@ Wick.FileCache = class {
      * Removes a file from the FileCache with a given UUID.
      * @param {string} uuid - the UUID of the file to remove.
      */
-    static removeFile (uuid) {
+    static removeFile (uuid: string): void {
         delete this._files[uuid];
 
         // Remove file from localforage
@@ -76,7 +82,7 @@ Wick.FileCache = class {
      * @param {Wick.Project} project - the project that we want to load assets for.
      * @param {function} callback - called when the assets are done being loaded.
      */
-    static loadFilesFromLocalforage (project, callback) {
+    static loadFilesFromLocalforage (project: Wick.Project, callback: () => void): void {
         Promise.all(project.getAssets().map(asset => {
             return localforage.getItem(this.getLocalForageKeyForUUID(asset.uuid));
         })).then((assets) => {
@@ -91,8 +97,8 @@ Wick.FileCache = class {
      * On object containing all files in WickFileCache.
      * @returns {object} All the files in an object with the format:
      */
-    static getAllFiles () {
-        var files = [];
+    static getAllFiles (): Array<{uuid: string, src: string}> {
+        var files: Array<{uuid: string, src: string}> = [];
         for (var uuid in this._files) {
             files.push({
                 uuid: uuid,
@@ -105,20 +111,18 @@ Wick.FileCache = class {
     /**
      * Clear the cache.
      */
-    static clear () {
+    static clear (): void {
         this._files = {};
     }
 
-    static clearLocalforage () {
+    static clearLocalforage (): void {
         // Clear all files from localforage
         for(var uuid in this._files) {
             localforage.removeItem(this.getLocalForageKeyForUUID(uuid)).then(() => {});
         }
     }
 
-    static getLocalForageKeyForUUID (uuid) {
+    static getLocalForageKeyForUUID (uuid: string): string {
         return this.FILE_LOCALFORAGE_KEY_PREFIX + uuid;
     }
 }
-
-Wick.FileCache._files = {};

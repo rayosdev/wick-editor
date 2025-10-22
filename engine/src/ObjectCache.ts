@@ -25,6 +25,9 @@
  * Global utility class for storing and retrieving large file data.
  */
 WickObjectCache = class {
+    private _objects: { [uuid: string]: Wick.Base } = {};
+    private _objectsNeedAutosave: { [uuid: string]: boolean } = {};
+
     /**
      * Create a WickObjectCache.
      */
@@ -37,7 +40,7 @@ WickObjectCache = class {
      * Add an object to the cache.
      * @param {Wick.Base} object - the object to add
      */
-    addObject (object) {
+    addObject (object: Wick.Base): void {
         this._objects[object.uuid] = object;
 
         /*object.children.forEach(child => {
@@ -49,7 +52,7 @@ WickObjectCache = class {
      * Remove an object from the cache.
      * @param {Wick.Base} object - the object to remove from the cache
      */
-    removeObject (object) {
+    removeObject (object: Wick.Base): void {
         if (object.classname === 'Project') {
             object.destroy();
             return; // TODO, remove this.
@@ -61,14 +64,14 @@ WickObjectCache = class {
      * Remove an object from the cache.
      * @param {string} uuid - uuid of the object to remove from the cache
      */
-    removeObjectByUUID(uuid) {
+    removeObjectByUUID(uuid: string): void {
         delete this._objects[uuid];
     }
 
     /**
      * Remove all objects from the Object Cache.
      */
-    clear () {
+    clear (): void {
         this._objects = {};
         this._objectsNeedAutosave = {};
     }
@@ -77,7 +80,7 @@ WickObjectCache = class {
      * Get an object by its UUID.
      * @returns {Wick.Base}
      */
-    getObjectByUUID (uuid) {
+    getObjectByUUID (uuid: string): Wick.Base | null {
         if(!uuid) {
             console.error('ObjectCache: getObjectByUUID: uuid is required.');
         }
@@ -95,8 +98,8 @@ WickObjectCache = class {
      * All objects in the cache.
      * @returns {Wick.Base[]}
      */
-    getAllObjects () {
-        var allObjects = [];
+    getAllObjects (): Wick.Base[] {
+        var allObjects: Wick.Base[] = [];
 
         for (var uuid in this._objects) {
             allObjects.push(this._objects[uuid]);
@@ -111,7 +114,7 @@ WickObjectCache = class {
      * that are referenced in undo/redo.
      * @param {Wick.Project} project - the project to use to determine which objects have no references
      */
-    removeUnusedObjects (project) {
+    removeUnusedObjects (project: Wick.Project): void {
         var activeObjects = this.getActiveObjects(project);
         let uuids = activeObjects.map(obj => obj.uuid);
         uuids.push(project.uuid); // Don't forget to include the project itself...
@@ -132,7 +135,7 @@ WickObjectCache = class {
     /**
      * Removes all objects with the temporary flag set to true.
      */
-    removeTemporaryObjects () {
+    removeTemporaryObjects (): void {
         this.getAllObjects().forEach(obj => {
             if (obj.temporary) {
                 this.removeObject(obj);
@@ -145,7 +148,7 @@ WickObjectCache = class {
      * @param {Wick.Project} project - the project to check if children are active in.
      * @returns {Wick.Base[]} the active objects.
      */
-    getActiveObjects (project) {
+    getActiveObjects (project: Wick.Project): Wick.Base[] {
         // This does the same thing, but it's WAY faster.
         return project.getChildrenRecursive().map(object => {
             return this.getObjectByUUID(object.uuid);
@@ -156,7 +159,7 @@ WickObjectCache = class {
      * Saves an object to be autosaved upon the next auto save.
      * @param {Wick.Base} object object to be saved.
      */
-    markObjectToBeAutosaved (object) {
+    markObjectToBeAutosaved (object: Wick.Base): void {
         this._objectsNeedAutosave[object.uuid] = true;
     }
 
@@ -164,7 +167,7 @@ WickObjectCache = class {
      * Removes a given object from the list of objects that must be autosaved.
      * @param {Wick.Base} object - the object to remove from the list of objects to be autosaved.
      */
-    clearObjectToBeAutosaved (object) {
+    clearObjectToBeAutosaved (object: Wick.Base): void {
         delete this._objectsNeedAutosave[object.uuid];
     }
 
@@ -172,7 +175,7 @@ WickObjectCache = class {
      * Returns true if a given object is marked to be autosaved during the next autosave.
      * @param {Wick.Base} object - the object to check for autosave
      */
-    objectNeedsAutosave (object) {
+    objectNeedsAutosave (object: Wick.Base): boolean {
         return Wick.ObjectCache._objectsNeedAutosave[object.uuid];
     }
 
@@ -180,7 +183,7 @@ WickObjectCache = class {
      * Returns an array of objects that currently need to be autosaved.
      * @returns {Wick.Base[]} The objects that are marked to be autosaved.
      */
-    getObjectsNeedAutosaved () {
+    getObjectsNeedAutosaved (): Wick.Base[] {
         return Object.keys(this._objectsNeedAutosave).map(uuid => this.getObjectByUUID(uuid));
     }
 }

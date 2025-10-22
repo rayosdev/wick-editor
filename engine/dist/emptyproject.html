@@ -88,9 +88,10 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.19.48.50";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.20.22.0";
   (function() {
 
+    var _a;
     const Wick$1 = {
       version: window.WICK_ENGINE_BUILD_VERSION || "dev",
       resourcepath: "../dist/",
@@ -33798,12 +33799,12 @@
             return false;
           }, $a = Array.isArray || function(a2) {
             return "[object Array]" === Object.prototype.toString.call(a2);
-          }, _a = {}, ab = {}, bb = { INDEXEDDB: Ca, WEBSQL: Wa, LOCALSTORAGE: Xa }, cb = [bb.INDEXEDDB._driver, bb.WEBSQL._driver, bb.LOCALSTORAGE._driver], db = ["dropInstance"], eb = ["clear", "getItem", "iterate", "key", "keys", "length", "removeItem", "setItem"].concat(db), fb = { description: "", driver: cb.slice(), name: "localforage", size: 4980736, storeName: "keyvaluepairs", version: 1 }, gb = function() {
+          }, _a2 = {}, ab = {}, bb = { INDEXEDDB: Ca, WEBSQL: Wa, LOCALSTORAGE: Xa }, cb = [bb.INDEXEDDB._driver, bb.WEBSQL._driver, bb.LOCALSTORAGE._driver], db = ["dropInstance"], eb = ["clear", "getItem", "iterate", "key", "keys", "length", "removeItem", "setItem"].concat(db), fb = { description: "", driver: cb.slice(), name: "localforage", size: 4980736, storeName: "keyvaluepairs", version: 1 }, gb = function() {
             function a2(b2) {
               d(this, a2);
               for (var c2 in bb) if (bb.hasOwnProperty(c2)) {
                 var e2 = bb[c2], f2 = e2._driver;
-                this[c2] = f2, _a[f2] || this.defineDriver(e2);
+                this[c2] = f2, _a2[f2] || this.defineDriver(e2);
               }
               this._defaultConfig = sa({}, fb), this._config = sa({}, this._defaultConfig, b2), this._driverSet = null, this._initDriver = null, this._ready = false, this._dbInfo = null, this._wrapLibraryMethodsWithReady(), this.setDriver(this._config.driver).catch(function() {
               });
@@ -33839,7 +33840,7 @@
                     }
                   })();
                   var k2 = function(c4) {
-                    _a[d3] && console.info("Redefining LocalForage driver: " + d3), _a[d3] = a3, ab[d3] = c4, b3();
+                    _a2[d3] && console.info("Redefining LocalForage driver: " + d3), _a2[d3] = a3, ab[d3] = c4, b3();
                   };
                   "_support" in a3 ? a3._support && "function" == typeof a3._support ? a3._support().then(k2, c3) : k2(!!a3._support) : k2(true);
                 } catch (a4) {
@@ -33850,7 +33851,7 @@
             }, a2.prototype.driver = function() {
               return this._driver || null;
             }, a2.prototype.getDriver = function(a3, b2, c2) {
-              var d2 = _a[a3] ? va.resolve(_a[a3]) : va.reject(new Error("Driver not found."));
+              var d2 = _a2[a3] ? va.resolve(_a2[a3]) : va.reject(new Error("Driver not found."));
               return i(d2, b2, c2), d2;
             }, a2.prototype.getSerializer = function(a3) {
               var b2 = va.resolve(Va);
@@ -36530,6 +36531,7 @@
       }
     };
     Wick.Color = class {
+      // paper.Color
       /**
        * Creates a Transformation.
        * @param {string} color - (Optional) Hex or Rgba color to create a Wick.Color from.
@@ -36628,7 +36630,7 @@
         return colorA.multiply(0.5).add(colorB.multiply(0.5));
       }
     };
-    Wick.FileCache = class {
+    Wick.FileCache = (_a = class {
       /**
        * A prefix to use in localforage so we can identify which items in localforage are files.
        * @type {string}
@@ -36715,8 +36717,7 @@
       static getLocalForageKeyForUUID(uuid2) {
         return this.FILE_LOCALFORAGE_KEY_PREFIX + uuid2;
       }
-    };
-    Wick.FileCache._files = {};
+    }, _a._files = {}, _a);
     Wick.History = class {
       /**
        *
@@ -36919,6 +36920,8 @@
        * Create a WickObjectCache.
        */
       constructor() {
+        this._objects = {};
+        this._objectsNeedAutosave = {};
         this._objects = {};
         this._objectsNeedAutosave = {};
       }
