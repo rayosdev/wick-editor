@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.23.42.14";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.23.48.53";
   (function() {
 
     var _a;
@@ -46831,8 +46831,9 @@
       }
     };
     Wick.Tools.Eyedropper = class extends Wick.Tool {
+      // paper.Group
       /**
-       *
+       * Creates an instance of the eyedropper tool.
        */
       constructor() {
         super();
@@ -46845,7 +46846,7 @@
         return false;
       }
       /**
-       *
+       * An eyedropper cursor.
        * @type {string}
        */
       get cursor() {
@@ -46903,7 +46904,7 @@
     };
     Wick.Tools.FillBucket = class extends Wick.Tool {
       /**
-       *
+       * Creates an instance of the fill bucket tool.
        */
       constructor() {
         super();
@@ -46913,7 +46914,7 @@
         return false;
       }
       /**
-       *
+       * A fill bucket cursor.
        * @type {string}
        */
       get cursor() {
@@ -47066,8 +47067,9 @@
       }
     };
     Wick.Tools.Line = class extends Wick.Tool {
+      // paper.Point
       /**
-       *
+       * Creates an instance of the line tool.
        */
       constructor() {
         super();
@@ -47080,7 +47082,7 @@
         return false;
       }
       /**
-       *
+       * A crosshair cursor.
        * @type {string}
        */
       get cursor() {
@@ -47558,8 +47560,9 @@
       }
     };
     Wick.Tools.Text = class extends Wick.Tool {
+      // paper.PointText
       /**
-       *
+       * Creates an instance of the text tool.
        */
       constructor() {
         super();
@@ -47571,7 +47574,7 @@
         return false;
       }
       /**
-       *
+       * A text cursor.
        * @type {string}
        */
       get cursor() {

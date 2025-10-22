@@ -18,8 +18,13 @@
  */
 
 Wick.Tools.Eyedropper = class extends Wick.Tool {
+    public name: string;
+    public canvasCtx: CanvasRenderingContext2D | null;
+    public hoverColor: string;
+    public colorPreview: any; // paper.Group
+
     /**
-     *
+     * Creates an instance of the eyedropper tool.
      */
     constructor () {
         super();
@@ -32,27 +37,27 @@ Wick.Tools.Eyedropper = class extends Wick.Tool {
         this.colorPreview = null;
     }
 
-    get doubleClickEnabled () {
+    get doubleClickEnabled (): boolean {
         return false;
     }
 
     /**
-     *
+     * An eyedropper cursor.
      * @type {string}
      */
-    get cursor () {
+    get cursor (): string {
         return 'url(cursors/eyedropper.png) 32 32, auto';
     }
 
-    onActivate (e) {
+    onActivate (e: any): void {
 
     }
 
-    onDeactivate (e) {
+    onDeactivate (e: any): void {
         this._destroyColorPreview();
     }
 
-    onMouseMove (e) {
+    onMouseMove (e: any): void {
         super.onMouseMove(e);
 
         var canvas = this.paper.view._element;
@@ -69,7 +74,7 @@ Wick.Tools.Eyedropper = class extends Wick.Tool {
         this._createColorPreview(e.point);
     }
 
-    onMouseDown (e) {
+    onMouseDown (e: any): void {
         this._destroyColorPreview();
 
         this.fireEvent({eventName: 'eyedropperPickedColor', e: {
@@ -77,15 +82,15 @@ Wick.Tools.Eyedropper = class extends Wick.Tool {
         }});
     }
 
-    onMouseDrag (e) {
+    onMouseDrag (e: any): void {
 
     }
 
-    onMouseUp (e) {
+    onMouseUp (e: any): void {
         this._createColorPreview(e.point);
     }
 
-    _createColorPreview (point) {
+    _createColorPreview (point: any): void {
         this._destroyColorPreview();
 
         var offset = 10 / this.paper.view.zoom;
@@ -103,7 +108,7 @@ Wick.Tools.Eyedropper = class extends Wick.Tool {
         }));
     }
 
-    _destroyColorPreview () {
+    _destroyColorPreview (): void {
         if(this.colorPreview) {
             this.colorPreview.remove();
             this.colorPreview = null;

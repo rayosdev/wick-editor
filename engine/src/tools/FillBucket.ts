@@ -18,8 +18,10 @@
  */
 
 Wick.Tools.FillBucket = class extends Wick.Tool {
+    public name: string;
+
     /**
-     *
+     * Creates an instance of the fill bucket tool.
      */
     constructor() {
         super();
@@ -27,31 +29,31 @@ Wick.Tools.FillBucket = class extends Wick.Tool {
         this.name = 'fillbucket';
     }
 
-    get doubleClickEnabled() {
+    get doubleClickEnabled(): boolean {
         return false;
     }
 
     /**
-     *
+     * A fill bucket cursor.
      * @type {string}
      */
-    get cursor() {
+    get cursor(): string {
         return 'url(cursors/fillbucket.png) 32 32, auto';
     }
 
-    get isDrawingTool() {
+    get isDrawingTool(): boolean {
         return true;
     }
 
-    onActivate(e) {
+    onActivate(e: any): void {
 
     }
 
-    onDeactivate(e) {
+    onDeactivate(e: any): void {
 
     }
 
-    onMouseDown(e) {
+    onMouseDown(e: any): void {
         setTimeout(() => {
             this.setCursor('wait');
         }, 0);
@@ -66,7 +68,7 @@ Wick.Tools.FillBucket = class extends Wick.Tool {
                 }).map(frame => {
                     return frame.view.objectsLayer;
                 }),
-                onFinish: (path) => {
+                onFinish: (path: any) => {
                     this.setCursor('default');
                     if (path) {
                         path.fillColor = this.getSetting('fillColor').rgba;
@@ -81,7 +83,7 @@ Wick.Tools.FillBucket = class extends Wick.Tool {
                         this.fireEvent({eventName:'canvasModified', actionName:'fillbucket'});
                     }
                 },
-                onError: (message) => {
+                onError: (message: string) => {
                     this.setCursor('default');
                     this.project.errorOccured(message);
                 }
@@ -89,11 +91,11 @@ Wick.Tools.FillBucket = class extends Wick.Tool {
         }, 50);
     }
 
-    onMouseDrag(e) {
+    onMouseDrag(e: any): void {
 
     }
 
-    onMouseUp(e) {
+    onMouseUp(e: any): void {
 
     }
 }

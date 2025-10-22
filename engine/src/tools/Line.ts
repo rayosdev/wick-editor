@@ -18,8 +18,13 @@
  */
 
 Wick.Tools.Line = class extends Wick.Tool {
+    public name: string;
+    public path: any; // paper.Path
+    public startPoint: any; // paper.Point
+    public endPoint: any; // paper.Point
+
     /**
-     *
+     * Creates an instance of the line tool.
      */
     constructor () {
         super();
@@ -32,35 +37,35 @@ Wick.Tools.Line = class extends Wick.Tool {
         this.endPoint;
     }
 
-    get doubleClickEnabled () {
+    get doubleClickEnabled (): boolean {
         return false;
     }
 
     /**
-     *
+     * A crosshair cursor.
      * @type {string}
      */
-    get cursor () {
+    get cursor (): string {
         return 'crosshair';
     }
 
-    get isDrawingTool () {
+    get isDrawingTool (): boolean {
         return true;
     }
 
-    onActivate (e) {
+    onActivate (e: any): void {
         this.path.remove();
     }
 
-    onDeactivate (e) {
+    onDeactivate (e: any): void {
         this.path.remove();
     }
 
-    onMouseDown (e) {
+    onMouseDown (e: any): void {
         this.startPoint = e.point;
     }
 
-    onMouseDrag (e) {
+    onMouseDrag (e: any): void {
         this.path.remove();
         this.endPoint = e.point;
         this.path = new paper.Path.Line(this.startPoint, this.endPoint);
@@ -69,7 +74,7 @@ Wick.Tools.Line = class extends Wick.Tool {
         this.path.strokeWidth = this.getSetting('strokeWidth');
     }
 
-    onMouseUp (e) {
+    onMouseUp (e: any): void {
         this.path.remove();
         this.addPathToProject(this.path);
         this.fireEvent({eventName: 'canvasModified', actionName: 'line'});

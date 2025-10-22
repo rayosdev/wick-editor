@@ -18,8 +18,12 @@
  */
 
 Wick.Tools.Text = class extends Wick.Tool {
+    public name: string;
+    public hoveredOverText: any; // paper.PointText
+    public editingText: any; // paper.PointText
+
     /**
-     *
+     * Creates an instance of the text tool.
      */
     constructor () {
         super();
@@ -30,34 +34,34 @@ Wick.Tools.Text = class extends Wick.Tool {
         this.editingText = null;
     }
 
-    get doubleClickEnabled () {
+    get doubleClickEnabled (): boolean {
         return false;
     }
 
     /**
-     *
+     * A text cursor.
      * @type {string}
      */
-    get cursor () {
+    get cursor (): string {
         return 'text';
     }
 
-    get isDrawingTool () {
+    get isDrawingTool (): boolean {
         return true;
     }
 
-    onActivate (e) {
+    onActivate (e: any): void {
 
     }
 
-    onDeactivate (e) {
+    onDeactivate (e: any): void {
         if(this.editingText) {
             this.finishEditingText();
         }
         this.hoveredOverText = null;
     }
 
-    onMouseMove (e) {
+    onMouseMove (e: any): void {
         super.onMouseMove(e);
 
         if(e.item && e.item.className === 'PointText' && !e.item.parent.parent) {
@@ -69,7 +73,7 @@ Wick.Tools.Text = class extends Wick.Tool {
         }
     }
 
-    onMouseDown (e) {
+    onMouseDown (e: any): void {
         if (this.editingText) {
             this.finishEditingText();
         } else if(this.hoveredOverText) {
@@ -94,22 +98,22 @@ Wick.Tools.Text = class extends Wick.Tool {
         }
     }
 
-    onMouseDrag (e) {
+    onMouseDrag (e: any): void {
 
     }
 
-    onMouseUp (e) {
+    onMouseUp (e: any): void {
 
     }
 
-    reset () {
+    reset (): void {
         this.finishEditingText();
     }
 
     /**
      * Stop editing the current text and apply changes.
      */
-    finishEditingText () {
+    finishEditingText (): void {
         if(!this.editingText) return;
         this.editingText.finishEditing();
         if(this.editingText.content === '') {
