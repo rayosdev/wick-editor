@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.23.53.39";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.23.0.3.3";
   (function() {
 
     var _a;
@@ -39160,7 +39160,7 @@
       /**
        * Called when creating a Wick Layer.
        * @param {boolean} locked - Is the layer locked?
-       * @param {boolean} hideen - Is the layer hidden?
+       * @param {boolean} hidden - Is the layer hidden?
        */
       constructor(args) {
         if (!args) args = {};
@@ -44748,7 +44748,7 @@
        * @param {string} svg - the SVG data to parse and import.
        */
       /*
-      importSVG (svg) {
+      importSVG (svg: string): void {
           this.view.importSVG(svg);
       }
       */

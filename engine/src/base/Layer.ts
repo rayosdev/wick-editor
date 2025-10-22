@@ -21,12 +21,16 @@
  * Represents a Wick Layer.
  */
 Wick.Layer = class extends Wick.Base {
+    public locked: boolean;
+    public hidden: boolean;
+    public name: string | null;
+
     /**
      * Called when creating a Wick Layer.
      * @param {boolean} locked - Is the layer locked?
-     * @param {boolean} hideen - Is the layer hidden?
+     * @param {boolean} hidden - Is the layer hidden?
      */
-    constructor (args) {
+    constructor (args: any) {
         if(!args) args = {};
         super(args);
 
@@ -35,7 +39,7 @@ Wick.Layer = class extends Wick.Base {
         this.name = args.name || null;
     }
 
-    _serialize (args) {
+    _serialize (args: any): any {
         var data = super._serialize(args);
 
         data.locked = this.locked;
@@ -44,14 +48,14 @@ Wick.Layer = class extends Wick.Base {
         return data;
     }
 
-    _deserialize (data) {
+    _deserialize (data: any): void {
         super._deserialize(data);
 
         this.locked = data.locked;
         this.hidden = data.hidden;
     }
 
-    get classname () {
+    get classname (): string {
         return 'Layer';
     }
 
@@ -59,7 +63,7 @@ Wick.Layer = class extends Wick.Base {
      * The frames belonging to this layer.
      * @type {Wick.Frame[]}
      */
-    get frames () {
+    get frames (): Wick.Frame[] {
         return this.getChildren('Frame');
     }
 
@@ -67,14 +71,14 @@ Wick.Layer = class extends Wick.Base {
      * The order of the Layer in the timeline.
      * @type {number}
      */
-    get index () {
+    get index (): number {
         return this.parent && this.parent.layers.indexOf(this);
     }
 
     /**
      * Set this layer to be the active layer in its timeline.
      */
-    activate () {
+    activate (): void {
         this.parent.activeLayerIndex = this.index;
     }
 
@@ -82,7 +86,7 @@ Wick.Layer = class extends Wick.Base {
      * True if this layer is the active layer in its timeline.
      * @type {boolean}
      */
-    get isActive () {
+    get isActive (): boolean {
         return this.parent && this === this.parent.activeLayer;
     }
 
@@ -90,7 +94,7 @@ Wick.Layer = class extends Wick.Base {
      * The length of the layer in frames.
      * @type {number}
      */
-    get length () {
+    get length (): number {
         var end = 0;
         this.frames.forEach(function (frame) {
             if(frame.end > end) {
@@ -104,7 +108,7 @@ Wick.Layer = class extends Wick.Base {
      * The active frame on the layer.
      * @type {Wick.Frame}
      */
-    get activeFrame () {
+    get activeFrame (): Wick.Frame | null {
         if(!this.parent) return null;
         return this.getFrameAtPlayheadPosition(this.parent.playheadPosition);
     }
@@ -113,14 +117,14 @@ Wick.Layer = class extends Wick.Base {
      * Moves this layer to a different position, inserting it before/after other layers if needed.
      * @param {number} index - the new position to move the layer to.
      */
-    move (index) {
+    move (index: number): void {
         this.parentTimeline.moveLayer(this, index);
     }
 
     /**
      * Remove this layer from its timeline.
      */
-    remove () {
+    remove (): void {
         this.parentTimeline.removeLayer(this);
     }
 
@@ -128,7 +132,7 @@ Wick.Layer = class extends Wick.Base {
      * Adds a frame to the layer.
      * @param {Wick.Frame} frame - The frame to add to the Layer.
      */
-    addFrame (frame) {
+    addFrame (frame: Wick.Frame): void {
         this.addChild(frame);
         this.resolveOverlap([frame]);
         this.resolveGaps([frame]);
@@ -138,7 +142,7 @@ Wick.Layer = class extends Wick.Base {
      * Adds a tween to the active frame of this layer (if one exists).
      * @param {Wick.Tween} tween - the tween to add
      */
-    addTween (tween) {
+    addTween (tween: Wick.Tween): void {
         this.activeFrame && this.activeFrame.addChild(tween);
     }
 
@@ -148,7 +152,7 @@ Wick.Layer = class extends Wick.Base {
      * gap created by that cut.
      * @param {number} playheadPosition - Where to add the blank frame.
      */
-    insertBlankFrame (playheadPosition) {
+    insertBlankFrame (playheadPosition: number): Wick.Frame {
         if(!playheadPosition) {
             throw new Error('insertBlankFrame: playheadPosition is required');
         }
@@ -173,7 +177,7 @@ Wick.Layer = class extends Wick.Base {
      * Removes a frame from the Layer.
      * @param  {Wick.Frame} frame Frame to remove.
      */
-    removeFrame (frame) {
+    removeFrame (frame: Wick.Frame): void {
         this.removeChild(frame);
         this.resolveGaps();
     }
@@ -183,7 +187,7 @@ Wick.Layer = class extends Wick.Base {
      * @param {number} playheadPosition - Playhead position to search for frame at.
      * @return {Wick.Frame} The frame at the given playheadPosition.
      */
-    getFrameAtPlayheadPosition (playheadPosition) {
+    getFrameAtPlayheadPosition (playheadPosition: number): Wick.Frame | null {
         return this.frames.find(frame => {
             return frame.inPosition(playheadPosition);
         }) || null;
@@ -195,7 +199,7 @@ Wick.Layer = class extends Wick.Base {
      * @param {number} playheadPositionEnd - The end of the range to search
      * @return {Wick.Frame[]} The frames in the given range.
      */
-    getFramesInRange (playheadPositionStart, playheadPositionEnd) {
+    getFramesInRange (playheadPositionStart: number, playheadPositionEnd: number): Wick.Frame[] {
         return this.frames.filter(frame => {
             return frame.inRange(playheadPositionStart, playheadPositionEnd);
         });
@@ -207,7 +211,7 @@ Wick.Layer = class extends Wick.Base {
      * @param {number} playheadPositionEnd - The end of the range to search
      * @return {Wick.Frame[]} The frames contained in the given range.
      */
-    getFramesContainedWithin (playheadPositionStart, playheadPositionEnd) {
+    getFramesContainedWithin (playheadPositionStart: number, playheadPositionEnd: number): Wick.Frame[] {
         return this.frames.filter(frame => {
             return frame.containedWithin(playheadPositionStart, playheadPositionEnd);
         });
@@ -217,7 +221,7 @@ Wick.Layer = class extends Wick.Base {
      * Prevents frames from overlapping each other by removing pieces of frames that are touching.
      * @param {Wick.Frame[]} newOrModifiedFrames - the frames that should take precedence when determining which frames should get "eaten".
      */
-    resolveOverlap (newOrModifiedFrames) {
+    resolveOverlap (newOrModifiedFrames?: Wick.Frame[]): void {
         newOrModifiedFrames = newOrModifiedFrames || [];
 
         // Ensure that frames never go beyond the beginning of the timeline
@@ -227,7 +231,7 @@ Wick.Layer = class extends Wick.Base {
             }
         });
 
-        var isEdible = existingFrame => {
+        var isEdible = (existingFrame: Wick.Frame): boolean => {
             return newOrModifiedFrames.indexOf(existingFrame) === -1;
         };
 
@@ -260,7 +264,7 @@ Wick.Layer = class extends Wick.Base {
     /**
      * Prevents gaps between frames by extending frames to fill empty space between themselves.
      */
-    resolveGaps (newOrModifiedFrames) {
+    resolveGaps (newOrModifiedFrames?: Wick.Frame[]): void {
         if(this.parentTimeline && this.parentTimeline.waitToFillFrameGaps) return;
 
         newOrModifiedFrames = newOrModifiedFrames || [];
@@ -300,10 +304,10 @@ Wick.Layer = class extends Wick.Base {
      * Generate a list of positions where there is empty space between frames.
      * @returns {Object[]} An array of objects with start/end positions describing gaps.
      */
-    findGaps () {
-        var gaps = [];
+    findGaps (): Array<{start: number, end: number}> {
+        var gaps: Array<{start: number, end: number}> = [];
 
-        var currentGap = null;
+        var currentGap: {start: number, end?: number} | null = null;
         for(var i = 1; i <= this.length; i++) {
             var frame = this.getFrameAtPlayheadPosition(i);
 
@@ -316,7 +320,7 @@ Wick.Layer = class extends Wick.Base {
             // Found the end of a gap
             if(frame && currentGap) {
                 currentGap.end = i-1;
-                gaps.push(currentGap);
+                gaps.push(currentGap as {start: number, end: number});
                 currentGap = null;
             }
         }
