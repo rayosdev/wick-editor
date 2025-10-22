@@ -1,155 +1,8 @@
 // Wick Engine Entry Point for Vite
 // This file ensures all modules are bundled in the correct order
 
-// Import the core Wick namespace (Wick.ts is compiled to JS by Vite/TypeScript)
-import './Wick.ts';
-
-// Load third-party libs (these are vendor files present in the lib folder)
-import '../lib/paper.js';
-import '../lib/base64-arraybuffer.js';
-import '../lib/convert-range.js';
-import '../lib/croquis.js';
-import '../lib/currentTransform.js';
-import '../lib/esprima.js';
-import '../lib/floodfill.min.js';
-import '../lib/howler.js';
-import '../lib/hull.js';
-import '../lib/invert.min.js';
-import '../lib/invert-shim.js';
-import '../lib/is-var-name.js';
-import '../lib/jszip.js';
-import '../lib/lerp.js';
-import '../lib/localforage.min.js';
-import '../lib/platform.js';
-import '../lib/potrace.js';
-import '../lib/reserved-words.js';
-import '../lib/roundRect.js';
-import '../lib/timestamp.js';
-import '../lib/soundcloud-waveform.js';
-import '../lib/Tween.js';
-import '../lib/uuid.js';
-
-// Now load engine sources in the expected order
-import './Clipboard.js';
-import './Color.js';
-import './FileCache.js';
-import './History.js';
-import './ObjectCache.js';
-import './Transformation.js';
-import './ToolSettings.js';
-import './GlobalAPI.js';
-
-import './builtinassets/BuiltinAssets.js';
-
-import './export/ExportUtils.js';
-import './export/audio/AudioTrack.js';
-import './export/autosave/AutoSave.js';
-import './export/wick/WickFile.js';
-import './export/wick/WickFile.Alpha.js';
-import './export/wickobj/WickObjectFile.js';
-import './export/html/HTMLExport.js';
-import './export/html/HTMLPreview.js';
-import './export/svg/SvgFile.js';
-import './export/image/ImageSequence.js';
-import './export/zip/ZIPExport.js';
-
-import './base/Base.js';
-import './base/Layer.js';
-import './base/Project.js';
-import './base/Selection.js';
-import './base/Timeline.js';
-import './base/Tween.js';
-import './base/Path.js';
-import './base/asset/Asset.js';
-import './base/asset/FileAsset.js';
-import './base/asset/FontAsset.js';
-import './base/asset/ImageAsset.js';
-import './base/asset/ClipAsset.js';
-import './base/asset/GIFAsset.js';
-import './base/asset/SoundAsset.js';
-import './base/asset/SVGAsset.js';
-import './base/Tickable.js';
-import './base/Frame.js';
-import './base/Clip.js';
-import './base/Button.js';
-
-import './tools/Tool.js';
-import './tools/Brush.js';
-import './tools/Cursor.js';
-import './tools/Ellipse.js';
-import './tools/Eraser.js';
-import './tools/Eyedropper.js';
-import './tools/FillBucket.js';
-import './tools/Interact.js';
-import './tools/Line.js';
-import './tools/None.js';
-import './tools/Pan.js';
-import './tools/PathCursor.js';
-import './tools/Pencil.js';
-import './tools/Rectangle.js';
-import './tools/Text.js';
-import './tools/Zoom.js';
-
-// Paper extensions
-import './view/paper-ext/Layer.erase.js';
-import './view/paper-ext/Paper.hole.js';
-import './view/paper-ext/Paper.OrderingUtils.js';
-import './view/paper-ext/Paper.SelectionWidget.js';
-import './view/paper-ext/Paper.SelectionBox.js';
-import './view/paper-ext/Path.potrace.js';
-import './view/paper-ext/TextItem.edit.js';
-import './view/paper-ext/View.pressure.js';
-import './view/paper-ext/View.gestures.js';
-import './view/paper-ext/View.scrollToZoom.js';
-
-// Views and GUI
-import './view/View.js';
-import './view/View.Project.js';
-import './view/View.Selection.js';
-import './view/View.Clip.js';
-import './view/View.Button.js';
-import './view/View.Timeline.js';
-import './view/View.Layer.js';
-import './view/View.Frame.js';
-import './view/View.Path.js';
-import './gui/GUIElement.js';
-import './gui/Button.js';
-import './gui/Ghost.js';
-import './gui/Icons.js';
-import './gui/ActionButton.js';
-import './gui/ActionButtonsContainer.js';
-import './gui/Breadcrumbs.js';
-import './gui/BreadcrumbsButton.js';
-import './gui/Frame.js';
-import './gui/FrameEdgeGhost.js';
-import './gui/FrameGhost.js';
-import './gui/FramesContainer.js';
-import './gui/Layer.js';
-import './gui/LayerButton.js';
-import './gui/LayerCreateLabel.js';
-import './gui/LayersContainer.js';
-import './gui/NumberLine.js';
-import './gui/OnionSkinRange.js';
-import './gui/Playhead.js';
-import './gui/PopupMenu.js';
-import './gui/Project.js';
-import './gui/Scrollbar.js';
-import './gui/ScrollbarGrabber.js';
-import './gui/SelectionBox.js';
-import './gui/Timeline.js';
-import './gui/Tooltip.js';
-import './gui/Tween.js';
-import './gui/TweenGhost.js';
-
-console.log('Wick Engine entry loaded via Vite.');
-
-// Expose Wick (global object is created by Wick.ts during its initialization)
-export default window.Wick || {};
-// Wick Engine Entry Point for Vite
-// This file ensures all modules are bundled in the correct order
-
-// 1. Initialize Wick namespace and get reference to it
-import Wick from "./Wick.ts";
+// 1. Initialize Wick namespace
+import "./Wick.ts";
 
 // 2. Load all libraries in order
 import "../lib/paper.js";
@@ -280,4 +133,7 @@ import "./gui/Tooltip.js";
 import "./gui/Tween.js";
 import "./gui/TweenGhost.js";
 
-console.log("Wick Engine loaded.::::::::");
+console.log("Wick Engine loaded via Vite build system ::..::..::");
+
+// Re-export window.Wick for module consumers (though we're building as IIFE)
+export default (typeof window !== 'undefined' ? window.Wick : {});

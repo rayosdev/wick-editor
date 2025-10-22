@@ -1214,4 +1214,11 @@
     // Export to the global object.
     root.platform = platform;
   }
+  
+  // Always expose to window/global for browser builds
+  if (typeof window !== 'undefined') {
+    window.platform = platform;
+  } else if (typeof global !== 'undefined') {
+    global.platform = platform;
+  }
 }.call(this));

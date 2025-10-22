@@ -9,6 +9,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "strict": false,
+    "alwaysStrict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,

@@ -17379,5 +17379,10 @@ if (typeof define === 'function' && define.amd) {
 	module.exports = paper;
 }
 
+// Explicitly expose paper to window for extensions
+if (typeof window !== 'undefined' && typeof paper !== 'undefined') {
+	window.paper = paper;
+}
+
 return paper;
 }.call(this, typeof self === 'object' ? self : null);
