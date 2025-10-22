@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.22.54.49";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.23.42.14";
   (function() {
 
     var _a;
@@ -46694,6 +46694,7 @@
       }
     };
     Wick.Tools.Ellipse = class extends Wick.Tool {
+      // paper.Point
       /**
        * Creates an instance of the ellipse tool.
        */
@@ -47489,8 +47490,9 @@
       }
     };
     Wick.Tools.Rectangle = class extends Wick.Tool {
+      // paper.Point
       /**
-       *
+       * Creates an instance of the rectangle tool.
        */
       constructor() {
         super();
@@ -47503,7 +47505,7 @@
         return false;
       }
       /**
-       *
+       * A crosshair cursor.
        * @type {string}
        */
       get cursor() {

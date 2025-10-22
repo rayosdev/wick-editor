@@ -18,8 +18,13 @@
  */
 
 Wick.Tools.Rectangle = class extends Wick.Tool {
+    public name: string;
+    public path: any; // paper.Path
+    public topLeft: any; // paper.Point
+    public bottomRight: any; // paper.Point
+
     /**
-     *
+     * Creates an instance of the rectangle tool.
      */
     constructor () {
         super();
@@ -32,39 +37,39 @@ Wick.Tools.Rectangle = class extends Wick.Tool {
         this.bottomRight = null;
     }
 
-    get doubleClickEnabled () {
+    get doubleClickEnabled (): boolean {
         return false;
     }
 
     /**
-     *
+     * A crosshair cursor.
      * @type {string}
      */
-    get cursor () {
+    get cursor (): string {
         return 'crosshair';
     }
 
-    get isDrawingTool () {
+    get isDrawingTool (): boolean {
         return true;
     }
 
-    onActivate (e) {
+    onActivate (e: any): void {
 
     }
 
-    onDeactivate (e) {
+    onDeactivate (e: any): void {
         if(this.path) {
             this.path.remove();
             this.path = null;
         }
     }
 
-    onMouseDown (e) {
+    onMouseDown (e: any): void {
         this.topLeft = e.point;
         this.bottomRight = e.point;
     }
 
-    onMouseDrag (e) {
+    onMouseDrag (e: any): void {
         if(this.path) this.path.remove();
 
         this.bottomRight = e.point;
@@ -93,7 +98,7 @@ Wick.Tools.Rectangle = class extends Wick.Tool {
         this.path.strokeCap = 'round';
     }
 
-    onMouseUp (e) {
+    onMouseUp (e: any): void {
         if(!this.path) return;
 
         this.path.remove();
