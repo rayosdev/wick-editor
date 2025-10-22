@@ -11,17 +11,19 @@
 The Wick Engine has been successfully migrated from **Gulp to Vite**.
 
 ### Results
-- ✅ **All 12 tests passing** (unit + E2E)
-- ✅ **Build time 17% faster** (1.86s vs 2.24s)
+- ✅ **All 28 tests passing** (22 unit + 6 E2E)
+- ✅ **Build time 17% faster** (1.89s vs 2.24s)
 - ✅ **Zero breaking changes**
-- ✅ **Brush & pencil tools verified working**
+- ✅ **Drawing fully functional** (brush, pencil, all tools)
+- ✅ **All libraries exposed correctly**
 - ✅ **Ready for TypeScript conversion**
 
 ### Key Changes
 - Engine now builds with Vite instead of Gulp
-- Added global exposure for `paper`, `platform`, and `Croquis` libraries
-- Created comprehensive test suite with Playwright
+- Added global exposure for `paper`, `platform`, `Croquis`, and `potrace` libraries
+- Created comprehensive test suite with Playwright (drawing, tools, integration)
 - Watch mode now available for faster development
+- Fixed all module bundling vs concatenation issues
 
 ### Documentation
 See detailed documentation in: **`plan/engine-vite-migration/`**

@@ -28,16 +28,21 @@ The Wick Engine has been successfully migrated from **Gulp** to **Vite**, achiev
 ### Test Results
 
 ```
-✅ Build Verification Tests: 8/8 passing
+✅ Build Verification Tests: 22/22 passing
 ✅ Smoke Tests: 1/1 passing
 ✅ Tool Interaction Tests: 3/3 passing
+✅ Drawing Tests: 2/2 passing
+✅ Total: 28 tests, 100% passing
+
 ✅ Editor loads successfully
 ✅ No console errors
 ✅ window.Wick API available
 ✅ All classes present
-✅ Brush tool works
-✅ Pencil tool works
-✅ All critical libraries loaded (paper, platform, Croquis, TWEEN)
+✅ Brush tool works (click + draw)
+✅ Pencil tool works (click + select)
+✅ Drawing with brush produces correct strokes
+✅ Strokes properly added to layers
+✅ All critical libraries loaded (paper, platform, Croquis, potrace, Howler, JSZip)
 ```
 
 ---
@@ -92,7 +97,16 @@ if (typeof window !== 'undefined' && typeof Croquis !== 'undefined') {
 }
 ```
 
-**Why needed:** Vite's module bundling prevented implicit global access that Gulp's concatenation provided. Brush tool requires Croquis globally.
+#### `engine/lib/potrace.js`
+Added explicit global exposure:
+```javascript
+// Explicitly expose potrace to window for browser builds
+if (typeof window !== 'undefined' && typeof potrace !== 'undefined') {
+    window.potrace = potrace;
+}
+```
+
+**Why needed:** Vite's module bundling prevented implicit global access that Gulp's concatenation provided. Brush tool requires both Croquis and potrace for stroke processing.
 
 ### 3. **Entry Point**
 
@@ -134,7 +148,12 @@ Created comprehensive test suite:
 **Problem:** Croquis.js (brush tool library) wasn't exposed globally.  
 **Solution:** Modified `croquis.js` to explicitly set `window.Croquis`.
 
-### Issue 6: Node.js Module Resolution
+### Issue 6: `potrace is not defined`
+**Problem:** Potrace.js (bitmap tracing for brush strokes) wasn't exposed globally.  
+**Solution:** Modified `potrace.js` to explicitly set `window.potrace`.  
+**Impact:** Fixed brush drawing - strokes now properly processed and added to layers.
+
+### Issue 7: Node.js Module Resolution
 **Problem:** Rollup tried to resolve Node.js-style requires from libraries.  
 **Solution:** Added external modules list and require() shim in banner.
 
@@ -152,6 +171,7 @@ Created comprehensive test suite:
 - ✅ `engine/lib/paper.js` - Added window.paper exposure
 - ✅ `engine/lib/platform.js` - Added window.platform exposure
 - ✅ `engine/lib/croquis.js` - Added window.Croquis exposure
+- ✅ `engine/lib/potrace.js` - Added window.potrace exposure
 
 ### Tests
 - ✅ `tests/engine/engine-build.test.js` - Created
@@ -159,6 +179,7 @@ Created comprehensive test suite:
 - ✅ `tests/engine-integration.spec.ts` - Created
 - ✅ `tests/debug-engine.spec.ts` - Created
 - ✅ `tests/tool-interaction.spec.ts` - Created
+- ✅ `tests/drawing-test.spec.ts` - Created (drawing with brush/pencil)
 - ✅ `tests/smoke.spec.ts` - Updated
 
 ### Documentation
