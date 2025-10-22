@@ -133,7 +133,7 @@ import "./gui/Tooltip.js";
 import "./gui/Tween.js";
 import "./gui/TweenGhost.js";
 
-console.log("Wick Engine loaded via Vite build system ::..::..::");
+console.log("Wick Engine loaded via Vite build system ::..::..::---");
 
 // Re-export window.Wick for module consumers (though we're building as IIFE)
 export default (typeof window !== 'undefined' ? window.Wick : {});
