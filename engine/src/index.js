@@ -70,7 +70,7 @@ import "./base/Frame.js";
 import "./base/Clip.js";
 import "./base/Button.js";
 import "./tools/Tool.ts";
-import "./tools/Brush.js";
+import "./tools/Brush.ts";
 import "./tools/Cursor.js";
 import "./tools/Ellipse.js";
 import "./tools/Eraser.js";
@@ -81,7 +81,7 @@ import "./tools/Line.js";
 import "./tools/None.js";
 import "./tools/Pan.js";
 import "./tools/PathCursor.js";
-import "./tools/Pencil.js";
+import "./tools/Pencil.ts";
 import "./tools/Rectangle.js";
 import "./tools/Text.js";
 import "./tools/Zoom.js";
@@ -133,7 +133,7 @@ import "./gui/Tooltip.js";
 import "./gui/Tween.js";
 import "./gui/TweenGhost.js";
 
-console.log("Wick Engine loaded via Vite build system ::..::..::---");
+console.log("Wick Engine loaded via Vite build system ::---");
 
 // Re-export window.Wick for module consumers (though we're building as IIFE)
 export default (typeof window !== 'undefined' ? window.Wick : {});

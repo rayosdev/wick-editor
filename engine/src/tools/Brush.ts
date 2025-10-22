@@ -18,11 +18,29 @@
  */
 
 Wick.Tools.Brush = class extends Wick.Tool {
-    static get CROQUIS_WAIT_AMT_MS () {
+    public name: string;
+    public BRUSH_POINT_SPACING: number;
+    public BRUSH_STABILIZER_LEVEL: number;
+    public POTRACE_RESOLUTION: number;
+    public MIN_PRESSURE: number;
+    public croquis: any;
+    public croquisDOMElement: HTMLElement | null;
+    public croquisBrush: any;
+    public cachedCursor: string | null;
+    public lastPressure: number | null;
+    public errorOccured: boolean;
+    public strokeBounds: any; // paper.Rectangle
+    public _lastMousePoint: any; // paper.Point
+    public _lastMousePressure: number;
+    public _currentDrawingFrame: Wick.Frame | null;
+    private _isInProgress: boolean;
+    private _croquisStartTimeout: any;
+
+    static get CROQUIS_WAIT_AMT_MS (): number {
         return 100;
     }
 
-    get doubleClickEnabled () {
+    get doubleClickEnabled (): boolean {
         return false;
     }
 
@@ -63,15 +81,16 @@ Wick.Tools.Brush = class extends Wick.Tool {
         this._currentDrawingFrame = null;
     }
 
-    get cursor () {
+    get cursor (): string {
         // the brush cursor is done in a custom way using _regenCursor().
+        return 'default';
     }
 
-    get isDrawingTool () {
+    get isDrawingTool (): boolean {
         return true;
     }
 
-    onActivate (e) {
+    onActivate (e: any): void {
         if(this._isInProgress)
             this.finishStrokeEarly();
 
@@ -103,19 +122,19 @@ Wick.Tools.Brush = class extends Wick.Tool {
         this._lastMousePressure = 1;
     }
 
-    onDeactivate (e) {
+    onDeactivate (e: any): void {
         // This prevents croquis from leaving stuck brush strokes on the screen.
         this.finishStrokeEarly();
     }
 
-    onMouseMove (e) {
+    onMouseMove (e: any): void {
         super.onMouseMove(e);
 
         this._updateCanvasAttributes();
         this._regenCursor();
     }
 
-    onMouseDown (e) {
+    onMouseDown (e: any): void {
         if(this._isInProgress)
             this.discard();
 
@@ -146,7 +165,7 @@ Wick.Tools.Brush = class extends Wick.Tool {
         }
     }
 
-    onMouseDrag (e) {
+    onMouseDrag (e: any): void {
         if(!this._isInProgress) return;
 
         // Forward mouse event to croquis canvas
@@ -163,7 +182,7 @@ Wick.Tools.Brush = class extends Wick.Tool {
         this.lastPressure = this.pressure;
     }
 
-    onMouseUp (e) {
+    onMouseUp (e: any): void {
         if(!this._isInProgress) return;
         this._isInProgress = false;
 
@@ -183,7 +202,7 @@ Wick.Tools.Brush = class extends Wick.Tool {
     /**
      * The current amount of pressure applied to the paper js canvas this tool belongs to.
      */
-    get pressure () {
+    get pressure (): number {
         if(this.getSetting('pressureEnabled')) {
             var pressure = this.paper.view.pressure;
             return convertRange(pressure, [0, 1], [this.MIN_PRESSURE, 1]);
@@ -195,7 +214,7 @@ Wick.Tools.Brush = class extends Wick.Tool {
     /**
      * Croquis throws a lot of errrors. This is a helpful function to handle those errors gracefully.
      */
-    handleBrushError (e) {
+    handleBrushError (e: any): void {
         this._isInProgress = false;
         this.croquis.clearLayer();
 
@@ -210,14 +229,14 @@ Wick.Tools.Brush = class extends Wick.Tool {
      * Is the brush currently making a stroke?
      * @type {boolean}
      */
-    isInProgress () {
+    isInProgress (): boolean {
         return this._isInProgress;
     }
 
     /**
      * Discard the current brush stroke.
      */
-    discard () {
+    discard (): void {
         if(!this._isInProgress) return;
         this._isInProgress = false;
 
@@ -233,12 +252,12 @@ Wick.Tools.Brush = class extends Wick.Tool {
     /**
      * Force the current stroke to be finished, and add the stroke to the project.
      */
-    finishStrokeEarly () {
+    finishStrokeEarly (): void {
         if(!this._isInProgress) return;
         this._isInProgress = false;
 
         // Hide the croquis canvas so that the current stroke is never seen on the new frame.
-        this.croquisDOMElement.style.opacity = 0;
+        this.croquisDOMElement.style.opacity = '0';
 
         // "Give up" on the current stroke by forcing a mouseup
         this.croquis.up(this._lastMousePoint.x, this._lastMousePoint.y, this._lastMousePressure);
@@ -249,7 +268,7 @@ Wick.Tools.Brush = class extends Wick.Tool {
     }
 
     /* Generate a new circle cursor based on the brush size. */
-    _regenCursor () {
+    _regenCursor (): void {
         var size = (this._getRealBrushSize());
         var color = this.getSetting('fillColor').hex;
         this.cachedCursor = this.createDynamicCursor(color, size, this.getSetting('pressureEnabled'));
@@ -257,7 +276,7 @@ Wick.Tools.Brush = class extends Wick.Tool {
     }
 
     /* Get the actual pixel size of the brush to send to Croquis. */
-    _getRealBrushSize () {
+    _getRealBrushSize (): number {
         var size = this.getSetting('brushSize') + 1;
         if(!this.getSetting('relativeBrushSize')) {
             size *= this.paper.view.zoom;
@@ -266,7 +285,7 @@ Wick.Tools.Brush = class extends Wick.Tool {
     }
 
     /* Update Croquis and the div containing croquis to reflect all current options. */
-    _updateCanvasAttributes () {
+    _updateCanvasAttributes (): void {
         if(!this.paper.view._element.parentElement) {
             return;
         }
@@ -288,28 +307,28 @@ Wick.Tools.Brush = class extends Wick.Tool {
     }
 
     /* Convert a point in Croquis' canvas space to paper.js's canvas space. */
-    _croquisToPaperPoint (croquisPoint) {
+    _croquisToPaperPoint (croquisPoint: any): any {
         var paperPoint = this.paper.view.projectToView(croquisPoint.x, croquisPoint.y);
         return paperPoint;
     }
 
     /* Used for calculating the crop amount for potrace. */
-    _resetStrokeBounds (point) {
+    _resetStrokeBounds (point: any): void {
         this.strokeBounds = new paper.Rectangle(point.x, point.y, 1, 1);
     }
 
     /* Used for calculating the crop amount for potrace. */
-    _updateStrokeBounds (point) {
+    _updateStrokeBounds (point: any): void {
         this.strokeBounds = this.strokeBounds.include(point);
     }
 
     /* Used for saving information on the mouse (croquis does not save this.) */
-    _updateLastMouseState (point, pressure) {
+    _updateLastMouseState (point: any, pressure: number): void {
         this._lastMousePoint = new paper.Point(point.x, point.y);
         this._lastMousePressure = this.pressure;
     }
 
-    _calculateStrokeBounds (point) {
+    _calculateStrokeBounds (point: any): void {
         // Forward mouse event to croquis canvas
         this._updateStrokeBounds(point);
         // This prevents cropping out edges of the brush stroke
@@ -317,7 +336,7 @@ Wick.Tools.Brush = class extends Wick.Tool {
     }
 
     /* Create a paper.js path by potracing the croquis canvas, and add the resulting path to the project. */
-    _potraceCroquisCanvas (point) {
+    _potraceCroquisCanvas (point: any): void {
         this.errorOccured = false;
         var strokeBounds = this.strokeBounds.clone();
 
@@ -387,7 +406,7 @@ Wick.Tools.Brush = class extends Wick.Tool {
         }, Wick.Tools.Brush.CROQUIS_WAIT_AMT_MS);
     }
 
-    _applyBrushMode (mode, path, layer) {
+    _applyBrushMode (mode: string, path: any, layer: any): any {
         if(!mode) {
             console.warn('_applyBrushMode: Invalid brush mode: ' + mode);
             console.warn('Valid brush modes are "inside" and "outside".')
@@ -404,7 +423,7 @@ Wick.Tools.Brush = class extends Wick.Tool {
         }[mode];
 
         var mask = null;
-        layer.children.forEach(otherPath => {
+        layer.children.forEach((otherPath: any) => {
             if(otherPath === mask) return;
             if(mask) {
                 var newMask = mask.unite(otherPath);

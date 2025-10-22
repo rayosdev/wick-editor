@@ -88,7 +88,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.21.36.24";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.22.10.26";
   (function() {
 
     var _a;
@@ -46167,6 +46167,7 @@
         this._currentDrawingFrame = null;
       }
       get cursor() {
+        return "default";
       }
       get isDrawingTool() {
         return true;
@@ -46301,7 +46302,7 @@
       finishStrokeEarly() {
         if (!this._isInProgress) return;
         this._isInProgress = false;
-        this.croquisDOMElement.style.opacity = 0;
+        this.croquisDOMElement.style.opacity = "0";
         this.croquis.up(this._lastMousePoint.x, this._lastMousePoint.y, this._lastMousePressure);
         this._calculateStrokeBounds(this._lastMousePoint);
         this._potraceCroquisCanvas(this._lastMousePoint);
@@ -47441,6 +47442,7 @@
       }
     };
     Wick.Tools.Pencil = class extends Wick.Tool {
+      // paper.Point
       static get MIN_ADD_POINT_MOVEMENT() {
         return 2;
       }
@@ -52555,7 +52557,7 @@
         });
       }
     };
-    console.log("Wick Engine loaded via Vite build system ::..::..::---");
+    console.log("Wick Engine loaded via Vite build system ::---");
   })();
   try {
     if (typeof window !== "undefined") {

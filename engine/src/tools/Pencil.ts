@@ -18,7 +18,11 @@
  */
 
 Wick.Tools.Pencil = class extends Wick.Tool {
-    static get MIN_ADD_POINT_MOVEMENT () {
+    public name: string;
+    public path: any; // paper.Path
+    private _movement: any; // paper.Point
+
+    static get MIN_ADD_POINT_MOVEMENT (): number {
         return 2;
     }
 
@@ -35,7 +39,7 @@ Wick.Tools.Pencil = class extends Wick.Tool {
         this._movement = new paper.Point();
     }
 
-    get doubleClickEnabled () {
+    get doubleClickEnabled (): boolean {
         return false;
     }
 
@@ -43,23 +47,23 @@ Wick.Tools.Pencil = class extends Wick.Tool {
      * The pencil cursor.
      * @type {string}
      */
-    get cursor () {
+    get cursor (): string {
         return 'url(cursors/pencil.png) 32 32, auto';
     }
 
-    get isDrawingTool () {
+    get isDrawingTool (): boolean {
         return true;
     }
 
-    onActivate (e) {
+    onActivate (e: any): void {
 
     }
 
-    onDeactivate (e) {
+    onDeactivate (e: any): void {
 
     }
 
-    onMouseDown (e) {
+    onMouseDown (e: any): void {
         this._movement = new paper.Point();
 
         if (!this.path) {
@@ -73,7 +77,7 @@ Wick.Tools.Pencil = class extends Wick.Tool {
         this.path.add(e.point);
     }
 
-    onMouseDrag (e) {
+    onMouseDrag (e: any): void {
         if(!this.path) return;
 
         this._movement = this._movement.add(e.delta);
@@ -85,7 +89,7 @@ Wick.Tools.Pencil = class extends Wick.Tool {
         }
     }
 
-    onMouseUp (e) {
+    onMouseUp (e: any): void {
         if(!this.path) return;
 
         this.path.add(e.point);
