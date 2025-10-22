@@ -1548,3 +1548,13 @@ Croquis.Brush = function () {
         return dirtyRect;
     };
 };
+
+// Explicitly expose Croquis to window for browser builds
+if (typeof window !== 'undefined' && typeof Croquis !== 'undefined') {
+    window.Croquis = Croquis;
+}
+
+// Also expose for CommonJS if needed
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Croquis;
+}

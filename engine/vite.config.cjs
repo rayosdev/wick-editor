@@ -230,7 +230,6 @@ module.exports = {
       output: {
         dir: path.resolve(__dirname, 'dist'),
         entryFileNames: 'wickengine.js',
-        sourcemap: true,
         banner,
         footer,
         format: 'iife',
@@ -263,6 +262,7 @@ module.exports = {
     outDir: 'dist',
     emptyOutDir: true,
     minify: false,
+    sourcemap: true,
     // Increase chunk size warning limit (engine is large)
     chunkSizeWarningLimit: 5000,
     // Ensure all dependencies are bundled
