@@ -17,8 +17,39 @@
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+interface SettingDefinition {
+    type: string;
+    name: string;
+    default: any;
+    min?: number;
+    max?: number;
+    step?: number;
+    options?: string[];
+}
+
+interface SettingValue {
+    type: string;
+    name: string;
+    value: any;
+    default: any;
+    min?: number;
+    max?: number;
+    step?: number;
+    options?: string[];
+}
+
+interface SettingRestrictions {
+    min?: number;
+    max?: number;
+    step?: number;
+    options?: string[];
+}
+
 Wick.ToolSettings = class {
-    static get DEFAULT_SETTINGS () {
+    private _settings: { [name: string]: SettingValue } = {};
+    private _onSettingsChangedCallback: (name: string, value: any) => void = () => {};
+
+    static get DEFAULT_SETTINGS (): SettingDefinition[] {
         return [{
             type: 'color',
             name: 'fillColor',
@@ -127,14 +158,14 @@ Wick.ToolSettings = class {
      * @param {String} settingName name of tool setting.
      * @returns {String} Key to be used.
      */
-    getStorageKey (settingName) {
+    getStorageKey (settingName: string): string {
         return "WICK.TOOLSETTINGS."+settingName;
     }
 
     /**
      * Creates the tool settings at the start of the editor. Will open with previously used settings if they exist.
      */
-    createSetting (args) {
+    createSetting (args: SettingDefinition): void {
         if(!args) console.error('createSetting: args is required');
         if(!args.name) console.error('createSetting: args.name is required');
         if(args.default === undefined) console.error('createSetting: args.default is required');
@@ -160,7 +191,7 @@ Wick.ToolSettings = class {
      * @param {string} name - The name of the setting to update.
      * @param {string|number|Color} value - The value of the setting to change to.
      */
-    setSetting (name, value) {
+    setSetting (name: string, value: any): void {
         var setting = this._settings[name];
 
         if (!setting) return;
@@ -197,7 +228,7 @@ Wick.ToolSettings = class {
      * Retrieve a value in the settings.
      * @param {string} name - The name of the setting to retrieve.
      */
-    getSetting (name) {
+    getSetting (name: string): any {
         var setting = this._settings[name];
 
         if(!setting) {
@@ -213,7 +244,7 @@ Wick.ToolSettings = class {
      * @param {String} name name of tool setting
      * @returns {Object} an object containing the values min, max, step and options where appropriate.
      */
-    getSettingRestrictions (name) {
+    getSettingRestrictions (name: string): SettingRestrictions {
         var setting = this._settings[name];
         if (!setting) console.error("ToolSettings.getSettingRestrictions: invalid setting: " + name);
 
@@ -229,8 +260,8 @@ Wick.ToolSettings = class {
      * Returns an array containing all settings with all information.
      * @returns {Object[]} Array of settings objects.
      */
-    getAllSettings () {
-        var allSettings = [];
+    getAllSettings (): SettingValue[] {
+        var allSettings: SettingValue[] = [];
         for(var name in this._settings) {
             allSettings.push(this._settings[name]);
         }
@@ -240,14 +271,14 @@ Wick.ToolSettings = class {
     /**
      * Receives a call back that will be provided the name and value of the setting that was changed.
      */
-    onSettingsChanged (callback) {
+    onSettingsChanged (callback: (name: string, value: any) => void): void {
         this._onSettingsChangedCallback = callback;
     }
 
     /**
      * Reset settings to the deafults.
      */
-    resetAllSettings () {
+    resetAllSettings (): void {
         Wick.ToolSettings.DEFAULT_SETTINGS.forEach(setting => {
             this.createSetting(setting);
         });
@@ -256,27 +287,27 @@ Wick.ToolSettings = class {
     /**
      * Load settings from localstorage if they exist.
      */
-    loadSettingsFromLocalstorage () {
+    loadSettingsFromLocalstorage (): void {
         Wick.ToolSettings.DEFAULT_SETTINGS.forEach(setting => {
             // Get stored tool setting if it exists.
-            localforage.getItem(this.getStorageKey(name)).then( (value) => {
+            localforage.getItem(this.getStorageKey(setting.name)).then( (value) => {
                 if (value) {
-                    this._settings[args.name] = {
-                        type: args.type,
-                        name: args.name,
-                        value: type === 'color' ? new window.Wick.Color(value) : value,
-                        default: args.default,
-                        min: args.min,
-                        max: args.max,
-                        step: args.step,
-                        options: args.options,
+                    this._settings[setting.name] = {
+                        type: setting.type,
+                        name: setting.name,
+                        value: setting.type === 'color' ? new window.Wick.Color(value) : value,
+                        default: setting.default,
+                        min: setting.min,
+                        max: setting.max,
+                        step: setting.step,
+                        options: setting.options,
                     };
                 }
             });
         });
     }
 
-    _fireOnSettingsChanged (name, value) {
+    _fireOnSettingsChanged (name: string, value: any): void {
         this._onSettingsChangedCallback(name, value);
     }
- }
+}

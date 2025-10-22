@@ -17,15 +17,28 @@
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+interface HistoryState {
+    state: any[];
+    objects: Set<string>;
+    actionName: string;
+    timeSinceLastPush: number;
+}
+
 /**
  * History utility class for undo/redo functionality.
  */
 Wick.History = class {
+    private _undoStack: HistoryState[] = [];
+    private _redoStack: HistoryState[] = [];
+    private _snapshots: { [name: string]: any[] } = {};
+    private lastHistoryPush: number;
+    public project: Wick.Project;
+
     /**
      *
      * @type {boolean}
      */
-    static get VERBOSE () {
+    static get VERBOSE (): boolean {
         return false;
     }
 
@@ -51,7 +64,7 @@ Wick.History = class {
     /**
      * Resets history in the editor. This is non-reversible.
      */
-    reset () {
+    reset (): void {
         this._undoStack = [];
         this._redoStack = [];
         this._snapshots = {};
@@ -61,8 +74,8 @@ Wick.History = class {
      * Returns all objects that are currently referenced by the history.
      * @returns {Set} uuids of all objects currently referenced in the history.
      */
-    getObjectUUIDs () {
-        let objects = new Set();
+    getObjectUUIDs (): Set<string> {
+        let objects = new Set<string>();
 
         for (let state of this._undoStack) {
             objects = new Set([...objects, ...state.objects]);
@@ -80,13 +93,13 @@ Wick.History = class {
      * @param {number} filter - the filter to choose which objects to serialize. See Wick.History.StateType
      * @param {string} actionName - Optional: Name of the action conducted to generate this state. If no name is presented, "Unknown Action" is presented in its place.
      */
-    pushState (filter, actionName) {
+    pushState (filter: number, actionName?: string): void {
         this._redoStack = [];
         let now = Date.now();
 
         let state = this._generateState(filter);
         let objects = new Set(state.map(obj => obj.uuid));
-        let stateObject = {
+        let stateObject: HistoryState = {
             state: this._generateState(filter), 
             objects: objects,
             actionName: actionName || "Unknown Action",
@@ -103,7 +116,7 @@ Wick.History = class {
      * Pop the last state in the undo stack off and apply the new last state to the project.
      * @returns {boolean} True if the undo stack is non-empty, false otherwise
      */
-    popState () {
+    popState (): boolean {
         if(this._undoStack.length <= 1) {
             return false;
         }
@@ -129,7 +142,7 @@ Wick.History = class {
      * Recover a state that was undone.
      * @returns {boolean} True if the redo stack is non-empty, false otherwise
      */
-    recoverState () {
+    recoverState (): boolean {
         if(this._redoStack.length === 0) {
             return false;
         }
@@ -147,7 +160,7 @@ Wick.History = class {
      * @param {string} name - the name of the snapshot
      * @param {number} filter - the filter to choose which objects to serialize. See Wick.History.StateType
      */
-    saveSnapshot (name, filter) {
+    saveSnapshot (name: string, filter?: number): void {
         this._snapshots[name] = this._generateState(filter || Wick.History.StateType.ALL_OBJECTS_WITHOUT_PATHS);
     }
 
@@ -155,7 +168,7 @@ Wick.History = class {
      * Save a state to the list of snapshots to be recovered at any time.
      * @param {string} name - the name of the snapshot to recover
      */
-    loadSnapshot (name) {
+    loadSnapshot (name: string): void {
         this._recoverState(this._snapshots[name]);
     }
 
@@ -163,7 +176,7 @@ Wick.History = class {
      * The number of states currently stored for undoing.
      * @type {number}
      */
-    get numUndoStates () {
+    get numUndoStates (): number {
         return this._undoStack.length;
     }
 
@@ -171,13 +184,13 @@ Wick.History = class {
      * The number of states currently stored for redoing.
      * @type {number}
      */
-    get numRedoStates () {
+    get numRedoStates (): number {
         return this._redoStack.length;
     }
 
     // NOTE: State saving/recovery can be greatly optimized by only saving the state of the things that were actually changed.
-    _generateState (stateType) {
-        var objects = [];
+    _generateState (stateType?: number): any[] {
+        var objects: Wick.Base[] = [];
 
         if(stateType === undefined) {
             stateType = Wick.History.StateType.ALL_OBJECTS;
@@ -191,7 +204,7 @@ Wick.History = class {
             objects = this._getVisibleObjects();
         } else {
             console.error('Wick.History._generateState: A valid stateType is required.');
-            return;
+            return [];
         }
 
         if(Wick.History.VERBOSE) {
@@ -206,28 +219,28 @@ Wick.History = class {
         });
     }
 
-    _recoverState (state) {
+    _recoverState (state: any[]): void {
         state.forEach(objectData => {
             var object = Wick.ObjectCache.getObjectByUUID(objectData.uuid);
             object.deserialize(objectData);
         });
     }
 
-    _getAllObjects () {
+    _getAllObjects (): Wick.Base[] {
         var objects = Wick.ObjectCache.getActiveObjects(this.project);
         objects.push(this.project);
         return objects;
     }
 
     // this is used for an optimization when snapshots are saved for preview playing.
-    _getAllObjectsWithoutPaths () {
+    _getAllObjectsWithoutPaths (): Wick.Base[] {
         return this._getAllObjects().filter(object => {
             return !(object instanceof Wick.Path);
         });
     }
 
-    _getVisibleObjects () {
-        var stateObjects = [];
+    _getVisibleObjects (): Wick.Base[] {
+        var stateObjects: Wick.Base[] = [];
 
         // the project itself (for focus, options, etc)
         stateObjects.push(this.project);

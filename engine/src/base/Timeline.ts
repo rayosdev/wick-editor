@@ -21,10 +21,17 @@
  * Class representing a Wick Timeline.
  */
 Wick.Timeline = class extends Wick.Base {
+    private _playheadPosition: number;
+    private _activeLayerIndex: number;
+    private _playing: boolean;
+    private _fillGapsMethod: string;
+    private _frameForced: boolean;
+    private _waitToFillFrameGaps: boolean = false;
+
     /**
      * Create a timeline.
      */
-    constructor(args) {
+    constructor(args?: any) {
         super(args);
 
         this._playheadPosition = 1;
@@ -36,7 +43,7 @@ Wick.Timeline = class extends Wick.Base {
         this._frameForced = false;
     }
 
-    _serialize(args) {
+    _serialize(args?: any): any {
         var data = super._serialize(args);
 
         data.playheadPosition = this._playheadPosition;
@@ -45,7 +52,7 @@ Wick.Timeline = class extends Wick.Base {
         return data;
     }
 
-    _deserialize(data) {
+    _deserialize(data: any): void {
         super._deserialize(data);
 
         this._playheadPosition = data.playheadPosition;
@@ -54,7 +61,7 @@ Wick.Timeline = class extends Wick.Base {
         this._playing = true;
     }
 
-    get classname() {
+    get classname(): string {
         return 'Timeline';
     }
 
@@ -62,7 +69,7 @@ Wick.Timeline = class extends Wick.Base {
      * The layers that belong to this timeline.
      * @type {Wick.Layer}
      */
-    get layers() {
+    get layers(): Wick.Layer[] {
         return this.getChildren('Layer');
     }
 
@@ -70,11 +77,11 @@ Wick.Timeline = class extends Wick.Base {
      * The position of the playhead. Determines which frames are visible.
      * @type {number}
      */
-    get playheadPosition() {
+    get playheadPosition(): number {
         return this._playheadPosition;
     }
 
-    set playheadPosition(playheadPosition) {
+    set playheadPosition(playheadPosition: number) {
         // Automatically clear selection when any playhead in the project moves
         if(this.project && this._playheadPosition !== playheadPosition && this.parentClip.isFocus) {
             this.project.selection.clear('Canvas');
@@ -97,7 +104,7 @@ Wick.Timeline = class extends Wick.Base {
      * Forces timeline to move to the next frame.
      * @param {number} frame 
      */
-    forceFrame(frame) {
+    forceFrame(frame: number): void {
         this.playheadPosition = frame;
         this._frameForced = true;
         this.makeTimelineInBounds();
@@ -106,7 +113,7 @@ Wick.Timeline = class extends Wick.Base {
     /**
      * Returns true if the frame was forced previously.
      */
-    get frameForced () {
+    get frameForced (): boolean {
         return this._frameForced;
     }
 
@@ -114,11 +121,11 @@ Wick.Timeline = class extends Wick.Base {
      * The index of the active layer. Determines which frame to draw onto.
      * @type {number}
      */
-    get activeLayerIndex() {
+    get activeLayerIndex(): number {
         return this._activeLayerIndex;
     }
 
-    set activeLayerIndex(activeLayerIndex) {
+    set activeLayerIndex(activeLayerIndex: number) {
         this._activeLayerIndex = activeLayerIndex;
     }
 
@@ -126,7 +133,7 @@ Wick.Timeline = class extends Wick.Base {
      * The total length of the timeline.
      * @type {number}
      */
-    get length() {
+    get length(): number {
         var length = 0;
         this.layers.forEach(function(layer) {
             var layerLength = layer.length;
@@ -141,7 +148,7 @@ Wick.Timeline = class extends Wick.Base {
      * The active layer.
      * @type {Wick.Layer}
      */
-    get activeLayer() {
+    get activeLayer(): Wick.Layer {
         return this.layers[this.activeLayerIndex];
     }
 
@@ -149,8 +156,8 @@ Wick.Timeline = class extends Wick.Base {
      * The active frames, determined by the playhead position.
      * @type {Wick.Frame[]}
      */
-    get activeFrames() {
-        var frames = [];
+    get activeFrames(): Wick.Frame[] {
+        var frames: Wick.Frame[] = [];
         this.layers.forEach(layer => {
             var layerFrame = layer.activeFrame;
             if (layerFrame) {
@@ -165,18 +172,16 @@ Wick.Timeline = class extends Wick.Base {
      * @onError {function(message)}
      * @returns {string} - the SVG for the current view in string form (maybe this should be base64 or a blob or something)
      */
-    exportSVG(onError) {
+    exportSVG(onError?: (message: string) => void): string {
+        var svgOutput = paper.project.exportSVG({ asString: true, matchShapes: true, embedImages: true });
+        return svgOutput;
+    }
 
-            var svgOutput = paper.project.exportSVG({ asString: true, matchShapes: true, embedImages: true });
-            return svgOutput;
-        }
-        //this.project.paper.
-        //paperGroup = new paper.Group
-        /**
-         * The active frame, determined by the playhead position.
-         * @type {Wick.Frame}
-         */
-    get activeFrame() {
+    /**
+     * The active frame, determined by the playhead position.
+     * @type {Wick.Frame}
+     */
+    get activeFrame(): Wick.Frame | null {
         return this.activeLayer && this.activeLayer.activeFrame;
     }
 
@@ -184,8 +189,8 @@ Wick.Timeline = class extends Wick.Base {
      * All frames inside the timeline.
      * @type {Wick.Frame[]}
      */
-    get frames() {
-        var frames = [];
+    get frames(): Wick.Frame[] {
+        var frames: Wick.Frame[] = [];
         this.layers.forEach(layer => {
             layer.frames.forEach(frame => {
                 frames.push(frame);
@@ -198,8 +203,8 @@ Wick.Timeline = class extends Wick.Base {
      * All clips inside the timeline.
      * @type {Wick.Clip[]}
      */
-    get clips() {
-        var clips = [];
+    get clips(): Wick.Clip[] {
+        var clips: Wick.Clip[] = [];
         this.frames.forEach(frame => {
             clips = clips.concat(frame.clips);
         });
@@ -210,7 +215,7 @@ Wick.Timeline = class extends Wick.Base {
      * Finds the frame with a given name.
      * @type {Wick.Frame|null}
      */
-    getFrameByName(name) {
+    getFrameByName(name: string): Wick.Frame | null {
         return this.frames.find(frame => {
             return frame.name === name;
         }) || null;
@@ -220,7 +225,7 @@ Wick.Timeline = class extends Wick.Base {
      * Add a frame to one of the layers on this timeline. If there is no layer where the frame wants to go, the frame will not be added.
      * @param {Wick.Frame} frame - the frame to add
      */
-    addFrame(frame) {
+    addFrame(frame: Wick.Frame): void {
         if (frame.originalLayerIndex >= this.layers.length) return;
 
         if (frame.originalLayerIndex === -1) {
@@ -234,7 +239,7 @@ Wick.Timeline = class extends Wick.Base {
      * Adds a layer to the timeline.
      * @param {Wick.Layer} layer - The layer to add.
      */
-    addLayer(layer) {
+    addLayer(layer: Wick.Layer): void {
         this.addChild(layer);
         if (!layer.name) {
             if (this.layers.length > 1) {
@@ -249,7 +254,7 @@ Wick.Timeline = class extends Wick.Base {
      * Adds a tween to a frame on this timeline.
      * @param {Wick.Tween} tween - the tween to add.
      */
-    addTween(tween) {
+    addTween(tween: Wick.Tween): void {
         if (tween.originalLayerIndex >= this.layers.length) return;
 
         if (tween.originalLayerIndex === -1) {
@@ -263,7 +268,7 @@ Wick.Timeline = class extends Wick.Base {
      * Remmoves a layer from the timeline.
      * @param {Wick.Layer} layer - The layer to remove.
      */
-    removeLayer(layer) {
+    removeLayer(layer: Wick.Layer): void {
         // You can't remove the last layer.
         if (this.layers.length <= 1) {
             return;
@@ -282,7 +287,7 @@ Wick.Timeline = class extends Wick.Base {
      * @param {Wick.Layer} layer - The layer to add.
      * @param {number} index - the new position to move the layer to.
      */
-    moveLayer(layer, index) {
+    moveLayer(layer: Wick.Layer, index: number): void {
         var layers = this.getChildren('Layer');
         
         layers.splice(layers.indexOf(layer), 1);
@@ -296,8 +301,8 @@ Wick.Timeline = class extends Wick.Base {
      * @param {number} playheadPosition - the playhead position to search.
      * @returns {Wick.Frame[]} The frames at the playhead position.
      */
-    getFramesAtPlayheadPosition(playheadPosition) {
-        var frames = [];
+    getFramesAtPlayheadPosition(playheadPosition: number): Wick.Frame[] {
+        var frames: Wick.Frame[] = [];
 
         this.layers.forEach(layer => {
             var frame = layer.getFrameAtPlayheadPosition(playheadPosition);
@@ -311,8 +316,8 @@ Wick.Timeline = class extends Wick.Base {
      * Get all frames in this timeline.
      * @param {boolean} recursive - If set to true, will also include the children of all child timelines.
      */
-    getAllFrames(recursive) {
-        var allFrames = [];
+    getAllFrames(recursive?: boolean): Wick.Frame[] {
+        var allFrames: Wick.Frame[] = [];
         this.layers.forEach(layer => {
             allFrames = allFrames.concat(layer.frames);
 
@@ -335,8 +340,8 @@ Wick.Timeline = class extends Wick.Base {
      * @param {number} layerIndexEnd - The end of the vertical range to search
      * @return {Wick.Frame[]} The frames in the given range.
      */
-    getFramesInRange(playheadPositionStart, playheadPositionEnd, layerIndexStart, layerIndexEnd) {
-        var framesInRange = [];
+    getFramesInRange(playheadPositionStart: number, playheadPositionEnd: number, layerIndexStart: number, layerIndexEnd: number): Wick.Frame[] {
+        var framesInRange: Wick.Frame[] = [];
 
         this.layers.filter(layer => {
             return layer.index >= layerIndexStart &&
@@ -351,7 +356,7 @@ Wick.Timeline = class extends Wick.Base {
     /**
      * Advances the timeline one frame forwards. Loops back to beginning if the end is reached.
      */
-    advance() {
+    advance(): void {
         if (this._playing) {
             this.playheadPosition++;
             this._frameForced = false;
@@ -362,7 +367,7 @@ Wick.Timeline = class extends Wick.Base {
     /**
      * Ensures playhead position is in bounds.
      */
-    makeTimelineInBounds () {
+    makeTimelineInBounds (): void {
         if (this.playheadPosition > this.length) {
             this.playheadPosition = 1;
         }
@@ -371,14 +376,14 @@ Wick.Timeline = class extends Wick.Base {
     /**
      * Makes the timeline advance automatically during ticks.
      */
-    play() {
+    play(): void {
         this._playing = true;
     }
 
     /**
      * Stops the timeline from advancing during ticks.
      */
-    stop() {
+    stop(): void {
         this._playing = false;
     }
 
@@ -386,7 +391,7 @@ Wick.Timeline = class extends Wick.Base {
      * Stops the timeline and moves to a given frame number or name.
      * @param {string|number} frame - A playhead position or name of a frame to move to.
      */
-    gotoAndStop(frame) {
+    gotoAndStop(frame: string | number): void {
         this.stop();
         this.gotoFrame(frame);
     }
@@ -395,7 +400,7 @@ Wick.Timeline = class extends Wick.Base {
      * Plays the timeline and moves to a given frame number or name.
      * @param {string|number} frame - A playhead position or name of a frame to move to.
      */
-    gotoAndPlay(frame) {
+    gotoAndPlay(frame: string | number): void {
         this.play();
         this.gotoFrame(frame);
     }
@@ -403,7 +408,7 @@ Wick.Timeline = class extends Wick.Base {
     /**
      * Moves the timeline forward one frame. Loops back to 1 if gotoNextFrame moves the playhead past the past frame.
      */
-    gotoNextFrame() {
+    gotoNextFrame(): void {
         // Loop back to beginning if gotoNextFrame goes past the last frame
         var nextFramePlayheadPosition = this.playheadPosition + 1;
         if (nextFramePlayheadPosition > this.length) {
@@ -416,7 +421,7 @@ Wick.Timeline = class extends Wick.Base {
     /**
      * Moves the timeline backwards one frame. Loops to the last frame if gotoPrevFrame moves the playhead before the first frame.
      */
-    gotoPrevFrame() {
+    gotoPrevFrame(): void {
         var prevFramePlayheadPosition = this.playheadPosition - 1;
         if (prevFramePlayheadPosition <= 0) {
             prevFramePlayheadPosition = this.length;
@@ -429,7 +434,7 @@ Wick.Timeline = class extends Wick.Base {
      * Moves the playhead to a given frame number or name.
      * @param {string|number} frame - A playhead position or name of a frame to move to.
      */
-    gotoFrame(frame) {
+    gotoFrame(frame: string | number): void {
         if (typeof frame === 'string') {
             var namedFrame = this.frames.find(seekframe => {
                 return seekframe.identifier === frame && !seekframe.onScreen;
@@ -449,11 +454,11 @@ Wick.Timeline = class extends Wick.Base {
      * The method to use to fill gaps in-beteen frames. Options: "blank_frames" or "auto_extend" (see Wick.Layer.resolveGaps)
      * @type {string}
      */
-    get fillGapsMethod() {
+    get fillGapsMethod(): string {
         return this._fillGapsMethod;
     }
 
-    set fillGapsMethod(fillGapsMethod) {
+    set fillGapsMethod(fillGapsMethod: string) {
         if (fillGapsMethod === 'blank_frames' || fillGapsMethod === 'auto_extend') {
             this._fillGapsMethod = fillGapsMethod;
         } else {
@@ -466,14 +471,14 @@ Wick.Timeline = class extends Wick.Base {
      * Check if frame gap fixing should be deferred until later. Read only.
      * @type {boolean}
      */
-    get waitToFillFrameGaps() {
+    get waitToFillFrameGaps(): boolean {
         return this._waitToFillFrameGaps;
     }
 
     /**
      * Disables frame gap filling until resolveFrameGaps is called again.
      */
-    deferFrameGapResolve() {
+    deferFrameGapResolve(): void {
         this._waitToFillFrameGaps = true;
     }
 
@@ -481,7 +486,7 @@ Wick.Timeline = class extends Wick.Base {
      * Fill in all gaps between frames in all layers in this timeline.
      * @param {Wick.Frame[]} newOrModifiedFrames - The frames that should not be affected by the gap fill by being extended or shrunk.
      */
-    resolveFrameGaps(newOrModifiedFrames) {
+    resolveFrameGaps(newOrModifiedFrames?: Wick.Frame[]): void {
         if (!newOrModifiedFrames) newOrModifiedFrames = [];
 
         this._waitToFillFrameGaps = false;
@@ -496,7 +501,7 @@ Wick.Timeline = class extends Wick.Base {
      * Prevents frames from overlapping each other by removing pieces of frames that are touching.
      * @param {Wick.Frame[]} newOrModifiedFrames - the frames that should take precedence when determining which frames should get "eaten".
      */
-    resolveFrameOverlap(frames) {
+    resolveFrameOverlap(frames: Wick.Frame[]): void {
         this.layers.forEach(layer => {
             layer.resolveOverlap(frames.filter(frame => {
                 return frame.parentLayer === layer;

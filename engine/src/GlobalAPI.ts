@@ -17,12 +17,28 @@
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+interface APIMember {
+    name: string;
+    fn: any;
+}
+
+interface ProjectInfo {
+    width: number;
+    height: number;
+    framerate: number;
+    backgroundColor: any;
+    name: string;
+    hitTestOptions: any;
+}
+
 GlobalAPI = class {
+    public scriptOwner: any; // Wick.Base
+
     /**
      * Defines all api members such as functions and properties.
      * @type {string[]}
      */
-    static get apiMemberNames () {
+    static get apiMemberNames (): string[] {
         return [
             'stop','play','gotoAndStop','gotoAndPlay','gotoNextFrame','gotoPrevFrame',
             // These are currently disabled, they are very slow for some reason.
@@ -41,7 +57,7 @@ GlobalAPI = class {
     /**
      * @param {object} scriptOwner The tickable object which owns the script being evaluated.
      */
-    constructor (scriptOwner) {
+    constructor (scriptOwner: any) {
         this.scriptOwner = scriptOwner;
     }
 
@@ -49,8 +65,8 @@ GlobalAPI = class {
      * Returns a list of api members bound to the script owner.
      * @returns {object[]} Array of functions, properties, and api members.
      */
-    get apiMembers () {
-        var members = [];
+    get apiMembers (): APIMember[] {
+        var members: APIMember[] = [];
 
         GlobalAPI.apiMemberNames.forEach(name => {
             var fn = this[name];
@@ -69,14 +85,14 @@ GlobalAPI = class {
     /**
      * Stops the timeline of the object's parent clip.
      */
-    stop () {
+    stop (): void {
         this.scriptOwner.parentClip.stop();
     }
 
     /**
      * Plays the timeline of the object's parent clip.
      */
-    play () {
+    play (): void {
         this.scriptOwner.parentClip.play();
     }
 
@@ -84,7 +100,7 @@ GlobalAPI = class {
      * Moves the plahead of the parent clip to a frame and stops the timeline of that parent clip.
      * @param {string | number} frame Frame name or number to move playhead to.
      */
-    gotoAndStop (frame) {
+    gotoAndStop (frame: string | number): void {
         this.scriptOwner.parentClip.gotoAndStop(frame);
     }
 
@@ -92,25 +108,25 @@ GlobalAPI = class {
      * Moves the plahead of the parent clip to a frame and plays the timeline of that parent clip.
      * @param {string | number} frame Frame name or number to move playhead to.
      */
-    gotoAndPlay (frame) {
+    gotoAndPlay (frame: string | number): void {
         this.scriptOwner.parentClip.gotoAndPlay(frame);
     }
 
     /**
      * Moves the playhead of the parent clip of the object to the next frame.
      */
-    gotoNextFrame () {
+    gotoNextFrame (): void {
         this.scriptOwner.parentClip.gotoNextFrame();
     }
 
     /**
      * Moves the playhead of the parent clip of this object to the previous frame.
      */
-    gotoPrevFrame () {
+    gotoPrevFrame (): void {
         this.scriptOwner.parentClip.gotoPrevFrame();
     }
 
-    hitTestOptions (options) {
+    hitTestOptions (options: any): void {
         this.scriptOwner.project.hitTestOptions = options;
     }
 
@@ -118,7 +134,7 @@ GlobalAPI = class {
      * Returns an object representing the project with properties such as width, height, framerate, background color, and name.
      * @returns {object} Project object.
      */
-    get project () {
+    get project (): ProjectInfo | null {
         var project = this.scriptOwner.project && this.scriptOwner.project.root;
         if(project) {
             // Attach some aliases to the project settings
@@ -136,7 +152,7 @@ GlobalAPI = class {
      * @deprecated
      * Legacy item which returns the project. Use 'project' instead.
      */
-    get root () {
+    get root (): ProjectInfo | null {
         return this.project;
     }
 
@@ -144,7 +160,7 @@ GlobalAPI = class {
      * Returns a reference to the current object's parent.
      * @returns Current object's parent.
      */
-    get parent () {
+    get parent (): any {
         return this.scriptOwner.parentClip;
     }
 
@@ -152,7 +168,7 @@ GlobalAPI = class {
      * @deprecated
      * Legacy item which returns the parent clip. Use 'parent' instead.
      */
-    get parentObject () {
+    get parentObject (): any {
         return this.scriptOwner.parentClip;
     }
 
@@ -160,7 +176,7 @@ GlobalAPI = class {
      * Returns the last key pressed down.
      * @returns {string | null} Returns null if no key has been pressed yet.
      */
-    get key () {
+    get key (): string | null {
         if(!this.scriptOwner.project) return null;
         return this.scriptOwner.project.currentKey;
     }
@@ -169,7 +185,7 @@ GlobalAPI = class {
      * Returns a list of all keys currently pressed down.
      * @returns {string[]} All keys represented as strings. If no keys are pressed, an empty array is returned.
      */
-    get keys () {
+    get keys (): string[] | null {
         if(!this.scriptOwner.project) return null;
         return this.scriptOwner.project.keysDown;
     }
@@ -179,7 +195,7 @@ GlobalAPI = class {
      * @param {string} key
      * @returns {bool}
      */
-    isKeyDown (key) {
+    isKeyDown (key: string): boolean | null {
         if(!this.scriptOwner.project) return null;
         return this.scriptOwner.project.isKeyDown(key);
     }
@@ -188,7 +204,7 @@ GlobalAPI = class {
      * @deprecated
      * Legacy item, use 'isKeyDown' instead.
      */
-    keyIsDown (key) {
+    keyIsDown (key: string): boolean | null {
         return this.isKeyDown(key.toLowerCase());
     }
 
@@ -197,7 +213,7 @@ GlobalAPI = class {
      * @param {string} key
      * @returns {bool}
      */
-    isKeyJustPressed (key) {
+    isKeyJustPressed (key: string): boolean | null {
         if(!this.scriptOwner.project) return null;
         return this.scriptOwner.project.isKeyJustPressed(key);
     }
@@ -206,7 +222,7 @@ GlobalAPI = class {
      * @deprecated
      * Legacy item, use 'isKeyJustPressed' instead.
      */
-    keyIsJustPressed (key) {
+    keyIsJustPressed (key: string): boolean | null {
         return this.keyIsJustPressed(key.toLowerCase());
     }
 
@@ -214,7 +230,7 @@ GlobalAPI = class {
      * Returns true if the mouse is currently held down.
      * @returns {bool | null} Returns null if the object does not have a project.
      */
-    isMouseDown () {
+    isMouseDown (): boolean | null {
         if(!this.scriptOwner.project) return null;
         return this.scriptOwner.project.isMouseDown;
     }
@@ -223,7 +239,7 @@ GlobalAPI = class {
      * Returns the current x position of the mouse in relation to the canvas.
      * @returns {number}
      */
-    get mouseX () {
+    get mouseX (): number | null {
         if(!this.scriptOwner.project) return null;
         return this.scriptOwner.project.mousePosition.x;
     }
@@ -232,7 +248,7 @@ GlobalAPI = class {
      * Returns the current y position of the mouse in relation to the canvas.
      * @returns {number}
      */
-    get mouseY () {
+    get mouseY (): number | null {
         if(!this.scriptOwner.project) return null;
         return this.scriptOwner.project.mousePosition.y;
     }
@@ -241,7 +257,7 @@ GlobalAPI = class {
      * Returns the amount the mouse moved in the last tick on the x axis.
      * @returns {number}
      */
-    get mouseMoveX () {
+    get mouseMoveX (): number | null {
         if(!this.scriptOwner.project) return null;
         return this.scriptOwner.project.mouseMove.x;
     }
@@ -250,7 +266,7 @@ GlobalAPI = class {
      * Returns the amount the mouse moved in the last tick on the y axis.
      * @returns {number}
      */
-    get mouseMoveY () {
+    get mouseMoveY (): number | null {
         if(!this.scriptOwner.project) return null;
         return this.scriptOwner.project.mouseMove.y;
     }
@@ -259,7 +275,7 @@ GlobalAPI = class {
      * Returns a new random object.
      * @returns {GlobalAPI.Random}
      */
-    get random () {
+    get random (): GlobalAPI.Random {
         return new GlobalAPI.Random();
     }
 
@@ -269,7 +285,7 @@ GlobalAPI = class {
      * @param {Object} options - options for the sound. See Wick.SoundAsset.play
      * @returns {object} object representing the sound which was played.
      */
-    playSound (assetName, options) {
+    playSound (assetName: string, options?: any): any {
         if(!this.scriptOwner.project) return null;
         return this.scriptOwner.project.playSound(assetName, options);
     }
@@ -279,7 +295,7 @@ GlobalAPI = class {
      * @param {string} assetName - The name of the SoundAsset to stop.
      * @param {number} id - (optional) The ID of the sound to stop. Returned by playSound. If an ID is not given, all instances of the given sound asset will be stopped.
      */
-    stopSound (assetName, id) {
+    stopSound (assetName: string, id?: number): any {
         if(!this.scriptOwner.project) return null;
         return this.scriptOwner.project.stopSound(assetName, id);
     }
@@ -287,7 +303,7 @@ GlobalAPI = class {
     /**
      * Stops all currently playing sounds.
      */
-    stopAllSounds () {
+    stopAllSounds (): void {
         if(!this.scriptOwner.project) return null;
         this.scriptOwner.project.stopAllSounds();
     }
@@ -297,14 +313,14 @@ GlobalAPI = class {
      * @param {string} name - the name of the event to attach the function to
      * @param {function} fn - the function to attach to the event
      */
-    onEvent (name, fn) {
+    onEvent (name: string, fn: Function): void {
         this.scriptOwner.onEvent(name, fn);
     }
 
     /**
      * Hide the cursor while the project is running.
      */
-    hideCursor () {
+    hideCursor (): void {
         if(!this.scriptOwner.project) return null;
         this.scriptOwner.project.hideCursor = true;
     }
@@ -312,7 +328,7 @@ GlobalAPI = class {
     /**
      * Don't hide the cursor while the project is running.
      */
-    showCursor () {
+    showCursor (): void {
         if(!this.scriptOwner.project) return null;
         this.scriptOwner.project.hideCursor = false;
     }
@@ -330,7 +346,7 @@ GlobalAPI.Random = class {
      * @returns {number} A random number between num1 and num2, 0 and num1, or 0 and 1. Will return 0 if max is greater than min.
      * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
      */
-    integer(min,max) {
+    integer(min?: number, max?: number): number {
 
         if (typeof min === 'undefined' && typeof max === 'undefined') {
             min = 0;
@@ -353,7 +369,7 @@ GlobalAPI.Random = class {
      * @returns {number} A random number between num1 and num2, 0 and num1, or 0 and 1.
      * https://stackoverflow.com/questions/4959975/generate-random-number-between-two-numbers-in-javascript
      */
-    float(num1, num2) {
+    float(num1?: number, num2?: number): number {
 		if ((typeof num1 !== "undefined") && (typeof num2 !== "undefined")) {
 			return (Math.random()*(num2-num1)+num1);
 		} else if ((typeof num1 !== "undefined") && (typeof num2 == "undefined")) {
@@ -369,7 +385,7 @@ GlobalAPI.Random = class {
      * @returns {object | null} A random item contained in the array. Returns null if the given array has no items.
      * https://stackoverflow.com/questions/4550505/getting-a-random-value-from-a-javascript-array
      */
-    choice(array) {
+    choice(array: any[]): any | null {
         if (array.length <= 0) return null;
         return array[Math.floor(Math.random() * array.length)]
     }

@@ -17,8 +17,33 @@
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+interface TransformationArgs {
+    x?: number;
+    y?: number;
+    scaleX?: number;
+    scaleY?: number;
+    rotation?: number;
+    opacity?: number;
+}
+
+interface TransformationValues {
+    x: number;
+    y: number;
+    scaleX: number;
+    scaleY: number;
+    rotation: number;
+    opacity: number;
+}
+
 /** Class representing a transformation. */
 Wick.Transformation = class {
+    public x: number;
+    public y: number;
+    public scaleX: number;
+    public scaleY: number;
+    public rotation: number;
+    public opacity: number;
+
     /**
      * Creates a Transformation.
      * @param {number} x - The translation on the x-axis
@@ -28,7 +53,7 @@ Wick.Transformation = class {
      * @param {number} rotation - Rotation, in degrees
      * @param {number} opacity - Opacity, ranging from 0.0 - 1.0
      */
-    constructor (args) {
+    constructor (args?: TransformationArgs) {
         if(!args) args = {};
 
         this.x = args.x === undefined ? 0 : args.x;
@@ -42,7 +67,7 @@ Wick.Transformation = class {
     /**
      * An object containing the values of this transformation.
      */
-    get values () {
+    get values (): TransformationValues {
         return {
             x: this.x,
             y: this.y,
@@ -57,7 +82,7 @@ Wick.Transformation = class {
      * Creates a copy of this transformation.
      * @returns {Wick.Transformation} the copied transformation.
      */
-    copy () {
+    copy (): Wick.Transformation {
         return new Wick.Transformation(this.values);
     }
 }
