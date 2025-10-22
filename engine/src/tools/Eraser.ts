@@ -18,8 +18,13 @@
  */
 
 Wick.Tools.Eraser = class extends Wick.Tool {
+    public name: string;
+    public path: any; // paper.Path
+    public cursorSize: number | null;
+    public cachedCursor: string | null;
+
     /**
-     *
+     * Creates an eraser tool.
      */
     constructor () {
         super();
@@ -32,34 +37,34 @@ Wick.Tools.Eraser = class extends Wick.Tool {
         this.cachedCursor = null;
     }
 
-    get doubleClickEnabled () {
+    get doubleClickEnabled (): boolean {
         return false;
     }
 
     /**
-     *
+     * The eraser cursor.
      * @type {string}
      */
-    get cursor () {
+    get cursor (): string {
         return this.cachedCursor || 'crosshair';
     }
 
-    get isDrawingTool () {
+    get isDrawingTool (): boolean {
         return true;
     }
 
-    onActivate (e) {
+    onActivate (e: any): void {
         this.cursorSize = null;
     }
 
-    onDeactivate (e) {
+    onDeactivate (e: any): void {
         if(this.path) {
             this.path.remove();
             this.path = null;
         }
     }
 
-    onMouseMove (e) {
+    onMouseMove (e: any): void {
         // Don't render cursor after every mouse move, cache and only render when size changes
         var cursorNeedsRegen = this.getSetting('eraserSize') !== this.cursorSize;
 
@@ -70,7 +75,7 @@ Wick.Tools.Eraser = class extends Wick.Tool {
         }
     }
 
-    onMouseDown (e) {
+    onMouseDown (e: any): void {
         if (!this.path) {
             this.path = new this.paper.Path({
                 strokeColor: 'white',
@@ -84,20 +89,20 @@ Wick.Tools.Eraser = class extends Wick.Tool {
         this.path.add(e.point);
     }
 
-    onMouseDrag (e) {
+    onMouseDrag (e: any): void {
         if (e.point) {
             this.path.add(e.point);
             this.path.smooth();
         }
     }
 
-    onMouseUp (e) {
+    onMouseUp (e: any): void {
         if(!this.path) return;
 
         var potraceResolution = 0.7;
 
         this.path.potrace({
-            done: (tracedPath) => {
+            done: (tracedPath: any) => {
                 this.path.remove();
                 this.paper.project.activeLayer.erase(tracedPath,{});
                 this.path = null;

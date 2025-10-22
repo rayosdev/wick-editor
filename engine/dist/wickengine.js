@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.22.10.26";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.22.54.49";
   (function() {
 
     var _a;
@@ -46460,6 +46460,7 @@
         this.selectionBox = new this.paper.SelectionBox(paper);
         this.selectedItems = [];
         this.currentCursorIcon = "";
+        this.__isDragging = false;
       }
       /**
        * Generate the current cursor.
@@ -46758,7 +46759,7 @@
     };
     Wick.Tools.Eraser = class extends Wick.Tool {
       /**
-       *
+       * Creates an eraser tool.
        */
       constructor() {
         super();
@@ -46771,7 +46772,7 @@
         return false;
       }
       /**
-       *
+       * The eraser cursor.
        * @type {string}
        */
       get cursor() {

@@ -18,6 +18,28 @@
  */
 
 Wick.Tools.Cursor = class extends Wick.Tool {
+    public name: string;
+    public SELECTION_TOLERANCE: number;
+    public CURSOR_DEFAULT: string;
+    public CURSOR_SCALE_TOP_RIGHT_BOTTOM_LEFT: string;
+    public CURSOR_SCALE_TOP_LEFT_BOTTOM_RIGHT: string;
+    public CURSOR_SCALE_VERTICAL: string;
+    public CURSOR_SCALE_HORIZONTAL: string;
+    public CURSOR_ROTATE_TOP: string;
+    public CURSOR_ROTATE_RIGHT: string;
+    public CURSOR_ROTATE_BOTTOM: string;
+    public CURSOR_ROTATE_LEFT: string;
+    public CURSOR_ROTATE_TOP_RIGHT: string;
+    public CURSOR_ROTATE_TOP_LEFT: string;
+    public CURSOR_ROTATE_BOTTOM_RIGHT: string;
+    public CURSOR_ROTATE_BOTTOM_LEFT: string;
+    public CURSOR_MOVE: string;
+    public hitResult: any; // paper.HitResult
+    public selectionBox: any; // paper.SelectionBox
+    public selectedItems: any[];
+    public currentCursorIcon: string;
+    public __isDragging: boolean;
+
     /**
      * Creates a cursor tool.
      */
@@ -48,25 +70,26 @@ Wick.Tools.Cursor = class extends Wick.Tool {
         this.selectedItems = [];
 
         this.currentCursorIcon = '';
+        this.__isDragging = false;
     }
 
     /**
      * Generate the current cursor.
      * @type {string}
      */
-    get cursor () {
+    get cursor (): string {
         return 'url("'+this.currentCursorIcon+'") 32 32, auto';
     }
 
-    onActivate (e) {
+    onActivate (e: any): void {
         this.selectedItems = [];
     }
 
-    onDeactivate (e) {
+    onDeactivate (e: any): void {
 
     }
 
-    onMouseMove (e) {
+    onMouseMove (e: any): void {
         super.onMouseMove(e);
 
         // Find the thing that is currently under the cursor.
@@ -76,7 +99,7 @@ Wick.Tools.Cursor = class extends Wick.Tool {
         this._setCursor(this._getCursor());
     }
 
-    onMouseDown (e) {
+    onMouseDown (e: any): void {
         super.onMouseDown(e);
 
         if(!e.modifiers) e.modifiers = {};
@@ -112,7 +135,7 @@ Wick.Tools.Cursor = class extends Wick.Tool {
         }
     }
 
-    onDoubleClick (e) {
+    onDoubleClick (e: any): void {
         var selectedObject = this._selection.getSelectedObject();
         if(selectedObject && selectedObject instanceof Wick.Clip) {
             // Double clicked a Clip, set the focus to that Clip.
@@ -130,7 +153,7 @@ Wick.Tools.Cursor = class extends Wick.Tool {
         }
     }
 
-    onMouseDrag (e) {
+    onMouseDrag (e: any): void {
         if(!e.modifiers) e.modifiers = {};
 
         this.__isDragging = true;
@@ -155,7 +178,7 @@ Wick.Tools.Cursor = class extends Wick.Tool {
         }
     }
 
-    onMouseUp (e) {
+    onMouseUp (e: any): void {
         if(!e.modifiers) e.modifiers = {};
 
         if(this.selectionBox.active) {
@@ -167,7 +190,7 @@ Wick.Tools.Cursor = class extends Wick.Tool {
                 this._selection.clear();
             }
 
-            let selectables = this.selectionBox.items.filter(item => {
+            let selectables = this.selectionBox.items.filter((item: any) => {
                 return item.data.wickUUID;
             })
 
@@ -188,7 +211,7 @@ Wick.Tools.Cursor = class extends Wick.Tool {
         }
     }
 
-    _updateHitResult (e) {
+    _updateHitResult (e: any): any {
         var newHitResult = this.paper.project.hitTest(e.point, {
             fill: true,
             stroke: true,
@@ -236,7 +259,7 @@ Wick.Tools.Cursor = class extends Wick.Tool {
         return newHitResult;
     }
 
-    _getCursor () {
+    _getCursor (): string {
         if(!this.hitResult.item) {
             return this.CURSOR_DEFAULT;
         } else if (this.hitResult.item.data.isSelectionBoxGUI) {
@@ -318,34 +341,33 @@ Wick.Tools.Cursor = class extends Wick.Tool {
         }
     }
 
-    _setCursor (cursor) {
+    _setCursor (cursor: string): void {
         this.currentCursorIcon = cursor;
     }
 
-    get _selection () {
+    get _selection (): any {
         return this.project.selection;
     }
 
-    get _widget () {
+    get _widget (): any {
         return this._selection.view.widget;
     }
 
-    _clearSelection () {
+    _clearSelection (): void {
         this._selection.clear();
     }
 
-    _selectItem (item) {
+    _selectItem (item: any): void {
         var object = this._wickObjectFromPaperItem(item);
         this._selection.select(object);
     }
-
 
     /**
      * Select multiple items simultaneously.
      * @param {object[]} items paper items 
      */
-    _selectItems (items) {
-        let objects = [];
+    _selectItems (items: any[]): void {
+        let objects: any[] = [];
 
         items.forEach(item => {
             objects.push(this._wickObjectFromPaperItem(item));
@@ -354,17 +376,17 @@ Wick.Tools.Cursor = class extends Wick.Tool {
         this._selection.selectMultipleObjects(objects);
     }
 
-    _deselectItem (item) {
+    _deselectItem (item: any): void {
         var object = this._wickObjectFromPaperItem(item);
         this._selection.deselect(object);
     }
 
-    _isItemSelected (item) {
+    _isItemSelected (item: any): boolean {
         var object = this._wickObjectFromPaperItem(item);
         return object.isSelected;
     }
 
-    _wickObjectFromPaperItem (item) {
+    _wickObjectFromPaperItem (item: any): any {
         var uuid = item.data.wickUUID;
         if(!uuid) {
             console.error('WARNING: _wickObjectFromPaperItem: item had no wick UUID. did you try to select something that wasnt created by a wick view? is the view up-to-date?');
