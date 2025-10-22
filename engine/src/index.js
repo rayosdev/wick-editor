@@ -69,7 +69,7 @@ import "./base/Tickable.js";
 import "./base/Frame.js";
 import "./base/Clip.js";
 import "./base/Button.js";
-import "./tools/Tool.js";
+import "./tools/Tool.ts";
 import "./tools/Brush.js";
 import "./tools/Cursor.js";
 import "./tools/Ellipse.js";

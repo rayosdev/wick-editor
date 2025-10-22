@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.21.29.50";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.21.36.24";
   (function() {
 
     var _a;
@@ -45895,6 +45895,7 @@
       }
     };
     Wick.Tool = class {
+      // paper.Point
       static get DOUBLE_CLICK_TIME() {
         return 300;
       }
@@ -45950,6 +45951,7 @@
        */
       get cursor() {
         console.warn("Warning: Tool is missing a cursor!");
+        return "default";
       }
       /**
        * Called when the tool is activated

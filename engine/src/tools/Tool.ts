@@ -17,12 +17,28 @@
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+interface EventCallbacks {
+    [eventName: string]: (e: any, actionName?: string) => void;
+}
+
+interface FireEventParams {
+    eventName: string;
+    e?: any;
+    actionName?: string;
+}
+
 Wick.Tool = class {
-    static get DOUBLE_CLICK_TIME () {
+    public paperTool: any; // paper.Tool
+    public project: Wick.Project;
+    private _eventCallbacks: EventCallbacks;
+    private _lastMousedownTimestamp: number | null;
+    private _lastMousedownPoint: any; // paper.Point
+
+    static get DOUBLE_CLICK_TIME (): number {
         return 300;
     }
 
-    static get DOUBLE_CLICK_MAX_DISTANCE () {
+    static get DOUBLE_CLICK_MAX_DISTANCE (): number {
         return 20;
     }
 
@@ -33,22 +49,22 @@ Wick.Tool = class {
         this.paperTool = new this.paper.Tool();
 
         // Attach onActivate event
-        this.paperTool.onActivate = (e) => {
+        this.paperTool.onActivate = (e: any) => {
             this.onActivate(e);
         }
 
         // Attach onDeactivate event
-        this.paperTool.onDeactivate = (e) => {
+        this.paperTool.onDeactivate = (e: any) => {
             this.onDeactivate(e);
         }
 
         // Attach mouse move event
-        this.paperTool.onMouseMove = (e) => {
+        this.paperTool.onMouseMove = (e: any) => {
             this.onMouseMove(e);
         }
 
         // Attach mouse down + double click event
-        this.paperTool.onMouseDown = (e) => {
+        this.paperTool.onMouseDown = (e: any) => {
             if(this.doubleClickEnabled &&
                this._lastMousedownTimestamp !== null &&
                e.timeStamp - this._lastMousedownTimestamp < Wick.Tool.DOUBLE_CLICK_TIME &&
@@ -62,20 +78,20 @@ Wick.Tool = class {
         }
 
         // Attach key events
-        this.paperTool.onKeyDown = (e) => {
+        this.paperTool.onKeyDown = (e: any) => {
             this.onKeyDown(e);
         }
-        this.paperTool.onKeyUp = (e) => {
+        this.paperTool.onKeyUp = (e: any) => {
             this.onKeyUp(e);
         }
 
         // Attach mouse move event
-        this.paperTool.onMouseDrag = (e) => {
+        this.paperTool.onMouseDrag = (e: any) => {
             this.onMouseDrag(e);
         }
 
         // Attach mouse up event
-        this.paperTool.onMouseUp = (e) => {
+        this.paperTool.onMouseUp = (e: any) => {
             this.onMouseUp(e);
         }
 
@@ -87,91 +103,92 @@ Wick.Tool = class {
     /**
      * The paper.js scope to use.
      */
-    get paper () {
+    get paper (): any {
         return Wick.View.paperScope;
     }
 
     /**
      * The CSS cursor to display for this tool.
      */
-    get cursor () {
+    get cursor (): string {
         console.warn("Warning: Tool is missing a cursor!");
+        return 'default';
     }
 
     /**
      * Called when the tool is activated
      */
-    onActivate (e) {
+    onActivate (e: any): void {
 
     }
 
     /**
      * Called when the tool is deactivated (another tool is activated)
      */
-    onDeactivate (e) {
+    onDeactivate (e: any): void {
 
     }
 
     /**
      * Called when the mouse moves and the tool is active.
      */
-    onMouseMove (e) {
+    onMouseMove (e: any): void {
         this.setCursor(this.cursor);
     }
 
     /**
      * Called when the mouse clicks the paper.js canvas and this is the active tool.
      */
-    onMouseDown (e) {
+    onMouseDown (e: any): void {
 
     }
 
     /**
      * Called when the mouse is dragged on the paper.js canvas and this is the active tool.
      */
-    onMouseDrag (e) {
+    onMouseDrag (e: any): void {
 
     }
 
     /**
      * Called when the mouse is clicked on the paper.js canvas and this is the active tool.
      */
-    onMouseUp (e) {
+    onMouseUp (e: any): void {
 
     }
 
     /**
      * Called when the mouse double clicks on the paper.js canvas and this is the active tool.
      */
-    onDoubleClick (e) {
+    onDoubleClick (e: any): void {
 
     }
 
     /**
      * Called when a key is pressed and this is the active tool.
      */
-    onKeyDown (e) {
+    onKeyDown (e: any): void {
 
     }
 
     /**
      * Called when a key is released and this is the active tool.
      */
-    onKeyUp (e) {
+    onKeyUp (e: any): void {
 
     }
 
     /**
      * Should reset the state of the tool.
      */
-    reset () {
+    reset (): void {
 
     }
 
     /**
      * Activates this tool in paper.js.
      */
-    activate () {
+    activate (): void {
         this.paperTool.activate();
     }
 
@@ -179,7 +196,7 @@ Wick.Tool = class {
      * Sets the cursor of the paper.js canvas that the tool belongs to.
      * @param {string} cursor - a CSS cursor style
      */
-    setCursor (cursor) {
+    setCursor (cursor: string): void {
         this.paper.view._element.style.cursor = cursor;
     }
 
@@ -188,7 +205,7 @@ Wick.Tool = class {
      * @param {string} eventName - the name of the event
      * @param {function} fn - the function to call when the event is fired
      */
-    on (eventName, fn) {
+    on (eventName: string, fn: (e: any, actionName?: string) => void): void {
         this._eventCallbacks[eventName] = fn;
     }
 
@@ -198,7 +215,7 @@ Wick.Tool = class {
      * @param {object} e - (optional) an object to attach some data to, if needed
      * @param {string} actionName - Name of the action committed.
      */
-    fireEvent ({eventName, e, actionName}) {
+    fireEvent ({eventName, e, actionName}: FireEventParams): void {
         if(!e) e = {};
         if(!e.layers) {
             // Guard against cases where paper or project is not initialized yet
@@ -216,7 +233,7 @@ Wick.Tool = class {
      * @param {number} size - the width of the cursor image to generate
      * @param {boolean} transparent - if set to true, color is ignored
      */
-    createDynamicCursor (color, size, transparent) {
+    createDynamicCursor (color: any, size: number, transparent: boolean): string {
         var radius = size/2;
 
         var canvas = document.createElement("canvas");
@@ -258,7 +275,7 @@ Wick.Tool = class {
      * Get a tool setting from the project. See Wick.ToolSettings for all options
      * @param {string} name - the name of the setting to get
      */
-    getSetting (name) {
+    getSetting (name: string): any {
         return this.project.toolSettings.getSetting(name);
     }
 
@@ -266,7 +283,7 @@ Wick.Tool = class {
      * Does this tool have a double click action? (override this in classes that extend Wick.Tool)
      * @type {boolean}
      */
-    get doubleClickEnabled () {
+    get doubleClickEnabled (): boolean {
         return true;
     }
 
@@ -275,7 +292,7 @@ Wick.Tool = class {
      * @param {paper.Path} path - the path to add
      * @param {Wick.Frame} frame - (optional) the frame to add the path to.
      */
-    addPathToProject (path, frame) {
+    addPathToProject (path: any, frame?: Wick.Frame): void {
         // Avoid adding empty paths
         if(!path) {
             return;
