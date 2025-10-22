@@ -64,7 +64,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.12.57.45";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.22.13.10.2";
   (function() {
 
     const Wick$1 = {
@@ -52520,7 +52520,7 @@
         });
       }
     };
-    console.log("Wick Engine loaded via Vite build system ::..::..::");
+    console.log("Wick Engine loaded via Vite build system ::..::..::---");
   })();
   try {
     if (typeof window !== "undefined") {
