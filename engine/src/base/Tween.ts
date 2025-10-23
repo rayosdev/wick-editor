@@ -21,11 +21,17 @@
  * Class representing a tween.
  */
 Wick.Tween = class extends Wick.Base {
-    static get VALID_EASING_TYPES () {
+    private _playheadPosition: number;
+    private _transformation: Wick.Transformation;
+    private _easingType: string;
+    private _originalLayerIndex: number;
+    public fullRotations: number;
+
+    static get VALID_EASING_TYPES(): string[] {
         return ['none', 'in', 'out', 'in-out'];
     }
 
-    static _calculateTimeValue (tweenA, tweenB, playheadPosition) {
+    static _calculateTimeValue(tweenA: Wick.Tween, tweenB: Wick.Tween, playheadPosition: number): number {
         var tweenAPlayhead = tweenA.playheadPosition;
         var tweenBPlayhead = tweenB.playheadPosition;
         var dist = tweenBPlayhead - tweenAPlayhead;
@@ -39,7 +45,7 @@ Wick.Tween = class extends Wick.Base {
      * @param {Wick.Transform} transformation - the transformation this tween will apply to child objects
      * @param {number} fullRotations - the number of rotations to add to the tween's transformation
      */
-    constructor (args) {
+    constructor(args?: any) {
         if(!args) args = {};
         super(args);
 
@@ -57,14 +63,14 @@ Wick.Tween = class extends Wick.Base {
      * @param {Wick.Tween} tweenB - The second tween
      * @param {Number} playheadPosition - The point between the two tweens to use to interpolate
      */
-    static interpolate (tweenA, tweenB, playheadPosition) {
+    static interpolate(tweenA: Wick.Tween, tweenB: Wick.Tween, playheadPosition: number): Wick.Tween {
         var interpTween = new Wick.Tween();
 
         // Calculate value (0.0-1.0) to pass to tweening function
         var t = Wick.Tween._calculateTimeValue(tweenA, tweenB, playheadPosition);
 
         // Interpolate every transformation attribute using the t value
-        ["x", "y", "scaleX", "scaleY", "rotation", "opacity"].forEach(propName => {
+        ["x", "y", "scaleX", "scaleY", "rotation", "opacity"].forEach((propName: string) => {
             var tweenFn = tweenA._getTweenFunction();
             var tt = tweenFn(t);
             var valA = tweenA.transformation[propName];
@@ -86,11 +92,11 @@ Wick.Tween = class extends Wick.Base {
         return interpTween;
     }
 
-    get classname () {
+    get classname(): string {
         return 'Tween';
     }
 
-    _serialize (args) {
+    _serialize(args?: any): any {
         var data = super._serialize(args);
 
         data.playheadPosition = this.playheadPosition;
@@ -103,7 +109,7 @@ Wick.Tween = class extends Wick.Base {
         return data;
     }
 
-    _deserialize (data) {
+    _deserialize(data: any): void {
         super._deserialize(data);
 
         this.playheadPosition = data.playheadPosition;
@@ -118,11 +124,11 @@ Wick.Tween = class extends Wick.Base {
      * The playhead position of the tween.
      * @type {number}
      */
-    get playheadPosition () {
+    get playheadPosition(): number {
         return this._playheadPosition;
     }
 
-    set playheadPosition (playheadPosition) {
+    set playheadPosition(playheadPosition: number) {
         this._playheadPosition = playheadPosition;
     }
 
@@ -130,11 +136,11 @@ Wick.Tween = class extends Wick.Base {
      * The transformation representing the position, rotation and other elements of the tween.
      * @type {object} 
      */
-    get transformation () {
+    get transformation(): Wick.Transformation {
         return this._transformation;
     }
 
-    set transformation (transformation) {
+    set transformation(transformation: Wick.Transformation) {
         this._transformation = transformation;
     }
 
@@ -142,11 +148,11 @@ Wick.Tween = class extends Wick.Base {
      * The type of interpolation to use for easing.
      * @type {string}
      */
-    get easingType () {
+    get easingType(): string {
         return this._easingType;
     }
 
-    set easingType (easingType) {
+    set easingType(easingType: string) {
         if(Wick.Tween.VALID_EASING_TYPES.indexOf(easingType) === -1) {
             console.warn('Invalid easingType. Valid easingTypes: ')
             console.warn(Wick.Tween.VALID_EASING_TYPES);
@@ -158,7 +164,7 @@ Wick.Tween = class extends Wick.Base {
     /**
      * Remove this tween from its parent frame.
      */
-    remove () {
+    remove(): void {
         this.parent.removeTween(this);
     }
 
@@ -166,7 +172,7 @@ Wick.Tween = class extends Wick.Base {
      * Set the transformation of a clip to this tween's transformation.
      * @param {Wick.Clip} clip - the clip to apply the tween transforms to.
      */
-    applyTransformsToClip (clip) {
+    applyTransformsToClip(clip: Wick.Clip): void {
         clip.transformation = this.transformation.copy();
     }
 
@@ -174,7 +180,7 @@ Wick.Tween = class extends Wick.Base {
      * The tween that comes after this tween in the parent frame.
      * @returns {Wick.Tween}
      */
-    getNextTween () {
+    getNextTween(): Wick.Tween | null {
         if(!this.parentFrame) return null;
 
         var frontTween = this.parentFrame.seekTweenInFront(this.playheadPosition+1);
@@ -184,7 +190,7 @@ Wick.Tween = class extends Wick.Base {
     /**
      * Prevents tweens from existing outside of the frame's length. Call this after changing the length of the parent frame.
      */
-    restrictToFrameSize () {
+    restrictToFrameSize(): void {
         var playheadPosition = this.playheadPosition;
 
         // Remove tween if playheadPosition is out of bounds
@@ -197,7 +203,7 @@ Wick.Tween = class extends Wick.Base {
      * The index of the parent layer of this tween.
      * @type {number}
      */
-    get layerIndex () {
+    get layerIndex(): number {
         return this.parentLayer ? this.parentLayer.index : -1;
     }
 
@@ -205,12 +211,12 @@ Wick.Tween = class extends Wick.Base {
      * The index of the layer that this tween last belonged to. Used when copying and pasting tweens.
      * @type {number}
      */
-    get originalLayerIndex () {
+    get originalLayerIndex(): number {
         return this._originalLayerIndex;
     }
 
      /* retrieve Tween.js easing functions by name */
-    _getTweenFunction () {
+    _getTweenFunction(): (t: number) => number {
         return {
             'none': TWEEN.Easing.Linear.None,
             'in': TWEEN.Easing.Quadratic.In,
