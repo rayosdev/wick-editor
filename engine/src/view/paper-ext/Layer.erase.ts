@@ -28,11 +28,11 @@
 (function () {
 
     // Splits a CompoundPath with multiple CW children into individual pieces
-    function splitCompoundPath (compoundPath) {
+    function splitCompoundPath (compoundPath: any): void {
         // Create lists of 'holes' (CCW children) and 'parts' (CW children)
-        var holes = [];
-        var parts = [];
-        compoundPath.children.forEach(function (child) {
+        var holes: any[] = [];
+        var parts: any[] = [];
+        compoundPath.children.forEach(function (child: any) {
             if(!child.clockwise) {
                 holes.push(child);
             } else {
@@ -44,10 +44,10 @@
         });
 
         // Find hole ownership for each 'part'
-        var resolvedHoles = [];
-        parts.forEach(function (part) {
-            var cmp;
-            holes.forEach(function (hole) {
+        var resolvedHoles: any[] = [];
+        parts.forEach(function (part: any) {
+            var cmp: any;
+            holes.forEach(function (hole: any) {
                 if(part.bounds.contains(hole.bounds)) {
                     if(!cmp) {
                         cmp = new paper.CompoundPath({insert:false});
@@ -66,9 +66,9 @@
         });
 
         // If any holes could not find a path to be a part of, turn them into their own paths
-        holes.filter(hole => {
+        holes.filter((hole: any) => {
             return resolvedHoles.indexOf(hole) === -1;
-        }).forEach(hole => {
+        }).forEach((hole: any) => {
             hole.clockwise = !hole.clockwise;
             paper.project.activeLayer.addChild(hole);
         });
@@ -76,7 +76,7 @@
         compoundPath.remove();
     }
 
-    function eraseFill (path, eraserPath) {
+    function eraseFill (path: any, eraserPath: any): void {
         if(path.closePath) path.closePath();
         var res = path.subtract(eraserPath, {
             insert: false,
@@ -98,20 +98,20 @@
         path.remove();
     }
 
-    function eraseStroke (path, eraserPath) {
+    function eraseStroke (path: any, eraserPath: any): void {
         var res = path.subtract(eraserPath, {
             insert: false,
             trace: false,
         });
         if(res.children) {
             // Since the path is only strokes, it's trivial to split it into individual paths
-            var children = [];
-            res.children.forEach(function (child) {
+            var children: any[] = [];
+            res.children.forEach(function (child: any) {
                 child.data = {};
                 children.push(child);
                 child.name = null;
             });
-            children.forEach(function (child) {
+            children.forEach(function (child: any) {
                 child.insertAbove(path);
             });
             res.remove();
@@ -123,7 +123,7 @@
         path.remove();
     }
 
-    function splitPath (path) {
+    function splitPath (path: any): {fill: any, stroke: any} {
         var fill = path.clone({insert:false});
         fill.name = null;
         fill.strokeColor = null;
@@ -143,16 +143,16 @@
         };
     }
 
-    function eraseWithPath (eraserPath) {
-        var erasables = this.children.filter(path => {
+    function eraseWithPath (eraserPath: any): void {
+        var erasables = this.children.filter((path: any) => {
             return path instanceof paper.Path
                 || path instanceof paper.CompoundPath;
         });
 
-        var touchingPaths = this.children.filter(function (child) {
+        var touchingPaths = this.children.filter(function (child: any) {
             return eraserPath.bounds.intersects(child.bounds);
         });
-        touchingPaths.forEach(path => {
+        touchingPaths.forEach((path: any) => {
             if(path.strokeColor && path.fillColor) {
                 var res = splitPath(path);
                 eraseFill(res.fill, eraserPath);

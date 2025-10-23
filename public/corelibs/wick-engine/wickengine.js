@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.23.0.14.39";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.23.6.1.9";
   (function() {
 
     var _a;
@@ -47870,6 +47870,7 @@
         var layerPathsRaster = layerGroup.rasterize(rasterResolution, { insert: false });
         var rasterCanvas = layerPathsRaster.canvas;
         var rasterCtx = rasterCanvas.getContext("2d");
+        if (!rasterCtx) return;
         var layerPathsImageData = rasterCtx.getImageData(0, 0, layerPathsRaster.width, layerPathsRaster.height);
         var layerPathsImageDataRaw = layerPathsImageData.data;
         for (var i = 0; i < layerPathsImageDataRaw.length; i += 4) {
@@ -47895,6 +47896,7 @@
           return;
         }
         var floodFillCtx = floodFillCanvas.getContext("2d");
+        if (!floodFillCtx) return;
         floodFillCtx.putImageData(layerPathsImageData, 0, 0);
         floodFillCtx.fillStyle = "rgba(123,124,125,255)";
         floodFillCtx.fillFlood(x, y, FILL_TOLERANCE);
@@ -47916,6 +47918,7 @@
         floodFillCtx.putImageData(floodFillImageData, 0, 0);
         var floodFillProcessedImage = new Image();
         floodFillProcessedImage.onload = function() {
+          var _a2, _b;
           var svgString = potrace.fromImage(floodFillProcessedImage).toSVG(1);
           var xmlString = svgString, parser = new DOMParser(), doc = parser.parseFromString(xmlString, "text/xml");
           var resultHolePath = paper.project.importSVG(doc, { insert: true });
@@ -47929,7 +47932,7 @@
           var w = floodFillProcessedImage.width;
           var h = floodFillProcessedImage.height;
           for (var x2 = 0; x2 < floodFillProcessedImage.width; x2++) {
-            if (getPixelAt(x2, 0, w, h, floodFillImageData.data).r === 0 && getPixelAt(x2, 0, w, h, floodFillImageData.data).a === 255) {
+            if (((_a2 = getPixelAt(x2, 0, w, h, floodFillImageData.data)) == null ? void 0 : _a2.r) === 0 && ((_b = getPixelAt(x2, 0, w, h, floodFillImageData.data)) == null ? void 0 : _b.a) === 255) {
               onError("LEAKY_HOLE");
               return;
             }

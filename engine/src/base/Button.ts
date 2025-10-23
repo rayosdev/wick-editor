@@ -26,7 +26,7 @@ Wick.Button = class extends Wick.Clip {
      * Create a new button.
      * @param {object} args
      */
-    constructor (args) {
+    constructor (args: any) {
         super(args);
 
         this.cursor = 'pointer';
@@ -51,31 +51,31 @@ Wick.Button = class extends Wick.Clip {
         this.addScript('mouseclick', '');
     }
 
-    _serialize (args) {
+    _serialize (args: any): any {
         var data = super._serialize(args);
         return data;
     }
 
-    _deserialize (data) {
+    _deserialize (data: any): void {
         super._deserialize(data);
     }
 
-    get classname () {
+    get classname (): string {
         return 'Button';
     }
 
-    _onInactive () {
+    _onInactive (): any {
         return super._onInactive();
     }
 
-    _onActivated () {
+    _onActivated (): any {
         var error = super._onActivated();
         this.timeline.stop();
         this.timeline.playheadPosition = 1;
         return error;
     }
 
-    _onActive () {
+    _onActive (): any {
         this.timeline.gotoFrame(1);
 
         var frame2Exists = this.timeline.getFramesAtPlayheadPosition(2).length > 0;
@@ -99,7 +99,7 @@ Wick.Button = class extends Wick.Clip {
         return null;
     }
 
-    _onDeactivated () {
+    _onDeactivated (): void {
         super._onDeactivated();
     }
 }

@@ -28,35 +28,37 @@
 
 (function () {
 
-    var VERBOSE = false;
-    var PREVIEW_IMAGE = false;
+    var VERBOSE: boolean = false;
+    var PREVIEW_IMAGE: boolean = false;
 
-    var N_RASTER_CLONE = 1;
-    var RASTER_BASE_RESOLUTION = 3;
-    var FILL_TOLERANCE = 0;
-    var EXPAND_AMT = 0.85;
+    var N_RASTER_CLONE: number = 1;
+    var RASTER_BASE_RESOLUTION: number = 3;
+    var FILL_TOLERANCE: number = 0;
+    var EXPAND_AMT: number = 0.85;
 
-    var onError;
-    var onFinish;
+    var onError: (error: string) => void;
+    var onFinish: (result: any) => void;
 
-    var layers;
+    var layers: any[];
 
-    var floodFillX;
-    var floodFillY;
+    var floodFillX: number;
+    var floodFillY: number;
 
-    var bgColor;
+    var bgColor: any;
 
-    var gapFillAmount;
+    var gapFillAmount: number;
 
-    function previewImage (image) {
+    function previewImage (image: HTMLImageElement): void {
         var win = window.open('', 'Title', 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width='+image.width+', height='+image.height+', top=100, left=100');
-        win.document.body.innerHTML = '<div><img src= '+image.src+'></div>';
+        if (win) {
+            win.document.body.innerHTML = '<div><img src= '+image.src+'></div>';
+        }
     }
 
-    function rasterizePaths (callback) {
+    function rasterizePaths (callback: (result: any) => void): void {
         var layerGroup = new paper.Group({insert:false});
-        layers.reverse().forEach(layer => {
-            layer.children.forEach(function (child) {
+        layers.reverse().forEach((layer: any) => {
+            layer.children.forEach(function (child: any) {
                 if(child._class !== 'Path' && child._class !== 'CompoundPath') return;
                 for(var i = 0; i < N_RASTER_CLONE; i++) {
                     var clone = child.clone({insert:false});
@@ -83,6 +85,8 @@
 
         var rasterCanvas = layerPathsRaster.canvas;
         var rasterCtx = rasterCanvas.getContext('2d');
+        if (!rasterCtx) return;
+        
         var layerPathsImageData = rasterCtx.getImageData(0, 0, layerPathsRaster.width, layerPathsRaster.height);
 
         var layerPathsImageDataRaw = layerPathsImageData.data;
@@ -113,9 +117,11 @@
         }
 
         var floodFillCtx = floodFillCanvas.getContext('2d');
+        if (!floodFillCtx) return;
+        
         floodFillCtx.putImageData(layerPathsImageData, 0, 0);
         floodFillCtx.fillStyle = "rgba(123,124,125,255)";
-        floodFillCtx.fillFlood(x, y, FILL_TOLERANCE);
+        (floodFillCtx as any).fillFlood(x, y, FILL_TOLERANCE);
         var floodFillImageData = floodFillCtx.getImageData(0,0,floodFillCanvas.width,floodFillCanvas.height);
 
         var imageDataRaw = floodFillImageData.data;
@@ -141,7 +147,7 @@
             if(PREVIEW_IMAGE)
                 previewImage(floodFillProcessedImage);
 
-            var svgString = potrace.fromImage(floodFillProcessedImage).toSVG(1);
+            var svgString = (potrace as any).fromImage(floodFillProcessedImage).toSVG(1);
             var xmlString = svgString
               , parser = new DOMParser()
               , doc = parser.parseFromString(xmlString, "text/xml");
@@ -159,8 +165,8 @@
             var w = floodFillProcessedImage.width;
             var h = floodFillProcessedImage.height;
             for(var x = 0; x < floodFillProcessedImage.width; x++) {
-                if(getPixelAt(x,0,w,h,floodFillImageData.data).r === 0 &&
-                   getPixelAt(x,0,w,h,floodFillImageData.data).a === 255) {
+                if(getPixelAt(x,0,w,h,floodFillImageData.data)?.r === 0 &&
+                   getPixelAt(x,0,w,h,floodFillImageData.data)?.a === 255) {
                     holeIsLeaky = true;
                     onError('LEAKY_HOLE');
                     return;
@@ -173,22 +179,22 @@
         floodFillProcessedImage.src = floodFillCanvas.toDataURL();
     }
 
-    function expandHole (path) {
+    function expandHole (path: any): void {
         if(path instanceof paper.Group) {
             path = path.children[0];
         }
 
-        var children;
+        var children: any[];
         if(path instanceof paper.Path) {
             children = [path];
         } else if(path instanceof paper.CompoundPath) {
             children = path.children;
         }
 
-        children.forEach(function (hole) {
-            var normals = [];
+        children.forEach(function (hole: any) {
+            var normals: any[] = [];
             hole.closePath();
-            hole.segments.forEach(function (segment) {
+            hole.segments.forEach(function (segment: any) {
                 var a = segment.previous.point;
                 var b = segment.point;
                 var c = segment.next.point;
@@ -216,7 +222,7 @@
     }
 
     // http://www.felixeve.co.uk/how-to-rotate-a-point-around-an-origin-with-javascript/
-    function rotate_point(pointX, pointY, originX, originY, angle) {
+    function rotate_point(pointX: number, pointY: number, originX: number, originY: number, angle: number): {x: number, y: number} {
         angle = angle * Math.PI / 180.0;
         return {
             x: Math.cos(angle) * (pointX-originX) - Math.sin(angle) * (pointY-originY) + originX,
@@ -224,7 +230,7 @@
         };
     }
 
-    function getPixelAt (x,y,width,height,imageData) {
+    function getPixelAt (x: number, y: number, width: number, height: number, imageData: Uint8ClampedArray): {r: number, g: number, b: number, a: number} | null {
         if(x<0 || y<0 || x>=width || y>=height) return null;
 
         var offset = (y*width+x)*4;
@@ -238,7 +244,7 @@
 
     /* Add hole() method to paper */
     paper.PaperScope.inject({
-        hole: function(args) {
+        hole: function(args: any) {
             if(!args) console.error('paper.hole: args is required');
             if(!args.point) console.error('paper.hole: args.point is required');
             if(!args.onFinish) console.error('paper.hole: args.onFinish is required');
