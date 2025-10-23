@@ -26,7 +26,7 @@
  */
 
 paper.Path.inject({
-    potrace: function(args) {
+    potrace: function(args: any) {
         var self = this;
         if(!args) throw new Error('Path.potrace: args is required.');
         if(!args.resolution) throw new Error('Path.potrace: args.resolution is required.');
@@ -44,14 +44,12 @@ paper.Path.inject({
         // https://oov.github.io/potrace/
         var img = new Image();
         img.onload = function() {
-            var svg = potrace.fromImage(img).toSVG(1/args.resolution);
+            var svg = (potrace as any).fromImage(img).toSVG(1/args.resolution);
             var potracePath = paper.project.importSVG(svg);
             potracePath.position.x = self.position.x;
             potracePath.position.y = self.position.y;
             potracePath.remove();
-            potracePath.closed = true;
-            potracePath.children[0].closed = true;
-            args.done(potracePath.children[0]);
+            args.done(potracePath);
         }
         img.src = rasterDataURL;
     }

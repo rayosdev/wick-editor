@@ -18,7 +18,7 @@
  */
 
 paper.View.inject({
-  enableScrollToZoom: function(args) {
+  enableScrollToZoom: function(args: any) {
     // TODO
   },
 });

@@ -18,25 +18,7 @@
  */
 
 paper.View.inject({
-  pressure: 1,
-  enablePressure: function(args) {
-    let self = this;
-    const element = this.element.parentElement;
-
-    // Use native Pointer Events API for pressure sensitivity
-    const handlePointerMove = function(event) {
-      // PointerEvent.pressure ranges from 0.0 to 1.0
-      // Default to 0.5 if pressure is not supported
-      self.pressure = event.pressure || 0.5;
-    };
-
-    const handlePointerEnd = function() {
-      self.pressure = 0;
-    };
-
-    element.addEventListener('pointermove', handlePointerMove);
-    element.addEventListener('pointerup', handlePointerEnd);
-    element.addEventListener('pointerleave', handlePointerEnd);
-    element.addEventListener('pointercancel', handlePointerEnd);
+  enableGestures: function(args: any) {
+    // TODO
   },
 });

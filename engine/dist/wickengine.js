@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.23.6.14.30";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.23.7.2.27";
   (function() {
 
     var _a;
@@ -48663,9 +48663,7 @@
           potracePath.position.x = self2.position.x;
           potracePath.position.y = self2.position.y;
           potracePath.remove();
-          potracePath.closed = true;
-          potracePath.children[0].closed = true;
-          args.done(potracePath.children[0]);
+          args.done(potracePath);
         };
         img.src = rasterDataURL;
       }
@@ -48697,43 +48695,35 @@
           var clone = this.clone();
           clone.rotation = 0;
           clone.scaling = new paper2.Point(1, 1);
-          clone.remove();
-          var extraPadding = 3;
-          var width = clone.bounds.width * paper2.view.zoom + extraPadding;
-          var height = clone.bounds.height * paper2.view.zoom + extraPadding;
-          editElem.style.width = width + "px";
-          editElem.style.height = height + "px";
-          var outlineWidth = 1;
-          editElem.style.outline = outlineWidth * paper2.view.zoom + "px dashed black";
-          var position = paper2.view.projectToView(clone.bounds.topLeft.x, clone.bounds.topLeft.y);
-          position.x -= extraPadding / 2 + outlineWidth;
-          position.y -= extraPadding / 2 + outlineWidth;
-          var scale = this.scaling;
-          var rotation = this.rotation;
-          var fontSize = this.fontSize * paper2.view.zoom;
-          var fontFamily = this.fontFamily;
-          var content = this.content;
-          editElem.style.fontFamily = fontFamily;
-          editElem.style.fontSize = fontSize + "px";
-          editElem.value = content;
-          var transformString = "";
-          transformString += "translate(" + position.x + "px," + position.y + "px) ";
-          transformString += "rotate(" + rotation + "deg) ";
-          transformString += "scale(" + scale.x + "," + scale.y + ") ";
-          editElem.style.transform = transformString;
-        },
-        edit: function(paper2) {
-          this.attachTextArea(paper2);
+          clone.position = this.position;
+          var bounds = clone.bounds;
+          paper2.view.bounds;
+          var topLeft = paper2.view.projectToView(bounds.topLeft);
+          var bottomRight = paper2.view.projectToView(bounds.bottomRight);
+          editElem.value = this.content;
+          editElem.style.left = topLeft.x + "px";
+          editElem.style.top = topLeft.y + "px";
+          editElem.style.width = bottomRight.x - topLeft.x + "px";
+          editElem.style.height = bottomRight.y - topLeft.y + "px";
+          editElem.style.fontSize = this.fontSize + "px";
+          editElem.style.fontFamily = this.fontFamily;
+          editElem.style.color = this.fillColor.toCSS();
+          editElem.style.textAlign = this.justification;
+          editElem.style.fontWeight = this.fontWeight;
+          editElem.style.fontStyle = this.fontStyle;
           var self2 = this;
-          editElem.oninput = function() {
+          var updateText = function() {
             self2.content = editElem.value;
-            self2.attachTextArea(paper2);
           };
-        },
-        finishEditing: function() {
-          if (editElem.parentNode) {
-            editElem.parentNode.removeChild(editElem);
-          }
+          editElem.onkeyup = updateText;
+          editElem.oninput = updateText;
+          editElem.onblur = function() {
+            self2.content = editElem.value;
+            if (editElem.parentNode) {
+              editElem.parentNode.removeChild(editElem);
+            }
+          };
+          editElem.select();
         }
       });
     })();
