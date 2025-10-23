@@ -87,7 +87,7 @@ import "./tools/Text.ts";
 import "./tools/Zoom.ts";
 import "./view/paper-ext/Layer.erase.ts";
 import "./view/paper-ext/Paper.hole.ts";
-import "./view/paper-ext/Paper.OrderingUtils.js";
+import "./view/paper-ext/Paper.OrderingUtils.ts";
 import "./view/paper-ext/Paper.SelectionWidget.js";
 import "./view/paper-ext/Paper.SelectionBox.js";
 import "./view/paper-ext/Path.potrace.js";

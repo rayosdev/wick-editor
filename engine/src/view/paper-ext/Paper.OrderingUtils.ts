@@ -21,7 +21,7 @@ class PaperJSOrderingUtils {
     /**
      * Moves the selected items forwards.
      */
-    static moveForwards (items) {
+    static moveForwards (items: any[]): void {
         PaperJSOrderingUtils._sortItemsByLayer(items).forEach(layerItems => {
             PaperJSOrderingUtils._sortItemsByZIndex(layerItems).reverse().forEach(item => {
                 if(item.nextSibling && items.indexOf(item.nextSibling) === -1) {
@@ -34,7 +34,7 @@ class PaperJSOrderingUtils {
     /**
      * Moves the selected items backwards.
      */
-    static moveBackwards (items) {
+    static moveBackwards (items: any[]): void {
         PaperJSOrderingUtils._sortItemsByLayer(items).forEach(layerItems => {
             PaperJSOrderingUtils._sortItemsByZIndex(layerItems).forEach(item => {
                 if(item.previousSibling && items.indexOf(item.previousSibling) === -1) {
@@ -47,7 +47,7 @@ class PaperJSOrderingUtils {
     /**
      * Brings the selected objects to the front.
      */
-    static bringToFront (items) {
+    static bringToFront (items: any[]): void {
         PaperJSOrderingUtils._sortItemsByLayer(items).forEach(layerItems => {
             PaperJSOrderingUtils._sortItemsByZIndex(layerItems).forEach(item => {
                 item.bringToFront();
@@ -58,7 +58,7 @@ class PaperJSOrderingUtils {
     /**
      * Sends the selected objects to the back.
      */
-    static sendToBack (items) {
+    static sendToBack (items: any[]): void {
         PaperJSOrderingUtils._sortItemsByLayer(items).forEach(layerItems => {
             PaperJSOrderingUtils._sortItemsByZIndex(layerItems).reverse().forEach(item => {
                 item.sendToBack();
@@ -66,8 +66,8 @@ class PaperJSOrderingUtils {
         });
     }
 
-    static _sortItemsByLayer (items) {
-        var layerLists = {};
+    static _sortItemsByLayer (items: any[]): any[][] {
+        var layerLists: {[key: string]: any[]} = {};
 
         items.forEach(item => {
             // Create new list for the item's layer if it doesn't exist
@@ -81,15 +81,15 @@ class PaperJSOrderingUtils {
         });
 
         // Convert id->array object to array of arrays
-        var layerItemsArrays = [];
+        var layerItemsArrays: any[][] = [];
         for (var layerID in layerLists) {
             layerItemsArrays.push(layerLists[layerID])
         }
         return layerItemsArrays;
     }
 
-    static _sortItemsByZIndex (items) {
-        return items.sort(function (a,b) {
+    static _sortItemsByZIndex (items: any[]): any[] {
+        return items.sort(function (a: any, b: any) {
             return a.index - b.index;
         });
     }
