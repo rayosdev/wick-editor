@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.23.23.20.43";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.24.1.14.23";
   (function() {
 
     var _a;
@@ -43667,6 +43667,10 @@
        */
       static walkItems(item) {
         var wickItem = null;
+        if (!item) {
+          console.warn("SVGAsset.walkItems: item is null");
+          return null;
+        }
         if (item instanceof paper.Layer || item.name !== null && item.name.startsWith("layer") && item instanceof paper.Group) {
           wickItem = new Wick.Layer();
           var frame = new Wick.Frame();
@@ -43724,6 +43728,10 @@
        * @param {Paper.Item} item - called when the Path is done loading.
        */
       static _breakAppartShapesRecursively(item) {
+        if (!item) {
+          console.warn("SVGAsset._breakAppartShapesRecursively: item is null");
+          return;
+        }
         item.applyMatrix = true;
         if (item instanceof paper.Group || item instanceof paper.Layer) {
           var children = Array.from(item.children);
@@ -43741,13 +43749,29 @@
        */
       createInstance(callback) {
         var importSVG = function(data) {
-          var item = paper.project.importSVG(data, {
-            expandShapes: true,
-            insert: false
-          });
-          Wick.SVGAsset._breakAppartShapesRecursively(item);
-          var wickItem = Wick.SVGAsset.walkItems(item).copy();
-          callback(wickItem);
+          try {
+            var item = paper.project.importSVG(data, {
+              expandShapes: true,
+              insert: false
+            });
+            if (!item) {
+              console.error("SVGAsset.createInstance: Failed to import SVG");
+              callback(null);
+              return;
+            }
+            Wick.SVGAsset._breakAppartShapesRecursively(item);
+            var wickItem = Wick.SVGAsset.walkItems(item);
+            if (!wickItem) {
+              console.error("SVGAsset.createInstance: Failed to create Wick item from SVG");
+              callback(null);
+              return;
+            }
+            var wickItemCopy = wickItem.copy();
+            callback(wickItemCopy);
+          } catch (error) {
+            console.error("SVGAsset.createInstance: Error processing SVG:", error);
+            callback(null);
+          }
         };
         Wick.SVGFile.fromSVGFile(this.src, importSVG);
       }

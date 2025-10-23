@@ -22,7 +22,7 @@ Wick.FontAsset = class extends Wick.FileAsset {
      * Valid MIME types for font assets.
      * @returns {string[]} Array of strings representing MIME types in the form font/filetype.
      */
-    static getValidMIMETypes () {
+    static getValidMIMETypes(): string[] {
         return ['font/ttf', 'application/x-font-ttf', 'application/x-font-truetype'];
     }
 
@@ -30,7 +30,7 @@ Wick.FontAsset = class extends Wick.FileAsset {
      * Valid extensions for font assets.
      * @returns {string[]} Array of strings representing extensions.
      */
-    static getValidExtensions () {
+    static getValidExtensions(): string[] {
         return ['.ttf'];
     }
 
@@ -38,7 +38,7 @@ Wick.FontAsset = class extends Wick.FileAsset {
      * The default font to use if a font couldn't load, or if a FontAsset was deleted
      * @type {string}
      */
-    static get MISSING_FONT_DEFAULT () {
+    static get MISSING_FONT_DEFAULT(): string {
         return 'Helvetica, Arial, sans-serif';
     }
 
@@ -46,20 +46,20 @@ Wick.FontAsset = class extends Wick.FileAsset {
      * Create a new FontAsset.
      * @param {object} args - Asset constructor args. see constructor for Wick.Asset
      */
-    constructor (args) {
+    constructor(args?: any) {
         super(args);
     }
 
-    _serialize (args) {
+    _serialize(args?: any): any {
         var data = super._serialize(args);
         return data;
     }
 
-    _deserialize (data) {
+    _deserialize(data: any): void {
         super._deserialize(data);
     }
 
-    get classname () {
+    get classname(): string {
         return 'FontAsset';
     }
 
@@ -67,7 +67,7 @@ Wick.FontAsset = class extends Wick.FileAsset {
      * Loads the font into the window.
      * @param {function} callback - function to call when the font is done being loaded.
      */
-    load (callback) {
+    load(callback: Function): void {
         var fontDataArraybuffer = Base64ArrayBuffer.decode(this.src.split(',')[1]);
         var fontFamily = this.fontFamily;
         if (!fontFamily) {
@@ -90,8 +90,8 @@ Wick.FontAsset = class extends Wick.FileAsset {
      * A list of Wick Paths that use this font as their fontFamily.
      * @returns {Wick.Path[]}
      */
-    getInstances () {
-        var paths = [];
+    getInstances(): any[] {
+        var paths: any[] = [];
         this.project.getAllFrames().forEach(frame => {
             frame.paths.forEach(path => {
                 if(path.fontFamily === this.fontFamily) {
@@ -106,14 +106,14 @@ Wick.FontAsset = class extends Wick.FileAsset {
      * Check if there are any objects in the project that use this asset.
      * @returns {boolean}
      */
-    hasInstances () {
+    hasInstances(): boolean {
         return this.getInstances().length > 0;
     }
 
     /**
      * Finds all PointText paths using this font as their fontFamily and replaces that font with a default font.
      */
-    removeAllInstances () {
+    removeAllInstances(): void {
         this.getInstances().forEach(path => {
             path.fontFamily = Wick.FontAsset.MISSING_FONT_DEFAULT;
         })
@@ -123,7 +123,7 @@ Wick.FontAsset = class extends Wick.FileAsset {
      * The name of the font that this FontAsset represents.
      * @type {string}
      */
-    get fontFamily () {
+    get fontFamily(): string {
         return this.filename.split('.')[0];
     }
 }

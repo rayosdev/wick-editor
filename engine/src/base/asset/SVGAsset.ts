@@ -22,7 +22,7 @@ Wick.SVGAsset = class extends Wick.FileAsset {
      * Returns all valid MIME types for files which can be converted to SVGAssets.
      * @return {string[]} Array of strings of MIME types in the form MediaType/Subtype.
      */
-    static getValidMIMETypes() {
+    static getValidMIMETypes(): string[] {
         return ['image/svg+xml'];
     }
 
@@ -31,7 +31,7 @@ Wick.SVGAsset = class extends Wick.FileAsset {
      * converted to SVGAssets.
      * @return  {string[]} Array of strings representing extensions.
      */
-    static getValidExtensions() {
+    static getValidExtensions(): string[] {
         return ['.svg']
     }
 
@@ -39,20 +39,20 @@ Wick.SVGAsset = class extends Wick.FileAsset {
      * Create a new SVGAsset.
      * @param {object} args
      */
-    constructor(args) {
+    constructor(args?: any) {
         super(args);
     }
 
-    _serialize(args) {
+    _serialize(args?: any): any {
         var data = super._serialize(args);
         return data;
     }
 
-    _deserialize(data) {
+    _deserialize(data: any): void {
         super._deserialize(data);
     }
 
-    get classname() {
+    get classname(): string {
         return 'SVGAsset';
     }
 
@@ -61,7 +61,7 @@ Wick.SVGAsset = class extends Wick.FileAsset {
      * I think this should return Assets not Paths
      * @returns {Wick.Path[]}
      */
-    getInstances() {
+    getInstances(): any[] {
         return []; // TODO
     }
 
@@ -69,7 +69,7 @@ Wick.SVGAsset = class extends Wick.FileAsset {
      * Check if there are any objects in the project that use this asset.
      * @returns {boolean}
      */
-    hasInstances() {
+    hasInstances(): boolean {
         return false;
     }
 
@@ -77,14 +77,14 @@ Wick.SVGAsset = class extends Wick.FileAsset {
      * Removes all Items using this asset as their source from the project.
      * @returns {boolean}
      */
-    removeAllInstances() {
+    removeAllInstances(): void {
         // TODO
     }
 
     /**
      * Load data in the asset
      */
-    load(callback) {
+    load(callback: Function): void {
         // We don't need to do anything here, the data for SVGAssets is just SVG
         callback();
     }
@@ -94,11 +94,17 @@ Wick.SVGAsset = class extends Wick.FileAsset {
      * @param {paper.Item} item - called when the Path is done loading.
      * @returns {Wick.Base}
      */
-    static walkItems(item) {
+    static walkItems(item: any): any {
             // create paths for all the path items, this also needs to be done for the following item.className=:
             // 'Group', 'Layer', 'Path', 'CompoundPath', 'Shape', 'Raster', 'SymbolItem', 'PointText'
             // I think path automatically handles this, but maybe not layer or group
-            var wickItem = null; // Groups (clips) and layers do this differently so they must be handled separately
+            var wickItem: any = null; // Groups (clips) and layers do this differently so they must be handled separately
+
+            // Add null check for item
+            if (!item) {
+                console.warn('SVGAsset.walkItems: item is null');
+                return null;
+            }
 
             if (item instanceof paper.Layer || (item.name !== null && item.name.startsWith("layer") && item instanceof paper.Group)) {
                 wickItem = new Wick.Layer(); // If we've just added a layer set it to be the active layer
@@ -123,8 +129,8 @@ Wick.SVGAsset = class extends Wick.FileAsset {
                 });
             } else if (item instanceof paper.Group) {
                 wickItem = new Wick.Clip();
-                var wickObjects = [];
-                var layers = [];
+                var wickObjects: any[] = [];
+                var layers: any[] = [];
                 var groupChildren = Array.from(item.children); //prevent any side effects
                 groupChildren.forEach(childItem => {
                     var clipActiveLayer = wickItem.activeLayer;
@@ -167,7 +173,13 @@ Wick.SVGAsset = class extends Wick.FileAsset {
      * Walks through the items tree converting shapes into paths. This should be possible to do in the walkitems routine
      * @param {Paper.Item} item - called when the Path is done loading.
      */
-    static _breakAppartShapesRecursively(item) {
+    static _breakAppartShapesRecursively(item: any): void {
+        // Add null check for item
+        if (!item) {
+            console.warn('SVGAsset._breakAppartShapesRecursively: item is null');
+            return;
+        }
+        
         item.applyMatrix = true;
         if (item instanceof paper.Group || item instanceof paper.Layer) {
             var children = Array.from(item.children);
@@ -183,14 +195,11 @@ Wick.SVGAsset = class extends Wick.FileAsset {
         }
     }
 
-
     /**
      * Creates a new Wick SVG that uses this asset's data.
      * @param {function} callback - called when the SVG is done loading.
      */
-
-
-    createInstance(callback) {
+    createInstance(callback: Function): void {
         // needs to take a base64 encoded string.
         //we need a viewSVG and an SVG object that extends base by the looks of things.
 
@@ -218,17 +227,36 @@ Wick.SVGAsset = class extends Wick.FileAsset {
                 var agroup = this.walkItems(group);
                 this.project.addObject(agroup);
           */
-        var importSVG = function(data) {
-            var item = paper.project.importSVG(data, {
-                expandShapes: true,
-                insert: false
-            });
-            Wick.SVGAsset._breakAppartShapesRecursively(item);
-            var wickItem = Wick.SVGAsset.walkItems(item).copy();
-            callback(wickItem);
+        var importSVG = function(data: string) {
+            try {
+                var item = paper.project.importSVG(data, {
+                    expandShapes: true,
+                    insert: false
+                });
+                
+                if (!item) {
+                    console.error('SVGAsset.createInstance: Failed to import SVG');
+                    callback(null);
+                    return;
+                }
+                
+                Wick.SVGAsset._breakAppartShapesRecursively(item);
+                var wickItem = Wick.SVGAsset.walkItems(item);
+                
+                if (!wickItem) {
+                    console.error('SVGAsset.createInstance: Failed to create Wick item from SVG');
+                    callback(null);
+                    return;
+                }
+                
+                var wickItemCopy = wickItem.copy();
+                callback(wickItemCopy);
+            } catch (error) {
+                console.error('SVGAsset.createInstance: Error processing SVG:', error);
+                callback(null);
+            }
         };
 
         Wick.SVGFile.fromSVGFile(this.src, importSVG);
     }
-
-};
+}

@@ -18,11 +18,13 @@
  */
 
 Wick.ImageAsset = class extends Wick.FileAsset {
+    public gifAssetUUID: string | null;
+
     /**
      * Valid MIME types for image assets.
      * @returns {string[]} Array of strings representing MIME types in the form image/filetype.
      */
-    static getValidMIMETypes () {
+    static getValidMIMETypes(): string[] {
         let jpgTypes = ['image/jpeg']
         let pngTypes = ['image/png']
         return jpgTypes.concat(pngTypes);
@@ -32,7 +34,7 @@ Wick.ImageAsset = class extends Wick.FileAsset {
      * Valid extensions for image assets.
      * @returns {string[]} Array of strings representing extensions.
      */
-    static getValidExtensions () {
+    static getValidExtensions(): string[] {
         return ['.jpeg', '.jpg', '.png'];
     }
 
@@ -40,23 +42,23 @@ Wick.ImageAsset = class extends Wick.FileAsset {
      * Create a new ImageAsset.
      * @param {object} args - Asset constructor args. see constructor for Wick.Asset
      */
-    constructor (args) {
+    constructor(args?: any) {
         super(args);
         this.gifAssetUUID = null;
     }
 
-    _serialize (args) {
+    _serialize(args?: any): any {
         var data = super._serialize(args);
         data.gifAssetUUID = this.gifAssetUUID;
         return data;
     }
 
-    _deserialize (data) {
+    _deserialize(data: any): void {
         super._deserialize(data);
         this.gifAssetUUID = data.gifAssetUUID;
     }
 
-    get classname () {
+    get classname(): string {
         return 'ImageAsset';
     }
 
@@ -64,8 +66,8 @@ Wick.ImageAsset = class extends Wick.FileAsset {
      * A list of Wick Paths that use this image as their image source.
      * @returns {Wick.Path[]}
      */
-    getInstances () {
-        var paths = [];
+    getInstances(): any[] {
+        var paths: any[] = [];
         this.project.getAllFrames().forEach(frame => {
             frame.paths.forEach(path => {
                 if(path.getLinkedAssets().indexOf(this) !== -1) {
@@ -80,7 +82,7 @@ Wick.ImageAsset = class extends Wick.FileAsset {
      * Check if there are any objects in the project that use this asset.
      * @returns {boolean}
      */
-    hasInstances () {
+    hasInstances(): boolean {
         return this.getInstances().length > 0;
     }
 
@@ -88,7 +90,7 @@ Wick.ImageAsset = class extends Wick.FileAsset {
      * Removes all paths using this asset as their image source from the project.
      * @returns {boolean}
      */
-    removeAllInstances () {
+    removeAllInstances(): void {
         this.getInstances().forEach(path => {
             path.remove();
         });
@@ -98,7 +100,7 @@ Wick.ImageAsset = class extends Wick.FileAsset {
      * Load data in the asset
      * @param {function} callback - function to call when the data is done being loaded.
      */
-    load (callback) {
+    load(callback: Function): void {
         // Try to get paper.js to cache the image src.
         var img = new Image();
         img.src = this.src;
@@ -118,7 +120,7 @@ Wick.ImageAsset = class extends Wick.FileAsset {
      * Creates a new Wick Path that uses this asset's image data as it's image source.
      * @param {function} callback - called when the path is done loading.
      */
-    createInstance (callback) {
+    createInstance(callback: Function): void {
         Wick.Path.createImagePath(this, path => {
             callback(path);
         });
@@ -128,7 +130,7 @@ Wick.ImageAsset = class extends Wick.FileAsset {
      * Is this image asset part of a GIF? (if this is set to true, this asset won't appear in the asset library GUI)
      * @type {boolean}
      */
-    get isGifImage () {
+    get isGifImage(): boolean {
         return this.gifAssetUUID;
     }
 }
