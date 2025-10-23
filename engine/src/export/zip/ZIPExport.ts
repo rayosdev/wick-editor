@@ -20,51 +20,51 @@
 /**
  * Utility class for bundling Wick projects inside ZIP files.
  */
-Wick.ZIPExport = class {
-    static bundleProject (project, done) {
-        this._downloadDependenciesFiles(items => {
-            window.Wick.WickFile.toWickFile(project, wickFile => {
+export class ZIPExport {
+    static bundleProject(project: any, done: (blob: Blob) => void): void {
+        this._downloadDependenciesFiles((items: any[]) => {
+            window.Wick.WickFile.toWickFile(project, (wickFile: any) => {
                 this._bundleFilesIntoZip(wickFile, items, done);
             });
         });
     }
 
-    static _downloadDependenciesFiles (done) {
-      var list = [];
-      var urls = [
-          "index.html",
-          "preloadjs.min.js",
-          "wickengine.js",
-      ];
-      var results = [];
+    static _downloadDependenciesFiles(done: (files: any[]) => void): void {
+        var list: Promise<any>[] = [];
+        var urls = [
+            "index.html",
+            "preloadjs.min.js",
+            "wickengine.js",
+        ];
+        var results: any[] = [];
 
-      urls.forEach(function(url, i) {
-          list.push(
-              fetch(Wick.resourcepath + url).then(function(res){
-                  results[i] = {
-                      data: res.blob(),
-                      name: url,
-                  }
-              })
-          );
-      });
+        urls.forEach(function (url: string, i: number) {
+            list.push(
+                fetch(Wick.resourcepath + url).then(function (res: Response) {
+                    results[i] = {
+                        data: res.blob(),
+                        name: url,
+                    };
+                })
+            );
+        });
 
-      Promise
-          .all(list)
-          .then(function() {
-              done(results);
-          });
+        Promise
+            .all(list)
+            .then(function () {
+                done(results);
+            });
     }
 
-    static _bundleFilesIntoZip (wickFile, dependenciesFiles, done) {
+    static _bundleFilesIntoZip(wickFile: any, dependenciesFiles: any[], done: (blob: Blob) => void): void {
         var zip = new JSZip();
-        dependenciesFiles.forEach(file => {
+        dependenciesFiles.forEach((file: any) => {
             zip.file(file.name, file.data);
         });
         zip.file('project.wick', wickFile);
 
         zip.generateAsync({
-            type:"blob",
+            type: "blob",
             compression: "DEFLATE",
             compressionOptions: {
                 level: 9
@@ -72,3 +72,6 @@ Wick.ZIPExport = class {
         }).then(done);
     }
 }
+
+// Expose to global namespace
+Wick.ZIPExport = ZIPExport;

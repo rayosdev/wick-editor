@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.24.1.29.53";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.24.1.40.1";
   (function() {
 
     var _a;
@@ -37759,7 +37759,7 @@
       }
     };
     Wick.BuiltinAssets = new BuiltinAssets();
-    Wick.ExportUtils = class {
+    class ExportUtils {
       // https://stackoverflow.com/questions/12168909/blob-from-dataurl
       static dataURItoBlob(dataURI) {
         var byteString = atob(dataURI.split(",")[1]);
@@ -37772,7 +37772,8 @@
         var blob = new Blob([ab], { type: mimeString });
         return blob;
       }
-    };
+    }
+    Wick.ExportUtils = ExportUtils;
     Wick.AudioTrack = class {
       /**
        * @type {Wick.Project}
@@ -38514,7 +38515,7 @@
         }
       }
     };
-    Wick.HTMLExport = class {
+    class HTMLExport {
       /**
        * Bundles a wick project into the standalone HTML player. This creates a single-file playable Wick project.
        * @param {Wick.Project} project - The project to bundle.
@@ -38530,7 +38531,8 @@
           });
         }, "base64");
       }
-    };
+    }
+    Wick.HTMLExport = HTMLExport;
     Wick.HTMLPreview = class {
       /**
        * Runs a project inside a popup window.
@@ -38614,7 +38616,7 @@
         });
       }
     };
-    Wick.ZIPExport = class {
+    class ZIPExport {
       static bundleProject(project2, done) {
         this._downloadDependenciesFiles((items) => {
           window.Wick.WickFile.toWickFile(project2, (wickFile) => {
@@ -38658,7 +38660,8 @@
           }
         }).then(done);
       }
-    };
+    }
+    Wick.ZIPExport = ZIPExport;
     Wick.Base = class {
       /**
        * Creates a Base object.

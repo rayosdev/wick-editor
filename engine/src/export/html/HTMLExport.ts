@@ -20,23 +20,26 @@
 /**
  * Utility class for bundling Wick projects inside HTML files.
  */
-Wick.HTMLExport = class {
+export class HTMLExport {
     /**
      * Bundles a wick project into the standalone HTML player. This creates a single-file playable Wick project.
      * @param {Wick.Project} project - The project to bundle.
      */
-    static bundleProject (project, callback) {
-        Wick.WickFile.toWickFile(project, wickFileBase64 => {
+    static bundleProject(project: any, callback: (html: string) => void): void {
+        Wick.WickFile.toWickFile(project, (wickFileBase64: string) => {
             fetch(Wick.resourcepath + 'emptyproject.html')
                 .then(resp => resp.text())
                 .then(text => {
                     text = text.replace('<!--INJECT_WICKPROJECTDATA_HERE-->', wickFileBase64);
                     callback(text);
                 })
-                .catch((e) => {
-                    console.error('Wick.HTMLExport: Could not download HTML file template.')
+                .catch((e: any) => {
+                    console.error('Wick.HTMLExport: Could not download HTML file template.');
                     console.error(e);
                 });
         }, 'base64');
     }
 }
+
+// Expose to global namespace
+Wick.HTMLExport = HTMLExport;
