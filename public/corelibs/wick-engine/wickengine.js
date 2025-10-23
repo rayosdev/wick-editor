@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.23.22.10.47";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.23.22.57.42";
   (function() {
 
     var _a;
@@ -41158,8 +41158,10 @@
        * @param {Wick.Base} object - The object to select.
        */
       select(object) {
-        if (!this.isSelectable(object)) {
-          console.warn("Tried to select a " + object.classname + " object. This type is not selectable");
+        if (!object || !this.isSelectable(object)) {
+          if (object) {
+            console.warn("Tried to select a " + object.classname + " object. This type is not selectable");
+          }
           return;
         }
         if (this.isObjectSelected(object)) {
@@ -41588,7 +41590,6 @@
         }
       }
       set isSynced(syncBool) {
-        if (false === "boolean") return;
         if (this.selectionType === "clip") {
           this.getSelectedObject().isSynced = syncBool;
         }

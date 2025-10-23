@@ -53,7 +53,7 @@ import "./export/zip/ZIPExport.js";
 import "./base/Base.js";
 import "./base/Layer.ts";
 import "./base/Project.js";
-import "./base/Selection.js";
+import "./base/Selection.ts";
 import "./base/Timeline.ts";
 import "./base/Tween.ts";
 import "./base/Path.ts";
