@@ -17,12 +17,12 @@
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-Wick.ClipAsset = class extends Wick.FileAsset {
+export class ClipAsset extends Wick.FileAsset {
     /**
      * Returns all valid MIME types for files which can be converted to ClipAssets.
      * @return {string[]} Array of strings of MIME types in the form MediaType/Subtype.
      */
-    static getValidMIMETypes() {
+    static getValidMIMETypes(): string[] {
         return ['application/json', 'application/octet-stream'];
     }
 
@@ -31,8 +31,8 @@ Wick.ClipAsset = class extends Wick.FileAsset {
      * converted to ClipAssets.
      * @return  {string[]} Array of strings representing extensions.
      */
-    static getValidExtensions() {
-        return ['.wickobj']
+    static getValidExtensions(): string[] {
+        return ['.wickobj'];
     }
 
     /**
@@ -40,12 +40,12 @@ Wick.ClipAsset = class extends Wick.FileAsset {
      * @param {Wick.Clip} - the clip to use as a source
      * @param {function} callback -
      */
-    static fromClip (clip, project, callback) {
+    static fromClip(clip: any, project: any, callback: (clipAsset: ClipAsset) => void): void {
         project.addObject(clip);
-        Wick.WickObjectFile.toWickObjectFile(clip, 'blob', file => {
+        Wick.WickObjectFile.toWickObjectFile(clip, 'blob', (file: Blob) => {
             // Convert blob to dataURL
             var a = new FileReader();
-            a.onload = (e) => {
+            a.onload = (e: any) => {
                 // Create ClipAsset
                 var clipAsset = new Wick.ClipAsset({
                     filename: (clip.identifier || 'clip') + '.wickobj',
@@ -53,7 +53,7 @@ Wick.ClipAsset = class extends Wick.FileAsset {
                 });
                 clip.remove();
                 callback(clipAsset);
-            }
+            };
             a.readAsDataURL(file);
         });
     }
@@ -62,20 +62,20 @@ Wick.ClipAsset = class extends Wick.FileAsset {
      * Create a new ClipAsset.
      * @param {object} args
      */
-    constructor(args) {
+    constructor(args: any) {
         super(args);
     }
 
-    _serialize(args) {
+    _serialize(args: any): any {
         var data = super._serialize(args);
         return data;
     }
 
-    _deserialize(data) {
+    _deserialize(data: any): void {
         super._deserialize(data);
     }
 
-    get classname() {
+    get classname(): string {
         return 'ClipAsset';
     }
 
@@ -83,11 +83,11 @@ Wick.ClipAsset = class extends Wick.FileAsset {
      * A list of Wick Clips that use this ClipAsset as their source.
      * @returns {Wick.Clip[]}
      */
-    getInstances () {
-        var clips = [];
-        this.project.getAllFrames().forEach(frame => {
-            frame.clips.forEach(clip => {
-                if(clip.assetSourceUUID === this.uuid) {
+    getInstances(): any[] {
+        var clips: any[] = [];
+        this.project.getAllFrames().forEach((frame: any) => {
+            frame.clips.forEach((clip: any) => {
+                if (clip.assetSourceUUID === this.uuid) {
                     clips.push(clip);
                 }
             });
@@ -99,7 +99,7 @@ Wick.ClipAsset = class extends Wick.FileAsset {
      * Check if there are any objects in the project that use this asset.
      * @returns {boolean}
      */
-    hasInstances () {
+    hasInstances(): boolean {
         return this.getInstances().length > 0;
     }
 
@@ -107,16 +107,16 @@ Wick.ClipAsset = class extends Wick.FileAsset {
      * Removes all Clips using this asset as their source from the project.
      * @returns {boolean}
      */
-    removeAllInstances () {
-        this.getInstances().forEach(instance => {
+    removeAllInstances(): void {
+        this.getInstances().forEach((instance: any) => {
             instance.remove();
         });
 
         // Also remove any ImageAssets that are part of this clip, and are GIF frames
-        this.project.getAllFrames().forEach(frame => {
-            frame.paths.forEach(path => {
+        this.project.getAllFrames().forEach((frame: any) => {
+            frame.paths.forEach((path: any) => {
                 var images = path.getLinkedAssets();
-                if(images.length > 0 && images[0].gifAssetUUID === this.uuid) {
+                if (images.length > 0 && images[0].gifAssetUUID === this.uuid) {
                     images[0].remove();
                 }
             });
@@ -127,7 +127,7 @@ Wick.ClipAsset = class extends Wick.FileAsset {
      * Load data in the asset
      * @param {function} callback - function to call when the data is done being loaded.
      */
-    load(callback) {
+    load(callback: () => void): void {
         // We don't need to do anything here, the data for ClipAssets is just json
         callback();
     }
@@ -136,14 +136,17 @@ Wick.ClipAsset = class extends Wick.FileAsset {
      * Creates a new Wick Clip that uses this asset's data.
      * @param {function} callback - called when the Clip is done loading.
      */
-    createInstance (callback, project) {
-        if (!callback) { console.warn("Cannot create clip instance without callback.") }
-        if (!project) { console.warn("Cannot create clip instance without project reference.") }
+    createInstance(callback: (clip: any) => void, project: any): void {
+        if (!callback) { console.warn("Cannot create clip instance without callback."); }
+        if (!project) { console.warn("Cannot create clip instance without project reference."); }
 
-        Wick.WickObjectFile.fromWickObjectFile(this.src, data => {
+        Wick.WickObjectFile.fromWickObjectFile(this.src, (data: any) => {
             var clip = Wick.Base.import(data, project).copy();
             clip.assetSourceUUID = this.uuid;
             callback(clip);
         });
     }
 }
+
+// Expose to global namespace
+Wick.ClipAsset = ClipAsset;

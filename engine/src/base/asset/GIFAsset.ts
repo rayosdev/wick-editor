@@ -17,12 +17,12 @@
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-Wick.GIFAsset = class extends Wick.ClipAsset {
+export class GIFAsset extends Wick.ClipAsset {
     /**
      * Returns all valid MIME types for files which can be converted to GIFAssets.
      * @return {string[]} Array of strings of MIME types in the form MediaType/Subtype.
      */
-    static getValidMIMETypes () {
+    static getValidMIMETypes(): string[] {
         return ['image/gif'];
     }
 
@@ -31,8 +31,8 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
      * converted to GIFAssets.
      * @return  {string[]} Array of strings representing extensions.
      */
-    static getValidExtensions () {
-        return ['.gif']
+    static getValidExtensions(): string[] {
+        return ['.gif'];
     }
 
     /**
@@ -40,24 +40,24 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
      * @param {Wick.ImageAsset} images - The ImageAssets, in order of where they will appear in the timeline, which are used to create a ClipAsset
      * @param {function} callback - Fuction to be called when the asset is done being created
      */
-    static fromImages (images, project, callback) {
+    static fromImages(images: any[], project: any, callback: (gifAsset: GIFAsset) => void): void {
         var clip = new Wick.Clip();
         clip.activeFrame.remove();
 
         var imagesCreatedCount = 0;
         var processNextImage = () => {
-            images[imagesCreatedCount].createInstance(imagePath => {
+            images[imagesCreatedCount].createInstance((imagePath: any) => {
                 // Create a frame for every image
-                var frame = new Wick.Frame({start: imagesCreatedCount+1});
+                var frame = new Wick.Frame({ start: imagesCreatedCount + 1 });
                 frame.addPath(imagePath);
                 clip.activeLayer.addFrame(frame);
 
                 // Check if all images have been created
                 imagesCreatedCount++;
-                if(imagesCreatedCount === images.length) {
-                    Wick.ClipAsset.fromClip(clip, project, clipAsset => {
+                if (imagesCreatedCount === images.length) {
+                    Wick.ClipAsset.fromClip(clip, project, (clipAsset: any) => {
                         // Attach a reference to the resulting clip to all images
-                        images.forEach(image => {
+                        images.forEach((image: any) => {
                             image.gifAssetUUID = clip.uuid;
                         });
 
@@ -68,7 +68,7 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
                     processNextImage();
                 }
             });
-        }
+        };
 
         processNextImage();
     }
@@ -77,20 +77,20 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
      * Create a new GIFAsset.
      * @param {object} args - Asset args, see Wick.Asset constructor
      */
-    constructor (args) {
+    constructor(args: any) {
         super(args);
     }
 
-    _serialize (args) {
+    _serialize(args: any): any {
         var data = super._serialize(args);
         return data;
     }
 
-    _deserialize (data) {
+    _deserialize(data: any): void {
         super._deserialize(data);
     }
 
-    get classname () {
+    get classname(): string {
         return 'GIFAsset';
     }
 
@@ -98,7 +98,7 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
      * A list of objects that use this asset as their source.
      * @returns {Wick.Clip[]}
      */
-    getInstances () {
+    getInstances(): any[] {
         // Inherited from ClipAsset
         return super.getInstances();
     }
@@ -107,7 +107,7 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
      * Check if there are any objects in the project that use this asset.
      * @returns {boolean}
      */
-    hasInstances () {
+    hasInstances(): boolean {
         // Inherited from ClipAsset
         return super.hasInstances();
     }
@@ -116,7 +116,7 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
      * Removes all objects using this asset as their source from the project.
      * @returns {boolean}
      */
-    removeAllInstances () {
+    removeAllInstances(): void {
         // Inherited from ClipAsset
         super.removeAllInstances();
     }
@@ -124,8 +124,11 @@ Wick.GIFAsset = class extends Wick.ClipAsset {
     /**
      * Load data in the asset
      */
-    load (callback) {
+    load(callback: () => void): void {
         // We don't need to do anything here, the data for ClipAssets/GIFAssets is just json
         callback();
     }
 }
+
+// Expose to global namespace
+Wick.GIFAsset = GIFAsset;

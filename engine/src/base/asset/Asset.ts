@@ -17,26 +17,27 @@
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-Wick.Asset = class extends Wick.Base {
+export class Asset extends Wick.Base {
+    name: string;
 
     /**
      * Creates a new Wick Asset.
      * @param {string} name - the name of the asset
      */
-    constructor(args) {
+    constructor(args: any) {
         if (!args) args = {};
         super(args);
 
         this.name = args.name;
     }
 
-    _serialize(args) {
+    _serialize(args: any): any {
         var data = super._serialize(args);
         data.name = this.name;
         return data;
     }
 
-    _deserialize(data) {
+    _deserialize(data: any): void {
         super._deserialize(data);
         this.name = data.name;
     }
@@ -44,26 +45,31 @@ Wick.Asset = class extends Wick.Base {
     /**
      * A list of all objects using this asset.
      */
-    getInstances() {
+    getInstances(): any[] {
         // Implemented by subclasses
+        return [];
     }
 
     /**
      * Check if there are any objects in the project that use this asset.
      * @returns {boolean}
      */
-    hasInstances() {
+    hasInstances(): boolean {
         // Implemented by sublasses
+        return false;
     }
 
     /**
      * Remove all instances of this asset from the project. (Implemented by ClipAsset, ImageAsset, and SoundAsset)
      */
-    removeAllInstances() {
+    removeAllInstances(): void {
         // Implemented by sublasses
     }
 
-    get classname() {
+    get classname(): string {
         return 'Asset';
     }
 }
+
+// Expose to global namespace
+Wick.Asset = Asset;

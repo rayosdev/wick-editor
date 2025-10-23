@@ -17,12 +17,17 @@
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-Wick.FileAsset = class extends Wick.Asset {
+export class FileAsset extends Wick.Asset {
+    fileExtension: string | null;
+    MIMEType: string | null;
+    filename: string;
+    private _src: string | null;
+
     /**
      * Returns all valid MIME types for files which can be converted to Wick Assets.
      * @return {string[]} Array of strings of MIME types in the form MediaType/Subtype.
      */
-    static getValidMIMETypes() {
+    static getValidMIMETypes(): string[] {
         let imageTypes = Wick.ImageAsset.getValidMIMETypes();
         let soundTypes = Wick.SoundAsset.getValidMIMETypes();
         let fontTypes = Wick.FontAsset.getValidMIMETypes();
@@ -37,7 +42,7 @@ Wick.FileAsset = class extends Wick.Asset {
      * converted to Wick Assets.
      * @return  {string[]} Array of strings representing extensions.
      */
-    static getValidExtensions() {
+    static getValidExtensions(): string[] {
         let imageExtensions = Wick.ImageAsset.getValidExtensions();
         let soundExtensions = Wick.SoundAsset.getValidExtensions();
         let fontExtensions = Wick.FontAsset.getValidExtensions();
@@ -57,19 +62,19 @@ Wick.FileAsset = class extends Wick.Asset {
      * @param {string} filename - the filename of the file being used as this asset's source.
      * @param {string} src - a base64 string containing the source for this asset.
      */
-    constructor(args) {
+    constructor(args: any) {
         if (!args) args = {};
         args.name = args.filename;
         super(args);
 
-        this.fileExtension = null
+        this.fileExtension = null;
         this.MIMEType = null;
 
         this.filename = args.filename;
-        this.src = args.src;
+        this._src = args.src;
     }
 
-    _serialize(args) {
+    _serialize(args: any): any {
         var data = super._serialize(args);
 
         data.filename = this.filename;
@@ -83,7 +88,7 @@ Wick.FileAsset = class extends Wick.Asset {
         return data;
     }
 
-    _deserialize(data) {
+    _deserialize(data: any): void {
         super._deserialize(data);
 
         this.filename = data.filename;
@@ -95,7 +100,7 @@ Wick.FileAsset = class extends Wick.Asset {
         }
     }
 
-    get classname() {
+    get classname(): string {
         return 'FileAsset';
     }
 
@@ -103,13 +108,13 @@ Wick.FileAsset = class extends Wick.Asset {
      * The source of the data of the asset, in base64. Returns null if the file is not found.
      * @type {string}
      */
-    get src() {
+    get src(): string | null {
         let file = Wick.FileCache.getFile(this.uuid);
         if (file) return file.src;
         return null;
     }
 
-    set src(src) {
+    set src(src: string | null) {
         if (src) {
             Wick.FileCache.addFile(src, this.uuid);
             this.fileExtension = this._fileExtensionOfString(src);
@@ -120,7 +125,7 @@ Wick.FileAsset = class extends Wick.Asset {
     /**
      * Loads data about the file into the asset.
      */
-    load(callback) {
+    load(callback: () => void): void {
         callback();
     }
 
@@ -128,18 +133,21 @@ Wick.FileAsset = class extends Wick.Asset {
      * Copies the FileAsset and also copies the src in FileCache.
      * @return {Wick.FileAsset}
      */
-    copy() {
+    copy(): Wick.FileAsset {
         var copy = super.copy();
         copy.src = this.src;
         return copy;
     }
 
-    _MIMETypeOfString(string) {
+    _MIMETypeOfString(string: string): string {
         return string.split(':')[1].split(',')[0].split(';')[0];
     }
 
-    _fileExtensionOfString(string) {
+    _fileExtensionOfString(string: string): string | null {
         var MIMEType = this._MIMETypeOfString(string);
         return MIMEType && MIMEType.split('/')[1];
     }
 }
+
+// Expose to global namespace
+Wick.FileAsset = FileAsset;
