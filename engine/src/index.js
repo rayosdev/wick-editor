@@ -65,7 +65,7 @@ import "./base/asset/ClipAsset.js";
 import "./base/asset/GIFAsset.js";
 import "./base/asset/SoundAsset.js";
 import "./base/asset/SVGAsset.js";
-import "./base/Tickable.js";
+import "./base/Tickable.ts";
 import "./base/Frame.ts";
 import "./base/Clip.js";
 import "./base/Button.ts";

@@ -21,10 +21,20 @@
  * A class that is extended by any wick object that ticks.
  */
 Wick.Tickable = class extends Wick.Base {
+    private _onscreen: boolean;
+    private _onscreenLastTick: boolean;
+    private _mouseState: string;
+    private _lastMouseState: string;
+    private _isClickTarget: boolean;
+    private _scripts: any[];
+    private _onEventFns: any;
+    private _cachedScripts: any;
+    public cursor: string;
+
     /**
      * Debugging feature. Logs errors as they happen
      */
-    static get LOG_ERRORS () {
+    static get LOG_ERRORS(): boolean {
         return false;
     }
 
@@ -32,7 +42,7 @@ Wick.Tickable = class extends Wick.Base {
      * Returns a list of all possible events for this object.
      * @return {string[]} Array of all possible scripts.
      */
-    static get possibleScripts () {
+    static get possibleScripts(): string[] {
         return [
             'default',
             'mouseenter',
@@ -55,7 +65,7 @@ Wick.Tickable = class extends Wick.Base {
     /**
      * Create a new tickable object.
      */
-    constructor (args) {
+    constructor(args?: any) {
         if(!args) args = {};
         super(args);
 
@@ -76,7 +86,7 @@ Wick.Tickable = class extends Wick.Base {
         this._cachedScripts = {};
     }
 
-    _deserialize (data) {
+    _deserialize(data: any): void {
         super._deserialize(data);
 
         this._onscreen = false;
@@ -90,10 +100,9 @@ Wick.Tickable = class extends Wick.Base {
 
         this._onEventFns = {};
         this._cachedScripts = {};
-
     }
 
-    _serialize (args) {
+    _serialize(args?: any): any {
         var data = super._serialize(args);
 
         data.scripts = JSON.parse(JSON.stringify(this._scripts));
@@ -102,7 +111,7 @@ Wick.Tickable = class extends Wick.Base {
         return data;
     }
 
-    get classname () {
+    get classname(): string {
         return 'Tickable';
     }
 
@@ -110,7 +119,7 @@ Wick.Tickable = class extends Wick.Base {
      * The scripts on this object.
      * @type {object[]}
      */
-    get scripts () {
+    get scripts(): any[] {
         return this._scripts;
     }
 
@@ -118,7 +127,7 @@ Wick.Tickable = class extends Wick.Base {
      * Checks if this object has a non-empty script.
      * @type {boolean}
      */
-    get hasContentfulScripts () {
+    get hasContentfulScripts(): boolean {
         var hasContentfulScripts = false;
 
         for (var script of this.scripts) {
@@ -134,7 +143,7 @@ Wick.Tickable = class extends Wick.Base {
      * Check if this object is currently visible in the project, based on its parent.
      * @type {boolean}
      */
-    get onScreen () {
+    get onScreen(): boolean {
         if(!this.parent) return false;
         return this.parent.onScreen;
     }
@@ -144,7 +153,7 @@ Wick.Tickable = class extends Wick.Base {
      * @param {string} name - The name of the event to attach the function to.
      * @param {function} fn - The function to call when the given event happens.
      */
-    onEvent (name, fn) {
+    onEvent(name: string, fn: Function): void {
         if(Wick.Tickable.possibleScripts.indexOf(name) === -1) {
             console.warn("onEvent: " + name + " is not a valid event name.");
             return;
@@ -158,7 +167,7 @@ Wick.Tickable = class extends Wick.Base {
      * @param {string} name - the name of the event to attach a function to.
      * @param {function} fn - the function to attach
      */
-    addEventFn (name, fn) {
+    addEventFn(name: string, fn: Function): void {
         this.getEventFns(name).push(fn);
     }
 
@@ -166,7 +175,7 @@ Wick.Tickable = class extends Wick.Base {
      * Gets all functions attached to an event with a given name.
      * @param {string} - The name of the event
      */
-    getEventFns (name) {
+    getEventFns(name: string): Function[] {
         if(!this._onEventFns[name]) {
             this._onEventFns[name] = [];
         }
@@ -178,7 +187,7 @@ Wick.Tickable = class extends Wick.Base {
      * Check if an object can have scripts attached to it. Helpful when iterating through a lot of different wick objects that may or may not be tickables. Always returns true.
      * @type {boolean}
      */
-    get isScriptable () {
+    get isScriptable(): boolean {
         return true;
     }
 
@@ -187,7 +196,7 @@ Wick.Tickable = class extends Wick.Base {
      * @param {string} name - The name of the event that will trigger the script. See Wick.Tickable.possibleScripts
      * @param {string} src - The source code of the new script.
      */
-    addScript (name, src) {
+    addScript(name: string, src: string): void {
         if(Wick.Tickable.possibleScripts.indexOf(name) === -1) console.error(name + ' is not a valid script!');
         if(this.hasScript(name)) {
             this.updateScript(name, src);
@@ -215,7 +224,7 @@ Wick.Tickable = class extends Wick.Base {
      * @param {string} name - The name of the event. See Wick.Tickable.possibleScripts
      * @returns {object} the script with the given name. Can be null if the object doesn't have that script.
      */
-    getScript (name) {
+    getScript(name: string): any {
         if (Wick.Tickable.possibleScripts.indexOf(name) === -1) {
             console.error(name + ' is not a valid script!');
             return null;
@@ -248,7 +257,7 @@ Wick.Tickable = class extends Wick.Base {
      * Returns a list of script names which are not currently in use for this object.
      * @return {string[]} Available script names.
      */
-    getAvailableScripts () {
+    getAvailableScripts(): string[] {
       return Wick.Tickable.possibleScripts.filter(script => !this.hasScript(script));
     }
 
@@ -257,7 +266,7 @@ Wick.Tickable = class extends Wick.Base {
      * @param {string} name - The name of the event. See Wick.Tickable.possibleScripts
      * @returns {boolean} True if the script with the given name exists
      */
-    hasScript (name) {
+    hasScript(name: string): boolean {
         let script = this.scripts.find(script => (script.name === name));
 
         if (script) {
@@ -272,7 +281,7 @@ Wick.Tickable = class extends Wick.Base {
      * @param {string} name - The name of the event. See Wick.Tickable.possibleScripts
      * @returns {boolean} True if the script with the given name has code
      */
-    scriptIsContentful (name) {
+    scriptIsContentful(name: string): boolean {
         if(!this.hasScript(name)) {
             return false;
         }
@@ -291,7 +300,7 @@ Wick.Tickable = class extends Wick.Base {
      * @param {string} name - The name of the event that will trigger the script. See Wick.Tickable.possibleScripts
      * @param {string} src - The source code of the script.
      */
-    updateScript (name, src) {
+    updateScript(name: string, src: string): void {
         if (!src) src = ""; // Reset script if it is not defined.
         this.getScript(name).src = src;
         delete this._cachedScripts[name];
@@ -301,7 +310,7 @@ Wick.Tickable = class extends Wick.Base {
      * Remove the script that corresponds to a given event name.
      * @param {string} name - The name of the event. See Wick.Tickable.possibleScripts
      */
-    removeScript (name) {
+    removeScript(name: string): void {
         this._scripts = this._scripts.filter(script => {
             return script.name !== name;
         });
@@ -312,7 +321,7 @@ Wick.Tickable = class extends Wick.Base {
      * @param {string} name - The name of the script to run. See Tickable.possibleScripts
      * @param {Object} parameters - An object consisting of key,value pairs which correspond to parameters to pass to the script.
      */
-    scheduleScript (name, parameters) {
+    scheduleScript(name: string, parameters?: any): void {
         if(!this.project) return;
 
         this.project.scheduleScript(this.uuid, name, parameters);
@@ -324,7 +333,7 @@ Wick.Tickable = class extends Wick.Base {
      * @param {Object} parameters - An object containing key,value pairs of parameters to send to the script.
      * @returns {object} object containing error info if an error happened. Returns null if there was no error (script ran successfully)
      */
-    runScript (name, parameters) {
+    runScript(name: string, parameters?: any): any {
         if (this.removed || !this.onScreen) {
             return;
         }
@@ -350,7 +359,6 @@ Wick.Tickable = class extends Wick.Base {
             return;
         }
 
-
         // Run function inside tab
         if(this.scriptIsContentful(name)) {
             var script = this.getScript(name);
@@ -373,7 +381,7 @@ Wick.Tickable = class extends Wick.Base {
      * The tick routine to be called when the object ticks.
      * @returns {object} - An object with information about the result from ticking. Null if no errors occured, and the script ran successfully.
      */
-    tick () {
+    tick(): any {
         // Update named child references
         this._attachChildClipReferences();
 
@@ -405,16 +413,16 @@ Wick.Tickable = class extends Wick.Base {
         }
     }
 
-    _onInactive () {
+    _onInactive(): void {
         // Do nothing.
     }
 
-    _onActivated () {
+    _onActivated(): void {
         this.runScript('default'); // Run the script immediately.
         this.scheduleScript('load');
     }
 
-    _onActive () {
+    _onActive(): void {
         this.scheduleScript('update');
 
         var current = this._mouseState;
@@ -481,12 +489,12 @@ Wick.Tickable = class extends Wick.Base {
         });
     }
 
-    _onDeactivated () {
+    _onDeactivated(): void {
         this._isClickTarget = false;
         this.scheduleScript('unload');
     }
 
-    _evalScript (name, src) {
+    _evalScript(name: string, src: string): any {
         var fn = null;
 
         // Check for syntax/parsing errors
@@ -516,7 +524,7 @@ Wick.Tickable = class extends Wick.Base {
      * @param {string} name - Name of the event function being run (i.e. keyDown)
      * @param {Object} parameters - An object of key,value pairs to be passed as parameters to the function.
      */
-    _runFunction (fn, name, parameters) {
+    _runFunction(fn: Function, name: string, parameters?: any): any {
           var error = null;
 
           // Attach API methods
@@ -581,7 +589,7 @@ Wick.Tickable = class extends Wick.Base {
           return error;
     }
 
-    _generateErrorInfo (error, name) {
+    _generateErrorInfo(error: any, name: string): any {
         if(Wick.Tickable.LOG_ERRORS) console.log(error);
 
         return {
@@ -592,7 +600,7 @@ Wick.Tickable = class extends Wick.Base {
         }
     }
 
-    _generateEsprimaErrorInfo (error, name) {
+    _generateEsprimaErrorInfo(error: any, name: string): any {
         if(Wick.Tickable.LOG_ERRORS) console.log(error);
 
         return {
@@ -603,7 +611,7 @@ Wick.Tickable = class extends Wick.Base {
         }
     }
 
-    _generateLineNumberFromStackTrace (trace) {
+    _generateLineNumberFromStackTrace(trace: string): number | null {
         var lineNumber = null;
 
         trace.split('\n').forEach(line => {
@@ -622,7 +630,7 @@ Wick.Tickable = class extends Wick.Base {
         return lineNumber;
     }
 
-    _attachChildClipReferences () {
+    _attachChildClipReferences(): void {
         // Implemented by Wick.Clip and Wick.Frame.
     }
 }
