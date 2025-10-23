@@ -21,12 +21,26 @@
  * The base class for all objects within the Wick Engine.
  */
 Wick.Base = class {
+    private _uuid: string;
+    private _identifier: string | null;
+    private _name: string | null;
+    private _view: any;
+    private _guiElement: any;
+    private _classname: string;
+    private _children: any[];
+    private _childrenData: string[] | null;
+    private _parent: any;
+    private _project: any;
+    private _cachedSerializeData: any;
+    private _temporary: boolean;
+    private _removed?: boolean;
+
     /**
      * Creates a Base object.
      * @parm {string} identifier - (Optional) The identifier of the object. Defaults to null.
      * @parm {string} name - (Optional) The name of the object. Defaults to null.
      */
-    constructor(args) {
+    constructor(args?: any) {
         /* One instance of each Wick.Base class is created so we can access
          * a list of all possible properties of each class. This is used
          * to clean up custom variables after projects are stopped. */
@@ -66,7 +80,7 @@ Wick.Base = class {
     /**
      * @param {object} data - Serialized data to use to create a new object.
      */
-    static fromData(data, project) {
+    static fromData(data: any, project: any): any {
         if (!data.classname) {
             console.warn('Wick.Base.fromData(): data was missing, did you mean to deserialize something else?');
         }
@@ -88,7 +102,7 @@ Wick.Base = class {
      * Converts this Wick Base object into a plain javascript object contianing raw data (no references).
      * @return {object} Plain JavaScript object representing this Wick Base object.
      */
-    serialize(args) {
+    serialize(args?: any): any {
         // TEMPORARY: Force the cache to never be accessed.
         // This is because the cache was causing issues in the tests, and the
         // performance boost that came with the cache was not signifigant enough
@@ -110,14 +124,14 @@ Wick.Base = class {
      * Parses serialized data representing Base Objects which have been serialized using the serialize function of their class.
      * @param {object} data Serialized data that was returned by a Base Object's serialize function.
      */
-    deserialize(data) {
+    deserialize(data: any): void {
         this._deserialize(data);
         this._cacheSerializeData(data);
     }
 
     /* The internal serialize method that actually creates the data. Every class that inherits from Base must have one of these. */
-    _serialize(args) {
-        var data = {};
+    _serialize(args?: any): any {
+        var data: any = {};
 
         data.classname = this.classname;
         data.identifier = this._identifier;
@@ -129,7 +143,7 @@ Wick.Base = class {
     }
 
     /* The internal deserialize method that actually reads the data. Every class that inherits from Base must have one of these. */
-    _deserialize(data) {
+    _deserialize(data: any): void {
         this._uuid = data.uuid;
         this._identifier = data.identifier;
         this._name = data.name;
@@ -145,7 +159,7 @@ Wick.Base = class {
         }
     }
 
-    _cacheSerializeData(data) {
+    _cacheSerializeData(data: any): void {
         this._cachedSerializeData = data;
         this.needsAutosave = false;
     }
@@ -154,7 +168,7 @@ Wick.Base = class {
      * Returns a copy of a Wick Base object.
      * @return {Wick.Base} The object resulting from the copy
      */
-    copy() {
+    copy(): any {
         var data = this.serialize();
         data.uuid = uuidv4();
         var copy = Wick.Base.fromData(data);
@@ -174,7 +188,7 @@ Wick.Base = class {
      * Use this to copy entire Wick.Base objects between projects, and to export individual Clips as files.
      * @returns {object} The exported data.
      */
-    export () {
+    export(): any {
         var copy = this.copy();
         copy._project = this.project;
 
@@ -187,7 +201,7 @@ Wick.Base = class {
         });
 
         // assets
-        var assets = [];
+        var assets: any[] = [];
         copy.getChildrenRecursive().concat(copy).forEach(child => {
             child._project = copy._project;
             child.getLinkedAssets().forEach(asset => {
@@ -206,15 +220,13 @@ Wick.Base = class {
      * Import data created using Wick.Base.export().
      * @param {object} exportData - an object created from Wick.Base.export().
      */
-    static
-    import (exportData, project) {
+    static import(exportData: any, project: any): any {
         if (!exportData) console.error('Wick.Base.import(): exportData is required');
         if (!exportData.object) console.error('Wick.Base.import(): exportData is missing data');
         if (!exportData.children) console.error('Wick.Base.import(): exportData is missing data');
 
-
         // Import assets first in case the objects need them!
-        exportData.assets.forEach(assetData => {
+        exportData.assets.forEach((assetData: any) => {
             // Don't import assets if they exist in the project already
             // (Assets only get reimported when objects are pasted between projects)
             if (project.getAssetByUUID(assetData.uuid)) {
@@ -228,7 +240,7 @@ Wick.Base = class {
         var object = Wick.Base.fromData(exportData.object, project);
 
         // Import children as well
-        exportData.children.forEach(childData => {
+        exportData.children.forEach((childData: any) => {
             // Only need to call deserialize here, we just want the object to get added to ObjectCache
             var child = Wick.Base.fromData(childData, project);
         });
@@ -240,7 +252,7 @@ Wick.Base = class {
      * Marks the object as possibly changed, so that next time autosave happens, this object is written to the save.
      * @type {boolean}
      */
-    set needsAutosave(needsAutosave) {
+    set needsAutosave(needsAutosave: boolean) {
         if (needsAutosave) {
             Wick.ObjectCache.markObjectToBeAutosaved(this);
         } else {
@@ -248,7 +260,7 @@ Wick.Base = class {
         }
     }
 
-    get needsAutosave() {
+    get needsAutosave(): boolean {
         return Wick.ObjectCache.objectNeedsAutosave(this);
     }
 
@@ -257,20 +269,19 @@ Wick.Base = class {
      * This is a temprary variable.
      * @type {boolean}
      */
-    get removed () {
+    get removed(): boolean {
         return typeof this._removed === 'undefined' ? false : this._removed;
     }
 
-    set removed (bool) {
+    set removed(bool: boolean) {
         this._removed = bool; 
     }
-
 
     /**
      * Returns the classname of a Wick Base object.
      * @type {string}
      */
-    get classname() {
+    get classname(): string {
         return 'Base';
     }
 
@@ -278,7 +289,7 @@ Wick.Base = class {
      * A marker if this object is temporary. Meaning it 
      * should be garbage collected after a play.
      */
-    get temporary() {
+    get temporary(): boolean {
         return this._temporary;
     }
 
@@ -286,7 +297,7 @@ Wick.Base = class {
      * The uuid of a Wick Base object.
      * @type {string}
      */
-    get uuid() {
+    get uuid(): string {
         return this._uuid;
     }
 
@@ -294,7 +305,7 @@ Wick.Base = class {
      * Changes an object's uuid. This function should not be used consistently, as it creates an entire copy of the object
      * in the object cache. Avoid using this if possile.
      */
-    set uuid(uuid) {
+    set uuid(uuid: string) {
         this._uuid = uuid;
         Wick.ObjectCache.addObject(this);
     }
@@ -303,11 +314,11 @@ Wick.Base = class {
      * The name of the object that is used to access the object through scripts. Must be a valid JS variable name.
      * @type {string}
      */
-    get identifier() {
+    get identifier(): string | null {
         return this._identifier;
     }
 
-    set identifier(identifier) {
+    set identifier(identifier: string | null) {
         // Treat empty string identifier as null
         if (identifier === '' || identifier === null) {
             this._identifier = null;
@@ -337,11 +348,11 @@ Wick.Base = class {
      * The name of the object.
      * @type {string}
      */
-    get name() {
+    get name(): string | null {
         return this._name;
     }
 
-    set name(name) {
+    set name(name: string | null) {
         if (typeof name !== 'string') return;
         if (name === '') this._name = null;
         this._name = name;
@@ -350,11 +361,11 @@ Wick.Base = class {
     /**
      * The Wick.View object that is used for rendering this object on the canvas.
      */
-    get view() {
+    get view(): any {
         return this._view;
     }
 
-    set view(view) {
+    set view(view: any) {
         if (view) view.model = this;
         this._view = view;
     }
@@ -362,11 +373,11 @@ Wick.Base = class {
     /**
      * The object that is used for rendering this object in the timeline GUI.
      */
-    get guiElement() {
+    get guiElement(): any {
         return this._guiElement;
     }
 
-    set guiElement(guiElement) {
+    set guiElement(guiElement: any) {
         if (guiElement) guiElement.model = this;
         this._guiElement = guiElement;
     }
@@ -375,7 +386,7 @@ Wick.Base = class {
      * Returns a single child of this object with a given classname.
      * @param {string} classname - the classname to use
      */
-    getChild(classname) {
+    getChild(classname: string): any {
         return this.getChildren(classname)[0];
     }
 
@@ -383,7 +394,7 @@ Wick.Base = class {
      * Gets all children with a given classname(s).
      * @param {Array|string} classname - (optional) A string, or list of strings, of classnames.
      */
-    getChildren(classname) {
+    getChildren(classname?: string | string[]): any[] {
         // Lazily generate children list from serialized data
         if (this._childrenData) {
             this._childrenData.forEach(uuid => {
@@ -394,7 +405,7 @@ Wick.Base = class {
 
         if (classname instanceof Array) {
             let classNames = new Set(classname);
-            var children = [];
+            var children: any[] = [];
 
             if (this._children !== undefined) {
                 children = this._children.filter(child => classNames.has(child.classname));
@@ -415,7 +426,7 @@ Wick.Base = class {
      * Get an array of all children of this object, and the children of those children, recursively.
      * @type {Wick.Base[]}
      */
-    getChildrenRecursive(level, original) {
+    getChildrenRecursive(level?: number, original?: any): any[] {
         var children = this.getChildren();
 
         this.getChildren().forEach(child => {
@@ -429,7 +440,7 @@ Wick.Base = class {
      * The parent of this object.
      * @type {Wick.Base}
      */
-    get parent() {
+    get parent(): any {
         return this._parent;
     }
 
@@ -437,7 +448,7 @@ Wick.Base = class {
      * The parent Clip of this object.
      * @type {Wick.Clip}
      */
-    get parentClip() {
+    get parentClip(): any {
         return this._getParentByClassName('Clip');
     }
 
@@ -445,7 +456,7 @@ Wick.Base = class {
      * The parent Layer of this object.
      * @type {Wick.Layer}
      */
-    get parentLayer() {
+    get parentLayer(): any {
         return this._getParentByClassName('Layer');
     }
 
@@ -453,7 +464,7 @@ Wick.Base = class {
      * The parent Frame of this object.
      * @type {Wick.Frame}
      */
-    get parentFrame() {
+    get parentFrame(): any {
         return this._getParentByClassName('Frame');
     }
 
@@ -461,7 +472,7 @@ Wick.Base = class {
      * The parent Timeline of this object.
      * @type {Wick.Timeline}
      */
-    get parentTimeline() {
+    get parentTimeline(): any {
         return this._getParentByClassName('Timeline');
     }
 
@@ -469,7 +480,7 @@ Wick.Base = class {
      * The project that this object belongs to. Can be null if the object is not in a project.
      * @type {Wick.Project}
      */
-    get project() {
+    get project(): any {
         if (this._project) {
             return this._project;
         } else if (this.parent) {
@@ -483,7 +494,7 @@ Wick.Base = class {
      * Check if an object is selected or not.
      * @type {boolean}
      */
-    get isSelected() {
+    get isSelected(): boolean {
         if (!this.project) return false;
         return this.project.selection.isObjectSelected(this);
     }
@@ -492,7 +503,7 @@ Wick.Base = class {
      * Add a child to this object.
      * @param {Wick.Base} child - the child to add.
      */
-    addChild(child) {
+    addChild(child: any): void {
         var classname = child.classname;
 
         if (!this._children) {
@@ -519,7 +530,7 @@ Wick.Base = class {
      * @param {number} index - where to add the child
      * @returns {boolean} - true if an item before index was moved
      */
-    insertChild(child, index) {
+    insertChild(child: any, index: number): boolean {
         var classname = child.classname;
 
         if (child._parent === this) {
@@ -552,7 +563,7 @@ Wick.Base = class {
      * Remove a child from this object.
      * @param {Wick.Base} child - the child to remove.
      */
-    removeChild(child) {
+    removeChild(child: any): void {
         if (!this._children) {
             return;
         }
@@ -569,12 +580,12 @@ Wick.Base = class {
      * Assets attached to this object.
      * @returns {Wick.Base[]}
      */
-    getLinkedAssets () {
+    getLinkedAssets(): any[] {
         // Implemented by Wick.Frame and Wick.Clip
         return [];
     }
 
-    _generateView() {
+    _generateView(): any {
         var viewClass = Wick.View[this.classname];
         if (viewClass) {
             return new viewClass(this);
@@ -583,7 +594,7 @@ Wick.Base = class {
         }
     }
 
-    _generateGUIElement() {
+    _generateGUIElement(): any {
         var guiElementClass = Wick.GUIElement[this.classname];
         if (guiElementClass && guiElementClass !== Wick.Button) {
             return new guiElementClass(this);
@@ -592,7 +603,7 @@ Wick.Base = class {
         }
     }
 
-    _getParentByClassName(classname) {
+    _getParentByClassName(classname: string): any {
         if (!this.parent) return null;
 
         if (this.parent instanceof Wick[classname]) {
@@ -603,7 +614,7 @@ Wick.Base = class {
         }
     }
 
-    _setProject(project) {
+    _setProject(project: any): void {
         this._project = project;
         this.getChildren().forEach(child => {
             if (child instanceof Wick.Base) {
@@ -612,7 +623,7 @@ Wick.Base = class {
         });
     }
 
-    _getUniqueIdentifier(identifier) {
+    _getUniqueIdentifier(identifier: string): string {
         if (!this.parent) return identifier;
 
         var otherIdentifiers = this.parent.getChildren(['Clip', 'Frame', 'Button']).filter(child => {
@@ -628,7 +639,7 @@ Wick.Base = class {
         }
     }
 
-    _identifierNameExistsInWindowContext(identifier) {
+    _identifierNameExistsInWindowContext(identifier: string): boolean {
         if (window[identifier]) {
             return true;
         } else {
@@ -636,7 +647,7 @@ Wick.Base = class {
         }
     }
 
-    _identiferNameIsPartOfWickAPI(identifier) {
+    _identiferNameIsPartOfWickAPI(identifier: string): boolean {
         var globalAPI = new GlobalAPI(this);
         if (globalAPI[identifier]) {
             return true;

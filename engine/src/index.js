@@ -50,7 +50,7 @@ import "./export/html/HTMLPreview.js";
 import "./export/svg/SvgFile.js";
 import "./export/image/ImageSequence.js";
 import "./export/zip/ZIPExport.js";
-import "./base/Base.js";
+import "./base/Base.ts";
 import "./base/Layer.ts";
 import "./base/Project.js";
 import "./base/Selection.ts";
