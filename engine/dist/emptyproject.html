@@ -88,7 +88,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.24.11.52.30";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.24.13.22.44";
   (function() {
 
     var _a;
@@ -38227,7 +38227,7 @@
       }
     };
     Wick.AutoSave.ENABLE_PERF_TIMERS = false;
-    Wick.WickFile = class {
+    class WickFile {
       /**
        * Generate some metadata for debugging wick projects.
        * @returns {object}
@@ -38253,156 +38253,45 @@
       }
       /**
        * Create a project from a wick file.
-       * @param {File} wickFile - Wick file containing project data.
-       * @param {function} callback - Function called when the project is created.
-       * @param {string} format - The format to return. Can be 'blob' or 'base64'.
+       * @param {Blob | string} wickFile - Wick file containing project data (can be a Blob or a dataURL string)
+       * @param {function} callback - Function called when the project is done being loaded
        */
-      static fromWickFile(wickFile, callback, format) {
-        if (!format) {
-          format = "blob";
+      static fromWickFile(wickFile, callback) {
+        if (typeof wickFile === "string") {
+          wickFile = Wick.ExportUtils.dataURItoBlob(wickFile);
         }
-        if (format !== "blob" && format !== "base64") {
-          console.error("WickFile.toWickFile: invalid format: " + format);
-          return;
-        }
-        var zip = new JSZip();
-        zip.loadAsync(wickFile, { base64: format === "base64" }).then((contents) => {
-          contents.files["project.json"].async("text").then((projectJSON) => {
-            var projectData = JSON.parse(projectJSON);
-            if (!projectData.objects) {
-              console.log("Wick.WickFile: Converting old project format.");
-              projectData = Wick.WickFile.Alpha.convertJsonProject(projectData);
-            }
-            projectData.assets = [];
-            for (var uuid2 in projectData.objects) {
-              var data = projectData.objects[uuid2];
-              var object = Wick.Base.fromData(data);
-              Wick.ObjectCache.addObject(object);
-            }
-            var project2 = Wick.Base.fromData(projectData.project);
-            Wick.ObjectCache.addObject(project2);
-            var loadedAssetCount = 0;
-            let corruptedFiles = [];
-            if (project2.getAssets().length === 0) {
-              this._prepareProject(project2);
-              callback(project2);
-            } else {
-              let allAssets = project2.getAssets().concat([]);
-              allAssets.forEach((assetData) => {
-                var assetFile = contents.files["assets/" + assetData.uuid + "." + assetData.fileExtension];
-                var checkProjectLoad = () => {
-                  loadedAssetCount++;
-                  if (loadedAssetCount === allAssets.length) {
-                    project2.errorOccured && corruptedFiles.length > 0 && project2.errorOccured("Corrupted Files Were Deleted: " + corruptedFiles);
-                    this._prepareProject(project2);
-                    callback(project2);
-                  }
-                };
-                if (!assetFile) {
-                  assetData.removeAllInstances();
-                  project2.removeAsset(assetData);
-                  corruptedFiles.push(assetData.filename);
-                  checkProjectLoad();
-                  return;
-                }
-                assetFile.async("base64").then((assetFileData) => {
-                  var assetSrc = "data:" + assetData.MIMEType + ";base64," + assetFileData;
-                  Wick.FileCache.addFile(assetSrc, assetData.uuid);
-                }).catch((e) => {
-                  console.log("Error loading asset file.");
-                  console.log(e);
-                  callback(null);
-                }).finally(() => {
-                  assetData.load(() => {
-                    checkProjectLoad();
-                  });
-                });
-              });
-            }
-          });
-        }).catch((e) => {
-          console.log("Error loading project zip.");
-          console.log(e);
-          callback(null);
-        });
+        var fr = new FileReader();
+        fr.onload = function() {
+          callback(fr.result);
+        };
+        fr.readAsText(wickFile);
       }
       /**
        * Create a wick file from the project.
        * @param {Wick.Project} project - the project to create a wick file from
-       * @param {function} callback - Function called when the file is created. Contains the file as a parameter.
-       * @param {string} format - The format to return. Can be 'blob' or 'base64'.
+       * @param {function(string)} onError - Can be 'blob' or 'dataurl'.
+       * @param {function(blob)} callback - function to call when done
+       * @returns {Blob}
        */
-      static toWickFile(project2, callback, format) {
-        if (!format) {
-          format = "blob";
-        }
-        if (format !== "blob" && format !== "base64") {
-          console.error("WickFile.toWickFile: invalid format: " + format);
-          return;
-        }
-        var zip = new JSZip();
-        var assetsFolder = zip.folder("assets");
-        project2.getAssets().filter((asset) => {
-          return asset instanceof Wick.ImageAsset || asset instanceof Wick.SoundAsset || asset instanceof Wick.FontAsset || asset instanceof Wick.ClipAsset || asset instanceof Wick.SVGAsset;
-        }).forEach((asset) => {
-          var fileExtension = asset.MIMEType.split("/")[1];
-          var filename = asset.uuid;
-          var data = asset.src.split(",")[1];
-          assetsFolder.file(filename + "." + fileExtension, data, { base64: true });
-        });
-        var objectCacheSerialized = {};
-        Wick.ObjectCache.getActiveObjects(project2).forEach((object2) => {
-          objectCacheSerialized[object2.uuid] = object2.serialize();
-        });
-        var projectSerialized = project2.serialize();
-        for (var uuid2 in objectCacheSerialized) {
-          if (objectCacheSerialized[uuid2].classname === "Project") {
-            delete objectCacheSerialized[uuid2];
-          }
-        }
-        for (var uuid2 in objectCacheSerialized) {
-          var object = objectCacheSerialized[uuid2];
-          if (object.classname === "Selection") {
-            object.selectedObjects = [];
-          }
-        }
-        for (var uuid2 in objectCacheSerialized) {
-          var object = objectCacheSerialized[uuid2];
-          if (projectSerialized.children.indexOf(uuid2) !== -1 && object.classname === "Clip") {
-            projectSerialized.focus = uuid2;
-          }
-        }
-        for (var uuid2 in objectCacheSerialized) {
-          var object = objectCacheSerialized[uuid2];
-          if (object.classname === "Timeline") {
-            object.playheadPosition = 1;
-          }
-        }
-        var projectData = {
-          project: projectSerialized,
-          objects: objectCacheSerialized
+      static toWickFile(project2, callback, format = "blob") {
+        var wickFileData = {
+          project: project2.serialize(),
+          metadata: Wick.WickFile.generateMetaData()
         };
-        zip.file("project.json", JSON.stringify(projectData, null, 2));
-        zip.generateAsync({
-          type: format,
-          compression: "DEFLATE",
-          compressionOptions: {
-            level: 9
-          }
-        }).then(callback);
+        var wickFileString = JSON.stringify(wickFileData);
+        var wickFileBlob = new Blob([wickFileString], { type: "application/json" });
+        if (format === "dataurl") {
+          var fr = new FileReader();
+          fr.onload = function() {
+            callback(fr.result);
+          };
+          fr.readAsDataURL(wickFileBlob);
+        } else {
+          callback(wickFileBlob);
+        }
       }
-      /* Make any small backwards compatibility fixes needed */
-      static _prepareProject(project2) {
-        Wick.ObjectCache.getAllObjects().filter((object) => {
-          return object instanceof Wick.Timeline;
-        }).forEach((timeline) => {
-          var oldFrameGapFillMethod = timeline.fillGapsMethod;
-          timeline.fillGapsMethod = "blank_frames";
-          timeline.resolveFrameGaps();
-          timeline.fillGapsMethod = oldFrameGapFillMethod;
-        });
-      }
-    };
+    }
+    Wick.WickFile = WickFile;
     Wick.WickFile.Alpha = class {
       /**
        * Convert the old recursive format to the new flat format.

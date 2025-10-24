@@ -42,7 +42,7 @@ import "./builtinassets/BuiltinAssets.js";
 import "./export/ExportUtils.ts";
 import "./export/audio/AudioTrack.js";
 import "./export/autosave/AutoSave.js";
-import "./export/wick/WickFile.js";
+import "./export/wick/WickFile.ts";
 import "./export/wick/WickFile.Alpha.js";
 import "./export/wickobj/WickObjectFile.js";
 import "./export/html/HTMLExport.ts";
