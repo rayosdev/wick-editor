@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.25.22.49.55";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.26.16.37.32";
   (function() {
 
     var _a;
@@ -35826,7 +35826,7 @@
     new AudioContext();
     var Tween = { exports: {} };
     (function(module2, exports2) {
-      var TWEEN2 = TWEEN2 || /* @__PURE__ */ function() {
+      var TWEEN = TWEEN || /* @__PURE__ */ function() {
         var _tweens = [];
         return {
           getAll: function() {
@@ -35849,7 +35849,7 @@
               return false;
             }
             var i = 0;
-            time = time !== void 0 ? time : TWEEN2.now();
+            time = time !== void 0 ? time : TWEEN.now();
             while (i < _tweens.length) {
               if (_tweens[i].update(time) || preserve) {
                 i++;
@@ -35862,20 +35862,20 @@
         };
       }();
       if (typeof window === "undefined" && typeof process !== "undefined") {
-        TWEEN2.now = function() {
+        TWEEN.now = function() {
           var time = process.hrtime();
           return time[0] * 1e3 + time[1] / 1e6;
         };
       } else if (typeof window !== "undefined" && window.performance !== void 0 && window.performance.now !== void 0) {
-        TWEEN2.now = window.performance.now.bind(window.performance);
+        TWEEN.now = window.performance.now.bind(window.performance);
       } else if (Date.now !== void 0) {
-        TWEEN2.now = Date.now;
+        TWEEN.now = Date.now;
       } else {
-        TWEEN2.now = function() {
+        TWEEN.now = function() {
           return (/* @__PURE__ */ new Date()).getTime();
         };
       }
-      TWEEN2.Tween = function(object) {
+      TWEEN.Tween = function(object) {
         var _object = object;
         var _valuesStart = {};
         var _valuesEnd = {};
@@ -35887,8 +35887,8 @@
         var _isPlaying = false;
         var _delayTime = 0;
         var _startTime = null;
-        var _easingFunction = TWEEN2.Easing.Linear.None;
-        var _interpolationFunction = TWEEN2.Interpolation.Linear;
+        var _easingFunction = TWEEN.Easing.Linear.None;
+        var _interpolationFunction = TWEEN.Interpolation.Linear;
         var _chainedTweens = [];
         var _onStartCallback = null;
         var _onStartCallbackFired = false;
@@ -35903,10 +35903,10 @@
           return this;
         };
         this.start = function(time) {
-          TWEEN2.add(this);
+          TWEEN.add(this);
           _isPlaying = true;
           _onStartCallbackFired = false;
-          _startTime = time !== void 0 ? time : TWEEN2.now();
+          _startTime = time !== void 0 ? time : TWEEN.now();
           _startTime += _delayTime;
           for (var property in _valuesEnd) {
             if (_valuesEnd[property] instanceof Array) {
@@ -35930,7 +35930,7 @@
           if (!_isPlaying) {
             return this;
           }
-          TWEEN2.remove(this);
+          TWEEN.remove(this);
           _isPlaying = false;
           if (_onStopCallback !== null) {
             _onStopCallback.call(_object, _object);
@@ -36066,7 +36066,7 @@
           return true;
         };
       };
-      TWEEN2.Easing = {
+      TWEEN.Easing = {
         Linear: {
           None: function(k) {
             return k;
@@ -36225,7 +36225,7 @@
         },
         Bounce: {
           In: function(k) {
-            return 1 - TWEEN2.Easing.Bounce.Out(1 - k);
+            return 1 - TWEEN.Easing.Bounce.Out(1 - k);
           },
           Out: function(k) {
             if (k < 1 / 2.75) {
@@ -36240,18 +36240,18 @@
           },
           InOut: function(k) {
             if (k < 0.5) {
-              return TWEEN2.Easing.Bounce.In(k * 2) * 0.5;
+              return TWEEN.Easing.Bounce.In(k * 2) * 0.5;
             }
-            return TWEEN2.Easing.Bounce.Out(k * 2 - 1) * 0.5 + 0.5;
+            return TWEEN.Easing.Bounce.Out(k * 2 - 1) * 0.5 + 0.5;
           }
         }
       };
-      TWEEN2.Interpolation = {
+      TWEEN.Interpolation = {
         Linear: function(v, k) {
           var m = v.length - 1;
           var f = m * k;
           var i = Math.floor(f);
-          var fn = TWEEN2.Interpolation.Utils.Linear;
+          var fn = TWEEN.Interpolation.Utils.Linear;
           if (k < 0) {
             return fn(v[0], v[1], f);
           }
@@ -36264,7 +36264,7 @@
           var b = 0;
           var n = v.length - 1;
           var pw = Math.pow;
-          var bn = TWEEN2.Interpolation.Utils.Bernstein;
+          var bn = TWEEN.Interpolation.Utils.Bernstein;
           for (var i = 0; i <= n; i++) {
             b += pw(1 - k, n - i) * pw(k, i) * v[i] * bn(n, i);
           }
@@ -36274,7 +36274,7 @@
           var m = v.length - 1;
           var f = m * k;
           var i = Math.floor(f);
-          var fn = TWEEN2.Interpolation.Utils.CatmullRom;
+          var fn = TWEEN.Interpolation.Utils.CatmullRom;
           if (v[0] === v[m]) {
             if (k < 0) {
               i = Math.floor(f = m * (1 + k));
@@ -36295,7 +36295,7 @@
             return (p1 - p0) * t + p0;
           },
           Bernstein: function(n, i) {
-            var fc = TWEEN2.Interpolation.Utils.Factorial;
+            var fc = TWEEN.Interpolation.Utils.Factorial;
             return fc(n) / fc(i) / fc(n - i);
           },
           Factorial: /* @__PURE__ */ function() {
@@ -36323,7 +36323,7 @@
       };
       (function(root) {
         {
-          module2.exports = TWEEN2;
+          module2.exports = TWEEN;
         }
       })();
     })(Tween);
@@ -42229,6 +42229,9 @@
         });
       }
     };
+    function lerp(value1, value2, percentage) {
+      return value1 + (value2 - value1) * percentage;
+    }
     Wick.Tween = class extends Wick.Base {
       static get VALID_EASING_TYPES() {
         return ["none", "in", "out", "in-out"];
@@ -42379,6 +42382,11 @@
       }
       /* retrieve Tween.js easing functions by name */
       _getTweenFunction() {
+        if (typeof window.TWEEN === "undefined") {
+          console.warn("TWEEN library not loaded. Using linear easing as fallback.");
+          return (t) => t;
+        }
+        const TWEEN = window.TWEEN;
         return {
           "none": TWEEN.Easing.Linear.None,
           "in": TWEEN.Easing.Quadratic.In,

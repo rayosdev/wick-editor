@@ -17,6 +17,18 @@
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// Declare TWEEN global for TypeScript
+declare global {
+    interface Window {
+        TWEEN: any;
+    }
+}
+
+// Local lerp function for interpolation
+function lerp(value1: number, value2: number, percentage: number): number {
+    return value1 + ((value2 - value1) * percentage);
+}
+
 /**
  * Class representing a tween.
  */
@@ -217,6 +229,13 @@ Wick.Tween = class extends Wick.Base {
 
      /* retrieve Tween.js easing functions by name */
     _getTweenFunction(): (t: number) => number {
+        // Ensure TWEEN is available globally
+        if (typeof (window as any).TWEEN === 'undefined') {
+            console.warn('TWEEN library not loaded. Using linear easing as fallback.');
+            return (t: number) => t; // Linear fallback
+        }
+        
+        const TWEEN = (window as any).TWEEN;
         return {
             'none': TWEEN.Easing.Linear.None,
             'in': TWEEN.Easing.Quadratic.In,

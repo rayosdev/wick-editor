@@ -1,5 +1,22 @@
+interface FontInfo {
+  [fontName: string]: {
+    [variant: string]: string[];
+  };
+}
+
+interface FontFileArgs {
+  font: string;
+  variant?: string;
+  weight?: string;
+  callback?: (data: Blob) => void;
+  error?: (error: any) => void;
+}
+
 class FontInfoInterface extends Object {
-  constructor(editor) {
+  private _allFontInfo: FontInfo;
+  private editor: any;
+
+  constructor(editor: any) {
     super();
     this._allFontInfo = {};
 
@@ -8,19 +25,19 @@ class FontInfoInterface extends Object {
     this.editor = editor;
   }
 
-  _getAllFontInfo = () => {
+  _getAllFontInfo = (): void => {
     fetch(import.meta.env.BASE_URL + "fonts/fontList.json")
       .then((response) => response.json())
-      .then((data) => {
+      .then((data: FontInfo) => {
         this.allFontInfo = data;
       });
   };
 
-  get allFontInfo() {
+  get allFontInfo(): FontInfo {
     return this._allFontInfo;
   }
 
-  set allFontInfo(info) {
+  set allFontInfo(info: FontInfo) {
     this._allFontInfo = info;
   }
 
@@ -28,10 +45,10 @@ class FontInfoInterface extends Object {
    * Returns all font names with existing fonts at the front of the array.
    * @returns {string[]} fonts that currently exist in the project.
    */
-  get allFontNames() {
+  get allFontNames(): string[] {
     let existingFonts = this.editor.getExistingFonts();
 
-    existingFonts = existingFonts.sort(function (a, b) {
+    existingFonts = existingFonts.sort(function (a: string, b: string) {
       return a.localeCompare(b);
     });
 
@@ -39,7 +56,7 @@ class FontInfoInterface extends Object {
 
     // Remove existing fonts from the list.
     existingFonts.forEach((font) => {
-      var index = loadableFonts.indexOf(font);
+      const index = loadableFonts.indexOf(font);
       if (index > -1) {
         loadableFonts.splice(index, 1);
       }
@@ -53,7 +70,7 @@ class FontInfoInterface extends Object {
    * @param {string} font font name
    * @returns {Object|undefined} object containing variant information. Returns undefined if font is not in the font list.
    */
-  fontInfo(font) {
+  fontInfo(font: string): { [variant: string]: string[] } | undefined {
     return this.allFontInfo[font];
   }
 
@@ -62,24 +79,26 @@ class FontInfoInterface extends Object {
    * @param {string} font font name
    * @returns {string[]} Font variants
    */
-  fontVariants(font) {
-    return Object.keys(this.fontInfo(font));
+  fontVariants(font: string): string[] {
+    const info = this.fontInfo(font);
+    return info ? Object.keys(info) : [];
   }
 
   /**
    * Returns the font weights available for a particular variant.
    * @param {string} font font name
-   * @param {*} variant variant name
+   * @param {string} variant variant name
    * @returns {string[]|undefined} returns a list of weights. returns undefined if the font or variant does not exist.
    */
-  fontWeightsByVariant(font, variant) {
-    return this.fontInfo(font)[variant];
+  fontWeightsByVariant(font: string, variant: string): string[] | undefined {
+    const info = this.fontInfo(font);
+    return info ? info[variant] : undefined;
   }
 
   /**
    * Returns true if the given font is already loaded by the project.
    */
-  hasFont(font) {
+  hasFont(font: string): boolean {
     if (this.editor.hasFont) {
       return this.editor.hasFont(font);
     }
@@ -89,7 +108,7 @@ class FontInfoInterface extends Object {
   /**
    * Returns a list of all existing fonts.
    */
-  getExistingFonts() {
+  getExistingFonts(): string[] {
     if (this.editor.getExistingFonts) {
       return this.editor.getExistingFonts();
     }
@@ -99,33 +118,33 @@ class FontInfoInterface extends Object {
   /**
    * Returns true if the given font exists in the project.
    */
-  isExistingFont(font) {
+  isExistingFont(font: string): boolean {
     return this.getExistingFonts().indexOf(font) > -1;
   }
 
   /**
    * Returns the font file as a blob.
    */
-  getFontFile(args) {
+  getFontFile(args: FontFileArgs): void {
     if (!args.font) {
       console.error("No font supplied to getFontFile");
       return;
     }
 
-    let font = args.font;
-    let variant = args.variant || "regular";
-    let weight = args.weight || "";
+    const font = args.font;
+    const variant = args.variant || "regular";
+    const weight = args.weight || "";
 
-    let folderName = font + "/";
-    let fontFileName = font + "_" + weight + variant + ".ttf";
+    const folderName = font + "/";
+    const fontFileName = font + "_" + weight + variant + ".ttf";
 
     fetch(import.meta.env.BASE_URL + "fonts/" + folderName + fontFileName)
       .then((response) => response.blob())
-      .then((data) => {
-        data.hasFont = false;
+      .then((data: Blob) => {
+        (data as any).hasFont = false;
         if (args.callback) args.callback(data);
       })
-      .catch((error) => {
+      .catch((error: any) => {
         if (args.error) args.error(error);
       });
   }
