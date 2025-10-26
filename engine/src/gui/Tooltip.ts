@@ -18,54 +18,48 @@
  */
 
 Wick.GUIElement.Tooltip = class extends Wick.GUIElement {
-    constructor (model, label) {
+    private label: string;
+
+    constructor(model: Wick.Base, label: string) {
         super(model);
 
         this.label = label;
-    };
+    }
 
-    draw (x, y) {
+    draw(x: number, y: number): void {
         super.draw();
 
         // No label was given yet - don't render.
-        if(!this.label) return;
+        if (!this.label) return;
 
-        var ctx = this.ctx;
+        const ctx = this.ctx;
 
         // Font settings
         ctx.font = "14px Nunito Sans";
-        var textContent = this.label;
-        var textWidth = ctx.measureText(textContent).width;
-        var textHeight = 14;
+        const textContent = this.label;
+        const textWidth = ctx.measureText(textContent).width;
+        const textHeight = 14;
 
         // Tooltip
         ctx.save();
-        var tx = x - textWidth/2;
-        var ty = y + textHeight;
+        let tx = x - textWidth / 2;
+        let ty = y + textHeight;
 
         // Restrict tooltip so it's always on-screen
-        var xMin = 3;
-        if(tx < xMin) tx = xMin;
+        const xMin = 3;
+        if (tx < xMin) tx = xMin;
 
-        if(ty > this.canvas.height) {
-            ty = this.canvas.height - 35
-        } else if (ty > this.canvas.height - 25) {
-            ty = this.canvas.height - 20;
+        if (ty > this.canvas.height) {
+            ty = y - textHeight;
         }
 
-        ctx.translate(tx, ty);
+        // Background
+        ctx.fillStyle = "#333333";
+        ctx.fillRect(tx - 3, ty - textHeight - 3, textWidth + 6, textHeight + 6);
 
-            // Body
-            var margin = 4;
-            var r = Wick.GUIElement.FRAME_BORDER_RADIUS
-            ctx.fillStyle = '#3878AF';
-            ctx.beginPath();
-            ctx.roundRect(-margin/2, -margin/2, textWidth+margin, textHeight+margin, r);
-            ctx.fill();
-
-            // Label text
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillText(textContent, 0, 12);
+        // Text
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(textContent, tx, ty);
 
         ctx.restore();
     }

@@ -17,15 +17,23 @@
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+interface GridPosition {
+    x: number;
+    y: number;
+}
+
 Wick.GUIElement.SelectionBox = class extends Wick.GUIElement.Ghost {
-    constructor (model) {
+    public gridStart: GridPosition;
+    public gridEnd: GridPosition;
+
+    constructor(model: Wick.Base) {
         super(model);
     }
 
-    draw () {
+    draw(): void {
         super.draw();
 
-        var ctx = this.ctx;
+        const ctx = this.ctx;
 
         // Draw selection box (using mouse position - this is drawn just so it feels more responsive)
         // (Disabled for now - didn't look good.)
@@ -52,14 +60,14 @@ Wick.GUIElement.SelectionBox = class extends Wick.GUIElement.Ghost {
 
         // Make sure min is always less than max
         // (This makes calculating bounds and finding items contained within the selection box easier)
-        if(this.gridStart.x > this.gridEnd.x) {
-            var temp = this.gridEnd.x;
+        if (this.gridStart.x > this.gridEnd.x) {
+            const temp = this.gridEnd.x;
             this.gridEnd.x = this.gridStart.x;
             this.gridStart.x = temp;
         }
 
-        if(this.gridStart.y > this.gridEnd.y) {
-            var temp = this.gridEnd.y;
+        if (this.gridStart.y > this.gridEnd.y) {
+            const temp = this.gridEnd.y;
             this.gridEnd.y = this.gridStart.y;
             this.gridStart.y = temp;
         }
@@ -78,14 +86,14 @@ Wick.GUIElement.SelectionBox = class extends Wick.GUIElement.Ghost {
             Wick.GUIElement.FRAME_BORDER_RADIUS
         );
         ctx.stroke();
-        ctx.fill()
+        ctx.fill();
     }
 
-    finish () {
-        var playheadRangeStart = this.gridStart.x + 1;
-        var playheadRangeEnd = this.gridEnd.x + 1;
-        var layerRangeStart = this.gridStart.y;
-        var layerRangeEnd = this.gridEnd.y;
+    finish(): void {
+        const playheadRangeStart = this.gridStart.x + 1;
+        const playheadRangeEnd = this.gridEnd.x + 1;
+        const layerRangeStart = this.gridStart.y;
+        const layerRangeEnd = this.gridEnd.y;
 
         // Find all frames within selection box bounds and select them.
         this.model.getAllFrames().filter(frame => {
@@ -96,4 +104,4 @@ Wick.GUIElement.SelectionBox = class extends Wick.GUIElement.Ghost {
             frame.project.selection.select(frame);
         });
     }
-}
+};

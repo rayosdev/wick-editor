@@ -88,7 +88,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.26.16.37.32";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.26.18.44.48";
   (function() {
 
     var _a;
@@ -50254,15 +50254,15 @@
     Wick.GUIElement.Button = class extends Wick.GUIElement {
       /**
        * Create a new button.
-       * @param {Wick.Base} model - See Wick.GUIElement constructor
-       * @param {function} clickFn - The function to call when the button is clicked
-       * @param {string} tooltip - (Optional) The title of the tooltip
+       * @param model - See Wick.GUIElement constructor
+       * @param args - Button configuration options
        */
       constructor(model, args) {
         super(model);
         if (!args) args = {};
-        this._clickFn = args.clickFn;
-        this._tooltip = args.tooltip;
+        this._clickFn = args.clickFn || (() => {
+        });
+        this._tooltip = args.tooltip || "";
         this.tooltip = new Wick.GUIElement.Tooltip(this.model, this._tooltip);
         this.cursor = "pointer";
         this.lastPressed = 0;
@@ -50271,8 +50271,8 @@
         super.draw();
       }
       onMouseDown(e) {
-        let now = Date.now();
-        let timeSince = now - this.lastPressed;
+        const now = Date.now();
+        const timeSince = now - this.lastPressed;
         if (timeSince > 150) {
           this._clickFn(e);
           this.lastPressed = now;
@@ -50349,27 +50349,27 @@
     Wick.GUIElement.ActionButton = class extends Wick.GUIElement.Button {
       constructor(model, args) {
         super(model, args);
-        this.icon = args.icon;
-        this.width = args.width || Wick.GUIElement.ACTION_BUTTON_RADIUS;
-        this.height = args.height || Wick.GUIElement.ACTION_BUTTON_RADIUS;
-        this.toggled = args.toggled || false;
+        this.icon = (args == null ? void 0 : args.icon) || "";
+        this.width = (args == null ? void 0 : args.width) || Wick.GUIElement.ACTION_BUTTON_RADIUS;
+        this.height = (args == null ? void 0 : args.height) || Wick.GUIElement.ACTION_BUTTON_RADIUS;
+        this.toggled = (args == null ? void 0 : args.toggled) || false;
       }
       draw(isActive) {
         super.draw();
-        var ctx = this.ctx;
+        const ctx = this.ctx;
         if (isActive) {
           this.cursor = "pointer";
         } else {
           this.cursor = "default";
         }
-        if (isActive && this.mouseState == "over" || this.toggled) {
+        if (isActive && this.mouseState === "over" || this.toggled) {
           ctx.fillStyle = Wick.GUIElement.FRAME_HOVERED_OVER;
           ctx.beginPath();
           ctx.roundRect(-this.width, -this.height, this.width * 2, this.height * 2, 3);
           ctx.fill();
         }
-        var w = this.width * 0.8;
-        var h = this.height * 0.8;
+        const w = this.width * 0.8;
+        const h = this.height * 0.8;
         ctx.drawImage(Wick.GUIElement.Icons.getIcon(this.icon), -w, -h, w * 2, h * 2);
       }
       get bounds() {
@@ -52050,10 +52050,10 @@
       }
       draw() {
         super.draw();
-        var ctx = this.ctx;
+        const ctx = this.ctx;
         this.maxWidth = this.canvas.width - this.localTranslation.x - Wick.GUIElement.SCROLLBAR_SIZE;
         this.maxHeight = this.canvas.height - this.localTranslation.y - Wick.GUIElement.SCROLLBAR_SIZE;
-        var size = Wick.GUIElement.SCROLLBAR_SIZE;
+        const size = Wick.GUIElement.SCROLLBAR_SIZE;
         if (!this._canScrollVertically() && this.direction === "vertical") {
           this.project.scrollY = 0;
           return;
@@ -52073,7 +52073,7 @@
           ctx.fill();
         }
         ctx.save();
-        var pos = this._getScrollbarPosition();
+        const pos = this._getScrollbarPosition();
         if (this.direction === "horizontal") {
           ctx.translate(pos.x, 0);
         } else if (this.direction === "vertical") {
@@ -52153,7 +52153,7 @@
       }
       draw() {
         super.draw();
-        var ctx = this.ctx;
+        const ctx = this.ctx;
         this.gridStart = {
           x: Math.floor(this._mouseStart.x / this.gridCellWidth),
           y: Math.floor(this._mouseStart.y / this.gridCellHeight)
@@ -52163,12 +52163,12 @@
           y: Math.floor(this._mouseEnd.y / this.gridCellHeight)
         };
         if (this.gridStart.x > this.gridEnd.x) {
-          var temp = this.gridEnd.x;
+          const temp = this.gridEnd.x;
           this.gridEnd.x = this.gridStart.x;
           this.gridStart.x = temp;
         }
         if (this.gridStart.y > this.gridEnd.y) {
-          var temp = this.gridEnd.y;
+          const temp = this.gridEnd.y;
           this.gridEnd.y = this.gridStart.y;
           this.gridStart.y = temp;
         }
@@ -52188,10 +52188,10 @@
         ctx.fill();
       }
       finish() {
-        var playheadRangeStart = this.gridStart.x + 1;
-        var playheadRangeEnd = this.gridEnd.x + 1;
-        var layerRangeStart = this.gridStart.y;
-        var layerRangeEnd = this.gridEnd.y;
+        const playheadRangeStart = this.gridStart.x + 1;
+        const playheadRangeEnd = this.gridEnd.x + 1;
+        const layerRangeStart = this.gridStart.y;
+        const layerRangeEnd = this.gridEnd.y;
         this.model.getAllFrames().filter((frame) => {
           return frame.inRange(playheadRangeStart, playheadRangeEnd) && frame.parentLayer.index >= layerRangeStart && frame.parentLayer.index <= layerRangeEnd;
         }).forEach((frame) => {
@@ -52276,30 +52276,23 @@
       draw(x, y) {
         super.draw();
         if (!this.label) return;
-        var ctx = this.ctx;
+        const ctx = this.ctx;
         ctx.font = "14px Nunito Sans";
-        var textContent = this.label;
-        var textWidth = ctx.measureText(textContent).width;
-        var textHeight = 14;
+        const textContent = this.label;
+        const textWidth = ctx.measureText(textContent).width;
+        const textHeight = 14;
         ctx.save();
-        var tx = x - textWidth / 2;
-        var ty = y + textHeight;
-        var xMin = 3;
+        let tx = x - textWidth / 2;
+        let ty = y + textHeight;
+        const xMin = 3;
         if (tx < xMin) tx = xMin;
         if (ty > this.canvas.height) {
-          ty = this.canvas.height - 35;
-        } else if (ty > this.canvas.height - 25) {
-          ty = this.canvas.height - 20;
+          ty = y - textHeight;
         }
-        ctx.translate(tx, ty);
-        var margin = 4;
-        var r = Wick.GUIElement.FRAME_BORDER_RADIUS;
-        ctx.fillStyle = "#3878AF";
-        ctx.beginPath();
-        ctx.roundRect(-margin / 2, -margin / 2, textWidth + margin, textHeight + margin, r);
-        ctx.fill();
-        ctx.fillStyle = "#FFFFFF";
-        ctx.fillText(textContent, 0, 12);
+        ctx.fillStyle = "#333333";
+        ctx.fillRect(tx - 3, ty - textHeight - 3, textWidth + 6, textHeight + 6);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(textContent, tx, ty);
         ctx.restore();
       }
     };

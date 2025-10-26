@@ -17,24 +17,28 @@
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export class Button extends Wick.GUIElement {
-    private _clickFn: (e: any) => void;
+interface ButtonArgs {
+    clickFn?: (e: MouseEvent) => void;
+    tooltip?: string;
+}
+
+Wick.GUIElement.Button = class extends Wick.GUIElement {
+    private _clickFn: (e: MouseEvent) => void;
     private _tooltip: string;
-    tooltip: any;
-    lastPressed: number;
+    public tooltip: Wick.GUIElement.Tooltip;
+    public lastPressed: number;
 
     /**
      * Create a new button.
-     * @param {Wick.Base} model - See Wick.GUIElement constructor
-     * @param {function} clickFn - The function to call when the button is clicked
-     * @param {string} tooltip - (Optional) The title of the tooltip
+     * @param model - See Wick.GUIElement constructor
+     * @param args - Button configuration options
      */
-    constructor(model: any, args: any) {
+    constructor(model: Wick.Base, args?: ButtonArgs) {
         super(model);
 
         if (!args) args = {};
-        this._clickFn = args.clickFn;
-        this._tooltip = args.tooltip;
+        this._clickFn = args.clickFn || (() => {});
+        this._tooltip = args.tooltip || '';
 
         this.tooltip = new Wick.GUIElement.Tooltip(this.model, this._tooltip);
 
@@ -47,9 +51,9 @@ export class Button extends Wick.GUIElement {
         super.draw();
     }
 
-    onMouseDown(e: any): void {
-        let now = Date.now();
-        let timeSince = now - this.lastPressed;
+    onMouseDown(e: MouseEvent): void {
+        const now = Date.now();
+        const timeSince = now - this.lastPressed;
 
         // Require 100 ms between clicks.
         // This helps ensure that double events are not counted immediately.
@@ -58,7 +62,4 @@ export class Button extends Wick.GUIElement {
             this.lastPressed = now;
         }
     }
-}
-
-// Expose to global namespace
-Wick.GUIElement.Button = Button;
+};

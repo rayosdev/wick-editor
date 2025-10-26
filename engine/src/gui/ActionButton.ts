@@ -17,48 +17,69 @@
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+interface ActionButtonArgs {
+    clickFn?: (e: MouseEvent) => void;
+    tooltip?: string;
+    icon?: string;
+    width?: number;
+    height?: number;
+    toggled?: boolean;
+}
+
+interface Bounds {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
 Wick.GUIElement.ActionButton = class extends Wick.GUIElement.Button {
-    constructor (model, args) {
+    public icon: string;
+    public width: number;
+    public height: number;
+    public toggled: boolean;
+
+    constructor(model: Wick.Base, args?: ActionButtonArgs) {
         super(model, args);
 
-        this.icon = args.icon;
-        this.width = args.width || Wick.GUIElement.ACTION_BUTTON_RADIUS;
-        this.height = args.height || Wick.GUIElement.ACTION_BUTTON_RADIUS;
-        this.toggled = args.toggled || false;
-    };
+        this.icon = args?.icon || '';
+        this.width = args?.width || Wick.GUIElement.ACTION_BUTTON_RADIUS;
+        this.height = args?.height || Wick.GUIElement.ACTION_BUTTON_RADIUS;
+        this.toggled = args?.toggled || false;
+    }
 
-    draw (isActive) {
+    draw(isActive: boolean): void {
         super.draw();
 
-        var ctx = this.ctx;
+        const ctx = this.ctx;
 
         // Disable pointer cursor if the button isn't active
-        if(isActive) {
+        if (isActive) {
             this.cursor = 'pointer';
         } else {
             this.cursor = 'default';
         }
 
         // Button Circle
-        if ((isActive && this.mouseState == 'over') || this.toggled) {
+        if ((isActive && this.mouseState === 'over') || this.toggled) {
             ctx.fillStyle = Wick.GUIElement.FRAME_HOVERED_OVER;
             ctx.beginPath();
-            ctx.roundRect(-this.width, -this.height, this.width*2, this.height*2, 3);
+            ctx.roundRect(-this.width, -this.height, this.width * 2, this.height * 2, 3);
             ctx.fill();
         }
 
         // Button Icon
-        var w = this.width * 0.8;
-        var h = this.height * 0.8;
-        ctx.drawImage(Wick.GUIElement.Icons.getIcon(this.icon), -w, -h, w*2, h*2);
-    };
+        const w = this.width * 0.8;
+        const h = this.height * 0.8;
+        ctx.drawImage(Wick.GUIElement.Icons.getIcon(this.icon), -w, -h, w * 2, h * 2);
+    }
 
-    get bounds () {
+    get bounds(): Bounds {
         return {
             x: -this.width,
             y: -this.height,
             width: this.width * 2,
             height: this.height * 2,
-        }
+        };
     }
 };
