@@ -19,8 +19,20 @@
 
 // Thanks to FlyOrBoom (https://github.com/FlyOrBoom) for the styling of these sliders!
 
+type OnionSkinDirection = 'left' | 'right';
+
+interface Bounds {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
 Wick.GUIElement.OnionSkinRange = class extends Wick.GUIElement {
-    constructor (model, direction) {
+    public direction: OnionSkinDirection;
+    public mousePlayheadPosition: number;
+
+    constructor(model: Wick.Base, direction: OnionSkinDirection) {
         super(model);
 
         this.cursor = 'grab';
@@ -29,66 +41,68 @@ Wick.GUIElement.OnionSkinRange = class extends Wick.GUIElement {
         this.direction = direction;
     }
 
-    draw () {
+    draw(): void {
         super.draw();
 
-        var ctx = this.ctx;
+        const ctx = this.ctx;
 
         // Save where the mouse is if the user wants to drag the sliders around
         this.mousePlayheadPosition = Math.round(this.localMouse.x / this.gridCellWidth);
 
         // Calculate positions of the handle
-        var seek = this.direction === 'right' ? this.model.project.onionSkinSeekForwards : this.model.project.onionSkinSeekBackwards;
-        var width = Math.max(seek * this.gridCellWidth, this.gridCellWidth/2);
-        var edgeWidth = this.gridCellWidth - Wick.GUIElement.PLAYHEAD_MARGIN * 2;
-        var height = Wick.GUIElement.NUMBER_LINE_HEIGHT * 0.9;
+        const seek = this.direction === 'right' ? this.model.project.onionSkinSeekForwards : this.model.project.onionSkinSeekBackwards;
+        const width = Math.max(seek * this.gridCellWidth, this.gridCellWidth / 2);
+        const edgeWidth = this.gridCellWidth - Wick.GUIElement.PLAYHEAD_MARGIN * 2;
+        const height = Wick.GUIElement.NUMBER_LINE_HEIGHT * 0.9;
 
         // Draw handle
-        var grd = ctx.createLinearGradient(0, 0, width + edgeWidth, 0);
+        const grd = ctx.createLinearGradient(0, 0, width + edgeWidth, 0);
         grd.addColorStop(0, 'rgba(255,92,92,0.2)');
         grd.addColorStop(1, 'rgba(255,92,92,1)');
         ctx.fillStyle = grd;
-        ctx.lineWidth = 1,
+        ctx.lineWidth = 1;
 
         ctx.save();
         ctx.globalAlpha = this.mouseState === 'over' ? 0.5 : 1.0;
-        if(this.direction == 'left') ctx.scale(-1, 1);
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(width, 0);
-            ctx.lineTo(width + edgeWidth/2, 0);
-            ctx.lineTo(width + edgeWidth/2, height * 2/3);
-            ctx.lineTo(width, height);
-            ctx.lineTo(0, height);
-            ctx.lineTo(0, 0);
-            ctx.fill();
+        if (this.direction === 'left') ctx.scale(-1, 1);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(width, 0);
+        ctx.lineTo(width + edgeWidth / 2, 0);
+        ctx.lineTo(width + edgeWidth / 2, height * 2 / 3);
+        ctx.lineTo(width, height);
+        ctx.lineTo(0, height);
+        ctx.lineTo(0, 0);
+        ctx.fill();
         ctx.restore();
     }
 
-    onMouseDrag (e) {
-        if(this.direction === 'right') {
+    onMouseDrag(e: MouseEvent): void {
+        if (this.direction === 'right') {
             this.model.project.onionSkinSeekForwards = Math.max(0, this.mousePlayheadPosition);
-        } else if(this.direction === 'left') {
+        } else if (this.direction === 'left') {
             this.model.project.onionSkinSeekBackwards = Math.max(0, -this.mousePlayheadPosition);
         }
         this.projectWasSoftModified();
     }
 
-    get bounds () {
-        if(this.direction === 'right') {
+    get bounds(): Bounds {
+        if (this.direction === 'right') {
             return {
-                x: this.gridCellWidth/2,
+                x: this.gridCellWidth / 2,
                 y: 0,
-                width: Math.max(this.model.project.onionSkinSeekForwards * this.gridCellWidth, this.gridCellWidth/3),
+                width: Math.max(this.model.project.onionSkinSeekForwards * this.gridCellWidth, this.gridCellWidth / 3),
                 height: Wick.GUIElement.NUMBER_LINE_HEIGHT,
             };
         } else if (this.direction === 'left') {
             return {
-                x: -this.model.project.onionSkinSeekBackwards * this.gridCellWidth - this.gridCellWidth/2,
+                x: -this.model.project.onionSkinSeekBackwards * this.gridCellWidth - this.gridCellWidth / 2,
                 y: 0,
-                width: Math.max(this.model.project.onionSkinSeekBackwards * this.gridCellWidth, this.gridCellWidth/3),
+                width: Math.max(this.model.project.onionSkinSeekBackwards * this.gridCellWidth, this.gridCellWidth / 3),
                 height: Wick.GUIElement.NUMBER_LINE_HEIGHT,
             };
         }
+        // Fallback (should never reach here with proper typing)
+        return { x: 0, y: 0, width: 0, height: 0 };
     }
-}
+};

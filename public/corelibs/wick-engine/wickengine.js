@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.27.6.32.34";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.27.7.14.34";
   (function() {
 
     var _a;
@@ -51169,35 +51169,34 @@
     Wick.GUIElement.LayerButton = class extends Wick.GUIElement.Button {
       constructor(model, args) {
         super(model, args);
-        this.toggledIcon = args.toggledIcon;
-        this.untoggledIcon = args.untoggledIcon;
-        this.toggledTooltip = args.toggledTooltip;
-        this.untoggledTooltip = args.untoggledTooltip;
-        this.isToggledFn = args.isToggledFn;
+        this.toggledIcon = (args == null ? void 0 : args.toggledIcon) || "";
+        this.untoggledIcon = (args == null ? void 0 : args.untoggledIcon) || "";
+        this.toggledTooltip = (args == null ? void 0 : args.toggledTooltip) || "";
+        this.untoggledTooltip = (args == null ? void 0 : args.untoggledTooltip) || "";
+        this.isToggledFn = args == null ? void 0 : args.isToggledFn;
       }
       /**
        * Draw this layer button.
-       * @param {string} icon - The name of the icon to draw.
-       * @param {boolean} isToggled - Should the button be toggled?
+       * @param isToggled - Should the button be toggled?
        */
       draw(isToggled) {
         super.draw();
-        var isToggled = this.isToggledFn && this.isToggledFn();
-        var ctx = this.ctx;
-        var icon = null;
-        if (isToggled) {
+        const isToggledState = this.isToggledFn && this.isToggledFn();
+        const ctx = this.ctx;
+        let icon = null;
+        if (isToggledState) {
           this.tooltip.label = this.toggledTooltip;
           icon = this.toggledIcon;
         } else {
           this.tooltip.label = this.untoggledTooltip;
           icon = this.untoggledIcon;
         }
-        var fillColor;
-        if (this.mouseState == "down") {
+        let fillColor;
+        if (this.mouseState === "down") {
           fillColor = Wick.GUIElement.LAYER_BUTTON_MOUSEDOWN_COLOR;
-        } else if (this.mouseState == "over") {
+        } else if (this.mouseState === "over") {
           fillColor = Wick.GUIElement.LAYER_BUTTON_HOVER_COLOR;
-        } else if (isToggled) {
+        } else if (isToggledState) {
           fillColor = Wick.GUIElement.LAYER_BUTTON_TOGGLE_ACTIVE_COLOR;
         } else {
           fillColor = Wick.GUIElement.LAYER_BUTTON_TOGGLE_INACTIVE_COLOR;
@@ -51206,13 +51205,13 @@
         ctx.beginPath();
         ctx.arc(0, 0, Wick.GUIElement.LAYER_BUTTON_ICON_RADIUS, 0, 2 * Math.PI);
         ctx.fill();
-        var r = Wick.GUIElement.LAYER_BUTTON_ICON_RADIUS * 0.8;
+        const r = Wick.GUIElement.LAYER_BUTTON_ICON_RADIUS * 0.8;
         ctx.globalAlpha = 0.5;
         ctx.drawImage(Wick.GUIElement.Icons.getIcon(icon), -r, -r, r * 2, r * 2);
         ctx.globalAlpha = 1;
       }
       get bounds() {
-        var r = Wick.GUIElement.LAYER_BUTTON_ICON_RADIUS;
+        const r = Wick.GUIElement.LAYER_BUTTON_ICON_RADIUS;
         return {
           x: -r,
           y: -r,
@@ -51381,19 +51380,20 @@
       }
       draw() {
         super.draw();
-        var ctx = this.ctx;
+        const ctx = this.ctx;
         this.mousePlayheadPosition = Math.round(this.localMouse.x / this.gridCellWidth);
-        var seek = this.direction === "right" ? this.model.project.onionSkinSeekForwards : this.model.project.onionSkinSeekBackwards;
-        var width = Math.max(seek * this.gridCellWidth, this.gridCellWidth / 2);
-        var edgeWidth = this.gridCellWidth - Wick.GUIElement.PLAYHEAD_MARGIN * 2;
-        var height = Wick.GUIElement.NUMBER_LINE_HEIGHT * 0.9;
-        var grd = ctx.createLinearGradient(0, 0, width + edgeWidth, 0);
+        const seek = this.direction === "right" ? this.model.project.onionSkinSeekForwards : this.model.project.onionSkinSeekBackwards;
+        const width = Math.max(seek * this.gridCellWidth, this.gridCellWidth / 2);
+        const edgeWidth = this.gridCellWidth - Wick.GUIElement.PLAYHEAD_MARGIN * 2;
+        const height = Wick.GUIElement.NUMBER_LINE_HEIGHT * 0.9;
+        const grd = ctx.createLinearGradient(0, 0, width + edgeWidth, 0);
         grd.addColorStop(0, "rgba(255,92,92,0.2)");
         grd.addColorStop(1, "rgba(255,92,92,1)");
         ctx.fillStyle = grd;
-        ctx.lineWidth = 1, ctx.save();
+        ctx.lineWidth = 1;
+        ctx.save();
         ctx.globalAlpha = this.mouseState === "over" ? 0.5 : 1;
-        if (this.direction == "left") ctx.scale(-1, 1);
+        if (this.direction === "left") ctx.scale(-1, 1);
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(width, 0);
@@ -51429,6 +51429,7 @@
             height: Wick.GUIElement.NUMBER_LINE_HEIGHT
           };
         }
+        return { x: 0, y: 0, width: 0, height: 0 };
       }
     };
     Wick.GUIElement.Playhead = class extends Wick.GUIElement {
