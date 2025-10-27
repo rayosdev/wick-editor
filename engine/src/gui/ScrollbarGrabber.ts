@@ -17,8 +17,23 @@
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+type ScrollbarDirection = 'horizontal' | 'vertical';
+
+interface Bounds {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
 Wick.GUIElement.ScrollbarGrabber = class extends Wick.GUIElement {
-    constructor (model, direction) {
+    public direction: ScrollbarDirection;
+    public horizontalLength: number;
+    public verticalLength: number;
+    public scrollRatioX: number;
+    public scrollRatioY: number;
+
+    constructor(model: Wick.Base, direction: ScrollbarDirection) {
         super(model);
 
         this.cursor = 'grab';
@@ -28,49 +43,49 @@ Wick.GUIElement.ScrollbarGrabber = class extends Wick.GUIElement {
         this.verticalLength = 50;
     }
 
-    draw () {
+    draw(): void {
         super.draw();
 
-        var ctx = this.ctx;
+        const ctx = this.ctx;
 
         // Set color based on if the mouse is hovered over the bar
-        var fillColor = this.mouseState === 'over' ? Wick.GUIElement.SCROLLBAR_ACTIVE_FILL_COLOR : Wick.GUIElement.SCROLLBAR_FILL_COLOR;
-        var r = Wick.GUIElement.SCROLLBAR_BORDER_RADIUS;
-        var s = Wick.GUIElement.SCROLLBAR_SIZE - Wick.GUIElement.SCROLLBAR_MARGIN;
+        const fillColor = this.mouseState === 'over' ? Wick.GUIElement.SCROLLBAR_ACTIVE_FILL_COLOR : Wick.GUIElement.SCROLLBAR_FILL_COLOR;
+        const r = Wick.GUIElement.SCROLLBAR_BORDER_RADIUS;
+        const s = Wick.GUIElement.SCROLLBAR_SIZE - Wick.GUIElement.SCROLLBAR_MARGIN;
 
         // Draw the bar
         ctx.fillStyle = fillColor;
         ctx.save();
-        ctx.translate(Wick.GUIElement.SCROLLBAR_MARGIN/2, Wick.GUIElement.SCROLLBAR_MARGIN/2);
-            if(this.direction === 'horizontal') {
-                ctx.beginPath();
-                ctx.roundRect(0, 0, this.horizontalLength, s, r);
-                ctx.fill();
-            } else if (this.direction === 'vertical') {
-                ctx.beginPath();
-                ctx.roundRect(0, 0, s, this.verticalLength, r);
-                ctx.fill();
-            }
+        ctx.translate(Wick.GUIElement.SCROLLBAR_MARGIN / 2, Wick.GUIElement.SCROLLBAR_MARGIN / 2);
+        if (this.direction === 'horizontal') {
+            ctx.beginPath();
+            ctx.roundRect(0, 0, this.horizontalLength, s, r);
+            ctx.fill();
+        } else if (this.direction === 'vertical') {
+            ctx.beginPath();
+            ctx.roundRect(0, 0, s, this.verticalLength, r);
+            ctx.fill();
+        }
         ctx.restore();
     }
 
-    onMouseDrag (e) {
-        if(this.direction === 'horizontal') {
+    onMouseDrag(e: MouseEvent): void {
+        if (this.direction === 'horizontal') {
             this.project.scrollX += e.movementX * this.scrollRatioX;
         } else if (this.direction === 'vertical') {
             this.project.scrollY += e.movementY * this.scrollRatioY;
         }
     }
 
-    get bounds () {
-        if(this.direction === 'horizontal') {
+    get bounds(): Bounds {
+        if (this.direction === 'horizontal') {
             return {
                 x: 0,
                 y: 0,
                 width: this.horizontalLength,
                 height: Wick.GUIElement.SCROLLBAR_SIZE,
             };
-        } else if(this.direction === 'vertical') {
+        } else if (this.direction === 'vertical') {
             return {
                 x: 0,
                 y: 0,
@@ -78,5 +93,7 @@ Wick.GUIElement.ScrollbarGrabber = class extends Wick.GUIElement {
                 height: this.verticalLength,
             };
         }
+        // Fallback (should never reach here with proper typing)
+        return { x: 0, y: 0, width: 0, height: 0 };
     }
-}
+};

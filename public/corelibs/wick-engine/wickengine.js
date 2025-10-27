@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.26.18.44.48";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.27.6.32.34";
   (function() {
 
     var _a;
@@ -51437,8 +51437,8 @@
       }
       draw() {
         super.draw();
-        var ctx = this.ctx;
-        var margin = 0;
+        const ctx = this.ctx;
+        let margin = 0;
         if (this.project.frameSizeMode === "small") {
           margin = 2;
         } else if (this.project.frameSizeMode === "normal") {
@@ -51446,13 +51446,14 @@
         } else if (this.project.frameSizeMode === "large") {
           margin = 20;
         }
-        var height = Wick.GUIElement.NUMBER_LINE_HEIGHT - 2;
-        var width = this.gridCellWidth - margin * 2;
+        const height = Wick.GUIElement.NUMBER_LINE_HEIGHT - 2;
+        const width = this.gridCellWidth - margin * 2;
         ctx.fillStyle = Wick.GUIElement.PLAYHEAD_FILL_COLOR;
         ctx.strokeStyle = Wick.GUIElement.PLAYHEAD_FILL_COLOR;
-        ctx.lineWidth = 5, ctx.save();
+        ctx.lineWidth = 5;
+        ctx.save();
         ctx.translate((this.model.playheadPosition - 1) * this.gridCellWidth, 0);
-        var playheadX = this.gridCellWidth / 2 - Wick.GUIElement.PLAYHEAD_STROKE_WIDTH / 2 + 1.5;
+        const playheadX = this.gridCellWidth / 2 - Wick.GUIElement.PLAYHEAD_STROKE_WIDTH / 2 + 1.5;
         ctx.strokeStyle = "Wick.GUIElement.PLAYHEAD_FILL_COLOR";
         ctx.lineWidth = Wick.GUIElement.PLAYHEAD_STROKE_WIDTH;
         ctx.beginPath();
@@ -51470,13 +51471,13 @@
         ctx.lineTo(0, 0);
         ctx.fill();
         ctx.stroke();
-        var handleMargin = 3;
-        var handleSpacing = 4;
-        var handleLeft = handleMargin;
-        var handleRight = handleLeft + width - handleMargin * 2;
+        const handleMargin = 3;
+        const handleSpacing = 4;
+        const handleLeft = handleMargin;
+        const handleRight = handleLeft + width - handleMargin * 2;
         ctx.strokeStyle = Wick.GUIElement.PLAYHEAD_STROKE_COLOR;
         ctx.lineWidth = 2;
-        for (var i = 0; i < 3; i++) {
+        for (let i = 0; i < 3; i++) {
           ctx.beginPath();
           ctx.moveTo(handleLeft, handleSpacing * (i + 1));
           ctx.lineTo(handleRight, handleSpacing * (i + 1));
@@ -52089,10 +52090,10 @@
       }
       draw() {
         super.draw();
-        var ctx = this.ctx;
-        var fillColor = this.mouseState === "over" ? Wick.GUIElement.SCROLLBAR_ACTIVE_FILL_COLOR : Wick.GUIElement.SCROLLBAR_FILL_COLOR;
-        var r = Wick.GUIElement.SCROLLBAR_BORDER_RADIUS;
-        var s = Wick.GUIElement.SCROLLBAR_SIZE - Wick.GUIElement.SCROLLBAR_MARGIN;
+        const ctx = this.ctx;
+        const fillColor = this.mouseState === "over" ? Wick.GUIElement.SCROLLBAR_ACTIVE_FILL_COLOR : Wick.GUIElement.SCROLLBAR_FILL_COLOR;
+        const r = Wick.GUIElement.SCROLLBAR_BORDER_RADIUS;
+        const s = Wick.GUIElement.SCROLLBAR_SIZE - Wick.GUIElement.SCROLLBAR_MARGIN;
         ctx.fillStyle = fillColor;
         ctx.save();
         ctx.translate(Wick.GUIElement.SCROLLBAR_MARGIN / 2, Wick.GUIElement.SCROLLBAR_MARGIN / 2);
@@ -52130,6 +52131,7 @@
             height: this.verticalLength
           };
         }
+        return { x: 0, y: 0, width: 0, height: 0 };
       }
     };
     Wick.GUIElement.SelectionBox = class extends Wick.GUIElement.Ghost {
