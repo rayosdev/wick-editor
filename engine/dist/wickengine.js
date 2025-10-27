@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.27.7.14.34";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.27.11.15.55";
   (function() {
 
     var _a;
@@ -25197,6 +25197,27 @@
         }
       })();
     })(invertShim);
+    /**
+     * @license is-var-name | ISC (c) Shinnosuke Watanabe
+     * https://github.com/shinnn/is-var-name
+    */
+    function isVarName$1(str) {
+      if (typeof str !== "string") {
+        return false;
+      }
+      if (str.trim() !== str) {
+        return false;
+      }
+      try {
+        new Function(str, "var " + str);
+      } catch (e) {
+        return false;
+      }
+      return true;
+    }
+    if (typeof window !== "undefined") {
+      window.isVarName = isVarName$1;
+    }
     var jszip = { exports: {} };
     /*!
     
@@ -35704,7 +35725,7 @@
         module2.exports = potrace2;
       }
     })(potrace$1);
-    (() => {
+    var reserved$1 = (() => {
       var exports2 = {};
       var DIALECTS = {
         es3: 3,
@@ -35806,6 +35827,9 @@
       }
       return exports2;
     })();
+    if (typeof window !== "undefined") {
+      window.reserved = reserved$1;
+    }
     CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
       if (w < 2 * r) r = w / 2;
       if (h < 2 * r) r = h / 2;
@@ -50518,13 +50542,13 @@
       }
       draw() {
         super.draw();
-        var ctx = this.ctx;
+        const ctx = this.ctx;
         ctx.font = "14px Nunito Sans";
-        var textContent = this.model.identifier || "Clip";
-        var textWidth = ctx.measureText(textContent).width;
-        var textX = Wick.GUIElement.BREADCRUMBS_PADDING;
-        var textY = Wick.GUIElement.BREADCRUMBS_HEIGHT / 2 + Wick.GUIElement.BREADCRUMBS_PADDING;
-        var buttonBodyColor = "red";
+        const textContent = this.model.identifier || "Clip";
+        const textWidth = ctx.measureText(textContent).width;
+        const textX = Wick.GUIElement.BREADCRUMBS_PADDING;
+        const textY = Wick.GUIElement.BREADCRUMBS_HEIGHT / 2 + Wick.GUIElement.BREADCRUMBS_PADDING;
+        let buttonBodyColor = "red";
         if (this.model === this.model.project.focus) {
           buttonBodyColor = Wick.GUIElement.BREADCRUMBS_ACTIVE_BUTTON_FILL_COLOR;
         } else if (this.mouseState === "down") {
@@ -50534,7 +50558,7 @@
         } else {
           buttonBodyColor = Wick.GUIElement.BREADCRUMBS_INACTIVE_BUTTON_FILL_COLOR;
         }
-        var buttonWidth = textWidth + Wick.GUIElement.BREADCRUMBS_PADDING * 2;
+        const buttonWidth = textWidth + Wick.GUIElement.BREADCRUMBS_PADDING * 2;
         this.buttonWidth = buttonWidth;
         ctx.fillStyle = buttonBodyColor;
         ctx.beginPath();
@@ -51227,10 +51251,10 @@
       }
       draw() {
         super.draw();
-        var ctx = this.ctx;
+        const ctx = this.ctx;
         ctx.fillStyle = this.mouseState === "over" ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.3)";
-        var width = Wick.GUIElement.LAYERS_CONTAINER_WIDTH - Wick.GUIElement.LAYER_LABEL_MARGIN_SIDES * 2;
-        var height = this.gridCellHeight - Wick.GUIElement.LAYER_LABEL_MARGIN_TOP_BOTTOM * 2;
+        const width = Wick.GUIElement.LAYERS_CONTAINER_WIDTH - Wick.GUIElement.LAYER_LABEL_MARGIN_SIDES * 2;
+        const height = this.gridCellHeight - Wick.GUIElement.LAYER_LABEL_MARGIN_TOP_BOTTOM * 2;
         ctx.save();
         ctx.translate(Wick.GUIElement.LAYER_LABEL_MARGIN_SIDES, Wick.GUIElement.LAYER_LABEL_MARGIN_TOP_BOTTOM);
         ctx.beginPath();
@@ -51250,7 +51274,7 @@
         };
       }
       onMouseDown(e) {
-        var newLayer = new Wick.Layer();
+        const newLayer = new Wick.Layer();
         this.model.project.activeTimeline.addLayer(newLayer);
         newLayer.activate();
         this.model.project.selection.clear();
@@ -51292,7 +51316,7 @@
       }
       draw() {
         super.draw();
-        var ctx = this.ctx;
+        const ctx = this.ctx;
         ctx.save();
         ctx.translate(2, 0);
         this.mousePlayheadPosition = Math.floor(this.localMouse.x / this.gridCellWidth) + 1;
@@ -51302,8 +51326,8 @@
         ctx.beginPath();
         ctx.rect(this.project.scrollX - 2, 0, width, height);
         ctx.fill();
-        for (var i = -1; i < width / this.gridCellWidth + 1; i++) {
-          var skip = Math.round(this.project.scrollX / this.gridCellWidth);
+        for (let i = -1; i < width / this.gridCellWidth + 1; i++) {
+          const skip = Math.round(this.project.scrollX / this.gridCellWidth);
           this._drawCell(i + skip);
         }
         if (this.model.project.onionSkinEnabled) {
@@ -51318,19 +51342,19 @@
       }
       // Helper function for drawing each cell of the numberline (draws the border and the number)
       _drawCell(i) {
-        var ctx = this.ctx;
-        var highlight = i === 0 || i % 5 === 4;
+        const ctx = this.ctx;
+        const highlight = i === 0 || i % 5 === 4;
         if (this.project.frameSizeMode !== "small" || highlight) {
-          var fontSize = i >= 99 ? 13 : 16;
-          var fontFamily = Wick.GUIElement.NUMBER_LINE_NUMBERS_FONT_FAMILY;
+          const fontSize = i >= 99 ? 13 : 16;
+          const fontFamily = Wick.GUIElement.NUMBER_LINE_NUMBERS_FONT_FAMILY;
           ctx.font = fontSize + "px " + fontFamily;
           if (highlight) {
             ctx.fillStyle = Wick.GUIElement.NUMBER_LINE_NUMBERS_HIGHLIGHT_COLOR;
           } else {
             ctx.fillStyle = Wick.GUIElement.NUMBER_LINE_NUMBERS_COMMON_COLOR;
           }
-          var textContent = "" + (i + 1);
-          var textWidth = ctx.measureText(textContent).width;
+          const textContent = (i + 1).toString();
+          const textWidth = ctx.measureText(textContent).width;
           ctx.fillText(textContent, i * this.gridCellWidth + this.gridCellWidth / 2 - textWidth / 2, Wick.GUIElement.NUMBER_LINE_HEIGHT - 5);
         }
         ctx.lineWidth = Wick.GUIElement.FRAMES_CONTAINER_VERTICAL_GRID_STROKE_WIDTH;

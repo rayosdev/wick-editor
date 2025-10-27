@@ -209,3 +209,8 @@ var reserved = (() => {
 
     return exports;
 })();
+
+// Make reserved globally available
+if (typeof window !== 'undefined') {
+    window.reserved = reserved;
+}
