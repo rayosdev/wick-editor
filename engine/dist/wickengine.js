@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.27.12.39.43";
+  var WICK_ENGINE_BUILD_VERSION = "2025.10.27.19.48.22";
   (function() {
 
     var _a;
@@ -44141,10 +44141,19 @@
       }
       _generateErrorInfo(error, name) {
         if (Wick.Tickable.LOG_ERRORS) console.log(error);
+        let message = error.message || "Unknown error";
+        let lineNumber = this._generateLineNumberFromStackTrace(error.stack);
+        if (message === "undefined" || !message || message === "") {
+          if (error.toString && error.toString() !== "[object Object]") {
+            message = `Script execution failed: ${error.toString()}`;
+          } else {
+            message = `Script execution failed in ${name} script`;
+          }
+        }
         return {
           name: name !== void 0 ? name : "",
-          lineNumber: this._generateLineNumberFromStackTrace(error.stack),
-          message: error.message,
+          lineNumber: lineNumber || 0,
+          message,
           uuid: this.isClone ? this.sourceClipUUID : this.uuid
         };
       }

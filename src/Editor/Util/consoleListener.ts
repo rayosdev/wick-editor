@@ -3,6 +3,14 @@ let logIdCounter = 0;
 const METHODS_TO_MONITOR = ["log", "info", "warn", "error", "debug"] as const;
 const CLEAR_METHOD = "clear";
 
+// Patterns to filter out third-party library warnings
+const IGNORE_PATTERNS = [
+  /Support for defaultProps will be removed/,
+  /findDOMNode is deprecated/,
+  /transition\.timeout/,
+  /Failed .* type:.*prop/,
+];
+
 interface LogEntry {
   id: string;
   method: string;
@@ -14,6 +22,14 @@ interface LogEntry {
 interface ConsoleListenerOptions {
   onEntry: (entry: LogEntry) => void;
   targetConsole?: Console;
+}
+
+function shouldIgnoreLog(args: any[]): boolean {
+  const message = args.map(arg => 
+    typeof arg === 'string' ? arg : String(arg)
+  ).join(' ');
+
+  return IGNORE_PATTERNS.some(pattern => pattern.test(message));
 }
 
 function buildLogEntry(method: string, args: IArguments): LogEntry {
@@ -56,7 +72,8 @@ export function attachConsoleListener(
     (consoleRef as any)[method] = function patchedConsoleMethod(...args: any[]) {
       if (method === CLEAR_METHOD) {
         onEntry({ type: "clear" } as LogEntry);
-      } else {
+      } else if (!shouldIgnoreLog(args)) {
+        // Only log entries that don't match ignore patterns
         onEntry(buildLogEntry(method, arguments));
       }
 

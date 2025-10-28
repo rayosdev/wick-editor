@@ -56,6 +56,7 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
         mobile && "mobile",
         className
       )}
+      transition={{ timeout: 150 }}
     >
       {children}
     </Popover>

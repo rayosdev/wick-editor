@@ -77,7 +77,8 @@ export default function ColorPicker (props: ColorPickerProps): JSX.Element {
             isOpen={open}
             toggle={toggle}
             target={itemID}
-            boundariesElement={'viewport' as any}>
+            boundariesElement={'viewport' as any}
+            transition={{ timeout: 150 }}>
             <WickColorPicker
               toggle={toggle}
               colorPickerType={props.colorPickerType}

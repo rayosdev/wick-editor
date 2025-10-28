@@ -69,6 +69,10 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {string} The string representation active tool name.
    */
   getActiveTool = (): any => {
+    // Safety check: ensure activeTool is set
+    if (!this.project.activeTool) {
+      this.project.activeTool = 'cursor';
+    }
     return this.project.activeTool;
   };
 
@@ -1501,9 +1505,20 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   setupNewProject = (project?: WickProject): void => {
     // if (!project) return;
     this.resetEditorForLoad();
-    this.project =
-      (project as typeof this.project) || new window.Wick.Project();
+    
+    // Ensure we have a proper Project object, not a string
+    if (project && typeof project === 'object' && project.classname === 'Project') {
+      this.project = project as typeof this.project;
+    } else {
+      this.project = new window.Wick.Project();
+    }
+    
     this.project.selection.clear();
+
+    // Ensure activeTool is set (fix for loaded projects)
+    if (!this.project.activeTool) {
+      this.project.activeTool = 'cursor';
+    }
 
     // Attach error handling messages
     this.attachErrorHandlers();

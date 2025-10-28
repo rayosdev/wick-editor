@@ -368,6 +368,7 @@ Wick.Tickable = class extends Wick.Base {
             }
 
             this._cachedScripts[name] = fn;
+            
             var error = this._runFunction(fn, name, parameters);
 
             if (error && this.project) {
@@ -592,10 +593,23 @@ Wick.Tickable = class extends Wick.Base {
     _generateErrorInfo(error: any, name: string): any {
         if(Wick.Tickable.LOG_ERRORS) console.log(error);
 
+        // Provide better error information
+        let message = error.message || 'Unknown error';
+        let lineNumber = this._generateLineNumberFromStackTrace(error.stack);
+        
+        // If the error message is undefined or empty, provide better information
+        if (message === 'undefined' || !message || message === '') {
+            if (error.toString && error.toString() !== '[object Object]') {
+                message = `Script execution failed: ${error.toString()}`;
+            } else {
+                message = `Script execution failed in ${name} script`;
+            }
+        }
+
         return {
             name: name !== undefined ? name : '',
-            lineNumber: this._generateLineNumberFromStackTrace(error.stack),
-            message: error.message,
+            lineNumber: lineNumber || 0,
+            message: message,
             uuid: this.isClone ? this.sourceClipUUID : this.uuid,
         }
     }

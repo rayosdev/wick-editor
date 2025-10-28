@@ -355,6 +355,13 @@ class Editor extends EditorCore {
       this.project.play({
         onError: (error) => {
           if (error) {
+            // Filter out benign "undefined" errors from empty default scripts
+            if (error.message === undefined && error.lineNumber === undefined && error.name === 'default') {
+              // Silently ignore this non-critical error
+              this.stopPreviewPlaying(null);
+              return;
+            }
+            
             console.error(
               new Error(
                 `${error.message} on line ${error.lineNumber} in script "${error.name}".`
@@ -758,7 +765,7 @@ class Editor extends EditorCore {
     // TODO: Determine a non-hack way to do this.
     if (!options.skipReactRender) {
       this.setState({
-        project: "" + Math.random(),
+        project: this.project.serialize(),
       });
     }
   };
@@ -1075,8 +1082,8 @@ class Editor extends EditorCore {
                     <DockedPanel showOverlay={this.state.previewPlaying}>
                       <Toolbox
                         project={this.state.project}
-                        getActiveToolName={() => this.getActiveTool().name}
-                        activeToolName={this.getActiveTool().name}
+                        getActiveToolName={() => this.getActiveTool()?.name || 'cursor'}
+                        activeToolName={this.getActiveTool()?.name || 'cursor'}
                         setActiveTool={this.setActiveTool}
                         getToolSetting={this.getToolSetting}
                         setToolSetting={this.setToolSetting}
@@ -1160,7 +1167,7 @@ class Editor extends EditorCore {
                                 zoomIn={this.zoomIn}
                                 zoomOut={this.zoomOut}
                                 recenterCanvas={this.recenterCanvas}
-                                activeToolName={this.getActiveTool().name}
+                                activeToolName={this.getActiveTool()?.name || 'cursor'}
                                 setActiveTool={this.setActiveTool}
                                 previewPlaying={this.state.previewPlaying}
                                 togglePreviewPlaying={this.togglePreviewPlaying}
