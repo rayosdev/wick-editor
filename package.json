@@ -114,7 +114,7 @@
     "start": "vite",
     "build": "npm run build:engine && npm run build:editor",
     "build:engine": "npm --workspace=engine run build",
-    "build:editor": "vite build && mkdir -p ./build/src && cp -a src/resources ./build/src/resources && cp CNAME_editor ./build/CNAME;",
+    "build:editor": "vite build && mkdir -p ./build/src && cp -a src/resources ./build/src/resources && cp CNAME_editor ./build/CNAME && cp node_modules/ace-builds/src-min/worker-javascript.js ./build/;",
     "build-engine": "npm run build:engine",
     "build-engine-windows": "npm --workspace=engine run build",
     "test": "echo 'Run tests with Playwright'",

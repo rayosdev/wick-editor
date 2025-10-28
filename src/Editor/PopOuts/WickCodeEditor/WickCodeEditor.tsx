@@ -37,6 +37,11 @@ import "ace-builds/src-noconflict/theme-dracula";
 import "ace-builds/src-noconflict/theme-eclipse";
 import "ace-builds/src-noconflict/theme-github";
 
+// Configure ACE editor worker path and disable workers
+import ace from "ace-builds";
+ace.config.set("workerPath", "/");
+ace.config.set("useWorker", false);
+
 import "Editor/styles/PopOuts/_wickcodeeditor.css";
 
 import capitalize from "Editor/Util/DataFunctions/capitalize";
