@@ -1541,6 +1541,19 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   };
 
   openNewProjectConfirmation = (): void => {
+    // In development mode, skip confirmation and directly create new project
+    const isDevelopment = 
+      (window.location && window.location.hostname === "localhost") ||
+      (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.DEV);
+    
+    if (isDevelopment) {
+      console.log('[DEV] Skipping new project confirmation, creating project directly');
+      setTimeout(() => {
+        this.setupNewProject();
+      }, 100);
+      return;
+    }
+
     this.openWarningModal({
       description: "You will lose any unsaved changes.",
       title: "Create New Project?",

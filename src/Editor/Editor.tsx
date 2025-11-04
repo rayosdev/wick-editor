@@ -336,6 +336,11 @@ class Editor extends EditorCore {
         this.autoSaveProjectSync();
       }
 
+      // Skip confirmation dialog in development mode
+      if (isDevelopment) {
+        return null;
+      }
+
       // Don't show the warning if nothing has been done to the project
       if (this.project.numUndoStates > 1) {
         return null;
@@ -850,6 +855,18 @@ class Editor extends EditorCore {
    * acceptText {string}, cancelText {string}, title {string}.
    */
   openWarningModal = (args) => {
+    // In development mode, auto-accept and skip the modal
+    if (isDevelopment) {
+      console.log('[DEV] Skipping confirmation dialog:', args.title || 'Warning');
+      if (args.acceptAction) {
+        args.acceptAction();
+      }
+      if (args.finalAction) {
+        args.finalAction();
+      }
+      return;
+    }
+
     let modalInfo = {
       description: args.description || "No Description",
       title: args.title || "Title",

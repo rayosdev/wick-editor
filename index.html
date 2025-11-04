@@ -8,12 +8,18 @@
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
     <meta name="theme-color" content="#000000" />
-    <script
-      async
-      defer
-      data-domain="wickeditor.com"
-      src="https://plausible.io/js/plausible.hash.js"
-    ></script>
+    <!-- Plausible analytics - disabled in development -->
+    <script>
+      // Only load Plausible in production (not localhost)
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        const script = document.createElement('script');
+        script.async = true;
+        script.defer = true;
+        script.setAttribute('data-domain', 'wickeditor.com');
+        script.src = 'https://plausible.io/js/plausible.hash.js';
+        document.head.appendChild(script);
+      }
+    </script>
     <!--
       manifest.json provides metadata used when your web app is added to the
       homescreen on Android. See https://developers.google.com/web/fundamentals/web-app-manifest/
