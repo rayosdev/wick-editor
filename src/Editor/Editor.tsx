@@ -325,8 +325,14 @@ class Editor extends EditorCore {
       codeEditorWindowProperties: this.getDefaultCodeEditorProperties(),
     });
 
-    // Leave Page warning.
-    window.onbeforeunload = function (event) {
+    // Save project state on page unload to ensure persistence across refreshes
+    window.onbeforeunload = (event) => {
+      // Force an immediate save before the page unloads
+      if (this.project && this.project.numUndoStates > 1) {
+        // Save synchronously if possible, or use sendBeacon for async
+        this.autoSaveProjectSync();
+      }
+
       // Don't show the warning if nothing has been done to the project
       if (this.project.numUndoStates > 1) {
         return null;
@@ -343,7 +349,8 @@ class Editor extends EditorCore {
     this.hidePreloader();
     this.onWindowResize();
     if (!this.tryToParseProjectURL()) {
-      this.showAutosavedProjects();
+      // Auto-load the latest autosaved project on refresh
+      this.loadAutosavedProjectOnStartup();
     }
 
     this.watchForHover();
@@ -361,7 +368,7 @@ class Editor extends EditorCore {
               this.stopPreviewPlaying(null);
               return;
             }
-            
+
             console.error(
               new Error(
                 `${error.message} on line ${error.lineNumber} in script "${error.name}".`

@@ -25,6 +25,7 @@
     "base64-arraybuffer": "^0.2.0",
     "bootstrap": "^5.3.3",
     "classnames": "^2.5.1",
+    "dexie": "^4.2.1",
     "electron-is-dev": "^3.0.1",
     "electron-updater": "^6.3.9",
     "file-saver": "^2.0.5",

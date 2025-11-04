@@ -20,6 +20,8 @@
 import { Component } from "react";
 import type { EditorCoreUIState } from "./types/EditorCore.types";
 import queryString from "query-string";
+import localforage from "localforage";
+import ProjectStorage from "./storage/ProjectStorage";
 import VideoExport from "./export/VideoExport";
 import GIFExport from "./export/GIFExport";
 import GIFImport from "./import/GIFImport";
@@ -1689,11 +1691,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   requestAutosave = (): void => {
     let now = Date.now();
-    let last = this._lastAutosave;
+    let last = this._lastAutosave || 0;
     let timeSince = now - last;
 
-    // Only autosave every 15 seconds.
-    if (timeSince > 15000) {
+    // Only autosave every 10 seconds (reduced from 15 for better persistence).
+    if (timeSince > 10000) {
       this.autoSaveProject(() => {
         this._lastAutosave = Date.now();
       });
@@ -1701,34 +1703,302 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   };
 
   /**
-   * Save the current project in localstorage
+   * Save the current project using Dexie.js (with fallback to localforage)
    */
   autoSaveProject = (callback: AutosaveCallback): void => {
     if (!this.project) return;
     if (this.state.previewPlaying) return;
     if (this.state.activeModalName !== null) return;
 
-    window.Wick.AutoSave.save(this.project, () => {
-      callback();
+    // Use the new Dexie.js storage
+    const autosaveData = window.Wick.AutoSave.generateAutosaveData(this.project);
+    
+    // Save to Dexie.js autosaves
+    ProjectStorage.saveAutosave(autosaveData).then(() => {
+      // Also save current project for fast recovery
+      return ProjectStorage.saveCurrentProject(autosaveData);
+    }).then(() => {
+      // Cleanup old autosaves (keep only 10 most recent)
+      return ProjectStorage.cleanupOldAutosaves(10);
+    }).then(() => {
+      // Also maintain compatibility with old system
+      window.Wick.AutoSave.save(this.project, () => {
+        callback();
+      });
+    }).catch(err => {
+      console.warn('Failed to save with Dexie, falling back to localforage:', err);
+      // Fallback to old system
+      window.Wick.AutoSave.save(this.project, () => {
+        this.saveCurrentProject();
+        callback();
+      });
+    });
+  };
+
+  /**
+   * Save the current project to a simple "current project" key for fast recovery
+   * Uses Dexie.js with fallback to localforage
+   */
+  saveCurrentProject = (): void => {
+    if (!this.project) return;
+    
+    try {
+      const projectData = this.project.serialize();
+      const autosaveData = window.Wick.AutoSave.generateAutosaveData(this.project);
+      
+      // Use Dexie.js
+      ProjectStorage.saveCurrentProject(autosaveData).catch(err => {
+        console.warn('Failed to save current project with Dexie:', err);
+        // Fallback to localforage
+        localforage.setItem('wickEditor_currentProject', {
+          uuid: projectData.uuid,
+          lastModified: Date.now(),
+          autosaveData: autosaveData
+        }).catch(localErr => {
+          console.warn('Failed to save current project with localforage:', localErr);
+        });
+      });
+    } catch (error) {
+      console.warn('Error saving current project:', error);
+    }
+  };
+
+  /**
+   * Synchronous save for page unload (beforeunload event)
+   * Note: This is limited by browser capabilities, but we try our best
+   */
+  autoSaveProjectSync = (): void => {
+    if (!this.project) return;
+    
+    try {
+      // Use sendBeacon for reliable async save during page unload
+      const projectData = this.project.serialize();
+      const autosaveData = window.Wick.AutoSave.generateAutosaveData(this.project);
+      const dataToSave = {
+        uuid: projectData.uuid,
+        lastModified: Date.now(),
+        autosaveData: autosaveData
+      };
+      
+      // Try to save using IndexedDB synchronously (limited browser support)
+      // Fallback to localStorage as backup (limited storage but immediate)
+      try {
+        const serialized = JSON.stringify(dataToSave);
+        if (serialized.length < 5000000) { // Only if under 5MB (localStorage limit)
+          localStorage.setItem('wickEditor_currentProject_backup', serialized);
+        }
+      } catch (e) {
+        // localStorage might be full or unavailable
+        console.warn('Could not save to localStorage backup:', e);
+      }
+      
+      // Also try async save (may not complete, but we try)
+      localforage.setItem('wickEditor_currentProject', dataToSave).catch(() => {
+        // Ignore errors during unload
+      });
+    } catch (error) {
+      // Silently fail during unload
+      console.warn('Error in sync save:', error);
+    }
+  };
+
+  /**
+   * Load the current project from Dexie.js (with fallback to localforage)
+   */
+  loadCurrentProject = (callback: AutosaveCallback): void => {
+    // First try Dexie.js
+    ProjectStorage.getCurrentProject().then((currentProjectEntry) => {
+      if (currentProjectEntry && currentProjectEntry.autosaveData) {
+        // Check if this is a recent save (within last 24 hours)
+        const hoursSinceLastSave = (Date.now() - currentProjectEntry.lastModified) / (1000 * 60 * 60);
+        if (hoursSinceLastSave > 24) {
+          // Too old, try fallback
+          this.loadCurrentProjectFallback(callback);
+          return;
+        }
+
+        this.showWaitOverlay();
+        window.Wick.AutoSave.generateProjectFromAutosaveData(
+          currentProjectEntry.autosaveData,
+          (project: any) => {
+            this.setupNewProject(project);
+            this.hideWaitOverlay();
+            callback();
+          }
+        );
+      } else {
+        // No Dexie entry, try fallback
+        this.loadCurrentProjectFallback(callback);
+      }
+    }).catch(err => {
+      console.warn('Failed to load current project from Dexie, trying fallback:', err);
+      this.loadCurrentProjectFallback(callback);
+    });
+  };
+
+  /**
+   * Fallback method to load from localforage/localStorage
+   */
+  loadCurrentProjectFallback = (callback: AutosaveCallback): void => {
+    // First try localStorage backup (if it exists and is newer)
+    let backupData = null;
+    try {
+      const backupStr = localStorage.getItem('wickEditor_currentProject_backup');
+      if (backupStr) {
+        backupData = JSON.parse(backupStr);
+      }
+    } catch (e) {
+      // Ignore backup parse errors
+    }
+    
+    localforage.getItem('wickEditor_currentProject').then((currentProjectData: any) => {
+      // Use the newer of the two saves
+      let projectData = currentProjectData;
+      if (backupData && currentProjectData) {
+        projectData = backupData.lastModified > currentProjectData.lastModified 
+          ? backupData 
+          : currentProjectData;
+      } else if (backupData) {
+        projectData = backupData;
+      }
+      
+      if (!projectData || !projectData.autosaveData) {
+        callback();
+        return;
+      }
+
+      // Check if this is a recent save (within last 24 hours)
+      const hoursSinceLastSave = (Date.now() - projectData.lastModified) / (1000 * 60 * 60);
+      if (hoursSinceLastSave > 24) {
+        // Too old, skip it
+        callback();
+        return;
+      }
+
+      this.showWaitOverlay();
+      window.Wick.AutoSave.generateProjectFromAutosaveData(
+        projectData.autosaveData,
+        (project: any) => {
+          this.setupNewProject(project);
+          this.hideWaitOverlay();
+          callback();
+        }
+      );
+    }).catch(err => {
+      // If IndexedDB fails, try localStorage backup
+      if (backupData && backupData.autosaveData) {
+        this.showWaitOverlay();
+        window.Wick.AutoSave.generateProjectFromAutosaveData(
+          backupData.autosaveData,
+          (project: any) => {
+            this.setupNewProject(project);
+            this.hideWaitOverlay();
+            callback();
+          }
+        );
+      } else {
+        console.warn('Failed to load current project from fallback:', err);
+        callback();
+      }
+    });
+  };
+
+  /**
+   * Auto-load autosaved project on startup without prompting the user
+   */
+  loadAutosavedProjectOnStartup = (): void => {
+    // First try to load from the simple "current project" key (faster)
+    this.loadCurrentProject(() => {
+      // If that fails, try Dexie.js latest autosave
+      ProjectStorage.getLatestAutosave().then((latest) => {
+        if (latest) {
+          this.showWaitOverlay();
+          const autosaveData = {
+            projectData: latest.projectData,
+            objectsData: latest.objectsData,
+            lastModified: latest.lastModified
+          };
+          window.Wick.AutoSave.generateProjectFromAutosaveData(
+            autosaveData,
+            (project: any) => {
+              this.setupNewProject(project);
+              this.hideWaitOverlay();
+            }
+          );
+        } else {
+          // Fall back to old autosave list
+          this.doesAutoSavedProjectExist((exists: boolean) => {
+            if (exists) {
+              this.loadAutosavedProject(() => {
+                // Silently loaded, no user prompt needed
+              });
+            }
+          });
+        }
+      }).catch(() => {
+        // If Dexie fails, fall back to old system
+        this.doesAutoSavedProjectExist((exists: boolean) => {
+          if (exists) {
+            this.loadAutosavedProject(() => {
+              // Silently loaded, no user prompt needed
+            });
+          }
+        });
+      });
     });
   };
 
   /**
    * Attempts to automatically load an autosaved project if it exists.
-   * Does nothing if not autosaved project is stored.
+   * Tries Dexie.js first, then falls back to old system.
    */
   loadAutosavedProject = (callback: AutosaveCallback): void => {
-    window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
-      if (!autosaveList[0]) {
-        callback();
-      } else {
+    // Try Dexie.js first
+    ProjectStorage.getLatestAutosave().then((latest) => {
+      if (latest) {
         this.showWaitOverlay();
-        window.Wick.AutoSave.load(autosaveList[0].uuid, (project: any) => {
-          this.setupNewProject(project);
-          this.hideWaitOverlay();
-          callback();
+        const autosaveData = {
+          projectData: latest.projectData,
+          objectsData: latest.objectsData,
+          lastModified: latest.lastModified
+        };
+        window.Wick.AutoSave.generateProjectFromAutosaveData(
+          autosaveData,
+          (project: any) => {
+            this.setupNewProject(project);
+            this.hideWaitOverlay();
+            callback();
+          }
+        );
+      } else {
+        // Fall back to old system
+        window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
+          if (!autosaveList[0]) {
+            callback();
+          } else {
+            this.showWaitOverlay();
+            window.Wick.AutoSave.load(autosaveList[0].uuid, (project: any) => {
+              this.setupNewProject(project);
+              this.hideWaitOverlay();
+              callback();
+            });
+          }
         });
       }
+    }).catch(() => {
+      // If Dexie fails, fall back to old system
+      window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
+        if (!autosaveList[0]) {
+          callback();
+        } else {
+          this.showWaitOverlay();
+          window.Wick.AutoSave.load(autosaveList[0].uuid, (project: any) => {
+            this.setupNewProject(project);
+            this.hideWaitOverlay();
+            callback();
+          });
+        }
+      });
     });
   };
   /**
