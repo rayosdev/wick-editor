@@ -429,7 +429,7 @@ export interface ResizeProps {
  * Main Editor component state interface
  */
 export interface EditorState {
-  project: any; // Serialized Wick project
+  project: SerializedProject | null; // Serialized Wick project
   previewPlaying: boolean;
   activeModalName: string | null;
   activeModalQueue: string[];
@@ -438,14 +438,14 @@ export interface EditorState {
   showCanvasActions: boolean;
   showBrushModes: boolean;
   showCodeErrors: boolean;
-  codeError: any; // Wick error object
+  codeError: Error | null; // Wick error object
   popoutOutlinerSize: number;
   outlinerPoppedOut: boolean;
   inspectorSize: number;
   timelineSize: number;
   assetLibrarySize: number;
   consoleLogs: ConsoleLogEntry[];
-  warningModalInfo: any; // Complex union type - using any for flexibility
+  warningModalInfo: WarningModalInfo; // Defined below
   renderProgress: number;
   renderType: string;
   renderStatusMessage: string;

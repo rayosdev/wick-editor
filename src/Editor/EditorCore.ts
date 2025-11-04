@@ -40,6 +40,11 @@ import type {
   SelectableObject,
   LocalFileEntry,
 } from "./types";
+import type { 
+  WickProject as WickProjectEngine,
+  SerializedProject,
+  AutosaveData,
+} from "./types/engine.types";
 
 type EditorCoreProps = Record<string, never>;
 type EditorCoreState = EditorCoreUIState & Record<string, any>;
@@ -64,7 +69,11 @@ type WickFileInputEvent = {
 };
 
 class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
+  // TODO: Remove index signature and add proper typed properties
   [key: string]: any;
+  
+  // Project instance (live Wick Engine object)
+  project!: WickProjectEngine;
 
   /**
    * Returns the name of the active tool.
@@ -72,7 +81,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   getActiveTool = (): any => {
     // Safety check: ensure activeTool is set
-    if (!this.project.activeTool) {
+    if (!this.project?.activeTool) {
       this.project.activeTool = 'cursor';
     }
     return this.project.activeTool;
@@ -1488,7 +1497,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   importProjectAsWickFile = (file: File): void => {
     this.showWaitOverlay();
-    window.Wick.WickFile.fromWickFile(file, (project: any) => {
+    window.Wick.WickFile.fromWickFile(file, (project: WickProjectEngine) => {
       if (project) {
         this.setupNewProject(project);
         this.toast(`Opened ${file.name || "project"} successfully.`, "success");
@@ -1504,7 +1513,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * history, selection, and all other ability to retrieve your project.
    * @param {Wick.Project} project - the project to load.
    */
-  setupNewProject = (project?: WickProject): void => {
+  setupNewProject = (project?: WickProjectEngine): void => {
     // if (!project) return;
     this.resetEditorForLoad();
     
@@ -1820,7 +1829,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         this.showWaitOverlay();
         window.Wick.AutoSave.generateProjectFromAutosaveData(
           currentProjectEntry.autosaveData,
-          (project: any) => {
+          (project: WickProjectEngine) => {
             this.setupNewProject(project);
             this.hideWaitOverlay();
             callback();
@@ -1890,7 +1899,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         this.showWaitOverlay();
         window.Wick.AutoSave.generateProjectFromAutosaveData(
           backupData.autosaveData,
-          (project: any) => {
+          (project: WickProjectEngine) => {
             this.setupNewProject(project);
             this.hideWaitOverlay();
             callback();
@@ -1920,7 +1929,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
           };
           window.Wick.AutoSave.generateProjectFromAutosaveData(
             autosaveData,
-            (project: any) => {
+            (project: WickProjectEngine) => {
               this.setupNewProject(project);
               this.hideWaitOverlay();
             }
@@ -1964,7 +1973,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         };
         window.Wick.AutoSave.generateProjectFromAutosaveData(
           autosaveData,
-          (project: any) => {
+          (project: WickProjectEngine) => {
             this.setupNewProject(project);
             this.hideWaitOverlay();
             callback();
@@ -1977,7 +1986,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
             callback();
           } else {
             this.showWaitOverlay();
-            window.Wick.AutoSave.load(autosaveList[0].uuid, (project: any) => {
+            window.Wick.AutoSave.load(autosaveList[0].uuid, (project: WickProjectEngine) => {
               this.setupNewProject(project);
               this.hideWaitOverlay();
               callback();

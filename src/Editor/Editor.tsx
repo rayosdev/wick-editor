@@ -73,19 +73,22 @@ const isDevelopment =
   (import.meta as any).env?.DEV ||
   (window.location && window.location.hostname === "localhost");
 
+import type { WickProject as WickProjectEngine, WickNamespace } from "./types/engine.types";
+
 class Editor extends EditorCore {
   // Instance properties with types
-  project: any = null;
-  paper: any = null;
+  // Note: project is defined in EditorCore, but we allow null here for initialization
+  declare project: WickProjectEngine | null;
+  paper: any = null; // Paper.js types to be added later
   editorVersion: string = version + "";
-  error: any = null;
+  error: Error | null = null;
   _lastAutosave: number = 0;
   _showWaitOverlayTimeoutID?: number;
 
-  fontInfoInterface: any;
-  hotKeyInterface: any;
-  actionMapInterface: any;
-  scriptInfoInterface: any;
+  fontInfoInterface: any; // TODO: Add proper types
+  hotKeyInterface: any; // TODO: Add proper types
+  actionMapInterface: any; // TODO: Add proper types
+  scriptInfoInterface: any; // TODO: Add proper types
 
   openProjectFileFromClient!: () => void;
   openAssetFileFromClient!: () => void;
@@ -97,10 +100,10 @@ class Editor extends EditorCore {
   WINDOW_RESIZE_THROTTLE_AMOUNT_MS: number = 300;
   resizeProps: ResizeProps;
 
-  canvasComponent: any = null;
-  timelineComponent: any = null;
+  canvasComponent: any = null; // TODO: Add proper React component types
+  timelineComponent: any = null; // TODO: Add proper React component types
   lastUsedTool: string = "cursor";
-  builtinPreviews: Record<string, any> = {};
+  builtinPreviews: Record<string, any> = {}; // TODO: Add proper preview types
 
   customHotKeysKey: string = "wickEditorcustomHotKeys";
   colorPickerTypeKey: string = "wickEditorColorPickerType";

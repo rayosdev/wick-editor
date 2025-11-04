@@ -55,6 +55,36 @@ export {
   isTimelineObject,
 } from "./core.types";
 
+// Wick Engine Types (for JavaScript engine)
+export type {
+  WickProject as WickProjectEngine,
+  WickClip as WickClipEngine,
+  WickFrame as WickFrameEngine,
+  WickLayer as WickLayerEngine,
+  WickTimeline as WickTimelineEngine,
+  WickPath as WickPathEngine,
+  WickTween as WickTweenEngine,
+  WickAsset as WickAssetEngine,
+  WickSelection as WickSelectionEngine,
+  WickHistory as WickHistoryEngine,
+  WickClipboard as WickClipboardEngine,
+  WickColor,
+  WickTransformation,
+  WickTool,
+  WickToolName,
+  WickToolSettings,
+  WickBase,
+  WickSelectableObject,
+  SerializedProject,
+  SerializedWickObject,
+  AutosaveData,
+  AutosaveEntry,
+  HitTestOptions,
+  WickNamespace,
+  WickAutoSave,
+  WickFile,
+} from "./engine.types";
+
 // Editor-specific Types
 export type {
   // Tool Settings
