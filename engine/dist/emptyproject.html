@@ -88,7 +88,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.10.27.19.48.22";
+  var WICK_ENGINE_BUILD_VERSION = "2025.11.3.16.37.48";
   (function() {
 
     var _a;
@@ -38286,7 +38286,86 @@
         }
         var fr = new FileReader();
         fr.onload = function() {
-          callback(fr.result);
+          try {
+            const text = fr.result;
+            const data = JSON.parse(text);
+            const debugInfo = {
+              hasExport: !!(data && data.export),
+              hasProject: !!(data && data.project),
+              hasObject: !!(data && data.object),
+              hasChildren: !!(data && data.children),
+              dataKeys: data ? Object.keys(data) : [],
+              wickBaseAvailable: !!Wick.Base,
+              wickBaseImportAvailable: !!(Wick.Base && Wick.Base.import),
+              wickBaseFromDataAvailable: !!(Wick.Base && Wick.Base.fromData)
+            };
+            try {
+              console.log("WickFile.fromWickFile: Debug info:", debugInfo);
+            } catch (e) {
+              alert("WickFile.fromWickFile: Debug info: " + JSON.stringify(debugInfo));
+            }
+            if (data && data.export && data.export.object && data.export.children) {
+              console.log("WickFile.fromWickFile: Using new export format");
+              try {
+                const project2 = Wick.Base.import(data.export, null);
+                console.log("WickFile.fromWickFile: Import successful, project:", project2);
+                callback(project2);
+                return;
+              } catch (importError) {
+                console.error("WickFile.fromWickFile: Import failed:", importError);
+                callback(null);
+                return;
+              }
+            }
+            if (data && data.project) {
+              console.log("WickFile.fromWickFile: Using legacy format");
+              try {
+                const project2 = new window.Wick.Project();
+                project2.name = data.project.name;
+                project2.width = data.project.width;
+                project2.height = data.project.height;
+                project2.framerate = data.project.framerate;
+                project2.backgroundColor = new window.Wick.Color(data.project.backgroundColor);
+                project2.onionSkinEnabled = data.project.onionSkinEnabled;
+                project2.onionSkinSeekForwards = data.project.onionSkinSeekForwards;
+                project2.onionSkinSeekBackwards = data.project.onionSkinSeekBackwards;
+                const clips = project2.getChildren("Clip");
+                if (clips.length > 0) {
+                  project2._focus = clips[0].uuid;
+                } else {
+                  project2._focus = null;
+                }
+                console.log("WickFile.fromWickFile: Legacy project created successfully");
+                if (data.project.children && data.project.children.length > 0) {
+                  console.warn("Wick.WickFile.fromWickFile: legacy file missing object graph; children will not be reconstructed.");
+                }
+                callback(project2);
+                return;
+              } catch (fromDataError) {
+                console.error("WickFile.fromWickFile: Legacy project creation failed:", fromDataError);
+                callback(null);
+                return;
+              }
+            }
+            if (data && data.object && data.children) {
+              console.log("WickFile.fromWickFile: Using fallback format");
+              try {
+                const project2 = Wick.Base.import(data, null);
+                console.log("WickFile.fromWickFile: Fallback import successful, project:", project2);
+                callback(project2);
+                return;
+              } catch (fallbackError) {
+                console.error("WickFile.fromWickFile: Fallback import failed:", fallbackError);
+                callback(null);
+                return;
+              }
+            }
+            console.error("Wick.WickFile.fromWickFile: Unrecognized wick file format");
+            callback(null);
+          } catch (e) {
+            console.error("Wick.WickFile.fromWickFile: Failed to parse wick file", e);
+            callback(null);
+          }
         };
         fr.readAsText(wickFile);
       }
@@ -38298,8 +38377,9 @@
        * @returns {Blob}
        */
       static toWickFile(project2, callback, format = "blob") {
+        const exportPayload = project2.export();
         var wickFileData = {
-          project: project2.serialize(),
+          export: exportPayload,
           metadata: Wick.WickFile.generateMetaData()
         };
         var wickFileString = JSON.stringify(wickFileData);
@@ -38623,6 +38703,16 @@
        * @param {object} data - Serialized data to use to create a new object.
        */
       static fromData(data, project2) {
+        try {
+          const startMs = typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
+          if (data) {
+            try {
+              console.debug("[ProjectLoad] fromData:start", { classname: data.classname, uuid: data.uuid, hasChildren: !!data.children });
+            } catch (_) {
+            }
+          }
+        } catch (_) {
+        }
         if (!data.classname) {
           console.warn("Wick.Base.fromData(): data was missing, did you mean to deserialize something else?");
         }
@@ -38630,7 +38720,20 @@
           console.warn("Tried to deserialize an object with no Wick class: " + data.classname);
         }
         var object = new Wick[data.classname]({ uuid: data.uuid, project: project2 });
-        object.deserialize(data);
+        try {
+          object.deserialize(data);
+          try {
+            const endMs = typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
+            console.debug("[ProjectLoad] fromData:success", { classname: data.classname, uuid: data.uuid, ms: endMs });
+          } catch (_) {
+          }
+        } catch (e) {
+          try {
+            console.error("[ProjectLoad] fromData:error", { classname: data.classname, uuid: data.uuid, message: e && e.message || String(e) });
+          } catch (_) {
+          }
+          throw e;
+        }
         if (data.classname === "Project") {
           object.initialize();
         }
@@ -38732,9 +38835,20 @@
        * @param {object} exportData - an object created from Wick.Base.export().
        */
       static import(exportData, project2) {
+        try {
+          const startMs = typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
+          try {
+            console.debug("[ProjectLoad] import:start", { hasObject: !!(exportData && exportData.object), hasChildren: !!(exportData && exportData.children), assets: exportData && exportData.assets && exportData.assets.length || 0 });
+          } catch (_) {
+          }
+        } catch (_) {
+        }
         if (!exportData) console.error("Wick.Base.import(): exportData is required");
         if (!exportData.object) console.error("Wick.Base.import(): exportData is missing data");
         if (!exportData.children) console.error("Wick.Base.import(): exportData is missing data");
+        if (!project2 && exportData.object && exportData.object.classname === "Project") {
+          project2 = Wick.Base.fromData(exportData.object, null);
+        }
         exportData.assets.forEach((assetData) => {
           if (project2.getAssetByUUID(assetData.uuid)) {
             return;
@@ -38742,10 +38856,15 @@
           var asset = Wick.Base.fromData(assetData, project2);
           project2.addAsset(asset);
         });
-        var object = Wick.Base.fromData(exportData.object, project2);
+        var object = project2 && exportData.object.classname === "Project" ? project2 : Wick.Base.fromData(exportData.object, project2);
         exportData.children.forEach((childData) => {
           Wick.Base.fromData(childData, project2);
         });
+        try {
+          const endMs = typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
+          console.debug("[ProjectLoad] import:success", { rootClass: exportData.object && exportData.object.classname, children: exportData.children && exportData.children.length, assets: exportData.assets && exportData.assets.length, ms: endMs });
+        } catch (_) {
+        }
         return object;
       }
       /**

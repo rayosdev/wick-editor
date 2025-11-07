@@ -98,6 +98,171 @@
     </script>
     <script src="/corelibs/wick-engine/wickengine.js"></script>
     <script>
+      // Debug helper for project loading from cache
+      (function(){
+        try {
+          if (!window.__wickDebug) window.__wickDebug = {};
+          
+          // Save project to localStorage cache
+          window.__wickDebug.saveToCache = function(projectJson, key) {
+            key = key || 'wick_cached_project';
+            try {
+              const projectData = typeof projectJson === 'string' ? projectJson : JSON.stringify(projectJson);
+              localStorage.setItem(key, projectData);
+              localStorage.setItem(key + '_timestamp', Date.now().toString());
+              console.debug('[ProjectLoad] cache:save', { key: key, size: projectData.length, timestamp: Date.now() });
+              return true;
+            } catch (e) {
+              console.error('[ProjectLoad] cache:save:error', { message: e?.message });
+              return false;
+            }
+          };
+
+          // Load project from localStorage cache
+          window.__wickDebug.loadFromCache = function(key, callback) {
+            key = key || 'wick_cached_project';
+            try {
+              const cachedData = localStorage.getItem(key);
+              if (!cachedData) {
+                console.error('[ProjectLoad] cache:load:error', { message: 'No cached project found', key: key });
+                if (callback) callback(false);
+                return false;
+              }
+
+              console.debug('[ProjectLoad] cache:load:start', { key: key, size: cachedData.length });
+              
+              if (window.Wick && window.Wick.WickFile) {
+                const blob = new Blob([cachedData], { type: 'application/json' });
+                window.Wick.WickFile.fromWickFile(blob, function(result) {
+                  if (result) {
+                    try {
+                      if (window.editor && window.editor.setupNewProject) {
+                        window.editor.setupNewProject(result);
+                      }
+                      console.debug('[ProjectLoad] cache:load:done', { projectName: result.name, projectUuid: result.uuid });
+                      if (callback) callback(true);
+                    } catch (e) {
+                      console.error('[ProjectLoad] cache:load:setupError', { message: e?.message, stack: e?.stack });
+                      if (callback) callback(false);
+                    }
+                  } else {
+                    console.error('[ProjectLoad] cache:load:error', { message: 'fromWickFile returned null' });
+                    if (callback) callback(false);
+                  }
+                });
+              } else {
+                console.error('[ProjectLoad] cache:load:error', { message: 'Wick.WickFile unavailable' });
+                if (callback) callback(false);
+              }
+            } catch (e) {
+              console.error('[ProjectLoad] cache:load:error', { message: e?.message, stack: e?.stack });
+              if (callback) callback(false);
+            }
+          };
+
+          // Save project to IndexedDB via localforage (if available) AND localStorage as backup
+          window.__wickDebug.saveToIndexedDB = async function(projectJson, key) {
+            key = key || 'wick_cached_project';
+            try {
+              const projectData = typeof projectJson === 'string' ? projectJson : JSON.stringify(projectJson);
+              
+              // Always save to localStorage as backup
+              localStorage.setItem(key, projectData);
+              localStorage.setItem(key + '_timestamp', Date.now().toString());
+              
+              // Try IndexedDB if real localforage is available (not the shim)
+              if (window.localforage && window.localforage.setItem && window.localforage.constructor && window.localforage.constructor.name !== 'Object') {
+                try {
+                  await window.localforage.setItem(key, projectData);
+                  console.debug('[ProjectLoad] indexeddb:save', { key: key, size: projectData.length, localStorageBackup: true });
+                  return true;
+                } catch (e) {
+                  console.warn('[ProjectLoad] indexeddb:save:warning', { message: 'IndexedDB save failed, using localStorage only', error: e?.message });
+                  return true; // Still return true since localStorage worked
+                }
+              } else {
+                console.debug('[ProjectLoad] indexeddb:save:localStorageOnly', { key: key, size: projectData.length });
+                return true;
+              }
+            } catch (e) {
+              console.error('[ProjectLoad] indexeddb:save:error', { message: e?.message });
+              return false;
+            }
+          };
+
+          // Load project from IndexedDB via localforage (if available), fallback to localStorage
+          window.__wickDebug.loadFromIndexedDB = async function(key, callback) {
+            key = key || 'wick_cached_project';
+            try {
+              let cachedData = null;
+              let source = 'none';
+              
+              // Try IndexedDB first if real localforage is available (not the shim)
+              if (window.localforage && window.localforage.getItem && window.localforage.constructor && window.localforage.constructor.name !== 'Object') {
+                try {
+                  cachedData = await window.localforage.getItem(key);
+                  if (cachedData) {
+                    source = 'indexeddb';
+                    console.debug('[ProjectLoad] indexeddb:load:found', { key: key, size: cachedData.length });
+                  } else {
+                    console.debug('[ProjectLoad] indexeddb:load:notfound', { key: key, 'willTryLocalStorage': true });
+                  }
+                } catch (e) {
+                  console.warn('[ProjectLoad] indexeddb:load:error', { message: 'IndexedDB read failed, trying localStorage', error: e?.message });
+                }
+              }
+              
+              // Fallback to localStorage if IndexedDB didn't work
+              if (!cachedData) {
+                cachedData = localStorage.getItem(key);
+                if (cachedData) {
+                  source = 'localStorage';
+                  console.debug('[ProjectLoad] indexeddb:load:localStorage:found', { key: key, size: cachedData.length });
+                } else {
+                  console.error('[ProjectLoad] indexeddb:load:error', { message: 'No cached project found in IndexedDB or localStorage', key: key });
+                  if (callback) callback(false);
+                  return false;
+                }
+              }
+
+              console.debug('[ProjectLoad] indexeddb:load:start', { key: key, size: cachedData.length, source: source });
+              
+              if (window.Wick && window.Wick.WickFile) {
+                const blob = new Blob([cachedData], { type: 'application/json' });
+                window.Wick.WickFile.fromWickFile(blob, function(result) {
+                  if (result) {
+                    try {
+                      if (window.editor && window.editor.setupNewProject) {
+                        window.editor.setupNewProject(result);
+                      }
+                      console.debug('[ProjectLoad] indexeddb:load:done', { projectName: result.name, loadedFrom: source });
+                      if (callback) callback(true);
+                    } catch (e) {
+                      console.error('[ProjectLoad] indexeddb:load:setupError', { message: e?.message });
+                      if (callback) callback(false);
+                    }
+                  } else {
+                    console.error('[ProjectLoad] indexeddb:load:error', { message: 'fromWickFile returned null' });
+                    if (callback) callback(false);
+                  }
+                });
+              } else {
+                console.error('[ProjectLoad] indexeddb:load:error', { message: 'Wick.WickFile unavailable' });
+                if (callback) callback(false);
+              }
+            } catch (e) {
+              console.error('[ProjectLoad] indexeddb:load:error', { message: e?.message, stack: e?.stack });
+              if (callback) callback(false);
+            }
+          };
+
+          console.debug('[ProjectLoad] __wickDebug helpers initialized');
+        } catch (e) {
+          console.error('[ProjectLoad] __wickDebug:init:error', { message: e?.message });
+        }
+      })();
+    </script>
+    <script>
       // Defensive shim: some legacy engine code may dynamically create
       // <script type="module" src="..."> elements with incorrect src
       // (for example image URLs). Browsers enforce MIME types for module

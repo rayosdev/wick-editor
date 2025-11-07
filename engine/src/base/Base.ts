@@ -81,6 +81,12 @@ Wick.Base = class {
      * @param {object} data - Serialized data to use to create a new object.
      */
     static fromData(data: any, project: any): any {
+        try {
+            const startMs = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+            if (data) {
+                try { console.debug('[ProjectLoad] fromData:start', { classname: data.classname, uuid: data.uuid, hasChildren: !!data.children }); } catch (_) {}
+            }
+        } catch (_) {}
         if (!data.classname) {
             console.warn('Wick.Base.fromData(): data was missing, did you mean to deserialize something else?');
         }
@@ -89,7 +95,18 @@ Wick.Base = class {
         }
 
         var object = new Wick[data.classname]({ uuid: data.uuid, project: project });
-        object.deserialize(data);
+        try {
+            object.deserialize(data);
+            try {
+                const endMs = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+                console.debug('[ProjectLoad] fromData:success', { classname: data.classname, uuid: data.uuid, ms: endMs });
+            } catch (_) {}
+        } catch (e) {
+            try {
+                console.error('[ProjectLoad] fromData:error', { classname: data.classname, uuid: data.uuid, message: (e && e.message) || String(e) });
+            } catch (_) {}
+            throw e;
+        }
 
         if (data.classname === 'Project') {
             object.initialize();
@@ -221,9 +238,18 @@ Wick.Base = class {
      * @param {object} exportData - an object created from Wick.Base.export().
      */
     static import(exportData: any, project: any): any {
+        try {
+            const startMs = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+            try { console.debug('[ProjectLoad] import:start', { hasObject: !!(exportData && exportData.object), hasChildren: !!(exportData && exportData.children), assets: (exportData && exportData.assets && exportData.assets.length) || 0 }); } catch (_) {}
+        } catch (_) {}
         if (!exportData) console.error('Wick.Base.import(): exportData is required');
         if (!exportData.object) console.error('Wick.Base.import(): exportData is missing data');
         if (!exportData.children) console.error('Wick.Base.import(): exportData is missing data');
+
+        // If no project is provided and the root object is a Project, create it first
+        if (!project && exportData.object && exportData.object.classname === 'Project') {
+            project = Wick.Base.fromData(exportData.object, null);
+        }
 
         // Import assets first in case the objects need them!
         exportData.assets.forEach((assetData: any) => {
@@ -237,13 +263,21 @@ Wick.Base = class {
             project.addAsset(asset);
         });
 
-        var object = Wick.Base.fromData(exportData.object, project);
+        // Create root object (project might have been created above)
+        var object = project && exportData.object.classname === 'Project'
+            ? project
+            : Wick.Base.fromData(exportData.object, project);
 
         // Import children as well
         exportData.children.forEach((childData: any) => {
             // Only need to call deserialize here, we just want the object to get added to ObjectCache
             var child = Wick.Base.fromData(childData, project);
         });
+
+        try {
+            const endMs = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+            console.debug('[ProjectLoad] import:success', { rootClass: exportData.object && exportData.object.classname, children: exportData.children && exportData.children.length, assets: exportData.assets && exportData.assets.length, ms: endMs });
+        } catch (_) {}
 
         return object;
     }

@@ -58,7 +58,107 @@ export class WickFile {
         var fr = new FileReader();
 
         fr.onload = function() {
-            callback(fr.result);
+            try {
+                const text = fr.result as string;
+                const data = JSON.parse(text);
+
+                // Use alert for debugging since console.log might not work in engine context
+                const debugInfo = {
+                    hasExport: !!(data && data.export),
+                    hasProject: !!(data && data.project),
+                    hasObject: !!(data && data.object),
+                    hasChildren: !!(data && data.children),
+                    dataKeys: data ? Object.keys(data) : [],
+                    wickBaseAvailable: !!Wick.Base,
+                    wickBaseImportAvailable: !!(Wick.Base && Wick.Base.import),
+                    wickBaseFromDataAvailable: !!(Wick.Base && Wick.Base.fromData)
+                };
+                
+                // Try to log to console first, then alert if needed
+                try {
+                    console.log('WickFile.fromWickFile: Debug info:', debugInfo);
+                } catch (e) {
+                    alert('WickFile.fromWickFile: Debug info: ' + JSON.stringify(debugInfo));
+                }
+
+                // New format: full export payload
+                if (data && data.export && data.export.object && data.export.children) {
+                    console.log('WickFile.fromWickFile: Using new export format');
+                    try {
+                        const project = Wick.Base.import(data.export, null);
+                        console.log('WickFile.fromWickFile: Import successful, project:', project);
+                        callback(project);
+                        return;
+                    } catch (importError) {
+                        console.error('WickFile.fromWickFile: Import failed:', importError);
+                        callback(null);
+                        return;
+                    }
+                }
+
+                // Legacy format: minimal serialized project only
+                if (data && data.project) {
+                    console.log('WickFile.fromWickFile: Using legacy format');
+                    try {
+                        // For legacy format, we need to create a new project and manually set the properties
+                        // instead of using fromData which tries to initialize with missing children
+                        const project = new window.Wick.Project();
+                        
+                        // Manually set the project properties from the serialized data
+                        project.name = data.project.name;
+                        project.width = data.project.width;
+                        project.height = data.project.height;
+                        project.framerate = data.project.framerate;
+                        project.backgroundColor = new window.Wick.Color(data.project.backgroundColor);
+                        project.onionSkinEnabled = data.project.onionSkinEnabled;
+                        project.onionSkinSeekForwards = data.project.onionSkinSeekForwards;
+                        project.onionSkinSeekBackwards = data.project.onionSkinSeekBackwards;
+                        
+                        // Set focus to the first clip in the project, or null if no clips exist
+                        const clips = project.getChildren('Clip');
+                        if (clips.length > 0) {
+                            project._focus = clips[0].uuid;
+                        } else {
+                            project._focus = null;
+                        }
+                        
+                        console.log('WickFile.fromWickFile: Legacy project created successfully');
+
+                        // Warn if children cannot be reconstructed (no object graph present)
+                        if (data.project.children && data.project.children.length > 0) {
+                            console.warn('Wick.WickFile.fromWickFile: legacy file missing object graph; children will not be reconstructed.');
+                        }
+
+                        callback(project);
+                        return;
+                    } catch (fromDataError) {
+                        console.error('WickFile.fromWickFile: Legacy project creation failed:', fromDataError);
+                        callback(null);
+                        return;
+                    }
+                }
+
+                // Fallback: attempt direct import if structure resembles Base.export
+                if (data && data.object && data.children) {
+                    console.log('WickFile.fromWickFile: Using fallback format');
+                    try {
+                        const project = Wick.Base.import(data, null);
+                        console.log('WickFile.fromWickFile: Fallback import successful, project:', project);
+                        callback(project);
+                        return;
+                    } catch (fallbackError) {
+                        console.error('WickFile.fromWickFile: Fallback import failed:', fallbackError);
+                        callback(null);
+                        return;
+                    }
+                }
+
+                console.error('Wick.WickFile.fromWickFile: Unrecognized wick file format');
+                callback(null);
+            } catch (e) {
+                console.error('Wick.WickFile.fromWickFile: Failed to parse wick file', e);
+                callback(null);
+            }
         };
 
         fr.readAsText(wickFile);
@@ -72,8 +172,10 @@ export class WickFile {
      * @returns {Blob}
      */
     static toWickFile(project: any, callback: (wickFile: any) => void, format: string = 'blob'): void {
+        // Save full object graph so deserialization can reconstruct children and assets
+        const exportPayload = project.export();
         var wickFileData = {
-            project: project.serialize(),
+            export: exportPayload,
             metadata: Wick.WickFile.generateMetaData()
         };
 

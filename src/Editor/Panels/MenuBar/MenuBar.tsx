@@ -79,6 +79,75 @@ const MenuBar: FC<MenuBarProps> = ({
                     color="save"
                 />
 
+                {/* Debug: Cache Save/Load buttons for IndexedDB/localStorage */}
+                <MenuBarButton
+                    text="cache save"
+                    action={() => {
+                        try {
+                            const w: any = window as any;
+                            const project = (w.editor && w.editor.project) || (w.project);
+                            if (!project || !w.Wick || !w.Wick.WickFile) {
+                                (typeof alert === 'function' ? alert : console.error)('Cannot access project or Wick engine.');
+                                return;
+                            }
+                            // Export current project to wick JSON string via WickFile.toWickFile
+                            w.Wick.WickFile.toWickFile(project, (blob: Blob | string) => {
+                                const handleString = (str: string) => {
+                                    if (w.__wickDebug && w.__wickDebug.saveToIndexedDB) {
+                                        w.__wickDebug.saveToIndexedDB(str, 'wick_cached_project');
+                                    } else if (w.__wickDebug && w.__wickDebug.saveToCache) {
+                                        w.__wickDebug.saveToCache(str, 'wick_cached_project');
+                                    } else {
+                                        localStorage.setItem('wick_cached_project', str);
+                                    }
+                                };
+                                if (typeof blob === 'string') {
+                                    handleString(blob);
+                                } else {
+                                    const fr = new FileReader();
+                                    fr.onload = () => handleString(String(fr.result));
+                                    fr.readAsText(blob);
+                                }
+                            }, 'blob');
+                        } catch (e) {
+                            console.error('[ProjectLoad] menu:cacheSave:error', e);
+                        }
+                    }}
+                />
+
+                <MenuBarButton
+                    text="cache load"
+                    action={() => {
+                        try {
+                            const w: any = window as any;
+                            if (w.__wickDebug && w.__wickDebug.loadFromIndexedDB) {
+                                w.__wickDebug.loadFromIndexedDB('wick_cached_project', (success: boolean) => {
+                                    console.debug('[ProjectLoad] menu:indexeddb:load', { success });
+                                });
+                            } else if (w.__wickDebug && w.__wickDebug.loadFromCache) {
+                                w.__wickDebug.loadFromCache('wick_cached_project', (success: boolean) => {
+                                    console.debug('[ProjectLoad] menu:localStorage:load', { success });
+                                });
+                            } else {
+                                // Minimal fallback: read from localStorage and load
+                                const cached = localStorage.getItem('wick_cached_project');
+                                if (!cached) {
+                                    console.error('[ProjectLoad] menu:cache:missing');
+                                    return;
+                                }
+                                const blob = new Blob([cached], { type: 'application/json' });
+                                w.Wick.WickFile.fromWickFile(blob, (result: any) => {
+                                    if (result && w.editor && w.editor.setupNewProject) {
+                                        w.editor.setupNewProject(result);
+                                    }
+                                });
+                            }
+                        } catch (e) {
+                            console.error('[ProjectLoad] menu:cacheLoad:error', e);
+                        }
+                    }}
+                />
+
                 <MenuBarIconButton
                     icon="gear"
                     action={() => openModal('SettingsModal')}

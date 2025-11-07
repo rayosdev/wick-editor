@@ -326,16 +326,22 @@ class Editor extends EditorCore {
     });
 
     // Leave Page warning.
-    window.onbeforeunload = function (event) {
-      // Don't show the warning if nothing has been done to the project
-      if (this.project.numUndoStates > 1) {
-        return null;
-      }
+    // Disable during development/testing to avoid blocking automation
+    if (!isDevelopment) {
+      window.onbeforeunload = function (event) {
+        // Don't show the warning if nothing has been done to the project
+        if (this.project.numUndoStates > 1) {
+          return null;
+        }
 
-      var confirmationMessage = "Warning: All unsaved changes will be lost!";
-      (event || window.event).returnValue = confirmationMessage; //Gecko + IE
-      return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
-    };
+        var confirmationMessage = "Warning: All unsaved changes will be lost!";
+        (event || window.event).returnValue = confirmationMessage; //Gecko + IE
+        return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
+      };
+    } else {
+      // Disable dialog in development to avoid blocking automation/tests
+      window.onbeforeunload = null;
+    }
   };
 
   componentDidMount = () => {
