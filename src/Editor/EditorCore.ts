@@ -1709,28 +1709,56 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   };
 
   /**
-   * Attempts to autosave if enough time has passed since the last autosave.
+   * Requests an autosave that will trigger after the user stops performing actions.
+   * Uses debouncing to save 2 seconds after the last action, preventing excessive saves
+   * while ensuring changes are saved promptly when the user pauses.
    */
   requestAutosave = (): void => {
-    let now = Date.now();
-    let last = this._lastAutosave || 0;
-    let timeSince = now - last;
+    // Clear any existing debounce timeout
+    if (this._autosaveDebounceTimeoutID !== undefined) {
+      clearTimeout(this._autosaveDebounceTimeoutID);
+      this._autosaveDebounceTimeoutID = undefined;
+    }
 
-    // Only autosave every 10 seconds (reduced from 15 for better persistence).
-    if (timeSince > 10000) {
+    // Set a new debounce timeout - save 2 seconds after the last action
+    this._autosaveDebounceTimeoutID = window.setTimeout(() => {
+      // Show autosave indicator
+      this.setState({ isAutosaving: true });
+      
       this.autoSaveProject(() => {
         this._lastAutosave = Date.now();
+        this._autosaveDebounceTimeoutID = undefined;
+        // Hide autosave indicator
+        this.setState({ isAutosaving: false });
       });
-    }
+    }, 2000); // 2 second debounce - saves shortly after user stops acting
   };
 
   /**
    * Save the current project using Dexie.js (with fallback to localforage)
    */
   autoSaveProject = (callback: AutosaveCallback): void => {
-    if (!this.project) return;
-    if (this.state.previewPlaying) return;
-    if (this.state.activeModalName !== null) return;
+    if (!this.project) {
+      // Hide indicator if project doesn't exist
+      if (this.setState) {
+        this.setState({ isAutosaving: false });
+      }
+      return;
+    }
+    if (this.state.previewPlaying) {
+      // Hide indicator if preview is playing
+      if (this.setState) {
+        this.setState({ isAutosaving: false });
+      }
+      return;
+    }
+    if (this.state.activeModalName !== null) {
+      // Hide indicator if modal is open
+      if (this.setState) {
+        this.setState({ isAutosaving: false });
+      }
+      return;
+    }
 
     // Use the new Dexie.js storage
     const autosaveData = window.Wick.AutoSave.generateAutosaveData(this.project);
@@ -1752,6 +1780,12 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       // Fallback to old system
       window.Wick.AutoSave.save(this.project, () => {
         this.saveCurrentProject();
+        callback();
+      }).catch(() => {
+        // Even if fallback fails, hide the indicator
+        if (this.setState) {
+          this.setState({ isAutosaving: false });
+        }
         callback();
       });
     });

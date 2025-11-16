@@ -83,6 +83,7 @@ class Editor extends EditorCore {
   editorVersion: string = version + "";
   error: Error | null = null;
   _lastAutosave: number = 0;
+  _autosaveDebounceTimeoutID?: number;
   _showWaitOverlayTimeoutID?: number;
 
   fontInfoInterface: any; // TODO: Add proper types
@@ -160,6 +161,7 @@ class Editor extends EditorCore {
       renderStatusMessage: "",
       customHotKeys: {},
       colorPickerType: "swatches",
+      isAutosaving: false,
       lastColorsUsed: [
         "#FFFFFF",
         "#FFFFFF",
@@ -330,6 +332,12 @@ class Editor extends EditorCore {
 
     // Save project state on page unload to ensure persistence across refreshes
     window.onbeforeunload = (event) => {
+      // Clear any pending autosave debounce timeout
+      if (this._autosaveDebounceTimeoutID !== undefined) {
+        clearTimeout(this._autosaveDebounceTimeoutID);
+        this._autosaveDebounceTimeoutID = undefined;
+      }
+      
       // Force an immediate save before the page unloads
       if (this.project && this.project.numUndoStates > 1) {
         // Save synchronously if possible, or use sendBeacon for async
@@ -362,6 +370,14 @@ class Editor extends EditorCore {
     }
 
     this.watchForHover();
+  };
+
+  componentWillUnmount = () => {
+    // Clean up autosave debounce timeout on unmount
+    if (this._autosaveDebounceTimeoutID !== undefined) {
+      clearTimeout(this._autosaveDebounceTimeoutID);
+      this._autosaveDebounceTimeoutID = undefined;
+    }
   };
 
   componentDidUpdate = (prevProps, prevState) => {
@@ -1060,6 +1076,45 @@ class Editor extends EditorCore {
     return (
       <DndProvider backend={HTML5Backend}>
         <EditorWrapper editor={this}>
+          {/* Autosave Indicator */}
+          {this.state.isAutosaving && (
+            <div
+              style={{
+                position: 'fixed',
+                top: '10px',
+                right: '10px',
+                zIndex: 10000,
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                borderRadius: '4px',
+                padding: '8px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                color: '#fff',
+                fontSize: '12px',
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+              }}
+            >
+              <div
+                style={{
+                  width: '12px',
+                  height: '12px',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  borderTopColor: '#fff',
+                  borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite',
+                }}
+              />
+              <span>Saving...</span>
+              <style>{`
+                @keyframes spin {
+                  to { transform: rotate(360deg); }
+                }
+              `}</style>
+            </div>
+          )}
+
           {/* Menu Bar */}
 
           <div id="menu-bar-container">

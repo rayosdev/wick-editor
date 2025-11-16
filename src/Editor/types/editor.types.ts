@@ -458,6 +458,7 @@ export interface EditorState {
   onionSkinningWasOn: boolean;
   localSavedFiles: LocalSavedFile[];
   codeEditorWindowProperties?: CodeEditorWindowProperties;
+  isAutosaving: boolean;
 }
 
 /**
