@@ -244,64 +244,97 @@ Wick.View.Project = class extends Wick.View {
 
     /**
      * Modern scroll-to-zoom functionality using native wheel events
+     * Supports both zooming (with ctrl/cmd key or pinch) and panning (two-finger scroll)
      * Zooms toward cursor position for better UX
      * @param {WheelEvent} event - Native wheel event
      */
     scrollToZoom (event) {
         if (this.model.isPublished) return;
 
-        // Get mouse position in view coordinates for zoom-to-point
-        const rect = this._svgCanvas.getBoundingClientRect();
-        const point = new this.paper.Point(
-            event.clientX - rect.left,
-            event.clientY - rect.top
-        );
-        const viewPoint = this.paper.view.viewToProject(point);
+        // Detect if this is a zoom gesture (pinch or ctrl+scroll) vs pan gesture (two-finger scroll)
+        const isZoomGesture = event.ctrlKey || event.metaKey;
 
         // Handle different deltaMode values for cross-browser compatibility
-        const deltaY = event.deltaY || 0;
         let multiplier = 1;
         if (event.deltaMode === 1) { // DOM_DELTA_LINE
             multiplier = 15;
         } else if (event.deltaMode === 2) { // DOM_DELTA_PAGE
             multiplier = 100;
         }
-        
-        const d = deltaY * multiplier * 0.001;
 
-        // Store zoom point for animation frame
-        this._zoomPoint = viewPoint;
-        
-        // Accumulate deltas and apply at next animation frame
-        this._pendingZoomDelta = (this._pendingZoomDelta || 0) + d;
-        if (!this._zoomRAF) {
-            this._zoomRAF = window.requestAnimationFrame(() => {
-                try {
-                    const oldZoom = Number.isFinite(this.paper.view.zoom) ? this.paper.view.zoom : 1;
-                    const newZoom = Math.max(
-                        Wick.View.Project.ZOOM_MIN, 
-                        Math.min(Wick.View.Project.ZOOM_MAX, oldZoom + this._pendingZoomDelta)
-                    );
-                    
-                    // Zoom toward cursor position (zoom-to-point)
-                    if (this._zoomPoint && Math.abs(newZoom - oldZoom) > 0.001) {
-                        const beta = oldZoom / newZoom;
-                        const mousePosition = this._zoomPoint.subtract(this.paper.view.center);
-                        const offset = mousePosition.multiply(beta).subtract(mousePosition);
+        if (isZoomGesture) {
+            // ZOOM: Pinch-to-zoom or ctrl/cmd + scroll
+            const deltaY = event.deltaY || 0;
+            const d = deltaY * multiplier * 0.001;
+
+            // Get mouse position in view coordinates for zoom-to-point
+            const rect = this._svgCanvas.getBoundingClientRect();
+            const point = new this.paper.Point(
+                event.clientX - rect.left,
+                event.clientY - rect.top
+            );
+            const viewPoint = this.paper.view.viewToProject(point);
+
+            // Store zoom point for animation frame
+            this._zoomPoint = viewPoint;
+            
+            // Accumulate deltas and apply at next animation frame
+            this._pendingZoomDelta = (this._pendingZoomDelta || 0) + d;
+            if (!this._zoomRAF) {
+                this._zoomRAF = window.requestAnimationFrame(() => {
+                    try {
+                        const oldZoom = Number.isFinite(this.paper.view.zoom) ? this.paper.view.zoom : 1;
+                        const newZoom = Math.max(
+                            Wick.View.Project.ZOOM_MIN, 
+                            Math.min(Wick.View.Project.ZOOM_MAX, oldZoom + this._pendingZoomDelta)
+                        );
                         
-                        this.paper.view.zoom = newZoom;
-                        this.paper.view.center = this.paper.view.center.add(offset);
-                    } else {
-                        this.paper.view.zoom = newZoom;
+                        // Zoom toward cursor position (zoom-to-point)
+                        if (this._zoomPoint && Math.abs(newZoom - oldZoom) > 0.001) {
+                            const beta = oldZoom / newZoom;
+                            const mousePosition = this._zoomPoint.subtract(this.paper.view.center);
+                            const offset = mousePosition.multiply(beta).subtract(mousePosition);
+                            
+                            this.paper.view.zoom = newZoom;
+                            this.paper.view.center = this.paper.view.center.add(offset);
+                        } else {
+                            this.paper.view.zoom = newZoom;
+                        }
+                        
+                        this._applyZoomAndPanChangesFromPaper();
+                    } finally {
+                        this._pendingZoomDelta = 0;
+                        this._zoomRAF = null;
+                        this._zoomPoint = null;
                     }
-                    
-                    this._applyZoomAndPanChangesFromPaper();
-                } finally {
-                    this._pendingZoomDelta = 0;
-                    this._zoomRAF = null;
-                    this._zoomPoint = null;
-                }
-            });
+                });
+            }
+        } else {
+            // PAN: Two-finger scroll (no ctrl/cmd key)
+            const deltaX = (event.deltaX || 0) * multiplier;
+            const deltaY = (event.deltaY || 0) * multiplier;
+            
+            // Accumulate pan deltas
+            this._pendingPanDeltaX = (this._pendingPanDeltaX || 0) + deltaX;
+            this._pendingPanDeltaY = (this._pendingPanDeltaY || 0) + deltaY;
+            
+            if (!this._panRAF) {
+                this._panRAF = window.requestAnimationFrame(() => {
+                    try {
+                        // Apply pan in view space (scaled by zoom for natural feel)
+                        const panOffset = new this.paper.Point(
+                            this._pendingPanDeltaX / this.paper.view.zoom,
+                            this._pendingPanDeltaY / this.paper.view.zoom
+                        );
+                        this.paper.view.center = this.paper.view.center.add(panOffset);
+                        this._applyZoomAndPanChangesFromPaper();
+                    } finally {
+                        this._pendingPanDeltaX = 0;
+                        this._pendingPanDeltaY = 0;
+                        this._panRAF = null;
+                    }
+                });
+            }
         }
     }
 
@@ -313,26 +346,169 @@ Wick.View.Project = class extends Wick.View {
         }, { passive: false });
 
         // Add pinch-to-zoom support for trackpads and touch devices
+        // More responsive with zoom-to-point functionality
         this._svgCanvas.addEventListener('gesturestart', (e) => {
             e.preventDefault();
             this._gestureStartZoom = this.paper.view.zoom;
+            this._gestureStartCenter = this.paper.view.center.clone();
+            
+            // Get gesture center point for zoom-to-point
+            const rect = this._svgCanvas.getBoundingClientRect();
+            const point = new this.paper.Point(
+                e.clientX - rect.left,
+                e.clientY - rect.top
+            );
+            this._gesturePoint = this.paper.view.viewToProject(point);
         }, { passive: false });
 
         this._svgCanvas.addEventListener('gesturechange', (e) => {
             e.preventDefault();
-            if (this._gestureStartZoom) {
-                const newZoom = this._gestureStartZoom * e.scale;
-                this.paper.view.zoom = Math.max(
+            if (this._gestureStartZoom && this._gesturePoint) {
+                // More responsive: increased scale sensitivity
+                const scaleFactor = 1.5; // Increase responsiveness
+                const adjustedScale = 1 + (e.scale - 1) * scaleFactor;
+                const newZoom = this._gestureStartZoom * adjustedScale;
+                const clampedZoom = Math.max(
                     Wick.View.Project.ZOOM_MIN, 
                     Math.min(Wick.View.Project.ZOOM_MAX, newZoom)
                 );
+                
+                // Apply zoom-to-point for gestures (zoom toward pinch center)
+                const oldZoom = this._gestureStartZoom;
+                if (Math.abs(clampedZoom - oldZoom) > 0.001) {
+                    const beta = oldZoom / clampedZoom;
+                    const mousePosition = this._gesturePoint.subtract(this._gestureStartCenter);
+                    const offset = mousePosition.multiply(beta).subtract(mousePosition);
+                    
+                    this.paper.view.zoom = clampedZoom;
+                    this.paper.view.center = this._gestureStartCenter.add(offset);
+                } else {
+                    this.paper.view.zoom = clampedZoom;
+                }
             }
         }, { passive: false });
 
         this._svgCanvas.addEventListener('gestureend', (e) => {
             e.preventDefault();
             this._gestureStartZoom = null;
+            this._gestureStartCenter = null;
+            this._gesturePoint = null;
             this._applyZoomAndPanChangesFromPaper();
+        }, { passive: false });
+
+        // Add standard touch events for mobile support (Android, iOS, etc.)
+        // These work on all touch devices, not just Safari
+        // ONE FINGER = tool interaction (select, draw, etc.)
+        // TWO FINGERS = pan and zoom
+        this._touchStartDistance = null;
+        this._touchStartZoom = null;
+        this._touchStartCenter = null;
+        this._touchStartPoint = null;
+        this._lastTwoFingerCenter = null;
+        this._isPanning = false;
+
+        this._svgCanvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                // Two-finger touch detected - prepare for pan/zoom
+                e.preventDefault();
+                
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                
+                // Calculate initial distance between touches
+                const dx = touch2.clientX - touch1.clientX;
+                const dy = touch2.clientY - touch1.clientY;
+                this._touchStartDistance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Store zoom and center for transformation
+                this._touchStartZoom = this.paper.view.zoom;
+                this._touchStartCenter = this.paper.view.center.clone();
+                
+                // Calculate center point between fingers
+                const rect = this._svgCanvas.getBoundingClientRect();
+                const centerX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
+                const centerY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
+                const point = new this.paper.Point(centerX, centerY);
+                this._touchStartPoint = this.paper.view.viewToProject(point);
+                this._lastTwoFingerCenter = { x: centerX, y: centerY };
+                
+                this._isPanning = true;
+            }
+            // ONE FINGER: Let Paper.js tools handle it (no preventDefault, no tracking)
+        }, { passive: false });
+
+        this._svgCanvas.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2 && this._touchStartDistance && this._isPanning) {
+                // Two-finger pan and pinch zoom
+                e.preventDefault();
+                
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                const rect = this._svgCanvas.getBoundingClientRect();
+                
+                // Calculate current center point
+                const currentCenterX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
+                const currentCenterY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
+                
+                // Calculate current distance between touches
+                const dx = touch2.clientX - touch1.clientX;
+                const dy = touch2.clientY - touch1.clientY;
+                const currentDistance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Determine if this is primarily a pan or a zoom gesture
+                const distanceChange = Math.abs(currentDistance - this._touchStartDistance);
+                const panDeltaX = currentCenterX - this._lastTwoFingerCenter.x;
+                const panDeltaY = currentCenterY - this._lastTwoFingerCenter.y;
+                const panDistance = Math.sqrt(panDeltaX * panDeltaX + panDeltaY * panDeltaY);
+                
+                // Apply pan (always pan when two fingers move)
+                if (panDistance > 1) {
+                    const panOffset = new this.paper.Point(
+                        -panDeltaX / this.paper.view.zoom,
+                        -panDeltaY / this.paper.view.zoom
+                    );
+                    this.paper.view.center = this.paper.view.center.add(panOffset);
+                    this._lastTwoFingerCenter = { x: currentCenterX, y: currentCenterY };
+                }
+                
+                // Apply zoom only if distance changed significantly (pinch gesture)
+                if (distanceChange > 5) {
+                    const scaleFactor = 1.5;
+                    const scale = currentDistance / this._touchStartDistance;
+                    const adjustedScale = 1 + (scale - 1) * scaleFactor;
+                    const newZoom = this._touchStartZoom * adjustedScale;
+                    const clampedZoom = Math.max(
+                        Wick.View.Project.ZOOM_MIN, 
+                        Math.min(Wick.View.Project.ZOOM_MAX, newZoom)
+                    );
+                    
+                    // Apply zoom-to-point (zoom toward center of pinch)
+                    if (this._touchStartPoint && Math.abs(clampedZoom - this._touchStartZoom) > 0.001) {
+                        const beta = this._touchStartZoom / clampedZoom;
+                        const mousePosition = this._touchStartPoint.subtract(this._touchStartCenter);
+                        const offset = mousePosition.multiply(beta).subtract(mousePosition);
+                        
+                        this.paper.view.zoom = clampedZoom;
+                        this.paper.view.center = this._touchStartCenter.add(offset);
+                    }
+                }
+            }
+            // ONE FINGER: Let Paper.js tools handle it naturally
+        }, { passive: false });
+
+        this._svgCanvas.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) {
+                // Reset two-finger tracking when fingers lift
+                if (this._isPanning) {
+                    this._applyZoomAndPanChangesFromPaper();
+                }
+                this._touchStartDistance = null;
+                this._touchStartZoom = null;
+                this._touchStartCenter = null;
+                this._touchStartPoint = null;
+                this._lastTwoFingerCenter = null;
+                this._isPanning = false;
+            }
         }, { passive: false });
 
         // Connect all Wick Tools into the paper.js project

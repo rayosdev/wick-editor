@@ -1,0 +1,240 @@
+import React, { CSSProperties } from "react";
+
+import ActionButton from "Editor/Util/ActionButton/ActionButton";
+
+import "./_wickcolorpicker.scss";
+import { CustomPicker } from "react-color";
+import WickSwatch from "Editor/Util/ColorPicker/WickSwatch/WickSwatch";
+import {
+  Saturation,
+  Hue,
+  Alpha,
+  Checkboard,
+  Swatch,
+} from "react-color/lib/components/common";
+import { SketchFields } from "react-color/lib/components/sketch/SketchFields";
+
+interface WickColorPickerProps {
+  color: any;
+  colorPickerType?: string;
+  changeColorPickerType?: (type: string) => void;
+  disableAlpha?: boolean;
+  onChangeComplete: (color: any) => void;
+  onChange?: (color: any) => void;
+  lastColorsUsed?: string[];
+  toggle: () => void;
+}
+
+/**
+ * WickColorPicker - A color picker component with swatches and spectrum modes.
+ * @param props - Component props
+ * @returns JSX.Element
+ */
+const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
+  const renderSwatchColumn = (colorList: string[], i: number): JSX.Element => {
+    return (
+      <div
+        key={`swatch-color-column-${i}`}
+        className="wick-swatch-picker-column"
+      >
+        {colorList.map((color, i) => {
+          return (
+            <WickSwatch
+              color={color}
+              onChangeComplete={props.onChangeComplete}
+              selectedColor={props.color}
+              key={`swatch-color-${color}-${i}`}
+            />
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderSwatchbook = (colors: string[][]): JSX.Element => {
+    return (
+      <div className="wick-swatch-picker-book">
+        {colors.map((colorList, i) => {
+          return renderSwatchColumn(colorList, i);
+        })}
+      </div>
+    );
+  };
+
+  const renderSwatches = (): JSX.Element => {
+    let colors: string[][] = [
+      ["#ff0000", "#ffcccc", "#ff9999", "#ff4d4d", "#cc0000", "#800000"],
+      ["#ff8000", "#ffe6cc", "#ffcc99", "#ffa64d", "#cc6600", "#804000"],
+      ["#ffff00", "#ffffcc", "#ffff99", "#ffff4d", "#cccc00", "#808000"],
+      ["#00ff00", "#ccffcc", "#99ff99", "#4dff4d", "#00cc00", "#008000"],
+      ["#00ff80", "#ccffe6", "#99ffcc", "#4dffa6", "#00cc66", "#008040"],
+      ["#00ffff", "#ccffff", "#99ffff", "#4dffff", "#00cccc", "#008080"],
+      ["#0080ff", "#cce6ff", "#99ccff", "#4da6ff", "#0066cc", "#004080"],
+      ["#0000ff", "#ccccff", "#9999ff", "#4d4dff", "#0000cc", "#000080"],
+      ["#8000ff", "#e6ccff", "#cc99ff", "#a64dff", "#6600cc", "#400080"],
+      ["#ff00ff", "#ffccff", "#ff99ff", "#ff4dff", "#cc00cc", "#800080"],
+      ["#ff0080", "#ffcce6", "#ff99cc", "#ff4da6", "#cc0066", "#800040"],
+      ["#000000", "#ffffff", "#cccccc", "#999999", "#666666", "#333333"],
+    ];
+
+    return (
+      <div className="wick-color-picker">
+        {renderHeader()}
+        <div className="wick-swatch-color-picker-body">
+          {renderSwatchbook(colors)}
+        </div>
+      </div>
+    );
+  };
+
+  const renderHeader = (): JSX.Element => {
+    return (
+      <div className="wick-color-picker-header">
+        <div className="wick-color-picker-action-button">
+          <ActionButton
+            color="tool"
+            id="color-picker-swatches-button"
+            tooltip="Swatches"
+            action={() => {
+              props.changeColorPickerType?.("swatches");
+            }}
+            isActive={() => props.colorPickerType === "swatches"}
+            icon="swatches"
+          />
+        </div>
+        <div className="wick-color-picker-action-button spacer">
+          <ActionButton
+            color="tool"
+            id="color-picker-spectrum-button"
+            tooltip="Spectrum"
+            action={() => {
+              props.changeColorPickerType?.("spectrum");
+            }}
+            isActive={() => props.colorPickerType === "spectrum"}
+            icon="spectrum"
+          />
+        </div>
+        <div className="color-picker-control-div">
+          <div id="btn-color-picker-close">
+            <ActionButton
+              color="tool"
+              icon="closemodal"
+              action={props.toggle}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSwatchContainer = (colors: string[]): JSX.Element => {
+    return (
+      <div className="wick-color-picker-swatches-container">
+        {colors.map((color, i) => {
+          return (
+            <div
+              key={`color-swatch-${color}-${i}`}
+              className="wick-color-picker-small-swatch"
+            >
+              <Swatch
+                color={color}
+                style={{
+                  default: {},
+                  ":focus": { outline: "2px solid white" },
+                }}
+                onClick={(color: any) => {
+                  props.onChangeComplete(color);
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const openEyedropper = (): void => {
+    window.editor.setActiveTool("eyedropper");
+    window.editor._onEyedropperPickedColor = props.onChange;
+  };
+
+  const renderSpectrum = (): JSX.Element => {
+    let styles: { activeColor: CSSProperties } = {
+      activeColor: {
+        position: "absolute",
+        width: "100%",
+        height: "100%",
+        backgroundColor: props.color,
+      },
+    };
+
+    let colors: string[] = [
+      "#D0021B",
+      "#F8E71C",
+      "#7ED321",
+      "#4A90E2",
+      "#000000",
+      "#4A4A4A",
+      "#FFFFFF",
+      "#FFFFFF00",
+    ];
+    let lastUsedColorsDefaults: string[] = [
+      "#000000",
+      "#000000",
+      "#000000",
+      "#000000",
+      "#000000",
+      "#000000",
+      "#000000",
+      "#000000",
+    ];
+    let lastColors = props.lastColorsUsed || lastUsedColorsDefaults;
+    return (
+      <div className="wick-color-picker">
+        {renderHeader()}
+        <div className="wick-color-picker-saturation">
+          <Saturation {...props} />
+        </div>
+        <div className="wick-color-picker-control-body">
+          <div id="btn-color-picker-dropper">
+            <ActionButton
+              icon="eyedropper"
+              id="color-picker-eyedropper"
+              tooltip="Eyedropper"
+              color="tool"
+              action={openEyedropper}
+            />
+          </div>
+          <div id="wick-color-picker-bar-container">
+            <div className="wick-color-picker-control-bar">
+              <Hue {...props} height={11} />
+            </div>
+            <div className="wick-color-picker-control-bar">
+              <Alpha {...props} />
+            </div>
+          </div>
+          <div className="wick-color-picker-color-block-container">
+            <Checkboard />
+            <div style={styles.activeColor} />
+          </div>
+        </div>
+        <SketchFields {...props} aria-label="color options" />
+        {renderSwatchContainer(colors)}
+        {renderSwatchContainer(lastColors)}
+      </div>
+    );
+  };
+
+  if (
+    props.colorPickerType === "swatches" ||
+    !props.colorPickerType
+  ) {
+    return renderSwatches();
+  } else if (props.colorPickerType === "spectrum") {
+    return renderSpectrum();
+  }
+
+  return undefined;
+};
+
+export default CustomPicker(WickColorPicker);

@@ -1,28 +1,53 @@
-import React, { Component } from 'react';
+/*
+ * Copyright 2020 WICKLETS LLC
+ *
+ * This file is part of Wick Editor.
+ *
+ * Wick Editor is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Wick Editor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import React from 'react';
 import './_menubariconbutton.scss';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 
-export type MenuBarIconButtonProps = {
+interface MenuBarIconButtonProps {
   id?: string;
   tooltip?: string;
-  action: () => void;
-  icon: string;
-};
-
-export default class MenuBarIconButton extends Component<MenuBarIconButtonProps> {
-  render() {
-    return (
-      <div className="menu-bar-icon-button">
-        <ActionButton
-          color="menu"
-          id={this.props.id}
-          tooltip={this.props.tooltip}
-          action={this.props.action}
-          icon={this.props.icon}
-          tooltipPlace="bottom"
-        />
-      </div>
-    );
-  }
+  tooltipPlace?: 'top' | 'bottom' | 'left' | 'right';
+  action: (e?: React.MouseEvent) => void;
+  icon?: string;
 }
 
+const MenuBarIconButton: React.FC<MenuBarIconButtonProps> = ({
+  id,
+  tooltip,
+  tooltipPlace,
+  action,
+  icon
+}) => {
+  return (
+    <div className="menu-bar-icon-button">
+      <ActionButton
+        color="menu"
+        id={id}
+        tooltip={tooltip}
+        action={action}
+        icon={icon}
+        tooltipPlace={tooltipPlace ?? 'bottom'}>
+      </ActionButton>
+    </div>
+  );
+};
+
+export default MenuBarIconButton;

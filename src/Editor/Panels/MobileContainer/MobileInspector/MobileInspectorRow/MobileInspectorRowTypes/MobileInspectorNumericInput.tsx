@@ -1,0 +1,78 @@
+/*
+ * Copyright 2020 WICKLETS LLC
+ *
+ * This file is part of Wick Editor.
+ *
+ * Wick Editor is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Wick Editor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import React from 'react';
+
+import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
+
+import '../_mobileinspectorrow.scss';
+
+interface MobileInspectorNumericInputProps {
+  tooltip: string;
+  val: number;
+  onChange: (value: number) => void;
+  icon?: string;
+  iconAlt?: string;
+  id?: string;
+  type?: string;
+  divider?: boolean;
+}
+
+const MobileInspectorNumericInput: React.FC<MobileInspectorNumericInputProps> = ({
+  tooltip,
+  val,
+  onChange,
+  icon,
+  iconAlt,
+  id,
+  type
+}) => {
+  const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
+  const inputId = id ?? `${idLabel}-input-mobile`;
+  const inputType = type ?? "numeric";
+
+  const renderIdentifier = icon ? (
+    <img src={icon} alt={iconAlt} className="mobile-inspector-row-icon" />
+  ) : (
+    <label htmlFor={`${idLabel}-input-mobile`} className="mobile-inspector-row-identifier">
+      {tooltip}
+    </label>
+  );
+
+  return (
+    <div className="mobile-inspector-row">
+      {/* Identifier */}
+      {renderIdentifier}
+
+      {/* Input */}
+      <div className="mobile-inspector-small-input-container">
+        <MobileInspectorInput
+          inputProps={{ id: inputId }}
+          input={{
+            type: inputType,
+            value: val,
+            onChange: onChange
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default MobileInspectorNumericInput;

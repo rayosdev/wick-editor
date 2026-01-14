@@ -32,41 +32,42 @@ These instructions are for MacOS and Linux, we currently don't have instructions
 
 You'll need to download the following:
 
+- [Node.js 22 LTS](https://nodejs.org/) (or newer)
 - [npm](https://www.npmjs.com/get-npm)
 
 ### Installation
 
-1) Clone this repository:
+1. Clone this repository:
 
-    ```bash
-    git clone https://github.com/Wicklets/wick-editor/
-    ```
+   ```bash
+   git clone https://github.com/Wicklets/wick-editor/
+   ```
 
-2) Using the command line, change directories into the newly created `wick-editor` folder:
+2. Using the command line, change directories into the newly created `wick-editor` folder:
 
-    ```bash
-    cd wick-editor
-    ```
+   ```bash
+   cd wick-editor
+   ```
 
-3) Install all dependencies using this command:
+3. Install all dependencies using this command:
 
-    ```bash
-    npm install
-    ```
+   ```bash
+   npm install
+   ```
 
 ### Running the Editor
 
-1) Run the editor with this command:
+1. Run the editor with this command:
 
-    ```bash
-    npm start
-    ```
+   ```bash
+   npm start
+   ```
 
-2) Open a web browser and go to this URL:
+2. Open a web browser and go to this URL:
 
-    ```bash
-    localhost:3000
-    ```
+   ```bash
+   localhost:3000
+   ```
 
 Have fun hacking on Wick! 🎉
 
@@ -74,13 +75,13 @@ Have fun hacking on Wick! 🎉
 
 To deploy, you'll need to have push access to this repo.
 
-1) Test the production build by using `npm predeploy`
+1. Test the production build by using `npm predeploy`
 
-2) Run `npm run deploy`
+2. Run `npm run deploy`
 
 ### Deploying to Prerelease
 
-1) Run `npm run prerelease-deploy`
+1. Run `npm run prerelease-deploy`
 
 ## Support
 
@@ -94,14 +95,12 @@ Wick Editor is under the GNU v3 Public License. See the [LICENSE](LICENSE.md) fo
 
 ## Links
 
-* [Wick Editor Site](https://www.wickeditor.com)
-* [Wick Editor Community Forum](https://forum.wickeditor.com/)
-* [Follow on Twitter](https://twitter.com/wickeditor)
-* [Follow on Facebook](https://www.facebook.com/wickeditor/)
+- [Wick Editor Site](https://www.wickeditor.com)
+- [Wick Editor Community Forum](https://forum.wickeditor.com/)
+- [Follow on Twitter](https://twitter.com/wickeditor)
+- [Follow on Facebook](https://www.facebook.com/wickeditor/)
 
-
-
-## Building and Releasing the Desktop App 
+## Building and Releasing the Desktop App
 
 Please refer to this Wiki entry for information on our dektop build processes! [https://github.com/Wicklets/wick-editor/wiki/Building-Desktop-Editors-for-Release](https://github.com/Wicklets/wick-editor/wiki/Building-Desktop-Editors-for-Release).
 
@@ -121,8 +120,6 @@ If you are familiar with electron-builder, electron-packager, or have experience
 	<img src="https://www.wickeditor.com/static/media/cosa_logo.9af883a9.png" alt="Clinic for Open Source Arts" height="100px"/>
 </a>
 
-
 ## Testing Support From
 
 <a href="https://www.browserstack.com/"><img src=".github/images/browserstack.svg" alt="Browser Stack" width="25%"></a>
-

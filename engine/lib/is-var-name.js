@@ -21,3 +21,8 @@ function isVarName(str) {
 
 	return true;
 }
+
+// Make isVarName globally available
+if (typeof window !== 'undefined') {
+	window.isVarName = isVarName;
+}

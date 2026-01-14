@@ -8,6 +8,10 @@
     "test": "tests"
   },
   "scripts": {
+    "build": "vite build && npm run copy-dist",
+    "build:gulp": "gulp && npm run copy-dist",
+    "build:watch": "vite build --watch",
+    "copy-dist": "mkdir -p ../public/corelibs/wick-engine && cp -a dist/. ../public/corelibs/wick-engine/",
     "generate-docs": "jsdoc -c jsdocs.json -r src/ -d docs/; cp -r docs/* ../../wick-editor-docs/; cd ../../wick-editor-docs; git add .; git commit -m 'update docs'; git push --force;"
   },
   "repository": {
@@ -27,8 +31,11 @@
     "gulp-concat": "^2.6.1",
     "gulp-header": "^2.0.5",
     "gulp-rename": "^1.4.0",
+    "gulp-typescript": "^6.0.0-alpha.1",
     "gulp-uglify": "^3.0.1",
-    "jsdoc": "^3.6.4"
+    "jsdoc": "^3.6.4",
+    "typescript": "^5.0.0",
+    "vite": "^5.4.8"
   },
   "dependencies": {
     "gulp-footer": "^2.1.0",

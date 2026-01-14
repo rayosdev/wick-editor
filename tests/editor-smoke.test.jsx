@@ -1,5 +1,5 @@
 import { render, cleanup } from "@testing-library/react";
-import Editor from "../src/Editor/Editor.jsx";
+import Editor from "../src/Editor/Editor.tsx";
 import { afterEach, test, expect, vi } from "vitest";
 
 afterEach(() => cleanup());

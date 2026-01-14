@@ -1,0 +1,180 @@
+import React from "react";
+
+import ActionButton from "Editor/Util/ActionButton/ActionButton";
+import PlayButton from "Editor/Util/PlayButton/PlayButton";
+import ReactTooltip from "react-tooltip";
+import HotKeyInterface from "Editor/hotKeyMap";
+import "./_canvastransforms.scss";
+import { isMobile } from "react-device-detect";
+
+import classNames from "classnames";
+import type { HotKeyMap } from "Editor/types/hotkeys";
+
+interface TransformButtonOptions {
+  action: () => void;
+  name: string;
+  tooltip: string;
+  className?: string;
+  isActive?: () => boolean;
+  tooltipHotkey?: string;
+}
+
+interface CanvasTransformsProps {
+  keyMap: HotKeyMap;
+  activeToolName: string;
+  toggleOnionSkin: () => void;
+  onionSkinEnabled: boolean;
+  setActiveTool: (tool: string) => void;
+  recenterCanvas: () => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
+  previewPlaying: boolean;
+  togglePreviewPlaying: () => void;
+  renderSize?: string;
+}
+
+const CanvasTransforms: React.FC<CanvasTransformsProps> = ({
+  keyMap,
+  activeToolName,
+  toggleOnionSkin,
+  onionSkinEnabled,
+  setActiveTool,
+  recenterCanvas,
+  zoomIn,
+  zoomOut,
+  previewPlaying,
+  togglePreviewPlaying,
+  renderSize
+}) => {
+  const getHotkey = (action: string): string => {
+    return HotKeyInterface.getHotKey(keyMap, action);
+  };
+
+  const renderTransformButton = (options: TransformButtonOptions): JSX.Element => {
+    return (
+      <ActionButton
+        color="tool"
+        isActive={
+          options.isActive
+            ? options.isActive
+            : () => activeToolName === options.name
+        }
+        id={`canvas-transform-button-${options.name}`}
+        tooltip={options.tooltip}
+        tooltipPlace={"top"}
+        tooltipHotkey={options.tooltipHotkey ? getHotkey(options.tooltipHotkey) : undefined}
+        action={options.action}
+        icon={options.name}
+        className={classNames("canvas-transform-button", options.className)}
+        buttonClassName={"canvas-transform-wick-button"}
+        iconClassName="canvas-transform-icon"
+      />
+    );
+  };
+
+  const renderTransformations = () => {
+    return (
+      <div className="transforms-container">
+        {renderTransformButton({
+          action: toggleOnionSkin,
+          name: "onionskinning",
+          tooltip: "Onion Skinning",
+          className: "canvas-transform-item onion-skin-button",
+          isActive: () => {
+            return onionSkinEnabled;
+          },
+          tooltipHotkey: "toggle-onion-skinning",
+        })}
+        {renderTransformButton({
+          action: () => setActiveTool("pan"),
+          name: "pan",
+          tooltip: "Pan",
+          className: "canvas-transform-item",
+          tooltipHotkey: "activate-pan",
+        })}
+        {renderZoomIn()}
+        {renderZoomTool()}
+        {renderZoomOut()}
+        {renderTransformButton({
+          action: recenterCanvas,
+          name: "recenter",
+          tooltip: "Recenter",
+          className: "canvas-transform-item",
+        })}
+      </div>
+    );
+  };
+
+  const renderZoomTool = () => {
+    return (
+      <div id="zoom-tool-container">
+        {/* Zoom Tool / NumericInput*/}
+        {renderTransformButton({
+          action: () => setActiveTool("zoom"),
+          name: "zoom",
+          tooltip: "Zoom",
+          className: "zoom-tool",
+          tooltipHotkey: "activate-zoom",
+        })}
+      </div>
+    );
+  };
+
+  const renderZoomIn = () => {
+    return renderTransformButton({
+      action: () => zoomIn(),
+      name: "zoomin",
+      tooltip: "Zoom In",
+      className: "thin-transform-button zoom-in-button",
+    });
+  };
+
+  const renderZoomOut = () => {
+    return renderTransformButton({
+      action: () => zoomOut(),
+      name: "zoomout",
+      tooltip: "Zoom Out",
+      className: "thin-transform-button zoom-out-button",
+    });
+  };
+
+  const renderPlayButtonTooltip = (): JSX.Element => {
+    return (
+      <ReactTooltip
+        disable={isMobile}
+        id={"play-button-object"}
+        type="info"
+        place={"top"}
+        effect="solid"
+        aria-haspopup="true"
+        className="wick-tooltip"
+      >
+        <span>{`Preview Play (${getHotkey(
+          "preview-play-toggle"
+        ).toUpperCase()})`}</span>
+      </ReactTooltip>
+    );
+  };
+
+  return (
+    <div
+      className={classNames(
+        "canvas-transforms-widget",
+        renderSize === "small" && "mobile"
+      )}
+    >
+      {!previewPlaying && renderTransformations()}
+      <div className="play-button-container">
+        {renderPlayButtonTooltip()}
+        <PlayButton
+          id="play-button-object"
+          className="play-button canvas-transform-button"
+          playing={previewPlaying}
+          action={togglePreviewPlaying}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default CanvasTransforms;

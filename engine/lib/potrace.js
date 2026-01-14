@@ -1165,3 +1165,13 @@ var potrace;
     }
     potrace.fromFunction = fromFunction;
 })(potrace || (potrace = {}));
+
+// Explicitly expose potrace to window for browser builds
+if (typeof window !== 'undefined' && typeof potrace !== 'undefined') {
+    window.potrace = potrace;
+}
+
+// Also expose for CommonJS if needed
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = potrace;
+}

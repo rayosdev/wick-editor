@@ -110,5 +110,6 @@ export default defineConfig({
   },
   build: {
     outDir: "build",
+    copyPublicDir: true,
   },
 });
