@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.11.3.16.37.48";
+  var WICK_ENGINE_BUILD_VERSION = "2025.11.7.14.49.33";
   (function() {
 
     var _a;
@@ -86,6 +86,9 @@
     console.log('Wick Engine version "' + Wick$1.version + '" is available.');
     window.Wick = Wick$1;
     var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
+    function getDefaultExportFromCjs(x) {
+      return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
+    }
     function commonjsRequire(path) {
       throw new Error('Could not dynamically require "' + path + '". Please configure the dynamicRequireTargets or/and ignoreDynamicRequires option of @rollup/plugin-commonjs appropriately for this require call to work.');
     }
@@ -33924,6 +33927,8 @@
         }, { 3: 3 }] }, {}, [4])(4);
       });
     })(localforage_min);
+    var localforage_minExports = localforage_min.exports;
+    const localforage$1 = /* @__PURE__ */ getDefaultExportFromCjs(localforage_minExports);
     var platform$1 = { exports: {} };
     /*!
      * Platform.js
@@ -52621,6 +52626,9 @@
         });
       }
     };
+    if (typeof window !== "undefined") {
+      window.localforage = localforage$1;
+    }
     console.log("Wick Engine loaded via Vite build system ::---");
   })();
   try {

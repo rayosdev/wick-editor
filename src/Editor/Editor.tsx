@@ -31,7 +31,7 @@ import { DndProvider } from "react-dnd";
 import "react-reflex/styles.css";
 import { ReflexContainer, ReflexSplitter, ReflexElement } from "react-reflex";
 import { throttle } from "underscore";
-import localForage from "localforage";
+import { localforageAdapter as localForage, ProjectStorage } from "../storage";
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
 import { SizeMe } from "react-sizeme";
@@ -65,6 +65,7 @@ import type {
   EditorState,
   ResizeProps,
 } from "./types/editor.types";
+import type { WickProject as WickProjectEngine } from "./types/engine.types";
 
 const { version } = pkg;
 
@@ -75,11 +76,12 @@ const isDevelopment =
 
 class Editor extends EditorCore {
   // Instance properties with types
-  project: any = null;
+  declare project: WickProjectEngine | null;
   paper: any = null;
   editorVersion: string = version + "";
-  error: any = null;
+  error: Error | null = null;
   _lastAutosave: number = 0;
+  _autosaveDebounceTimeoutID?: number;
   _showWaitOverlayTimeoutID?: number;
 
   fontInfoInterface: any;
@@ -157,6 +159,7 @@ class Editor extends EditorCore {
       renderStatusMessage: "",
       customHotKeys: {},
       colorPickerType: "swatches",
+      isAutosaving: false,
       lastColorsUsed: [
         "#FFFFFF",
         "#FFFFFF",
@@ -291,10 +294,29 @@ class Editor extends EditorCore {
     this.attachErrorHandlers();
     this.paper = window.paper;
 
-    // Initialize local storage
+    // Initialize storage (Dexie.js)
+    // The localforageAdapter is already configured, but we can set it up here
     localForage.config({
       name: "WickEditor",
       description: "Live Data storage of the Wick Editor app.",
+    });
+    
+    // Initialize Dexie database and expose to window for index.html access
+    import("../storage").then(({ db, ProjectCache }) => {
+      // Open database connection
+      db.open().catch((err) => {
+        console.error("[Storage] Failed to open database:", err);
+      });
+      
+      // Expose to window for index.html cache functions
+      if (typeof window !== 'undefined') {
+        (window as any).__wickStorage = {
+          db,
+          ProjectCache,
+          ProjectStorage,
+          localforage: localForage,
+        };
+      }
     });
 
     this.customHotKeysKey = "wickEditorcustomHotKeys";
@@ -325,23 +347,29 @@ class Editor extends EditorCore {
       codeEditorWindowProperties: this.getDefaultCodeEditorProperties(),
     });
 
-    // Leave Page warning.
-    // Disable during development/testing to avoid blocking automation
-    if (!isDevelopment) {
-      window.onbeforeunload = function (event) {
-        // Don't show the warning if nothing has been done to the project
-        if (this.project.numUndoStates > 1) {
-          return null;
-        }
+    // Save project state on page unload to ensure persistence across refreshes
+    window.onbeforeunload = (event) => {
+      if (this._autosaveDebounceTimeoutID !== undefined) {
+        clearTimeout(this._autosaveDebounceTimeoutID);
+        this._autosaveDebounceTimeoutID = undefined;
+      }
 
-        var confirmationMessage = "Warning: All unsaved changes will be lost!";
-        (event || window.event).returnValue = confirmationMessage; //Gecko + IE
-        return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
-      };
-    } else {
-      // Disable dialog in development to avoid blocking automation/tests
-      window.onbeforeunload = null;
-    }
+      if (this.project && this.project.numUndoStates > 1) {
+        this.autoSaveProjectSync();
+      }
+
+      if (isDevelopment) {
+        return null;
+      }
+
+      if (this.project.numUndoStates > 1) {
+        return null;
+      }
+
+      const confirmationMessage = "Warning: All unsaved changes will be lost!";
+      (event || window.event).returnValue = confirmationMessage;
+      return confirmationMessage;
+    };
   };
 
   componentDidMount = () => {
@@ -349,10 +377,17 @@ class Editor extends EditorCore {
     this.hidePreloader();
     this.onWindowResize();
     if (!this.tryToParseProjectURL()) {
-      this.showAutosavedProjects();
+      this.loadAutosavedProjectOnStartup();
     }
 
     this.watchForHover();
+  };
+
+  componentWillUnmount = () => {
+    if (this._autosaveDebounceTimeoutID !== undefined) {
+      clearTimeout(this._autosaveDebounceTimeoutID);
+      this._autosaveDebounceTimeoutID = undefined;
+    }
   };
 
   componentDidUpdate = (prevProps, prevState) => {
@@ -846,6 +881,17 @@ class Editor extends EditorCore {
    * acceptText {string}, cancelText {string}, title {string}.
    */
   openWarningModal = (args) => {
+    if (isDevelopment) {
+      console.log("[DEV] Skipping confirmation dialog:", args.title || "Warning");
+      if (args.acceptAction) {
+        args.acceptAction();
+      }
+      if (args.finalAction) {
+        args.finalAction();
+      }
+      return;
+    }
+
     let modalInfo = {
       description: args.description || "No Description",
       title: args.title || "Title",
@@ -1039,6 +1085,44 @@ class Editor extends EditorCore {
     return (
       <DndProvider backend={HTML5Backend}>
         <EditorWrapper editor={this}>
+          {this.state.isAutosaving && (
+            <div
+              style={{
+                position: "fixed",
+                top: "10px",
+                right: "10px",
+                zIndex: 10000,
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                borderRadius: "4px",
+                padding: "8px 12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                color: "#fff",
+                fontSize: "12px",
+                fontFamily: "system-ui, -apple-system, sans-serif",
+                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
+              }}
+            >
+              <div
+                style={{
+                  width: "12px",
+                  height: "12px",
+                  border: "2px solid rgba(255, 255, 255, 0.3)",
+                  borderTopColor: "#fff",
+                  borderRadius: "50%",
+                  animation: "spin 0.8s linear infinite",
+                }}
+              />
+              <span>Saving...</span>
+              <style>{`
+                @keyframes spin {
+                  to { transform: rotate(360deg); }
+                }
+              `}</style>
+            </div>
+          )}
+
           {/* Menu Bar */}
 
           <div id="menu-bar-container">

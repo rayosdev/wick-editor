@@ -19,7 +19,7 @@ import "../lib/invert-shim.js";
 import "../lib/is-var-name.js";
 import "../lib/jszip.js";
 import "../lib/lerp.js";
-import "../lib/localforage.min.js";
+import localforage from "../lib/localforage.min.js";
 import "../lib/platform.js";
 import "../lib/potrace.js";
 import "../lib/reserved-words.js";
@@ -28,6 +28,11 @@ import "../lib/timestamp.js";
 import "../lib/soundcloud-waveform.js";
 import "../lib/Tween.js";
 import "../lib/uuid.js";
+
+// Expose localforage as a global since the engine code references it directly
+if (typeof window !== 'undefined') {
+  window.localforage = localforage;
+}
 
 // 3. Load all source files in concatenation order
 import "./Clipboard.js";

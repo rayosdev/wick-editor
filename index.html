@@ -8,12 +8,17 @@
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
     <meta name="theme-color" content="#000000" />
-    <script
-      async
-      defer
-      data-domain="wickeditor.com"
-      src="https://plausible.io/js/plausible.hash.js"
-    ></script>
+    <!-- Plausible analytics - disabled in development -->
+    <script>
+      if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+        const script = document.createElement("script");
+        script.async = true;
+        script.defer = true;
+        script.setAttribute("data-domain", "wickeditor.com");
+        script.src = "https://plausible.io/js/plausible.hash.js";
+        document.head.appendChild(script);
+      }
+    </script>
     <!--
       manifest.json provides metadata used when your web app is added to the
       homescreen on Android. See https://developers.google.com/web/fundamentals/web-app-manifest/
@@ -44,9 +49,6 @@
       }
     </script>
     <script>
-      // Provide a minimal localforage fallback for the Wick Engine when the full library
-      // isn't loaded as a global. The engine expects `localforage` (lowercase) with
-      // Promise-based getItem/setItem APIs.
       if (!window.localforage) {
         window.localforage = {
           config: function () {},
@@ -160,7 +162,7 @@
             }
           };
 
-          // Save project to IndexedDB via localforage (if available) AND localStorage as backup
+          // Save project to IndexedDB via Dexie (preferred) or localforage (fallback) AND localStorage as backup
           window.__wickDebug.saveToIndexedDB = async function(projectJson, key) {
             key = key || 'wick_cached_project';
             try {
@@ -170,18 +172,36 @@
               localStorage.setItem(key, projectData);
               localStorage.setItem(key + '_timestamp', Date.now().toString());
               
-              // Try IndexedDB if real localforage is available (not the shim)
-              if (window.localforage && window.localforage.setItem && window.localforage.constructor && window.localforage.constructor.name !== 'Object') {
+              // Try Dexie first (new storage system)
+              if (window.__wickStorage && window.__wickStorage.ProjectCache) {
+                try {
+                  await window.__wickStorage.ProjectCache.save(projectData);
+                  console.debug('[ProjectLoad] indexeddb:save:dexie', { key: key, size: projectData.length, localStorageBackup: true });
+                  return true;
+                } catch (e) {
+                  console.warn('[ProjectLoad] indexeddb:save:dexie:warning', { message: 'Dexie save failed, trying fallback', error: e?.message });
+                }
+              }
+              
+              // Fallback to localforage if Dexie not available
+              const isRealLocalForage = window.localforage && 
+                                       window.localforage.setItem && 
+                                       typeof window.localforage.driver === 'function' &&
+                                       !window.localforage.__isShim &&
+                                       window.localforage.constructor &&
+                                       window.localforage.constructor.name !== 'Object';
+              
+              if (isRealLocalForage) {
                 try {
                   await window.localforage.setItem(key, projectData);
-                  console.debug('[ProjectLoad] indexeddb:save', { key: key, size: projectData.length, localStorageBackup: true });
+                  console.debug('[ProjectLoad] indexeddb:save:localforage', { key: key, size: projectData.length, localStorageBackup: true });
                   return true;
                 } catch (e) {
                   console.warn('[ProjectLoad] indexeddb:save:warning', { message: 'IndexedDB save failed, using localStorage only', error: e?.message });
                   return true; // Still return true since localStorage worked
                 }
               } else {
-                console.debug('[ProjectLoad] indexeddb:save:localStorageOnly', { key: key, size: projectData.length });
+                console.debug('[ProjectLoad] indexeddb:save:localStorageOnly', { key: key, size: projectData.length, reason: 'Storage not available' });
                 return true;
               }
             } catch (e) {
@@ -190,25 +210,51 @@
             }
           };
 
-          // Load project from IndexedDB via localforage (if available), fallback to localStorage
+          // Load project from IndexedDB via Dexie (preferred) or localforage (fallback), fallback to localStorage
           window.__wickDebug.loadFromIndexedDB = async function(key, callback) {
             key = key || 'wick_cached_project';
             try {
               let cachedData = null;
               let source = 'none';
               
-              // Try IndexedDB first if real localforage is available (not the shim)
-              if (window.localforage && window.localforage.getItem && window.localforage.constructor && window.localforage.constructor.name !== 'Object') {
+              // Try Dexie first (new storage system)
+              if (window.__wickStorage && window.__wickStorage.ProjectCache) {
                 try {
-                  cachedData = await window.localforage.getItem(key);
+                  cachedData = await window.__wickStorage.ProjectCache.load();
                   if (cachedData) {
-                    source = 'indexeddb';
-                    console.debug('[ProjectLoad] indexeddb:load:found', { key: key, size: cachedData.length });
+                    source = 'dexie';
+                    console.debug('[ProjectLoad] indexeddb:load:dexie:found', { key: key, size: cachedData.length });
                   } else {
-                    console.debug('[ProjectLoad] indexeddb:load:notfound', { key: key, 'willTryLocalStorage': true });
+                    console.debug('[ProjectLoad] indexeddb:load:dexie:notfound', { key: key, 'willTryFallback': true });
                   }
                 } catch (e) {
-                  console.warn('[ProjectLoad] indexeddb:load:error', { message: 'IndexedDB read failed, trying localStorage', error: e?.message });
+                  console.warn('[ProjectLoad] indexeddb:load:dexie:error', { message: 'Dexie load failed, trying fallback', error: e?.message });
+                }
+              }
+              
+              // Fallback to localforage if Dexie didn't work
+              if (!cachedData) {
+                const isRealLocalForage = window.localforage && 
+                                         window.localforage.getItem && 
+                                         typeof window.localforage.driver === 'function' &&
+                                         !window.localforage.__isShim &&
+                                         window.localforage.constructor &&
+                                         window.localforage.constructor.name !== 'Object';
+                
+                if (isRealLocalForage) {
+                  try {
+                    cachedData = await window.localforage.getItem(key);
+                    if (cachedData) {
+                      source = 'indexeddb';
+                      console.debug('[ProjectLoad] indexeddb:load:localforage:found', { key: key, size: cachedData.length });
+                    } else {
+                      console.debug('[ProjectLoad] indexeddb:load:localforage:notfound', { key: key, 'willTryLocalStorage': true });
+                    }
+                  } catch (e) {
+                    console.warn('[ProjectLoad] indexeddb:load:localforage:error', { message: 'IndexedDB read failed, trying localStorage', error: e?.message });
+                  }
+                } else {
+                  console.debug('[ProjectLoad] indexeddb:load:unavailable', { reason: 'Storage not available, using localStorage' });
                 }
               }
               
@@ -227,9 +273,46 @@
 
               console.debug('[ProjectLoad] indexeddb:load:start', { key: key, size: cachedData.length, source: source });
               
+              // Parse and validate the data structure
+              let parsedData = null;
+              try {
+                parsedData = JSON.parse(cachedData);
+                console.debug('[ProjectLoad] indexeddb:load:dataCheck', { 
+                  isString: typeof cachedData === 'string',
+                  hasExport: !!parsedData.export,
+                  hasExportObject: !!(parsedData.export && parsedData.export.object),
+                  hasExportChildren: !!(parsedData.export && parsedData.export.children),
+                  exportChildrenLength: parsedData.export && parsedData.export.children ? parsedData.export.children.length : 0,
+                  hasMetadata: !!parsedData.metadata,
+                  hasProject: !!parsedData.project,
+                  preview: cachedData.substring(0, 100)
+                });
+              } catch (e) {
+                console.error('[ProjectLoad] indexeddb:load:parseError', { error: e.message });
+              }
+              
               if (window.Wick && window.Wick.WickFile) {
                 const blob = new Blob([cachedData], { type: 'application/json' });
+                
+                // Add a timeout to detect if the callback never fires
+                let callbackFired = false;
+                const timeoutId = setTimeout(() => {
+                  if (!callbackFired) {
+                    console.error('[ProjectLoad] indexeddb:load:error', { message: 'fromWickFile callback timeout - never called' });
+                  }
+                }, 5000);
+                
+                console.debug('[ProjectLoad] indexeddb:load:callingFromWickFile', { blobSize: blob.size });
                 window.Wick.WickFile.fromWickFile(blob, function(result) {
+                  callbackFired = true;
+                  clearTimeout(timeoutId);
+                  
+                  console.debug('[ProjectLoad] indexeddb:load:callbackFired', { 
+                    hasResult: !!result,
+                    resultType: typeof result,
+                    resultConstructor: result?.constructor?.name
+                  });
+                  
                   if (result) {
                     try {
                       if (window.editor && window.editor.setupNewProject) {
@@ -238,11 +321,11 @@
                       console.debug('[ProjectLoad] indexeddb:load:done', { projectName: result.name, loadedFrom: source });
                       if (callback) callback(true);
                     } catch (e) {
-                      console.error('[ProjectLoad] indexeddb:load:setupError', { message: e?.message });
+                      console.error('[ProjectLoad] indexeddb:load:setupError', { message: e?.message, stack: e?.stack });
                       if (callback) callback(false);
                     }
                   } else {
-                    console.error('[ProjectLoad] indexeddb:load:error', { message: 'fromWickFile returned null' });
+                    console.error('[ProjectLoad] indexeddb:load:error', { message: 'fromWickFile returned null (check engine console logs for details)' });
                     if (callback) callback(false);
                   }
                 });

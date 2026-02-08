@@ -31,3 +31,4 @@ yarn-error.log*
 engine/docs/*
 
 playwright-report/*
+.playwright-mcp/

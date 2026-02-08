@@ -93,6 +93,11 @@ const MenuBar: FC<MenuBarProps> = ({
                             // Export current project to wick JSON string via WickFile.toWickFile
                             w.Wick.WickFile.toWickFile(project, (blob: Blob | string) => {
                                 const handleString = (str: string) => {
+                                    console.debug('[ProjectLoad] menu:cacheSave:data', { 
+                                        size: str.length, 
+                                        isJSON: str.trim().startsWith('{'),
+                                        preview: str.substring(0, 100) 
+                                    });
                                     if (w.__wickDebug && w.__wickDebug.saveToIndexedDB) {
                                         w.__wickDebug.saveToIndexedDB(str, 'wick_cached_project');
                                     } else if (w.__wickDebug && w.__wickDebug.saveToCache) {

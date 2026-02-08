@@ -20,6 +20,7 @@
 import { Component } from "react";
 import type { EditorCoreUIState } from "./types/EditorCore.types";
 import queryString from "query-string";
+import { localforageAdapter as localforage, ProjectStorage } from "../storage";
 import VideoExport from "./export/VideoExport";
 import GIFExport from "./export/GIFExport";
 import GIFImport from "./import/GIFImport";
@@ -38,6 +39,11 @@ import type {
   SelectableObject,
   LocalFileEntry,
 } from "./types";
+import type {
+  WickProject as WickProjectEngine,
+  SerializedProject,
+  AutosaveData,
+} from "./types/engine.types";
 
 type EditorCoreProps = Record<string, never>;
 type EditorCoreState = EditorCoreUIState & Record<string, any>;
@@ -63,6 +69,8 @@ type WickFileInputEvent = {
 
 class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   [key: string]: any;
+  project!: WickProjectEngine;
+  protected _autosaveDebounceTimeoutID?: number;
 
   /**
    * Returns the name of the active tool.
@@ -1685,51 +1693,298 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   };
 
   /**
-   * Attempts to autosave if enough time has passed since the last autosave.
+   * Requests an autosave after the user stops performing actions.
+   * Debounces frequent changes to avoid excessive save operations.
    */
   requestAutosave = (): void => {
-    let now = Date.now();
-    let last = this._lastAutosave;
-    let timeSince = now - last;
+    if (this._autosaveDebounceTimeoutID !== undefined) {
+      clearTimeout(this._autosaveDebounceTimeoutID);
+      this._autosaveDebounceTimeoutID = undefined;
+    }
 
-    // Only autosave every 15 seconds.
-    if (timeSince > 15000) {
+    this._autosaveDebounceTimeoutID = window.setTimeout(() => {
+      this.setState({ isAutosaving: true });
+
       this.autoSaveProject(() => {
         this._lastAutosave = Date.now();
+        this._autosaveDebounceTimeoutID = undefined;
+        this.setState({ isAutosaving: false });
       });
+    }, 2000);
+  };
+
+  /**
+   * Save the current project using Dexie (with localforage fallback).
+   */
+  autoSaveProject = (callback: AutosaveCallback): void => {
+    if (!this.project || this.state.previewPlaying || this.state.activeModalName !== null) {
+      this.setState({ isAutosaving: false });
+      return;
+    }
+
+    const autosaveData = window.Wick.AutoSave.generateAutosaveData(this.project as WickProjectEngine);
+
+    ProjectStorage.saveAutosave(autosaveData)
+      .then(() => ProjectStorage.saveCurrentProject(autosaveData))
+      .then(() => ProjectStorage.cleanupOldAutosaves(10))
+      .then(() => {
+        window.Wick.AutoSave.save(this.project, () => {
+          callback();
+        });
+      })
+      .catch((err) => {
+        console.warn("Failed to save with Dexie, falling back to localforage:", err);
+        window.Wick.AutoSave.save(this.project, () => {
+          this.saveCurrentProject();
+          callback();
+        });
+      });
+  };
+
+  /**
+   * Save current project snapshot for quick recovery.
+   */
+  saveCurrentProject = (): void => {
+    if (!this.project) {
+      return;
+    }
+
+    try {
+      const autosaveData = window.Wick.AutoSave.generateAutosaveData(this.project as WickProjectEngine);
+
+      ProjectStorage.saveCurrentProject(autosaveData).catch((err) => {
+        console.warn("Failed to save current project with Dexie:", err);
+        localforage.setItem("wickEditor_currentProject", {
+          uuid: autosaveData.projectData.uuid,
+          lastModified: Date.now(),
+          autosaveData,
+        }).catch((localErr) => {
+          console.warn("Failed to save current project with localforage:", localErr);
+        });
+      });
+    } catch (error) {
+      console.warn("Error saving current project:", error);
     }
   };
 
   /**
-   * Save the current project in localstorage
+   * Synchronous save used before the page unloads.
    */
-  autoSaveProject = (callback: AutosaveCallback): void => {
-    if (!this.project) return;
-    if (this.state.previewPlaying) return;
-    if (this.state.activeModalName !== null) return;
+  autoSaveProjectSync = (): void => {
+    if (!this.project) {
+      return;
+    }
 
-    window.Wick.AutoSave.save(this.project, () => {
-      callback();
+    try {
+      const autosaveData = window.Wick.AutoSave.generateAutosaveData(this.project as WickProjectEngine);
+      const dataToSave = {
+        uuid: autosaveData.projectData.uuid,
+        lastModified: Date.now(),
+        autosaveData,
+      };
+
+      try {
+        const serialized = JSON.stringify(dataToSave);
+        if (serialized.length < 5_000_000) {
+          localStorage.setItem("wickEditor_currentProject_backup", serialized);
+        }
+      } catch (storageError) {
+        console.warn("Could not save to localStorage backup:", storageError);
+      }
+
+      localforage.setItem("wickEditor_currentProject", dataToSave).catch(() => {
+        /* ignore */
+      });
+    } catch (error) {
+      console.warn("Error in sync save:", error);
+    }
+  };
+
+  /**
+   * Load the most recent current-project snapshot.
+   */
+  loadCurrentProject = (callback: AutosaveCallback): void => {
+    ProjectStorage.getCurrentProject()
+      .then((currentProjectEntry) => {
+        if (!currentProjectEntry || !currentProjectEntry.autosaveData) {
+          this.loadCurrentProjectFallback(callback);
+          return;
+        }
+
+        const hoursSinceLastSave = (Date.now() - currentProjectEntry.lastModified) / (1000 * 60 * 60);
+        if (hoursSinceLastSave > 24) {
+          this.loadCurrentProjectFallback(callback);
+          return;
+        }
+
+        this.showWaitOverlay();
+        window.Wick.AutoSave.generateProjectFromAutosaveData(
+          currentProjectEntry.autosaveData,
+          (project: WickProjectEngine) => {
+            this.setupNewProject(project);
+            this.hideWaitOverlay();
+            callback();
+          }
+        );
+      })
+      .catch((err) => {
+        console.warn("Failed to load current project from Dexie, trying fallback:", err);
+        this.loadCurrentProjectFallback(callback);
+      });
+  };
+
+  /**
+   * Fallback loader that checks localforage/localStorage backups.
+   */
+  loadCurrentProjectFallback = (callback: AutosaveCallback): void => {
+    let backupData: any = null;
+    try {
+      const backupStr = localStorage.getItem("wickEditor_currentProject_backup");
+      if (backupStr) {
+        backupData = JSON.parse(backupStr);
+      }
+    } catch (e) {
+      // ignore backup parse errors
+    }
+
+    localforage
+      .getItem("wickEditor_currentProject")
+      .then((currentProjectData: any) => {
+        let projectData = currentProjectData;
+        if (backupData && currentProjectData) {
+          projectData = backupData.lastModified > currentProjectData.lastModified ? backupData : currentProjectData;
+        } else if (backupData) {
+          projectData = backupData;
+        }
+
+        if (!projectData || !projectData.autosaveData) {
+          callback();
+          return;
+        }
+
+        const hoursSinceLastSave = (Date.now() - projectData.lastModified) / (1000 * 60 * 60);
+        if (hoursSinceLastSave > 24) {
+          callback();
+          return;
+        }
+
+        this.showWaitOverlay();
+        window.Wick.AutoSave.generateProjectFromAutosaveData(
+          projectData.autosaveData,
+          (project: WickProjectEngine) => {
+            this.setupNewProject(project);
+            this.hideWaitOverlay();
+            callback();
+          }
+        );
+      })
+      .catch((err) => {
+        if (backupData && backupData.autosaveData) {
+          this.showWaitOverlay();
+          window.Wick.AutoSave.generateProjectFromAutosaveData(
+            backupData.autosaveData,
+            (project: WickProjectEngine) => {
+              this.setupNewProject(project);
+              this.hideWaitOverlay();
+              callback();
+            }
+          );
+        } else {
+          console.warn("Failed to load current project from fallback:", err);
+          callback();
+        }
+      });
+  };
+
+  /**
+   * Automatically load the most recent autosave on startup.
+   */
+  loadAutosavedProjectOnStartup = (): void => {
+    this.loadCurrentProject(() => {
+      ProjectStorage.getLatestAutosave()
+        .then((latest) => {
+          if (!latest) {
+            this.doesAutoSavedProjectExist((exists: boolean) => {
+              if (exists) {
+                this.loadAutosavedProject(() => {});
+              }
+            });
+            return;
+          }
+
+          this.showWaitOverlay();
+          const autosaveData: AutosaveData = {
+            projectData: latest.projectData as SerializedProject,
+            objectsData: latest.objectsData,
+            lastModified: latest.lastModified,
+          };
+
+          window.Wick.AutoSave.generateProjectFromAutosaveData(autosaveData, (project: WickProjectEngine) => {
+            this.setupNewProject(project);
+            this.hideWaitOverlay();
+          });
+        })
+        .catch(() => {
+          this.doesAutoSavedProjectExist((exists: boolean) => {
+            if (exists) {
+              this.loadAutosavedProject(() => {});
+            }
+          });
+        });
     });
   };
 
   /**
-   * Attempts to automatically load an autosaved project if it exists.
-   * Does nothing if not autosaved project is stored.
+   * Attempts to load an autosaved project, preferring Dexie storage.
    */
   loadAutosavedProject = (callback: AutosaveCallback): void => {
-    window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
-      if (!autosaveList[0]) {
-        callback();
-      } else {
+    ProjectStorage.getLatestAutosave()
+      .then((latest) => {
+        if (!latest) {
+          window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
+            if (!autosaveList[0]) {
+              callback();
+              return;
+            }
+
+            this.showWaitOverlay();
+            window.Wick.AutoSave.load(autosaveList[0].uuid, (project: WickProjectEngine) => {
+              this.setupNewProject(project);
+              this.hideWaitOverlay();
+              callback();
+            });
+          });
+          return;
+        }
+
         this.showWaitOverlay();
-        window.Wick.AutoSave.load(autosaveList[0].uuid, (project: any) => {
+        const autosaveData: AutosaveData = {
+          projectData: latest.projectData as SerializedProject,
+          objectsData: latest.objectsData,
+          lastModified: latest.lastModified,
+        };
+
+        window.Wick.AutoSave.generateProjectFromAutosaveData(autosaveData, (project: WickProjectEngine) => {
           this.setupNewProject(project);
           this.hideWaitOverlay();
           callback();
         });
-      }
-    });
+      })
+      .catch(() => {
+        window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
+          if (!autosaveList[0]) {
+            callback();
+            return;
+          }
+
+          this.showWaitOverlay();
+          window.Wick.AutoSave.load(autosaveList[0].uuid, (project: WickProjectEngine) => {
+            this.setupNewProject(project);
+            this.hideWaitOverlay();
+            callback();
+          });
+        });
+      });
   };
   /**
    * Check if auto saved project exists.
