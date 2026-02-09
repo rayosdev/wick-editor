@@ -65,7 +65,8 @@
     "sass": "^1.79.4",
     "tinycolor2": "^1.6.0",
     "underscore": "^1.13.7",
-    "url-parse": "^1.5.10"
+    "url-parse": "^1.5.10",
+    "zod": "^3.25.76"
   },
   "build": {
     "appId": "com.wicklets.wickEditor",
@@ -128,6 +129,8 @@
     "test:e2e:headed": "npm run build:engine && playwright test --config=playwright.config.dev.ts --headed",
     "test:e2e:ci": "npm run build:engine && playwright test --config=playwright.config.ci.ts",
     "test:e2e:debug": "npm run build:engine && playwright test --config=playwright.config.dev.ts --debug",
+    "test:storybook": "playwright test --config=playwright.storybook.config.ts",
+    "test:storybook:headed": "playwright test --config=playwright.storybook.config.ts --headed",
     "typecheck": "tsc -p . --noEmit",
     "svg:audit": "tsx scripts/audit-svgs.ts",
     "svg:fix": "tsx scripts/fix-svgs.ts",

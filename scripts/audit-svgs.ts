@@ -3,45 +3,64 @@
 /**
  * SVG Audit Script
  *
- * Validates all SVG files in src/resources/ for:
- * - Well-formed XML
- * - Required <svg> root element
- * - Proper namespace declarations
- * - Valid viewBox attributes
- * - Accessibility (title/desc)
- * - Optimization opportunities
- *
  * Usage: npm run svg:audit
  */
 
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+export type SVGProblemType =
+  | "warning"
+  | "critical"
+  | "accessibility"
+  | "optimization";
+
+export interface SVGProblem {
+  type: SVGProblemType;
+  msg: string;
+}
+
+export interface SVGIssue {
+  file: string;
+  problems: SVGProblem[];
+}
+
+export interface SVGStats {
+  total: number;
+  withIssues: number;
+  critical: number;
+  accessibility: number;
+  optimization: number;
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const RESOURCES_DIR = path.join(__dirname, "../src/resources");
-const issues = [];
-const stats = {
-  total: 0,
-  withIssues: 0,
-  critical: 0,
-  accessibility: 0,
-  optimization: 0,
-};
+const DEFAULT_RESOURCES_DIR = path.join(__dirname, "../src/resources");
+const DEFAULT_REPORT_PATH = path.join(process.cwd(), "SVG_AUDIT_REPORT.md");
 
-function auditSVG(filePath) {
-  const content = fs.readFileSync(filePath, "utf8");
-  const relativePath = path.relative(process.cwd(), filePath);
-  const issue = { file: relativePath, problems: [] };
+export function createStats(): SVGStats {
+  return {
+    total: 0,
+    withIssues: 0,
+    critical: 0,
+    accessibility: 0,
+    optimization: 0,
+  };
+}
 
-  // Check 1: Has XML declaration
+export function auditSVGContent(
+  content: string,
+  relativePath: string,
+  stats: SVGStats
+): SVGIssue | null {
+  const issue: SVGIssue = { file: relativePath, problems: [] };
+
   if (!content.startsWith("<?xml")) {
     issue.problems.push({ type: "warning", msg: "Missing XML declaration" });
   }
 
-  // Check 2: Has opening <svg> tag (CRITICAL)
   if (!content.includes("<svg")) {
     issue.problems.push({
       type: "critical",
@@ -50,7 +69,6 @@ function auditSVG(filePath) {
     stats.critical++;
   }
 
-  // Check 3: Has namespace
   if (!content.includes('xmlns="http://www.w3.org/2000/svg"')) {
     issue.problems.push({
       type: "warning",
@@ -58,7 +76,6 @@ function auditSVG(filePath) {
     });
   }
 
-  // Check 4: Has viewBox or width/height
   if (!content.includes("viewBox") && !content.includes('width="')) {
     issue.problems.push({
       type: "warning",
@@ -66,7 +83,6 @@ function auditSVG(filePath) {
     });
   }
 
-  // Check 5: Has closing </svg> tag (CRITICAL)
   if (!content.includes("</svg>")) {
     issue.problems.push({
       type: "critical",
@@ -75,7 +91,6 @@ function auditSVG(filePath) {
     stats.critical++;
   }
 
-  // Check 6: Accessibility - title
   if (!content.includes("<title>")) {
     issue.problems.push({
       type: "accessibility",
@@ -84,7 +99,6 @@ function auditSVG(filePath) {
     stats.accessibility++;
   }
 
-  // Check 7: Accessibility - desc for complex icons
   if (content.length > 1000 && !content.includes("<desc>")) {
     issue.problems.push({
       type: "accessibility",
@@ -92,7 +106,6 @@ function auditSVG(filePath) {
     });
   }
 
-  // Check 8: Optimization - Adobe metadata
   if (content.includes("Generator: Adobe Illustrator")) {
     issue.problems.push({
       type: "optimization",
@@ -101,8 +114,7 @@ function auditSVG(filePath) {
     stats.optimization++;
   }
 
-  // Check 9: Optimization - CSS classes
-  if (content.match(/class="st\d+"/)) {
+  if (/class="st\d+"/.test(content)) {
     issue.problems.push({
       type: "optimization",
       msg: "Uses CSS classes (.st0, .st1, etc.) - should use inline styles",
@@ -110,7 +122,6 @@ function auditSVG(filePath) {
     stats.optimization++;
   }
 
-  // Check 10: Optimization - commented out gradients
   if (content.includes("<!--") && content.includes("SVGID")) {
     issue.problems.push({
       type: "optimization",
@@ -118,7 +129,6 @@ function auditSVG(filePath) {
     });
   }
 
-  // Check 11: Invalid CSS color values
   const invalidColors = content.match(/fill:([0-9A-F]{6});/gi);
   if (invalidColors) {
     issue.problems.push({
@@ -128,7 +138,6 @@ function auditSVG(filePath) {
     stats.critical++;
   }
 
-  // Check 12: File size
   const sizeKB = Buffer.byteLength(content, "utf8") / 1024;
   if (sizeKB > 10) {
     issue.problems.push({
@@ -137,252 +146,42 @@ function auditSVG(filePath) {
     });
   }
 
-  if (issue.problems.length > 0) {
-    issues.push(issue);
-    stats.withIssues++;
-  }
+  return issue.problems.length > 0 ? issue : null;
 }
 
-// Recursively find all SVG files
-function findSVGs(dir) {
-  const files = fs.readdirSync(dir);
-  const svgs = [];
+export function findSVGs(dir: string): string[] {
+  if (!fs.existsSync(dir)) return [];
 
-  for (const file of files) {
-    const fullPath = path.join(dir, file);
-    const stat = fs.statSync(fullPath);
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const svgFiles: string[] = [];
 
-    if (stat.isDirectory()) {
-      svgs.push(...findSVGs(fullPath));
-    } else if (file.endsWith(".svg")) {
-      svgs.push(fullPath);
+  for (const entry of entries) {
+    const absolutePath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      svgFiles.push(...findSVGs(absolutePath));
+      continue;
+    }
+    if (entry.isFile() && entry.name.endsWith(".svg")) {
+      svgFiles.push(absolutePath);
     }
   }
 
-  return svgs;
+  return svgFiles;
 }
 
-// Generate Markdown report
-function generateMarkdownReport() {
-  const critical = issues.filter((i) =>
-    i.problems.some((p) => p.type === "critical")
-  );
+function generateDirectoryStats(issues: SVGIssue[]): string {
+  const dirStats: Record<
+    string,
+    {
+      total: number;
+      critical: number;
+      accessibility: number;
+      optimization: number;
+    }
+  > = {};
 
-  const accessibility = issues.filter((i) =>
-    i.problems.some((p) => p.type === "accessibility")
-  );
-
-  const optimization = issues.filter((i) =>
-    i.problems.some((p) => p.type === "optimization")
-  );
-
-  let report = `# SVG Audit Report
-
-**Date:** ${new Date().toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })}  
-**Total SVGs:** ${stats.total}  
-**Files with Issues:** ${stats.withIssues} (${(
-    (stats.withIssues / stats.total) *
-    100
-  ).toFixed(1)}%)
-
----
-
-## 🚨 Summary
-
-| Category | Count | Priority |
-|----------|-------|----------|
-| **Critical Issues** | ${critical.length} | 🔴 **IMMEDIATE** |
-| **Accessibility Issues** | ${accessibility.length} | 🟡 High |
-| **Optimization Opportunities** | ${optimization.length} | 🟢 Medium |
-
----
-
-## 🔴 Critical Issues (${critical.length} files)
-
-${
-  critical.length > 0
-    ? "These files have structural problems and may not render correctly:\n"
-    : "No critical issues found! ✅\n"
-}
-
-${critical
-  .map(
-    (item, idx) => `
-### ${idx + 1}. \`${item.file}\`
-
-${item.problems
-  .filter((p) => p.type === "critical")
-  .map((p) => `- ❌ ${p.msg}`)
-  .join("\n")}
-`
-  )
-  .join("\n")}
-
----
-
-## 🟡 Accessibility Issues (${accessibility.length} files)
-
-${
-  accessibility.length > 0
-    ? "These files lack accessibility attributes:\n"
-    : "All files have accessibility attributes! ✅\n"
-}
-
-${
-  accessibility.length > 0
-    ? `
-<details>
-<summary>Click to expand (${accessibility.length} files)</summary>
-
-${accessibility
-  .map(
-    (item, idx) => `
-#### ${idx + 1}. \`${item.file}\`
-
-${item.problems
-  .filter((p) => p.type === "accessibility")
-  .map((p) => `- ⚠️ ${p.msg}`)
-  .join("\n")}
-`
-  )
-  .join("\n")}
-
-</details>
-`
-    : ""
-}
-
----
-
-## 🟢 Optimization Opportunities (${optimization.length} files)
-
-${
-  optimization.length > 0
-    ? "These files can be optimized:\n"
-    : "All files are optimized! ✅\n"
-}
-
-${
-  optimization.length > 0
-    ? `
-<details>
-<summary>Click to expand (${optimization.length} files)</summary>
-
-${optimization
-  .map(
-    (item, idx) => `
-#### ${idx + 1}. \`${item.file}\`
-
-${item.problems
-  .filter((p) => p.type === "optimization")
-  .map((p) => `- 📦 ${p.msg}`)
-  .join("\n")}
-`
-  )
-  .join("\n")}
-
-</details>
-`
-    : ""
-}
-
----
-
-## 📋 Detailed File List
-
-${
-  issues.length > 0
-    ? `
-<details>
-<summary>All files with issues (${issues.length} total)</summary>
-
-${issues
-  .map(
-    (item, idx) => `
-### ${idx + 1}. \`${item.file}\`
-
-${item.problems
-  .map((p) => {
-    const emoji =
-      p.type === "critical" ? "❌" : p.type === "accessibility" ? "⚠️" : "📦";
-    return `${emoji} **[${p.type.toUpperCase()}]** ${p.msg}`;
-  })
-  .join("\n")}
-
----
-`
-  )
-  .join("\n")}
-
-</details>
-`
-    : "No issues found! All SVG files are in good condition. ✅"
-}
-
----
-
-## 🔧 Recommended Actions
-
-### Immediate (Critical Issues)
-${
-  critical.length > 0
-    ? `
-1. Run the fix script: \`npm run svg:fix\`
-2. Manually review files with critical issues
-3. Test all icons in the browser
-4. Commit fixes with descriptive message
-`
-    : "✅ No immediate action required"
-}
-
-### Short Term (Accessibility)
-${
-  accessibility.length > 0
-    ? `
-1. Add \`<title>\` tags to all SVGs
-2. Add \`<desc>\` tags for complex icons
-3. Add \`role="img"\` to root \`<svg>\` elements
-4. Add \`aria-labelledby\` attributes
-`
-    : "✅ Accessibility is good"
-}
-
-### Long Term (Optimization)
-${
-  optimization.length > 0
-    ? `
-1. Run SVGO optimization: \`npm run optimize-svgs\`
-2. Remove Adobe Illustrator metadata
-3. Inline CSS styles (replace classes with inline)
-4. Compress files to < 5KB each
-`
-    : "✅ Files are well optimized"
-}
-
----
-
-## 📊 Statistics by Directory
-
-${generateDirectoryStats()}
-
----
-
-**Report Generated:** ${new Date().toISOString()}  
-**Script:** \`scripts/audit-svgs.ts\`
-`;
-
-  return report;
-}
-
-function generateDirectoryStats() {
-  const dirStats = {};
-
-  issues.forEach((item) => {
-    const dir = path.dirname(item.file);
+  for (const issue of issues) {
+    const dir = path.dirname(issue.file);
     if (!dirStats[dir]) {
       dirStats[dir] = {
         total: 0,
@@ -392,64 +191,150 @@ function generateDirectoryStats() {
       };
     }
     dirStats[dir].total++;
-    item.problems.forEach((p) => {
-      if (p.type === "critical") dirStats[dir].critical++;
-      if (p.type === "accessibility") dirStats[dir].accessibility++;
-      if (p.type === "optimization") dirStats[dir].optimization++;
-    });
-  });
+    for (const problem of issue.problems) {
+      if (problem.type === "critical") dirStats[dir].critical++;
+      if (problem.type === "accessibility") dirStats[dir].accessibility++;
+      if (problem.type === "optimization") dirStats[dir].optimization++;
+    }
+  }
 
   return Object.entries(dirStats)
-    .sort((a, b) => b[1].total - a[1].total)
+    .sort(([, a], [, b]) => b.total - a.total)
     .map(
-      ([dir, stats]) =>
-        `- **${dir}**: ${stats.total} issues (🔴 ${stats.critical} critical, 🟡 ${stats.accessibility} accessibility, 🟢 ${stats.optimization} optimization)`
+      ([dir, stat]) =>
+        `- **${dir}**: ${stat.total} issues (🔴 ${stat.critical} critical, 🟡 ${stat.accessibility} accessibility, 🟢 ${stat.optimization} optimization)`
     )
     .join("\n");
 }
 
-// Main execution
-console.log("🔍 Starting SVG audit...\n");
+export function generateMarkdownReport(
+  issues: SVGIssue[],
+  stats: SVGStats,
+  now = new Date()
+): string {
+  const critical = issues.filter((issue) =>
+    issue.problems.some((problem) => problem.type === "critical")
+  );
 
-const svgFiles = findSVGs(RESOURCES_DIR);
-stats.total = svgFiles.length;
+  const accessibility = issues.filter((issue) =>
+    issue.problems.some((problem) => problem.type === "accessibility")
+  );
 
-console.log(`Found ${svgFiles.length} SVG files in ${RESOURCES_DIR}\n`);
-console.log("Analyzing...\n");
+  const optimization = issues.filter((issue) =>
+    issue.problems.some((problem) => problem.type === "optimization")
+  );
 
-for (const file of svgFiles) {
-  auditSVG(file);
+  const withIssuePercent =
+    stats.total > 0 ? ((stats.withIssues / stats.total) * 100).toFixed(1) : "0.0";
+
+  return `# SVG Audit Report
+
+**Date:** ${now.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  })}  
+**Total SVGs:** ${stats.total}  
+**Files with Issues:** ${stats.withIssues} (${withIssuePercent}%)
+
+---
+
+## Summary
+
+- Critical files: ${critical.length}
+- Accessibility files: ${accessibility.length}
+- Optimization files: ${optimization.length}
+
+---
+
+## Critical Issues
+
+${
+  critical.length === 0
+    ? "No critical issues found."
+    : critical
+        .map(
+          (issue) =>
+            `- \`${issue.file}\`: ${issue.problems
+              .filter((problem) => problem.type === "critical")
+              .map((problem) => problem.msg)
+              .join("; ")}`
+        )
+        .join("\n")
 }
 
-// Console output
-console.log("=".repeat(60));
-console.log("📊 AUDIT RESULTS");
-console.log("=".repeat(60));
-console.log(`Total SVGs:              ${stats.total}`);
-console.log(
-  `Files with issues:       ${stats.withIssues} (${(
-    (stats.withIssues / stats.total) *
-    100
-  ).toFixed(1)}%)`
-);
-console.log(`\n🔴 Critical issues:      ${stats.critical} files`);
-console.log(`🟡 Accessibility issues: ${stats.accessibility} files`);
-console.log(`🟢 Optimization needed:  ${stats.optimization} files`);
-console.log("=".repeat(60));
+---
 
-// Write detailed report
-const reportPath = path.join(process.cwd(), "SVG_AUDIT_REPORT.md");
-fs.writeFileSync(reportPath, generateMarkdownReport());
+## Directory Stats
 
-console.log(`\n✅ Detailed report written to: SVG_AUDIT_REPORT.md`);
+${issues.length > 0 ? generateDirectoryStats(issues) : "No issues found."}
 
-// Exit code
-if (stats.critical > 0) {
+---
+
+**Report Generated:** ${now.toISOString()}  
+**Script:** \`scripts/audit-svgs.ts\`
+`;
+}
+
+export function runAudit(resourcesDir = DEFAULT_RESOURCES_DIR): {
+  issues: SVGIssue[];
+  stats: SVGStats;
+  reportPath: string;
+} {
+  const stats = createStats();
+  const issues: SVGIssue[] = [];
+  const svgFiles = findSVGs(resourcesDir);
+  stats.total = svgFiles.length;
+
+  for (const filePath of svgFiles) {
+    const content = fs.readFileSync(filePath, "utf8");
+    const relativePath = path.relative(process.cwd(), filePath);
+    const issue = auditSVGContent(content, relativePath, stats);
+    if (issue) {
+      issues.push(issue);
+      stats.withIssues++;
+    }
+  }
+
+  const markdown = generateMarkdownReport(issues, stats);
+  fs.writeFileSync(DEFAULT_REPORT_PATH, markdown);
+
+  return {
+    issues,
+    stats,
+    reportPath: DEFAULT_REPORT_PATH,
+  };
+}
+
+export function main(): number {
+  console.log("🔍 Starting SVG audit...\n");
+  const { stats, reportPath } = runAudit();
+
+  console.log("=".repeat(60));
+  console.log("📊 AUDIT RESULTS");
+  console.log("=".repeat(60));
+  console.log(`Total SVGs:              ${stats.total}`);
+  const withIssuePercent =
+    stats.total > 0 ? ((stats.withIssues / stats.total) * 100).toFixed(1) : "0.0";
   console.log(
-    "\n⚠️  WARNING: Critical issues found! Run fix script immediately."
+    `Files with issues:       ${stats.withIssues} (${withIssuePercent}%)`
   );
-  process.exit(1);
-} else {
+  console.log(`\n🔴 Critical issues:      ${stats.critical} files`);
+  console.log(`🟡 Accessibility issues: ${stats.accessibility} files`);
+  console.log(`🟢 Optimization needed:  ${stats.optimization} files`);
+  console.log("=".repeat(60));
+  console.log(`\n✅ Detailed report written to: ${path.basename(reportPath)}`);
+
+  if (stats.critical > 0) {
+    console.log("\n⚠️  WARNING: Critical issues found! Run fix script immediately.");
+    return 1;
+  }
+
   console.log("\n✨ All SVGs are structurally sound!");
-  process.exit(0);
+  return 0;
+}
+
+const entryPath = process.argv[1];
+if (entryPath && import.meta.url === pathToFileURL(entryPath).href) {
+  process.exit(main());
 }

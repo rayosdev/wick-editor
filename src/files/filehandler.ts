@@ -30,13 +30,12 @@
  * load them prior to the editor being loaded.
  */
 
-// @ts-ignore - no types available
 import { saveAs } from "file-saver";
 import timeStamp from "../Editor/Util/DataFunctions/timestamp";
 
 interface FileEntry {
   name: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface WarningModalArgs {
@@ -98,6 +97,7 @@ export default function initializeDefaultFileHandlers(): void {
     ) => {
       const filename = name + timeStamp() + extension;
       saveAs(file, filename);
+      void failureCallback;
       successCallback && successCallback(); // Unfortunately, we can't check for success or failure from browser...
     };
   } else {
@@ -202,6 +202,9 @@ export default function initializeDefaultFileHandlers(): void {
       successCallback?: () => void,
       failureCallback?: () => void
     ) => {
+      void fileEntry;
+      void successCallback;
+      void failureCallback;
       console.error("Delete Local Files Not Implemented");
     };
   }

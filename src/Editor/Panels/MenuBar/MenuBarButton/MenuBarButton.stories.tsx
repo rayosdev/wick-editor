@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import DynamicComponentStory from "Editor/storybook/DynamicComponentStory";
+import { useState } from "react";
+import MenuBarButton from "./MenuBarButton";
 
-const loadComponent = () => import("./MenuBarButton");
-
-const meta: Meta = {
+const meta: Meta<typeof MenuBarButton> = {
   title: "Editor/Panels/MenuBar/MenuBarButton/MenuBarButton",
+  component: MenuBarButton,
   parameters: {
     layout: "padded",
   },
@@ -15,11 +15,14 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: (args) => (
-    <DynamicComponentStory
-      componentName="MenuBarButton"
-      loader={loadComponent}
-      args={args as Record<string, unknown>}
-    />
-  ),
+  render: () => {
+    const [count, setCount] = useState(0);
+
+    return (
+      <div style={{ display: "grid", gap: "0.75rem", justifyItems: "start" }}>
+        <MenuBarButton text="File" action={() => setCount((value) => value + 1)} />
+        <output data-testid="menu-bar-button-count">Clicks: {count}</output>
+      </div>
+    );
+  },
 };
