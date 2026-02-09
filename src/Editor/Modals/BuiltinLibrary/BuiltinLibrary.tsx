@@ -24,16 +24,11 @@ import TabbedInterface from "Editor/Util/TabbedInterface/TabbedInterface";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import AudioPlayer from "Editor/Util/AudioPlayer/AudioPlayer";
 
-import wickobjects from "./wickobjects.js";
-import sounds from "./sounds.js";
+import wickobjects from "./wickobjects";
+import sounds from "./sounds";
+import type { BuiltinAsset } from "./libraryTypes";
 
 import "./_builtinlibrary.scss";
-
-interface BuiltinAsset {
-  file: string;
-  name: string;
-  icon?: string;
-}
 
 interface BuiltinPreview {
   blob: Blob;

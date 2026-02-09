@@ -129,6 +129,8 @@
     "test:e2e:ci": "npm run build:engine && playwright test --config=playwright.config.ci.ts",
     "test:e2e:debug": "npm run build:engine && playwright test --config=playwright.config.dev.ts --debug",
     "typecheck": "tsc -p . --noEmit",
+    "svg:audit": "tsx scripts/audit-svgs.ts",
+    "svg:fix": "tsx scripts/fix-svgs.ts",
     "lint": "echo \"(optional) add ESLint later\"",
     "engine-tests": "cd engine; python -m SimpleHTTPServer 9999",
     "predeploy": "npm run build",
@@ -182,6 +184,7 @@
     "gh-pages": "^6.2.0",
     "jsdom": "^27.0.0",
     "storybook": "^10.2.7",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vite": "^5.4.8",
     "vitest": "^3.2.4"

@@ -201,7 +201,7 @@ module.exports = {
   build: {
     // Use Rollup options directly instead of lib mode to avoid extra wrapper
     rollupOptions: {
-      input: path.resolve(__dirname, 'src/index.js'),
+      input: path.resolve(__dirname, 'src/index.ts'),
       // Don't try to resolve Node.js built-in modules or relative requires from libraries
       external: (id) => {
         // External Node.js modules that our shim will handle

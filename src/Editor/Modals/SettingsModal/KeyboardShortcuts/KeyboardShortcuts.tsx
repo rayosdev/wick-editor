@@ -20,7 +20,7 @@
 import React, { useState } from "react";
 import { recordKeyCombination } from "react-hotkeys";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
-import HotKeyInterface from "Editor/hotKeyMap.js";
+import HotKeyInterface from "Editor/hotKeyMap";
 
 import "./_keyboardshortcuts.scss";
 

@@ -15,7 +15,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",
-    "allowJs": true,
+    "allowJs": false,
     "checkJs": false,
     "noImplicitAny": false,
     "noImplicitThis": false,
@@ -29,5 +29,5 @@
     "isolatedModules": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests", "lib", "gulpfile.js"]
+  "exclude": ["node_modules", "dist", "tests", "lib", "gulpfile.ts"]
 }

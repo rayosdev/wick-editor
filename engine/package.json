@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "vite build && npm run copy-dist",
-    "build:gulp": "gulp && npm run copy-dist",
+    "build:gulp": "npm run build",
     "build:watch": "vite build --watch",
     "copy-dist": "mkdir -p ../public/corelibs/wick-engine && cp -a dist/. ../public/corelibs/wick-engine/",
     "generate-docs": "jsdoc -c jsdocs.json -r src/ -d docs/; cp -r docs/* ../../wick-editor-docs/; cd ../../wick-editor-docs; git add .; git commit -m 'update docs'; git push --force;"
