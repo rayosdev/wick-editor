@@ -14,6 +14,7 @@
 /build-ios/WebViewExample/local_html
 /build-electron
 /dist
+/storybook-static
 
 # misc
 .DS_Store
