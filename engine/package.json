@@ -8,7 +8,7 @@
     "test": "tests"
   },
   "scripts": {
-    "build": "vite build && npm run copy-dist",
+    "build": "vite build --config vite.player.config.cjs && vite build && npm run copy-dist",
     "build:gulp": "npm run build",
     "build:watch": "vite build --watch",
     "copy-dist": "mkdir -p ../public/corelibs/wick-engine && cp -a dist/. ../public/corelibs/wick-engine/",

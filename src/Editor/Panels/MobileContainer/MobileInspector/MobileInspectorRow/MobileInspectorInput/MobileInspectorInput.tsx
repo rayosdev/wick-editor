@@ -23,9 +23,11 @@ import '../_mobileinspectorrow.scss';
 
 import WickInput from 'Editor/Util/WickInput/WickInput';
 
+type WickInputProps = React.ComponentProps<typeof WickInput>;
+
 interface MobileInspectorInputProps {
-  inputProps?: any;
-  input?: any;
+  inputProps?: Partial<WickInputProps>;
+  input?: Partial<WickInputProps>;
 }
 
 const MobileInspectorInput: React.FC<MobileInspectorInputProps> = ({ inputProps, input }) => {

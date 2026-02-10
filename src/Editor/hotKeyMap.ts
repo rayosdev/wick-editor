@@ -48,8 +48,59 @@ interface CustomHotKeys {
   [actionName: string]: (string | KeySequence)[];
 }
 
+interface HotKeyEditor {
+  setActiveTool: (toolName: string) => void;
+  activateLastTool: (...args: unknown[]) => void;
+  deleteSelectedObjects: (...args: unknown[]) => void;
+  togglePreviewPlaying: (...args: unknown[]) => void;
+  startPreviewPlayFromBeginning: (...args: unknown[]) => void;
+  breakApartSelection: (...args: unknown[]) => void;
+  undoAction: (...args: unknown[]) => void;
+  redoAction: (...args: unknown[]) => void;
+  focusTimelineOfParentObject: (...args: unknown[]) => void;
+  copySelectionToClipboard: (...args: unknown[]) => void;
+  pasteFromClipboard: (...args: unknown[]) => void;
+  cutSelectionToClipboard: (...args: unknown[]) => void;
+  duplicateSelection: (...args: unknown[]) => void;
+  changeBrushSize: (amount: number) => void;
+  movePlayheadForwards: (...args: unknown[]) => void;
+  movePlayheadBackwards: (...args: unknown[]) => void;
+  extendFrame: (...args: unknown[]) => void;
+  shrinkFrame: (...args: unknown[]) => void;
+  extendSelectedFramesAndPushOtherFrames: (...args: unknown[]) => void;
+  shrinkSelectedFramesAndPullOtherFrames: (...args: unknown[]) => void;
+  moveFrameRight: (...args: unknown[]) => void;
+  moveFrameLeft: (...args: unknown[]) => void;
+  createTween: (...args: unknown[]) => void;
+  cutFrame: (...args: unknown[]) => void;
+  insertBlankFrame: (...args: unknown[]) => void;
+  selectAll: (...args: unknown[]) => void;
+  sendSelectionToFront: (...args: unknown[]) => void;
+  sendSelectionToBack: (...args: unknown[]) => void;
+  moveSelectionForwards: (...args: unknown[]) => void;
+  moveSelectionBackwards: (...args: unknown[]) => void;
+  nudgeSelectionUp: (...args: unknown[]) => void;
+  nudgeSelectionDown: (...args: unknown[]) => void;
+  nudgeSelectionLeft: (...args: unknown[]) => void;
+  nudgeSelectionRight: (...args: unknown[]) => void;
+  nudgeSelectionUpMore: (...args: unknown[]) => void;
+  nudgeSelectionDownMore: (...args: unknown[]) => void;
+  nudgeSelectionLeftMore: (...args: unknown[]) => void;
+  nudgeSelectionRightMore: (...args: unknown[]) => void;
+  toggleCodeEditor: (...args: unknown[]) => void;
+  exportProjectAsWickFile: (...args: unknown[]) => void;
+  exportProjectToNewWindow: (...args: unknown[]) => void;
+  createClipFromSelection: (name: string, isButton?: boolean) => void;
+  exportSelectedClip: (...args: unknown[]) => void;
+  toggleOnionSkin: (...args: unknown[]) => void;
+  toggleClipBorders: (...args: unknown[]) => void;
+  shrinkActiveFramesAndPullOtherFrames: (...args: unknown[]) => void;
+  extendActiveFramesAndPushOtherFrames: (...args: unknown[]) => void;
+  projectDidChange: () => void;
+}
+
 class HotKeyInterface extends Object {
-  private editor: any;
+  private editor: HotKeyEditor;
   private repeatKeyTimeout: NodeJS.Timeout | null;
   private repeatKeyInterval: NodeJS.Timeout | null;
   private keyMap: KeyMap = {};
@@ -66,7 +117,7 @@ class HotKeyInterface extends Object {
   }
 
   // Take in wick editor
-  constructor(editor: any) {
+  constructor(editor: HotKeyEditor) {
     super();
 
     this.editor = editor;
@@ -711,12 +762,12 @@ class HotKeyInterface extends Object {
    * @param  {object} obj     object to filter.
    * @return {object}         filtered object
    */
-  filterObject(filters: string[], obj: any): any {
-    const map: any = {};
+  filterObject<T extends Record<string, unknown>>(filters: string[], obj: T): T {
+    const map = {} as T;
 
     filters.forEach(key => {
       if (key in obj) {
-        map[key] = obj[key];
+        map[key as keyof T] = obj[key as keyof T];
       }
     });
 

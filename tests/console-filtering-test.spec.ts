@@ -25,7 +25,7 @@ test.describe('Console Filtering Test', () => {
     });
 
     // Navigate to the editor
-    await page.goto('http://localhost:3002');
+    await page.goto('/');
 
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

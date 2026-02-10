@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('SVG Upload Comprehensive Test', () => {
   test('uploads actual SVG file and checks for isPublished error', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -112,7 +112,7 @@ test.describe('SVG Upload Comprehensive Test', () => {
   
   test('tests SVG asset creation and methods', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

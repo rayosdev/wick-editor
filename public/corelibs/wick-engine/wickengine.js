@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2025.11.7.14.49.33";
+  var WICK_ENGINE_BUILD_VERSION = "2026.2.11.0.17.11";
   (function() {
 
     var _a;
@@ -773,8 +773,8 @@
           },
           version: "0.12.4",
           getView: function() {
-            var project2 = this.project;
-            return project2 && project2._view;
+            var project = this.project;
+            return project && project._view;
           },
           getPaper: function() {
             return this;
@@ -2753,18 +2753,18 @@
             initialize: function Item2() {
             },
             _initialize: function(props, point) {
-              var hasProps = props && Base.isPlainObject(props), internal = hasProps && props.internal === true, matrix = this._matrix = new Matrix(), project2 = hasProps && props.project || paper2.project, settings = paper2.settings;
+              var hasProps = props && Base.isPlainObject(props), internal = hasProps && props.internal === true, matrix = this._matrix = new Matrix(), project = hasProps && props.project || paper2.project, settings = paper2.settings;
               this._id = internal ? null : UID.get();
               this._parent = this._index = null;
               this._applyMatrix = this._canApplyMatrix && settings.applyMatrix;
               if (point)
                 matrix.translate(point);
               matrix._owner = this;
-              this._style = new Style(project2._currentStyle, this, project2);
+              this._style = new Style(project._currentStyle, this, project);
               if (internal || hasProps && props.insert == false || !settings.insertItems && !(hasProps && props.insert === true)) {
-                this._setProject(project2);
+                this._setProject(project);
               } else {
-                (hasProps && props.parent || project2)._insertItem(undefined$1, this, true);
+                (hasProps && props.parent || project)._insertItem(undefined$1, this, true);
               }
               if (hasProps && props !== Item.NO_INSERT) {
                 this.set(props, {
@@ -2797,7 +2797,7 @@
               return [this._class, props];
             },
             _changed: function(flags) {
-              var symbol = this._symbol, cacheParent = this._parent || symbol, project2 = this._project;
+              var symbol = this._symbol, cacheParent = this._parent || symbol, project = this._project;
               if (flags & 8) {
                 this._bounds = this._position = this._decomposed = undefined$1;
               }
@@ -2810,8 +2810,8 @@
               if (flags & 2) {
                 Item._clearBoundsCache(this);
               }
-              if (project2)
-                project2._changed(flags, this);
+              if (project)
+                project._changed(flags, this);
               if (symbol)
                 symbol._changed(flags);
             },
@@ -2872,9 +2872,9 @@
             setSelection: function(selection) {
               if (selection !== this._selection) {
                 this._selection = selection;
-                var project2 = this._project;
-                if (project2) {
-                  project2._updateSelection(this);
+                var project = this._project;
+                if (project) {
+                  project._updateSelection(this);
                   this._changed(257);
                 }
               }
@@ -3199,14 +3199,14 @@
             getProject: function() {
               return this._project;
             },
-            _setProject: function(project2, installEvents) {
-              if (this._project !== project2) {
+            _setProject: function(project, installEvents) {
+              if (this._project !== project) {
                 if (this._project)
                   this._installEvents(false);
-                this._project = project2;
+                this._project = project;
                 var children = this._children;
                 for (var i = 0, l = children && children.length; i < l; i++)
-                  children[i]._setProject(project2);
+                  children[i]._setProject(project);
                 installEvents = true;
               }
               if (installEvents)
@@ -3613,11 +3613,11 @@
                   }
                 }
                 Base.splice(children, items, index, 0);
-                var project2 = this._project, notifySelf = project2._changes;
+                var project = this._project, notifySelf = project._changes;
                 for (var i = 0, l = items.length; i < l; i++) {
                   var item = items[i], name = item._name;
                   item._parent = this;
-                  item._setProject(project2, true);
+                  item._setProject(project, true);
                   if (name)
                     item.setName(name);
                   if (notifySelf)
@@ -3695,19 +3695,19 @@
               }
             },
             _remove: function(notifySelf, notifyParent) {
-              var owner = this._getOwner(), project2 = this._project, index = this._index;
+              var owner = this._getOwner(), project = this._project, index = this._index;
               if (this._style)
                 this._style._dispose();
               if (owner) {
                 if (this._name)
                   this._removeNamed();
                 if (index != null) {
-                  if (project2._activeLayer === this)
-                    project2._activeLayer = this.getNextSibling() || this.getPreviousSibling();
+                  if (project._activeLayer === this)
+                    project._activeLayer = this.getNextSibling() || this.getPreviousSibling();
                   Base.splice(owner._children, null, index, 1);
                 }
                 this._installEvents(false);
-                if (notifySelf && project2._changes)
+                if (notifySelf && project._changes)
                   this._changed(5);
                 if (notifyParent)
                   owner._changed(11, this);
@@ -4108,7 +4108,7 @@
             removeOn: function(obj) {
               for (var name in obj) {
                 if (obj[name]) {
-                  var key = "mouse" + name, project2 = this._project, sets = project2._removeSets = project2._removeSets || {};
+                  var key = "mouse" + name, project = this._project, sets = project._removeSets = project._removeSets || {};
                   sets[key] = sets[key] || {};
                   sets[key][this._id] = this;
                 }
@@ -10519,7 +10519,7 @@
           Emitter,
           {
             _class: "View",
-            initialize: function View2(project2, element) {
+            initialize: function View2(project, element) {
               function getSize(name) {
                 return element[name] || parseInt(element.getAttribute(name), 10);
               }
@@ -10562,8 +10562,8 @@
                 size = new Size(element);
                 element = null;
               }
-              this._project = project2;
-              this._scope = project2._scope;
+              this._project = project;
+              this._scope = project._scope;
               this._element = element;
               if (!this._pixelRatio)
                 this._pixelRatio = window2 && window2.devicePixelRatio || 1;
@@ -10587,9 +10587,9 @@
                 View._focused = null;
               View._views.splice(View._views.indexOf(this), 1);
               delete View._viewsById[this._id];
-              var project2 = this._project;
-              if (project2._view === this)
-                project2._view = null;
+              var project = this._project;
+              if (project._view === this)
+                project._view = null;
               DomEvent.remove(this._element, this._viewEvents);
               DomEvent.remove(window2, this._windowEvents);
               this._element = this._project = null;
@@ -10847,11 +10847,11 @@
               _views: [],
               _viewsById: {},
               _id: 0,
-              create: function(project2, element) {
+              create: function(project, element) {
                 if (document2 && typeof element === "string")
                   element = document2.getElementById(element);
                 var ctor = window2 ? CanvasView : View;
-                return new ctor(project2, element);
+                return new ctor(project, element);
               }
             }
           },
@@ -11137,7 +11137,7 @@
         );
         var CanvasView = View.extend({
           _class: "CanvasView",
-          initialize: function CanvasView2(project2, canvas) {
+          initialize: function CanvasView2(project, canvas) {
             if (!(canvas instanceof window2.HTMLCanvasElement)) {
               var size = Size.read(arguments, 1);
               if (size.isZero())
@@ -11156,7 +11156,7 @@
               ) || 1;
               this._pixelRatio = deviceRatio / backingStoreRatio;
             }
-            View.call(this, project2, canvas);
+            View.call(this, project, canvas);
             this._needsUpdate = true;
           },
           remove: function remove() {
@@ -11204,10 +11204,10 @@
           update: function() {
             if (!this._needsUpdate)
               return false;
-            var project2 = this._project, ctx = this._context, size = this._viewSize;
+            var project = this._project, ctx = this._context, size = this._viewSize;
             ctx.clearRect(0, 0, size.width + 1, size.height + 1);
-            if (project2)
-              project2.draw(ctx, this._matrix, this._pixelRatio);
+            if (project)
+              project.draw(ctx, this._matrix, this._pixelRatio);
             this._needsUpdate = false;
             return true;
           }
@@ -12434,10 +12434,10 @@
             return value === "none" ? null : type === "number" ? parseFloat(value) : type === "array" ? value ? value.split(/[\s,]+/g).map(parseFloat) : [] : type === "color" ? getDefinition(value) || value : type === "lookup" ? lookup[value] : value;
           }
           function importGroup(node, type, options, isRoot) {
-            var nodes = node.childNodes, isClip = type === "clippath", isDefs = type === "defs", item = new Group(), project2 = item._project, currentStyle = project2._currentStyle, children = [];
+            var nodes = node.childNodes, isClip = type === "clippath", isDefs = type === "defs", item = new Group(), project = item._project, currentStyle = project._currentStyle, children = [];
             if (!isClip && !isDefs) {
               item = applyAttributes(item, node, isRoot);
-              project2._currentStyle = item._style.clone();
+              project._currentStyle = item._style.clone();
             }
             if (isRoot) {
               var defs = node.querySelectorAll("defs");
@@ -12453,7 +12453,7 @@
             item.addChildren(children);
             if (isClip)
               item = applyAttributes(item.reduce(), node, isRoot);
-            project2._currentStyle = currentStyle;
+            project._currentStyle = currentStyle;
             if (isClip || isDefs) {
               item.remove();
               item = null;
@@ -36446,8 +36446,8 @@
        * Replace the current contents of the clipboard with new objects.
        * @param {Wick.Base[]} objects - the objects to copy to the clipboard
        */
-      copyObjectsToClipboard(project2, objects) {
-        if (!project2 || !project2 instanceof Wick.Project) console.error("copyObjectsToClipboard(): project is required");
+      copyObjectsToClipboard(project, objects) {
+        if (!project || !(project instanceof Wick.Project)) console.error("copyObjectsToClipboard(): project is required");
         var playheadCopyOffset = null;
         objects.filter((object) => {
           return object instanceof Wick.Frame;
@@ -36456,7 +36456,7 @@
             playheadCopyOffset = frame.start;
           }
         });
-        this._copyLocation = project2.activeFrame && project2.activeFrame.uuid;
+        this._copyLocation = project.activeFrame && project.activeFrame.uuid;
         this._copyLayerIndex = Infinity;
         objects.filter((object) => {
           return object instanceof Wick.Frame || object instanceof Wick.Tween;
@@ -36500,13 +36500,13 @@
        * @param {Wick.Project} project - the project to paste objects into.
        * @returns {boolean} True if there is something to paste in the clipboard, false if the clipboard is empty.
        */
-      pasteObjectsFromClipboard(project2) {
-        if (!project2 || !project2 instanceof Wick.Project) console.error("pasteObjectsFromClipboard(): project is required");
+      pasteObjectsFromClipboard(project) {
+        if (!project || !(project instanceof Wick.Project)) console.error("pasteObjectsFromClipboard(): project is required");
         if (!this.clipboardData) {
           return false;
         }
-        if (!project2.activeFrame) {
-          project2.insertBlankFrame();
+        if (!project.activeFrame) {
+          project.insertBlankFrame();
         }
         var pasteInPlace = true;
         this._originalObjects.forEach((origObj) => {
@@ -36514,22 +36514,22 @@
             pasteInPlace = false;
           }
         });
-        var layerIndicesMoved = project2.activeLayer.index - this._copyLayerIndex;
-        project2.selection.clear();
+        var layerIndicesMoved = project.activeLayer.index - this._copyLayerIndex;
+        project.selection.clear();
         var objectsToSelect = [];
         this.clipboardData.map((data) => {
-          return Wick.Base.import(data, project2).copy();
+          return Wick.Base.import(data, project).copy();
         }).forEach((object) => {
           if (object instanceof Wick.Frame) {
             object._originalLayerIndex += layerIndicesMoved;
-            object.start += project2.focus.timeline.playheadPosition - 1;
-            object.end += project2.focus.timeline.playheadPosition - 1;
+            object.start += project.focus.timeline.playheadPosition - 1;
+            object.end += project.focus.timeline.playheadPosition - 1;
           }
           if (object instanceof Wick.Tween) {
             object._originalLayerIndex += layerIndicesMoved;
-            object.playheadPosition += project2.focus.timeline.playheadPosition - 1;
+            object.playheadPosition += project.focus.timeline.playheadPosition - 1;
           }
-          project2.addObject(object);
+          project.addObject(object);
           object.identifier = object._getUniqueIdentifier(object.identifier);
           if (!pasteInPlace && (object instanceof Wick.Path || object instanceof Wick.Clip)) {
             object.view.render();
@@ -36539,7 +36539,7 @@
           objectsToSelect.push(object);
         });
         if (objectsToSelect.length > 0) {
-          project2.selection.selectMultipleObjects(objectsToSelect);
+          project.selection.selectMultipleObjects(objectsToSelect);
         }
         return true;
       }
@@ -36692,12 +36692,12 @@
        * @param {Wick.Project} project - the project that we want to load assets for.
        * @param {function} callback - called when the assets are done being loaded.
        */
-      static loadFilesFromLocalforage(project2, callback) {
-        Promise.all(project2.getAssets().map((asset) => {
+      static loadFilesFromLocalforage(project, callback) {
+        Promise.all(project.getAssets().map((asset) => {
           return localforage.getItem(this.getLocalForageKeyForUUID(asset.uuid));
         })).then((assets) => {
           for (var i = 0; i < assets.length; i++) {
-            this.addFile(assets[i], project2.getAssets()[i].uuid);
+            this.addFile(assets[i], project.getAssets()[i].uuid);
           }
           callback();
         });
@@ -37007,12 +37007,12 @@
        * that are referenced in undo/redo.
        * @param {Wick.Project} project - the project to use to determine which objects have no references
        */
-      removeUnusedObjects(project2) {
-        var activeObjects = this.getActiveObjects(project2);
+      removeUnusedObjects(project) {
+        var activeObjects = this.getActiveObjects(project);
         let uuids = activeObjects.map((obj) => obj.uuid);
-        uuids.push(project2.uuid);
+        uuids.push(project.uuid);
         let uuidSet = new Set(uuids);
-        let historyIDs = project2.history.getObjectUUIDs();
+        let historyIDs = project.history.getObjectUUIDs();
         uuidSet = /* @__PURE__ */ new Set([...historyIDs, ...uuidSet]);
         this.getAllObjects().forEach((object) => {
           if (!uuidSet.has(object.uuid)) {
@@ -37035,8 +37035,8 @@
        * @param {Wick.Project} project - the project to check if children are active in.
        * @returns {Wick.Base[]} the active objects.
        */
-      getActiveObjects(project2) {
-        return project2.getChildrenRecursive().map((object) => {
+      getActiveObjects(project) {
+        return project.getChildrenRecursive().map((object) => {
           return this.getObjectByUUID(object.uuid);
         });
       }
@@ -37457,16 +37457,16 @@
        * @returns {object} Project object.
        */
       get project() {
-        var project2 = this.scriptOwner.project && this.scriptOwner.project.root;
-        if (project2) {
-          project2.width = this.scriptOwner.project.width;
-          project2.height = this.scriptOwner.project.height;
-          project2.framerate = this.scriptOwner.project.framerate;
-          project2.backgroundColor = this.scriptOwner.project.backgroundColor;
-          project2.name = this.scriptOwner.project.name;
-          project2.hitTestOptions = this.scriptOwner.project.hitTestOptions;
+        var project = this.scriptOwner.project && this.scriptOwner.project.root;
+        if (project) {
+          project.width = this.scriptOwner.project.width;
+          project.height = this.scriptOwner.project.height;
+          project.framerate = this.scriptOwner.project.framerate;
+          project.backgroundColor = this.scriptOwner.project.backgroundColor;
+          project.name = this.scriptOwner.project.name;
+          project.hitTestOptions = this.scriptOwner.project.hitTestOptions;
         }
-        return project2;
+        return project;
       }
       /**
        * @deprecated
@@ -37810,15 +37810,15 @@
       get project() {
         return this._project;
       }
-      set project(project2) {
-        this._project = project2;
+      set project(project) {
+        this._project = project;
       }
       /**
        * Create a new AudioTrack
        * @param {Wick.Project} project - the project to use audio from
        */
-      constructor(project2) {
-        this._project = project2;
+      constructor(project) {
+        this._project = project;
       }
       /**
        * Generate an AudioBuffer of all the project's sounds as one audio track.
@@ -38085,9 +38085,9 @@
        * Saves a given project to localforage.
        * @param {Wick.Project} project - the project to store in the AutoSave system.
        */
-      static save(project2, callback) {
+      static save(project, callback) {
         if (Wick.AutoSave.ENABLE_PERF_TIMERS) console.time("serialize step");
-        var autosaveData = this.generateAutosaveData(project2);
+        var autosaveData = this.generateAutosaveData(project);
         if (Wick.AutoSave.ENABLE_PERF_TIMERS) console.timeEnd("serialize step");
         if (Wick.AutoSave.ENABLE_PERF_TIMERS) console.time("localforage step");
         this.addAutosaveToList(autosaveData, () => {
@@ -38104,8 +38104,8 @@
        */
       static load(uuid2, callback) {
         this.readAutosaveData(uuid2, (autosaveData) => {
-          this.generateProjectFromAutosaveData(autosaveData, (project2) => {
-            callback(project2);
+          this.generateProjectFromAutosaveData(autosaveData, (project) => {
+            callback(project);
           });
         });
       }
@@ -38125,12 +38125,12 @@
        * Generates an object that is writable to localforage from a project.
        * @param {Wick.Project} project - The project to generate data for.
        */
-      static generateAutosaveData(project2) {
+      static generateAutosaveData(project) {
         if (Wick.AutoSave.ENABLE_PERF_TIMERS) console.time("generate objects list");
-        var objects = Wick.ObjectCache.getActiveObjects(project2);
+        var objects = Wick.ObjectCache.getActiveObjects(project);
         if (Wick.AutoSave.ENABLE_PERF_TIMERS) console.timeEnd("generate objects list");
         if (Wick.AutoSave.ENABLE_PERF_TIMERS) console.time("serialize objects list");
-        var projectData = project2.serialize();
+        var projectData = project.serialize();
         var objectsData = objects.map((object) => {
           return object.serialize();
         });
@@ -38150,10 +38150,10 @@
         autosaveData.objectsData.forEach((objectData) => {
           Wick.Base.fromData(objectData);
         });
-        var project2 = Wick.Base.fromData(autosaveData.projectData);
-        Wick.FileCache.loadFilesFromLocalforage(project2, () => {
-          project2.loadAssets(() => {
-            callback(project2);
+        var project = Wick.Base.fromData(autosaveData.projectData);
+        Wick.FileCache.loadFilesFromLocalforage(project, () => {
+          project.loadAssets(() => {
+            callback(project);
           });
         });
       }
@@ -38297,9 +38297,9 @@
             if (data && data.export && data.export.object && data.export.children) {
               console.log("WickFile.fromWickFile: Using new export format");
               try {
-                const project2 = Wick.Base.import(data.export, null);
-                console.log("WickFile.fromWickFile: Import successful, project:", project2);
-                callback(project2);
+                const project = Wick.Base.import(data.export, null);
+                console.log("WickFile.fromWickFile: Import successful, project:", project);
+                callback(project);
                 return;
               } catch (importError) {
                 console.error("WickFile.fromWickFile: Import failed:", importError);
@@ -38310,26 +38310,26 @@
             if (data && data.project) {
               console.log("WickFile.fromWickFile: Using legacy format");
               try {
-                const project2 = new window.Wick.Project();
-                project2.name = data.project.name;
-                project2.width = data.project.width;
-                project2.height = data.project.height;
-                project2.framerate = data.project.framerate;
-                project2.backgroundColor = new window.Wick.Color(data.project.backgroundColor);
-                project2.onionSkinEnabled = data.project.onionSkinEnabled;
-                project2.onionSkinSeekForwards = data.project.onionSkinSeekForwards;
-                project2.onionSkinSeekBackwards = data.project.onionSkinSeekBackwards;
-                const clips = project2.getChildren("Clip");
+                const project = new window.Wick.Project();
+                project.name = data.project.name;
+                project.width = data.project.width;
+                project.height = data.project.height;
+                project.framerate = data.project.framerate;
+                project.backgroundColor = new window.Wick.Color(data.project.backgroundColor);
+                project.onionSkinEnabled = data.project.onionSkinEnabled;
+                project.onionSkinSeekForwards = data.project.onionSkinSeekForwards;
+                project.onionSkinSeekBackwards = data.project.onionSkinSeekBackwards;
+                const clips = project.getChildren("Clip");
                 if (clips.length > 0) {
-                  project2._focus = clips[0].uuid;
+                  project._focus = clips[0].uuid;
                 } else {
-                  project2._focus = null;
+                  project._focus = null;
                 }
                 console.log("WickFile.fromWickFile: Legacy project created successfully");
                 if (data.project.children && data.project.children.length > 0) {
                   console.warn("Wick.WickFile.fromWickFile: legacy file missing object graph; children will not be reconstructed.");
                 }
-                callback(project2);
+                callback(project);
                 return;
               } catch (fromDataError) {
                 console.error("WickFile.fromWickFile: Legacy project creation failed:", fromDataError);
@@ -38340,9 +38340,9 @@
             if (data && data.object && data.children) {
               console.log("WickFile.fromWickFile: Using fallback format");
               try {
-                const project2 = Wick.Base.import(data, null);
-                console.log("WickFile.fromWickFile: Fallback import successful, project:", project2);
-                callback(project2);
+                const project = Wick.Base.import(data, null);
+                console.log("WickFile.fromWickFile: Fallback import successful, project:", project);
+                callback(project);
                 return;
               } catch (fallbackError) {
                 console.error("WickFile.fromWickFile: Fallback import failed:", fallbackError);
@@ -38366,8 +38366,8 @@
        * @param {function(blob)} callback - function to call when done
        * @returns {Blob}
        */
-      static toWickFile(project2, callback, format = "blob") {
-        const exportPayload = project2.export();
+      static toWickFile(project, callback, format = "blob") {
+        const exportPayload = project.export();
         var wickFileData = {
           export: exportPayload,
           metadata: Wick.WickFile.generateMetaData()
@@ -38518,8 +38518,8 @@
        * Bundles a wick project into the standalone HTML player. This creates a single-file playable Wick project.
        * @param {Wick.Project} project - The project to bundle.
        */
-      static bundleProject(project2, callback) {
-        Wick.WickFile.toWickFile(project2, (wickFileBase64) => {
+      static bundleProject(project, callback) {
+        Wick.WickFile.toWickFile(project, (wickFileBase64) => {
           fetch(Wick.resourcepath + "emptyproject.html").then((resp) => resp.text()).then((text) => {
             text = text.replace("<!--INJECT_WICKPROJECTDATA_HERE-->", wickFileBase64);
             callback(text);
@@ -38537,12 +38537,12 @@
        * @param {Wick.Project} project - The project to run.
        * @param {function} callback - Function that's called when the popup is successfully created.
        */
-      static previewProject(project2, callback) {
-        Wick.HTMLExport.bundleProject(project2, (html) => {
-          var windowFeatures = "height=" + project2.height + ",width=" + project2.width;
+      static previewProject(project, callback) {
+        Wick.HTMLExport.bundleProject(project, (html) => {
+          var windowFeatures = "height=" + project.height + ",width=" + project.width;
           var popupWindow = window.open("", "_blank", windowFeatures);
           if (popupWindow) {
-            popupWindow.document.title = project2.name;
+            popupWindow.document.title = project.name;
             popupWindow.document.open();
             popupWindow.document.write(html);
             popupWindow.document.close();
@@ -38588,7 +38588,7 @@
        * @param {function} callback - Function called when the file is created. Contains the file as a parameter.
        **/
       static toPNGSequence(args) {
-        let { project: project2, onProgress, onFinish } = args;
+        let { project, onProgress, onFinish } = args;
         var zip = new JSZip();
         let buildZip = (files) => {
           let index = 0;
@@ -38606,7 +38606,7 @@
             }
           }).then(onFinish);
         };
-        project2.generateImageSequence({
+        project.generateImageSequence({
           width: args.width,
           height: args.height,
           onFinish: buildZip,
@@ -38615,9 +38615,9 @@
       }
     };
     class ZIPExport {
-      static bundleProject(project2, done) {
+      static bundleProject(project, done) {
         this._downloadDependenciesFiles((items) => {
-          window.Wick.WickFile.toWickFile(project2, (wickFile) => {
+          window.Wick.WickFile.toWickFile(project, (wickFile) => {
             this._bundleFilesIntoZip(wickFile, items, done);
           });
         });
@@ -38627,7 +38627,7 @@
         var urls = [
           "index.html",
           "preloadjs.min.js",
-          "wickengine.js"
+          "wickplayer.js"
         ];
         var results = [];
         urls.forEach(function(url, i) {
@@ -38692,7 +38692,7 @@
       /**
        * @param {object} data - Serialized data to use to create a new object.
        */
-      static fromData(data, project2) {
+      static fromData(data, project) {
         try {
           const startMs = typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
           if (data) {
@@ -38709,7 +38709,7 @@
         if (!Wick[data.classname]) {
           console.warn("Tried to deserialize an object with no Wick class: " + data.classname);
         }
-        var object = new Wick[data.classname]({ uuid: data.uuid, project: project2 });
+        var object = new Wick[data.classname]({ uuid: data.uuid, project });
         try {
           object.deserialize(data);
           try {
@@ -38824,7 +38824,7 @@
        * Import data created using Wick.Base.export().
        * @param {object} exportData - an object created from Wick.Base.export().
        */
-      static import(exportData, project2) {
+      static import(exportData, project) {
         try {
           const startMs = typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
           try {
@@ -38836,19 +38836,19 @@
         if (!exportData) console.error("Wick.Base.import(): exportData is required");
         if (!exportData.object) console.error("Wick.Base.import(): exportData is missing data");
         if (!exportData.children) console.error("Wick.Base.import(): exportData is missing data");
-        if (!project2 && exportData.object && exportData.object.classname === "Project") {
-          project2 = Wick.Base.fromData(exportData.object, null);
+        if (!project && exportData.object && exportData.object.classname === "Project") {
+          project = Wick.Base.fromData(exportData.object, null);
         }
         exportData.assets.forEach((assetData) => {
-          if (project2.getAssetByUUID(assetData.uuid)) {
+          if (project.getAssetByUUID(assetData.uuid)) {
             return;
           }
-          var asset = Wick.Base.fromData(assetData, project2);
-          project2.addAsset(asset);
+          var asset = Wick.Base.fromData(assetData, project);
+          project.addAsset(asset);
         });
-        var object = project2 && exportData.object.classname === "Project" ? project2 : Wick.Base.fromData(exportData.object, project2);
+        var object = project && exportData.object.classname === "Project" ? project : Wick.Base.fromData(exportData.object, project);
         exportData.children.forEach((childData) => {
-          Wick.Base.fromData(childData, project2);
+          Wick.Base.fromData(childData, project);
         });
         try {
           const endMs = typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
@@ -39159,11 +39159,11 @@
           return this.parent._getParentByClassName(classname);
         }
       }
-      _setProject(project2) {
-        this._project = project2;
+      _setProject(project) {
+        this._project = project;
         this.getChildren().forEach((child) => {
           if (child instanceof Wick.Base) {
-            child._setProject(project2);
+            child._setProject(project);
           }
         });
       }
@@ -39483,6 +39483,10 @@
         this._keysLastDown = [];
         this._currentKey = null;
         this._tickIntervalID = null;
+        this._tickAnimationFrameID = null;
+        this._tickAccumulatorMs = 0;
+        this._lastTickTimestampMs = null;
+        this._injectResizeHandler = null;
         this._hideCursor = false;
         this._muted = false;
         this._publishedMode = false;
@@ -39551,7 +39555,13 @@
        * TODO: Remove all elements created by this project.
        */
       destroy() {
-        this.guiElement.removeAllEventListeners();
+        if (this._injectResizeHandler) {
+          window.removeEventListener("resize", this._injectResizeHandler);
+          this._injectResizeHandler = null;
+        }
+        if (this.guiElement && typeof this.guiElement.removeAllEventListeners === "function") {
+          this.guiElement.removeAllEventListeners();
+        }
       }
       _deserialize(data) {
         super._deserialize(data);
@@ -40674,23 +40684,62 @@
         window._scriptOnErrorCallback = args.onError;
         this._playing = true;
         this.view.paper.view.autoUpdate = false;
-        if (this._tickIntervalID) {
+        if (this._tickIntervalID || this._tickAnimationFrameID !== null) {
           this.stop();
         }
         this.error = null;
         this.history.saveSnapshot("state-before-play");
         this.selection.clear();
-        this._tickIntervalID = setInterval(() => {
+        const runTick = () => {
           args.onBeforeTick();
           this.tools.interact.determineMouseTargets();
           var error = this.tick();
           this.view.paper.view.update();
           if (error) {
             this.stop();
-            return;
+            return true;
           }
           args.onAfterTick();
-        }, 1e3 / this.framerate);
+          return false;
+        };
+        const stepMs = 1e3 / this.framerate;
+        this._tickAccumulatorMs = 0;
+        this._lastTickTimestampMs = null;
+        if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+          const maxCatchUpTicks = 5;
+          const animate = (timestampMs) => {
+            if (!this._playing) return;
+            if (this._lastTickTimestampMs === null) {
+              this._lastTickTimestampMs = timestampMs;
+            }
+            let deltaMs = timestampMs - this._lastTickTimestampMs;
+            if (!Number.isFinite(deltaMs) || deltaMs < 0) {
+              deltaMs = 0;
+            }
+            if (deltaMs > stepMs * maxCatchUpTicks) {
+              deltaMs = stepMs * maxCatchUpTicks;
+            }
+            this._lastTickTimestampMs = timestampMs;
+            this._tickAccumulatorMs += deltaMs;
+            let ticksProcessed = 0;
+            while (this._tickAccumulatorMs >= stepMs && ticksProcessed < maxCatchUpTicks) {
+              if (runTick()) {
+                return;
+              }
+              this._tickAccumulatorMs -= stepMs;
+              ticksProcessed++;
+            }
+            if (ticksProcessed === maxCatchUpTicks) {
+              this._tickAccumulatorMs = 0;
+            }
+            this._tickAnimationFrameID = window.requestAnimationFrame(animate);
+          };
+          this._tickAnimationFrameID = window.requestAnimationFrame(animate);
+        } else {
+          this._tickIntervalID = setInterval(() => {
+            runTick();
+          }, stepMs);
+        }
       }
       /**
        * Ticks the project.
@@ -40729,6 +40778,12 @@
         });
         this.runScheduledScripts();
         this.stopAllSounds();
+        if (this._tickAnimationFrameID !== null && typeof window !== "undefined" && typeof window.cancelAnimationFrame === "function") {
+          window.cancelAnimationFrame(this._tickAnimationFrameID);
+        }
+        this._tickAnimationFrameID = null;
+        this._tickAccumulatorMs = 0;
+        this._lastTickTimestampMs = null;
         clearInterval(this._tickIntervalID);
         this._tickIntervalID = null;
         var currentPlayhead = this.focus.timeline.playheadPosition;
@@ -40754,9 +40809,13 @@
         this.view.canvasContainer = element;
         this.view.fitMode = "fill";
         this.view.canvasBGColor = this.backgroundColor.hex;
-        window.onresize = function() {
-          project.view.resize();
+        if (this._injectResizeHandler) {
+          window.removeEventListener("resize", this._injectResizeHandler);
+        }
+        this._injectResizeHandler = () => {
+          this.view.resize();
         };
+        window.addEventListener("resize", this._injectResizeHandler);
         this.view.resize();
         this.view.prerender();
         this.focus = this.root;
@@ -43102,8 +43161,8 @@
        * @param {Wick.Clip} - the clip to use as a source
        * @param {function} callback -
        */
-      static fromClip(clip, project2, callback) {
-        project2.addObject(clip);
+      static fromClip(clip, project, callback) {
+        project.addObject(clip);
         Wick.WickObjectFile.toWickObjectFile(clip, "blob", (file) => {
           var a = new FileReader();
           a.onload = (e) => {
@@ -43184,15 +43243,15 @@
        * Creates a new Wick Clip that uses this asset's data.
        * @param {function} callback - called when the Clip is done loading.
        */
-      createInstance(callback, project2) {
+      createInstance(callback, project) {
         if (!callback) {
           console.warn("Cannot create clip instance without callback.");
         }
-        if (!project2) {
+        if (!project) {
           console.warn("Cannot create clip instance without project reference.");
         }
         Wick.WickObjectFile.fromWickObjectFile(this.src, (data) => {
-          var clip = Wick.Base.import(data, project2).copy();
+          var clip = Wick.Base.import(data, project).copy();
           clip.assetSourceUUID = this.uuid;
           callback(clip);
         });
@@ -43220,7 +43279,7 @@
        * @param {Wick.ImageAsset} images - The ImageAssets, in order of where they will appear in the timeline, which are used to create a ClipAsset
        * @param {function} callback - Fuction to be called when the asset is done being created
        */
-      static fromImages(images, project2, callback) {
+      static fromImages(images, project, callback) {
         var clip = new Wick.Clip();
         clip.activeFrame.remove();
         var imagesCreatedCount = 0;
@@ -43231,7 +43290,7 @@
             clip.activeLayer.addFrame(frame);
             imagesCreatedCount++;
             if (imagesCreatedCount === images.length) {
-              Wick.ClipAsset.fromClip(clip, project2, (clipAsset) => {
+              Wick.ClipAsset.fromClip(clip, project, (clipAsset) => {
                 images.forEach((image) => {
                   image.gifAssetUUID = clip.uuid;
                 });
@@ -44236,13 +44295,13 @@
         apiMembers.forEach((apiMember) => {
           window[apiMember.name] = apiMember.fn;
         });
-        var project2 = this.project;
-        var root = project2 && project2.root;
+        var project = this.project;
+        var root = project && project.root;
         window.project = root;
-        if (project2) {
-          window.project.resolution = { x: project2.width, y: project2.height };
-          window.project.framerate = project2.framerate;
-          window.project.backgroundColor = project2.backgroundColor;
+        if (project) {
+          window.project.resolution = { x: project.width, y: project.height };
+          window.project.framerate = project.framerate;
+          window.project.backgroundColor = project.backgroundColor;
         }
         window.root = root;
         window.parent = this.parentClip;
@@ -48929,6 +48988,15 @@
       static get PAN_LIMIT() {
         return 1e4;
       }
+      static get PINCH_ACCELERATION_BASE() {
+        return 0.15;
+      }
+      static get PINCH_ACCELERATION_MULTIPLIER() {
+        return 12;
+      }
+      static get PINCH_ACCELERATION_MAX_BOOST() {
+        return 2.5;
+      }
       /*
        * Create a new Project View.
        */
@@ -48957,7 +49025,9 @@
       set fitMode(fitMode) {
         if (Wick.View.Project.VALID_FIT_MODES.indexOf(fitMode) === -1) {
           console.error("Invalid fitMode: " + fitMode);
-          console.error("Supported fitModes: " + Wick.View.Project.VALID_FIT_MODES.join(","));
+          console.error(
+            "Supported fitModes: " + Wick.View.Project.VALID_FIT_MODES.join(",")
+          );
         } else {
           this._fitMode = fitMode;
         }
@@ -49102,7 +49172,8 @@
         }
         if (isZoomGesture) {
           const deltaY = event.deltaY || 0;
-          const d = deltaY * multiplier * 1e-3;
+          const baseDelta = deltaY * multiplier * 1e-3;
+          const d = this._transformPinchDelta(baseDelta);
           const rect = this._svgCanvas.getBoundingClientRect();
           const point = new this.paper.Point(
             event.clientX - rect.left,
@@ -49117,11 +49188,16 @@
                 const oldZoom = Number.isFinite(this.paper.view.zoom) ? this.paper.view.zoom : 1;
                 const newZoom = Math.max(
                   Wick.View.Project.ZOOM_MIN,
-                  Math.min(Wick.View.Project.ZOOM_MAX, oldZoom + this._pendingZoomDelta)
+                  Math.min(
+                    Wick.View.Project.ZOOM_MAX,
+                    oldZoom + this._pendingZoomDelta
+                  )
                 );
                 if (this._zoomPoint && Math.abs(newZoom - oldZoom) > 1e-3) {
                   const beta = oldZoom / newZoom;
-                  const mousePosition = this._zoomPoint.subtract(this.paper.view.center);
+                  const mousePosition = this._zoomPoint.subtract(
+                    this.paper.view.center
+                  );
                   const offset = mousePosition.multiply(beta).subtract(mousePosition);
                   this.paper.view.zoom = newZoom;
                   this.paper.view.center = this.paper.view.center.add(offset);
@@ -49160,130 +49236,173 @@
         }
       }
       _setupTools() {
-        this._svgCanvas.addEventListener("wheel", (e) => {
-          e.preventDefault();
-          this.scrollToZoom(e);
-        }, { passive: false });
-        this._svgCanvas.addEventListener("gesturestart", (e) => {
-          e.preventDefault();
-          this._gestureStartZoom = this.paper.view.zoom;
-          this._gestureStartCenter = this.paper.view.center.clone();
-          const rect = this._svgCanvas.getBoundingClientRect();
-          const point = new this.paper.Point(
-            e.clientX - rect.left,
-            e.clientY - rect.top
-          );
-          this._gesturePoint = this.paper.view.viewToProject(point);
-        }, { passive: false });
-        this._svgCanvas.addEventListener("gesturechange", (e) => {
-          e.preventDefault();
-          if (this._gestureStartZoom && this._gesturePoint) {
-            const scaleFactor = 1.5;
-            const adjustedScale = 1 + (e.scale - 1) * scaleFactor;
-            const newZoom = this._gestureStartZoom * adjustedScale;
-            const clampedZoom = Math.max(
-              Wick.View.Project.ZOOM_MIN,
-              Math.min(Wick.View.Project.ZOOM_MAX, newZoom)
+        this._svgCanvas.addEventListener(
+          "wheel",
+          (e) => {
+            e.preventDefault();
+            this.scrollToZoom(e);
+          },
+          { passive: false }
+        );
+        this._svgCanvas.addEventListener(
+          "gesturestart",
+          (e) => {
+            e.preventDefault();
+            this._gestureStartZoom = this.paper.view.zoom;
+            this._gestureStartCenter = this.paper.view.center.clone();
+            const rect = this._svgCanvas.getBoundingClientRect();
+            const point = new this.paper.Point(
+              e.clientX - rect.left,
+              e.clientY - rect.top
             );
-            const oldZoom = this._gestureStartZoom;
-            if (Math.abs(clampedZoom - oldZoom) > 1e-3) {
-              const beta = oldZoom / clampedZoom;
-              const mousePosition = this._gesturePoint.subtract(this._gestureStartCenter);
-              const offset = mousePosition.multiply(beta).subtract(mousePosition);
-              this.paper.view.zoom = clampedZoom;
-              this.paper.view.center = this._gestureStartCenter.add(offset);
-            } else {
-              this.paper.view.zoom = clampedZoom;
+            this._gesturePoint = this.paper.view.viewToProject(point);
+          },
+          { passive: false }
+        );
+        this._svgCanvas.addEventListener(
+          "gesturechange",
+          (e) => {
+            e.preventDefault();
+            if (this._gestureStartZoom && this._gesturePoint) {
+              const scaleFactor = 1.5;
+              const scaleDelta = (e.scale - 1) * scaleFactor;
+              const adjustedDelta = this._transformPinchDelta(scaleDelta);
+              const adjustedScale = Math.max(0.1, 1 + adjustedDelta);
+              const newZoom = this._gestureStartZoom * adjustedScale;
+              const clampedZoom = Math.max(
+                Wick.View.Project.ZOOM_MIN,
+                Math.min(Wick.View.Project.ZOOM_MAX, newZoom)
+              );
+              const oldZoom = this._gestureStartZoom;
+              if (Math.abs(clampedZoom - oldZoom) > 1e-3) {
+                const beta = oldZoom / clampedZoom;
+                const mousePosition = this._gesturePoint.subtract(
+                  this._gestureStartCenter
+                );
+                const offset = mousePosition.multiply(beta).subtract(mousePosition);
+                this.paper.view.zoom = clampedZoom;
+                this.paper.view.center = this._gestureStartCenter.add(offset);
+              } else {
+                this.paper.view.zoom = clampedZoom;
+              }
             }
-          }
-        }, { passive: false });
-        this._svgCanvas.addEventListener("gestureend", (e) => {
-          e.preventDefault();
-          this._gestureStartZoom = null;
-          this._gestureStartCenter = null;
-          this._gesturePoint = null;
-          this._applyZoomAndPanChangesFromPaper();
-        }, { passive: false });
+          },
+          { passive: false }
+        );
+        this._svgCanvas.addEventListener(
+          "gestureend",
+          (e) => {
+            e.preventDefault();
+            this._gestureStartZoom = null;
+            this._gestureStartCenter = null;
+            this._gesturePoint = null;
+            this._applyZoomAndPanChangesFromPaper();
+          },
+          { passive: false }
+        );
         this._touchStartDistance = null;
         this._touchStartZoom = null;
         this._touchStartCenter = null;
         this._touchStartPoint = null;
         this._lastTwoFingerCenter = null;
         this._isPanning = false;
-        this._svgCanvas.addEventListener("touchstart", (e) => {
-          if (e.touches.length === 2) {
-            e.preventDefault();
-            const touch1 = e.touches[0];
-            const touch2 = e.touches[1];
-            const dx = touch2.clientX - touch1.clientX;
-            const dy = touch2.clientY - touch1.clientY;
-            this._touchStartDistance = Math.sqrt(dx * dx + dy * dy);
-            this._touchStartZoom = this.paper.view.zoom;
-            this._touchStartCenter = this.paper.view.center.clone();
-            const rect = this._svgCanvas.getBoundingClientRect();
-            const centerX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
-            const centerY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
-            const point = new this.paper.Point(centerX, centerY);
-            this._touchStartPoint = this.paper.view.viewToProject(point);
-            this._lastTwoFingerCenter = { x: centerX, y: centerY };
-            this._isPanning = true;
-          }
-        }, { passive: false });
-        this._svgCanvas.addEventListener("touchmove", (e) => {
-          if (e.touches.length === 2 && this._touchStartDistance && this._isPanning) {
-            e.preventDefault();
-            const touch1 = e.touches[0];
-            const touch2 = e.touches[1];
-            const rect = this._svgCanvas.getBoundingClientRect();
-            const currentCenterX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
-            const currentCenterY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
-            const dx = touch2.clientX - touch1.clientX;
-            const dy = touch2.clientY - touch1.clientY;
-            const currentDistance = Math.sqrt(dx * dx + dy * dy);
-            const distanceChange = Math.abs(currentDistance - this._touchStartDistance);
-            const panDeltaX = currentCenterX - this._lastTwoFingerCenter.x;
-            const panDeltaY = currentCenterY - this._lastTwoFingerCenter.y;
-            const panDistance = Math.sqrt(panDeltaX * panDeltaX + panDeltaY * panDeltaY);
-            if (panDistance > 1) {
-              const panOffset = new this.paper.Point(
-                -panDeltaX / this.paper.view.zoom,
-                -panDeltaY / this.paper.view.zoom
-              );
-              this.paper.view.center = this.paper.view.center.add(panOffset);
-              this._lastTwoFingerCenter = { x: currentCenterX, y: currentCenterY };
+        this._svgCanvas.addEventListener(
+          "touchstart",
+          (e) => {
+            if (e.touches.length === 2) {
+              e.preventDefault();
+              const touch1 = e.touches[0];
+              const touch2 = e.touches[1];
+              const dx = touch2.clientX - touch1.clientX;
+              const dy = touch2.clientY - touch1.clientY;
+              this._touchStartDistance = Math.sqrt(dx * dx + dy * dy);
+              this._touchStartZoom = this.paper.view.zoom;
+              this._touchStartCenter = this.paper.view.center.clone();
+              const rect = this._svgCanvas.getBoundingClientRect();
+              const centerX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
+              const centerY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
+              const point = new this.paper.Point(centerX, centerY);
+              this._touchStartPoint = this.paper.view.viewToProject(point);
+              this._lastTwoFingerCenter = { x: centerX, y: centerY };
+              this._isPanning = true;
             }
-            if (distanceChange > 5) {
-              const scaleFactor = 1.5;
-              const scale = currentDistance / this._touchStartDistance;
-              const adjustedScale = 1 + (scale - 1) * scaleFactor;
-              const newZoom = this._touchStartZoom * adjustedScale;
-              const clampedZoom = Math.max(
-                Wick.View.Project.ZOOM_MIN,
-                Math.min(Wick.View.Project.ZOOM_MAX, newZoom)
+          },
+          { passive: false }
+        );
+        this._svgCanvas.addEventListener(
+          "touchmove",
+          (e) => {
+            if (e.touches.length === 2 && this._touchStartDistance && this._isPanning) {
+              e.preventDefault();
+              const touch1 = e.touches[0];
+              const touch2 = e.touches[1];
+              const rect = this._svgCanvas.getBoundingClientRect();
+              const currentCenterX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
+              const currentCenterY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
+              const dx = touch2.clientX - touch1.clientX;
+              const dy = touch2.clientY - touch1.clientY;
+              const currentDistance = Math.sqrt(dx * dx + dy * dy);
+              const distanceChange = Math.abs(
+                currentDistance - this._touchStartDistance
               );
-              if (this._touchStartPoint && Math.abs(clampedZoom - this._touchStartZoom) > 1e-3) {
-                const beta = this._touchStartZoom / clampedZoom;
-                const mousePosition = this._touchStartPoint.subtract(this._touchStartCenter);
-                const offset = mousePosition.multiply(beta).subtract(mousePosition);
-                this.paper.view.zoom = clampedZoom;
-                this.paper.view.center = this._touchStartCenter.add(offset);
+              const panDeltaX = currentCenterX - this._lastTwoFingerCenter.x;
+              const panDeltaY = currentCenterY - this._lastTwoFingerCenter.y;
+              const panDistance = Math.sqrt(
+                panDeltaX * panDeltaX + panDeltaY * panDeltaY
+              );
+              if (panDistance > 1) {
+                const panOffset = new this.paper.Point(
+                  -panDeltaX / this.paper.view.zoom,
+                  -panDeltaY / this.paper.view.zoom
+                );
+                this.paper.view.center = this.paper.view.center.add(panOffset);
+                this._lastTwoFingerCenter = {
+                  x: currentCenterX,
+                  y: currentCenterY
+                };
+              }
+              if (distanceChange > 5) {
+                const scaleFactor = 1.5;
+                const scale = currentDistance / this._touchStartDistance;
+                const scaleDelta = (scale - 1) * scaleFactor;
+                const adjustedDelta = this._transformPinchDelta(scaleDelta);
+                const adjustedScale = Math.max(0.1, 1 + adjustedDelta);
+                const newZoom = this._touchStartZoom * adjustedScale;
+                const clampedZoom = Math.max(
+                  Wick.View.Project.ZOOM_MIN,
+                  Math.min(Wick.View.Project.ZOOM_MAX, newZoom)
+                );
+                if (this._touchStartPoint && Math.abs(clampedZoom - this._touchStartZoom) > 1e-3) {
+                  const beta = this._touchStartZoom / clampedZoom;
+                  const mousePosition = this._touchStartPoint.subtract(
+                    this._touchStartCenter
+                  );
+                  const offset = mousePosition.multiply(beta).subtract(mousePosition);
+                  this.paper.view.zoom = clampedZoom;
+                  this.paper.view.center = this._touchStartCenter.add(offset);
+                }
               }
             }
-          }
-        }, { passive: false });
-        this._svgCanvas.addEventListener("touchend", (e) => {
-          if (e.touches.length < 2) {
-            if (this._isPanning) {
-              this._applyZoomAndPanChangesFromPaper();
+          },
+          { passive: false }
+        );
+        this._svgCanvas.addEventListener(
+          "touchend",
+          (e) => {
+            if (e.touches.length < 2) {
+              if (this._isPanning) {
+                this._applyZoomAndPanChangesFromPaper();
+              }
+              this._touchStartDistance = null;
+              this._touchStartZoom = null;
+              this._touchStartCenter = null;
+              this._touchStartPoint = null;
+              this._lastTwoFingerCenter = null;
+              this._isPanning = false;
             }
-            this._touchStartDistance = null;
-            this._touchStartZoom = null;
-            this._touchStartCenter = null;
-            this._touchStartPoint = null;
-            this._lastTwoFingerCenter = null;
-            this._isPanning = false;
-          }
-        }, { passive: false });
+          },
+          { passive: false }
+        );
         for (var toolName in this.model.tools) {
           var tool = this.model.tools[toolName];
           tool.project = this.model;
@@ -49300,6 +49419,17 @@
           });
         }
         this.model.tools.none.activate();
+      }
+      // Reverse pinch direction and apply gentle acceleration for natural feel
+      _transformPinchDelta(rawDelta) {
+        if (!rawDelta) return 0;
+        const reversed = -rawDelta;
+        const magnitude = Math.abs(reversed);
+        const boost = Wick.View.Project.PINCH_ACCELERATION_BASE + Math.min(
+          magnitude * Wick.View.Project.PINCH_ACCELERATION_MULTIPLIER,
+          Wick.View.Project.PINCH_ACCELERATION_MAX_BOOST
+        );
+        return reversed * boost;
       }
       _displayCanvasInContainer(canvas) {
         if (!this.canvasContainer) return;
@@ -49493,8 +49623,14 @@
         if (!Number.isFinite(this.paper.view.zoom) || this.paper.view.zoom <= 0) {
           this.paper.view.zoom = 1;
         }
-        this.paper.view.zoom = Math.min(Wick.View.Project.ZOOM_MAX, this.paper.view.zoom);
-        this.paper.view.zoom = Math.max(Wick.View.Project.ZOOM_MIN, this.paper.view.zoom);
+        this.paper.view.zoom = Math.min(
+          Wick.View.Project.ZOOM_MAX,
+          this.paper.view.zoom
+        );
+        this.paper.view.zoom = Math.max(
+          Wick.View.Project.ZOOM_MIN,
+          this.paper.view.zoom
+        );
         if (!Number.isFinite(this.pan.x)) this.pan.x = 0;
         if (!Number.isFinite(this.pan.y)) this.pan.y = 0;
         this.pan.x = Math.min(Wick.View.Project.PAN_LIMIT, this.pan.x);

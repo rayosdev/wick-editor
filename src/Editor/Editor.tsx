@@ -1349,6 +1349,14 @@ class Editor extends EditorCore {
                               getOnionSkinOptions={this.getOnionSkinOptions}
                               setFocusObject={this.setFocusObject}
                               addTweenKeyframe={this.addTweenKeyframe}
+                              createTween={this.createTween}
+                              cutFrame={this.cutFrame}
+                              insertBlankFrame={this.insertBlankFrame}
+                              movePlayheadForwards={this.movePlayheadForwards}
+                              movePlayheadBackwards={this.movePlayheadBackwards}
+                              focusTimelineOfParentClip={
+                                this.focusTimelineOfParentClip
+                              }
                               onRef={(ref) => (this.timelineComponent = ref)}
                               dragSoundOntoTimeline={this.dragSoundOntoTimeline}
                               getToolSetting={this.getToolSetting}
@@ -1404,6 +1412,15 @@ class Editor extends EditorCore {
                               getOnionSkinOptions={this.getOnionSkinOptions}
                               setFocusObject={this.setFocusObject}
                               addTweenKeyframe={this.addTweenKeyframe}
+                              createTween={this.createTween}
+                              cutFrame={this.cutFrame}
+                              insertBlankFrame={this.insertBlankFrame}
+                              deleteSelectedObjects={this.deleteSelectedObjects}
+                              movePlayheadForwards={this.movePlayheadForwards}
+                              movePlayheadBackwards={this.movePlayheadBackwards}
+                              focusTimelineOfParentClip={
+                                this.focusTimelineOfParentClip
+                              }
                               onRef={(ref) => (this.timelineComponent = ref)}
                               dragSoundOntoTimeline={this.dragSoundOntoTimeline}
                             />

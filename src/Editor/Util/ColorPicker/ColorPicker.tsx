@@ -20,19 +20,41 @@
 import { useState } from 'react';
 import { Popover } from 'reactstrap';
 import WickColorPicker  from 'Editor/Util/ColorPicker/WickColorPicker';
+import classNames from "classnames";
 
 import './_colorpicker.scss';
 
+export interface PickerColorRGB {
+  r: number;
+  g: number;
+  b: number;
+  a: number;
+}
+
+export interface PickerColorChange {
+  rgb: PickerColorRGB;
+  hex?: string;
+  [key: string]: unknown;
+}
+
+export type PickerColorValue =
+  | string
+  | {
+      rgba?: string;
+      toString(): string;
+    };
+
 interface ColorPickerProps {
   id: string;
-  color?: any;
+  className?: string;
+  color?: PickerColorValue;
   stroke?: boolean;
   placement?: 'auto' | 'auto-start' | 'auto-end' | 'top' | 'top-start' | 'top-end' | 'right' | 'right-start' | 'right-end' | 'bottom' | 'bottom-start' | 'bottom-end' | 'left' | 'left-start' | 'left-end';
   colorPickerType?: string;
   changeColorPickerType?: (type: string) => void;
   disableAlpha?: boolean;
-  onChangeComplete?: (color: any) => void;
-  lastColorsUsed?: any[];
+  onChangeComplete?: (color: PickerColorChange) => void;
+  lastColorsUsed?: string[];
 }
 
 /**
@@ -44,6 +66,7 @@ export default function ColorPicker (props: ColorPickerProps): JSX.Element {
   const [open, setOpen] = useState<boolean>(false);
 
   let color = props.color ? props.color : new window.Wick.Color("#FFFFFF")
+  const colorString = typeof color === "string" ? color : color.rgba ?? color.toString();
   let itemID = props.id;
   let popoverID = itemID+'-popover';
 
@@ -64,11 +87,11 @@ export default function ColorPicker (props: ColorPickerProps): JSX.Element {
 
   return (
       <button
-        className={"btn-color-picker"}
+        className={classNames("btn-color-picker", props.className)}
         aria-label="color picker button"
         id={itemID}
         onClick={toggle}
-        style={props.stroke ? {borderColor: color} : {backgroundColor: color}}
+        style={props.stroke ? {borderColor: colorString} : {backgroundColor: colorString}}
         >
           <Popover
             tabIndex={-1}
@@ -77,7 +100,7 @@ export default function ColorPicker (props: ColorPickerProps): JSX.Element {
             isOpen={open}
             toggle={toggle}
             target={itemID}
-            boundariesElement={'viewport' as any}
+            boundariesElement="clippingParents"
             transition={{ timeout: 150 }}>
             <WickColorPicker
               toggle={toggle}

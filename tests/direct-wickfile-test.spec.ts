@@ -4,7 +4,7 @@ import * as path from 'path';
 
 test.describe('Direct WickFile Test', () => {
   test('test WickFile loader directly @headed', async ({ page }) => {
-    await page.goto('http://localhost:3002');
+    await page.goto('/');
     await page.waitForLoadState('networkidle');
     await page.waitForFunction(() => window.Wick && window.Wick.Project && window.editor);
     console.log('✅ Page loaded and Wick engine available');

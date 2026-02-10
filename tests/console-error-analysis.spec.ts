@@ -25,7 +25,7 @@ test.describe('Console Error Analysis', () => {
     });
 
     // Navigate to the editor
-    await page.goto('http://localhost:3002');
+    await page.goto('/');
     
     // Wait for the Wick engine to load
     await page.waitForFunction(() => window.Wick && window.Wick.Project);

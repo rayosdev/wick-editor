@@ -34,7 +34,7 @@ export class ZIPExport {
         var urls = [
             "index.html",
             "preloadjs.min.js",
-            "wickengine.js",
+            "wickplayer.js",
         ];
         var results: any[] = [];
 

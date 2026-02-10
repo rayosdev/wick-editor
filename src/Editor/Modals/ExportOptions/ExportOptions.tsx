@@ -46,7 +46,7 @@ interface ExportOptionsProps {
   exportProjectAsAudioTrack: (args: ExportArgs) => void;
   exportProjectAsImageSVG: (name: string) => void;
   queueModal: (name: string) => void;
-  project: any;
+  project: unknown;
   isMobile?: boolean;
 }
 
@@ -169,6 +169,14 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
     }
   };
 
+  const toNumber = (value: unknown, fallback: number): number => {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+
   const renderAdvancedOptions = (): JSX.Element => {
     let optionsValues = Object.keys(advancedSizes).concat([
       customSizeTag,
@@ -234,8 +242,11 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
                       type="select"
                       value={exportResolution}
                       options={options}
-                      onChange={(val: any) => {
-                        updateExportResolutionType(val);
+                      onChange={(val: unknown) => {
+                        const selection = val as { value?: string } | null | undefined;
+                        if (selection?.value) {
+                          updateExportResolutionType({ value: selection.value });
+                        }
                       }}
                     />
                   </td>
@@ -244,8 +255,8 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
                       id="export-width"
                       type="numeric"
                       value={exportWidth}
-                      onChange={(val: any) => {
-                        updateExportSize(val, exportHeight);
+                      onChange={(val: unknown) => {
+                        updateExportSize(toNumber(val, exportWidth), exportHeight);
                       }}
                     />
                   </td>
@@ -254,8 +265,8 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
                       id="export-height"
                       type="numeric"
                       value={exportHeight}
-                      onChange={(val: any) => {
-                        updateExportSize(exportWidth, val);
+                      onChange={(val: unknown) => {
+                        updateExportSize(exportWidth, toNumber(val, exportHeight));
                       }}
                     />
                   </td>
@@ -520,13 +531,10 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
   }
 
   const renderDesktop = (): JSX.Element => {
-    (window as any).allowedExportTypes = (window as any).allowedExportTypes.sort((a: string, b: string) => {
-      const order = ["Animation", "Interactive", "Audio", "Images"];
-
-      return order.indexOf(a) - order.indexOf(b);
-    });
-
-    const allowedExportTypes = (window as any).allowedExportTypes.concat([]);
+    const order = ["Animation", "Interactive", "Audio", "Images"];
+    const allowedExportTypes = [...(window.allowedExportTypes ?? order)].sort(
+      (a, b) => order.indexOf(a) - order.indexOf(b)
+    );
 
     return (
       <WickModal

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Project.js Conversion Testing', () => {
   test('tests Project.js functionality before conversion', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -96,7 +96,7 @@ test.describe('Project.js Conversion Testing', () => {
   
   test('tests Project.js layer management', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -169,7 +169,7 @@ test.describe('Project.js Conversion Testing', () => {
   
   test('tests Project.js frame management', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -243,7 +243,7 @@ test.describe('Project.js Conversion Testing', () => {
   
   test('tests Project.js playback controls', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -311,7 +311,7 @@ test.describe('Project.js Conversion Testing', () => {
   
   test('tests Project.js export/import functionality', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

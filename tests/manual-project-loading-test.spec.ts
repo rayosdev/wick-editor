@@ -3,7 +3,7 @@ import { test } from '@playwright/test';
 test.describe('Manual Project Loading Test', () => {
   test('load project using File menu and verify UI updates @headed', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3002');
+    await page.goto('/');
 
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

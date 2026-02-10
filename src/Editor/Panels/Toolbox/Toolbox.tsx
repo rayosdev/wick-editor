@@ -24,6 +24,7 @@ import "./_toolbox.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 import WickInput from "Editor/Util/WickInput/WickInput";
+import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 import ToolboxBreak from "./ToolboxBreak/ToolboxBreak";
 import ToolButton, { ToolButtonProps } from "./ToolButton/ToolButton";
 import ToolSettings from "./ToolSettings/ToolSettings";
@@ -34,6 +35,7 @@ import CanvasActions, {
 } from "./CanvasActions/CanvasActions";
 import PopupMenu from "Editor/Util/PopupMenu/PopupMenu";
 import type { HotKeyMap } from "Editor/types/hotkeys";
+import type { ToolSettingRestrictions } from "Editor/types";
 
 const TOOL_NAMES = [
     "cursor",
@@ -50,6 +52,7 @@ const TOOL_NAMES = [
 ] as const;
 
 type ToolName = typeof TOOL_NAMES[number];
+type ToolSettingValue = string | number | boolean | { rgba: string };
 
 const TOOL_TITLES: Record<ToolName, string> = {
     cursor: "Cursor",
@@ -97,9 +100,9 @@ interface ToolboxProps
     getActiveToolName: () => string;
     activeToolName: string;
     keyMap: HotKeyMap;
-    getToolSetting: (setting: string) => any;
-    setToolSetting: (setting: string, value: any) => void;
-    getToolSettingRestrictions: (setting: string) => any;
+    getToolSetting: (setting: string) => ToolSettingValue;
+    setToolSetting: (setting: string, value: ToolSettingValue) => void;
+    getToolSettingRestrictions: (setting: string) => ToolSettingRestrictions;
     toggleBrushModes: () => void;
     showBrushModes: boolean;
     colorPickerType: string;
@@ -147,6 +150,43 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
         return isToolName(toolName) ? TOOL_TITLES[toolName] : toolName;
     };
 
+    const getPrimitiveToolSetting = (
+        setting: string
+    ): string | number | boolean => {
+        const value = props.getToolSetting(setting);
+        if (
+            typeof value === "string" ||
+            typeof value === "number" ||
+            typeof value === "boolean"
+        ) {
+            return value;
+        }
+
+        if (
+            typeof value === "object" &&
+            value !== null &&
+            "rgba" in value &&
+            typeof (value as { rgba?: unknown }).rgba === "string"
+        ) {
+            return (value as { rgba: string }).rgba;
+        }
+
+        return "";
+    };
+
+    const setPrimitiveToolSetting = (
+        setting: string,
+        value: string | number | boolean
+    ): void => {
+        props.setToolSetting(setting, value);
+    };
+
+    const getToolSettingRestrictionsRecord = (
+        setting: string
+    ): Record<string, unknown> => {
+        return props.getToolSettingRestrictions(setting) as Record<string, unknown>;
+    };
+
     const renderToolButtonFromAction = (
         action: ToolboxAction
     ): JSX.Element => {
@@ -179,8 +219,22 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
     };
 
     const renderColorPickers = (): JSX.Element => {
-        const fillColor = props.getToolSetting("fillColor");
-        const strokeColor = props.getToolSetting("strokeColor");
+        const getColorValue = (settingName: string): string | undefined => {
+            const setting = props.getToolSetting(settingName);
+            if (
+                typeof setting === "object" &&
+                setting !== null &&
+                "rgba" in setting &&
+                typeof (setting as { rgba?: unknown }).rgba === "string"
+            ) {
+                return (setting as { rgba: string }).rgba;
+            }
+
+            return typeof setting === "string" ? setting : undefined;
+        };
+
+        const fillColor = getColorValue("fillColor");
+        const strokeColor = getColorValue("strokeColor");
 
         return (
             <div className="tool-collection-container">
@@ -190,11 +244,11 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                 >
                     <WickInput
                         type="color"
-                        color={fillColor?.rgba}
+                        color={fillColor}
                         onChange={(color: string) => {
                             props.setToolSetting(
                                 "fillColor",
-                                new (window as any).Wick.Color(color)
+                                new window.Wick.Color(color)
                             );
                         }}
                         id="tool-box-fill-color"
@@ -213,11 +267,11 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                 >
                     <WickInput
                         type="color"
-                        color={strokeColor?.rgba}
+                        color={strokeColor}
                         onChange={(color: string) => {
                             props.setToolSetting(
                                 "strokeColor",
-                                new (window as any).Wick.Color(color)
+                                new window.Wick.Color(color)
                             );
                         }}
                         id="tool-box-stroke-color"
@@ -275,9 +329,9 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                 <ToolSettings
                     renderSize={props.renderSize as "small" | "medium" | "large"}
                     activeTool={props.activeToolName}
-                    getToolSetting={props.getToolSetting}
-                    setToolSetting={props.setToolSetting}
-                    getToolSettingRestrictions={props.getToolSettingRestrictions}
+                    getToolSetting={getPrimitiveToolSetting}
+                    setToolSetting={setPrimitiveToolSetting}
+                    getToolSettingRestrictions={getToolSettingRestrictionsRecord}
                     toggleBrushModes={props.toggleBrushModes}
                     showBrushModes={props.showBrushModes}
                     previewPlaying={props.previewPlaying}
@@ -301,9 +355,9 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                     <ToolSettings
                         renderSize={props.renderSize as "small" | "medium" | "large"}
                         activeTool={props.activeToolName}
-                        getToolSetting={props.getToolSetting}
-                        setToolSetting={props.setToolSetting}
-                        getToolSettingRestrictions={props.getToolSettingRestrictions}
+                        getToolSetting={getPrimitiveToolSetting}
+                        setToolSetting={setPrimitiveToolSetting}
+                        getToolSettingRestrictions={getToolSettingRestrictionsRecord}
                         toggleBrushModes={props.toggleBrushModes}
                         showBrushModes={props.showBrushModes}
                         previewPlaying={props.previewPlaying}
@@ -329,9 +383,9 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                         renderSize={props.renderSize as "small" | "medium" | "large"}
                         isMobile={true}
                         activeTool={props.activeToolName}
-                        getToolSetting={props.getToolSetting}
-                        setToolSetting={props.setToolSetting}
-                        getToolSettingRestrictions={props.getToolSettingRestrictions}
+                        getToolSetting={getPrimitiveToolSetting}
+                        setToolSetting={setPrimitiveToolSetting}
+                        getToolSettingRestrictions={getToolSettingRestrictionsRecord}
                         toggleBrushModes={props.toggleBrushModes}
                         showBrushModes={props.showBrushModes}
                         previewPlaying={props.previewPlaying}
@@ -382,7 +436,7 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                     const id = `more-${key}-popover-button`;
                     const tooltip = getToolTooltip(dropdownConfig.active);
                     return (
-                        <div key={key} id={id}>
+                        <div key={key} id={id} className="tool-dropdown-anchor">
                             <ToolButton
                                 {...baseProps}
                                 className={classNames("toolbox-item", "mobile")}
@@ -397,29 +451,49 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                                 isOpen={dropdownSelector === key}
                                 toggle={() => toggleDropdownSelector(key)}
                                 target={id}
-                                className={"more-canvas-actions-popover"}
+                                className={"tool-selector-menu-popover"}
                             >
                                 <div className="tool-selector-popout">
-                                    {dropdownConfig.options.map((option) => {
-                                        if (option === dropdownConfig.active) {
-                                            return null;
-                                        }
+                                    <div className="tool-selector-menu-header">
+                                        {getToolTooltip(dropdownConfig.active)}
+                                    </div>
+                                    <div className="tool-selector-menu-list">
+                                        {dropdownConfig.options.map((option) => {
+                                            const optionIsActive =
+                                                activeToolName === option ||
+                                                dropdownConfig.active === option;
 
-                                        return (
-                                            <ToolButton
-                                                key={option}
-                                                {...baseProps}
-                                                action={() => {
-                                                    dropdownConfig.active = option;
-                                                    props.setActiveTool(option);
-                                                    toggleDropdownSelector(key);
-                                                }}
-                                                className="tool-selector-item"
-                                                name={option}
-                                                tooltip={getToolTooltip(option)}
-                                            />
-                                        );
-                                    })}
+                                            return (
+                                                <button
+                                                    key={option}
+                                                    type="button"
+                                                    className={classNames(
+                                                        "tool-selector-menu-item",
+                                                        { active: optionIsActive }
+                                                    )}
+                                                    onClick={() => {
+                                                        dropdownConfig.active = option;
+                                                        props.setActiveTool(option);
+                                                        toggleDropdownSelector(key);
+                                                    }}
+                                                >
+                                                    <ToolIcon
+                                                        className="tool-selector-menu-item-icon"
+                                                        name={option}
+                                                    />
+                                                    <span className="tool-selector-menu-item-label">
+                                                        {getToolTooltip(option)}
+                                                    </span>
+                                                    {optionIsActive && (
+                                                        <ToolIcon
+                                                            className="tool-selector-menu-item-check"
+                                                            name="check"
+                                                        />
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             </PopupMenu>
                         </div>

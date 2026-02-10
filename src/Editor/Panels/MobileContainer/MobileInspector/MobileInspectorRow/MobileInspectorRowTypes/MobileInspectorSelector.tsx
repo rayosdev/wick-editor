@@ -24,15 +24,15 @@ import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
 import '../_mobileinspectorrow.scss';
 
 export type MobileInspectorSelectorOption = {
-  value: any;
+  value: unknown;
   label: string;
   className?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 interface MobileInspectorSelectorProps {
   tooltip: string;
-  value: any;
+  value: unknown;
   onChange: (value: MobileInspectorSelectorOption) => void;
   options: MobileInspectorSelectorOption[];
   className?: string;

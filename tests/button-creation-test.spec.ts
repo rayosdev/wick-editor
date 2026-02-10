@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Button Creation Workflow', () => {
   test('draw square, select it, and create button', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3002');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

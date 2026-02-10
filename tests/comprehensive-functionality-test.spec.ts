@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Comprehensive Functionality Test', () => {
   test('tests all converted TypeScript functionality', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -171,7 +171,7 @@ test.describe('Comprehensive Functionality Test', () => {
   
   test('tests drawing and selection functionality', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -213,7 +213,7 @@ test.describe('Comprehensive Functionality Test', () => {
   
   test('tests export functionality', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Drawing Verification Test', () => {
   test('verifies that drawn lines are added to the project', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the editor to load
     await page.waitForLoadState('networkidle');

@@ -21,10 +21,29 @@
               window.runBundledProject();
           }, false);
 
+          const showBundledProjectError = (message) => {
+              console.error(message);
+          };
+
           window.runBundledProject = () => {
-              Wick.WickFile.fromWickFile(window.INJECTED_WICKPROJECT_DATA, project => {
-                  project.inject(document.getElementById('wick-canvas-container'));
-              }, 'base64');
+              try {
+                  Wick.WickFile.fromWickFile(window.INJECTED_WICKPROJECT_DATA, (project) => {
+                      if (!project || typeof project.inject !== 'function') {
+                          showBundledProjectError('Could not load bundled Wick project data.');
+                          return;
+                      }
+
+                      try {
+                          project.inject(document.getElementById('wick-canvas-container'));
+                      } catch (e) {
+                          console.error('Could not start bundled Wick project.', e);
+                          showBundledProjectError('Could not start bundled Wick project.');
+                      }
+                  }, 'base64');
+              } catch (e) {
+                  console.error('Could not read bundled Wick project data.', e);
+                  showBundledProjectError('Could not read bundled Wick project data.');
+              }
           }
         </script>
 

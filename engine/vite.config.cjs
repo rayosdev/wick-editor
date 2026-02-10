@@ -137,10 +137,12 @@ function postBuildPlugin() {
           path.resolve(__dirname, 'src/export/html/project.html'),
           'utf8'
         );
-        const engineSrc = fs.readFileSync(
-          path.resolve(distPath, 'wickengine.js'),
-          'utf8'
-        );
+        const playerEnginePath = path.resolve(distPath, 'wickplayer.js');
+        const editorEnginePath = path.resolve(distPath, 'wickengine.js');
+        const injectedEnginePath = fs.existsSync(playerEnginePath)
+          ? playerEnginePath
+          : editorEnginePath;
+        const engineSrc = fs.readFileSync(injectedEnginePath, 'utf8');
         
         // Escape $ in replacement string (same as Gulp)
         const engineSrcSafe = engineSrc.replace(/\$/g, '$$$$');
@@ -154,7 +156,7 @@ function postBuildPlugin() {
           emptyProjectHtml
         );
         
-        console.log('✓ emptyproject.html generated');
+        console.log(`✓ emptyproject.html generated (injected ${path.basename(injectedEnginePath)})`);
       } catch (error) {
         console.error('Error generating emptyproject.html:', error.message);
       }
@@ -185,9 +187,16 @@ function postBuildPlugin() {
       
       // Log bundle size
       try {
-        const stats = fs.statSync(path.resolve(distPath, 'wickengine.js'));
-        const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
-        console.log(`✓ Bundle size: ${sizeMB} MB`);
+        const engineStats = fs.statSync(path.resolve(distPath, 'wickengine.js'));
+        const engineSizeMB = (engineStats.size / 1024 / 1024).toFixed(2);
+        console.log(`✓ Editor bundle size: ${engineSizeMB} MB`);
+
+        const playerPath = path.resolve(distPath, 'wickplayer.js');
+        if (fs.existsSync(playerPath)) {
+          const playerStats = fs.statSync(playerPath);
+          const playerSizeMB = (playerStats.size / 1024 / 1024).toFixed(2);
+          console.log(`✓ Player bundle size: ${playerSizeMB} MB`);
+        }
       } catch (error) {
         console.error('Error checking bundle size:', error.message);
       }
@@ -268,7 +277,7 @@ module.exports = {
       }
     },
     outDir: 'dist',
-    emptyOutDir: true,
+    emptyOutDir: false,
     minify: false,
     sourcemap: true,
     // Increase chunk size warning limit (engine is large)

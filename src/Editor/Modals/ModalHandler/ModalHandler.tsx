@@ -17,17 +17,17 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
+import React, { type ComponentProps } from 'react';
 import type { HotKeyMap } from "Editor/types/hotkeys";
 import type {
   ProjectSettings,
   CustomHotKeys,
   WarningModalInfo,
   LocalFileEntry,
-  WickAsset,
   ToolSettingRestrictions,
   ColorPickerType,
 } from "../../types";
+import { isGeneralWarningInfo } from "../../types";
 
 import MakeInteractive from '../MakeInteractive/MakeInteractive';
 import AutosaveWarning from '../AutosaveWarning/AutosaveWarning';
@@ -47,6 +47,25 @@ import SupportUs from '../SupportUs/SupportUs';
 
 // Tool settings can return various types including WickColor objects
 type ToolSettingValue = string | number | boolean | { rgba: string };
+type BuiltinLibraryProps = ComponentProps<typeof BuiltinLibrary>;
+type SavedProjectsProps = ComponentProps<typeof SavedProjects>;
+type SettingsModalProps = ComponentProps<typeof SettingsModal>;
+type GeneralWarningProps = ComponentProps<typeof GeneralWarning>;
+type SavedProjectItem = Parameters<
+  NonNullable<SavedProjectsProps["loadLocalWickFile"]>
+>[0];
+
+const FALLBACK_WARNING_INFO: GeneralWarningProps["info"] = {
+  title: "",
+  description: "",
+  acceptText: "",
+  acceptIcon: "",
+  acceptAction: () => {},
+  cancelText: "",
+  cancelIcon: "",
+  cancelAction: () => {},
+  finalAction: () => {},
+};
 
 interface ModalHandlerProps {
   activeModalName: string | null;
@@ -61,12 +80,12 @@ interface ModalHandlerProps {
   renderProgress: number;
   renderType: "video" | "gif" | "image sequence"; // Subset of RenderType used by ExportMedia
   renderStatusMessage: string;
-  project: any; // Wick Engine project instance - no TypeScript definitions available
+  project: SettingsModalProps["project"];
   updateProjectSettings: (settings: Partial<ProjectSettings>) => void;
   addCustomHotKeys: (keys: CustomHotKeys) => void;
   resetCustomHotKeys: () => void;
   keyMap: HotKeyMap;
-  keyMapGroups: any; // TODO: Investigate actual type from editor.hotKeyInterface.createHandlerGroups()
+  keyMapGroups: unknown;
   customHotKeys: CustomHotKeys;
   colorPickerType: ColorPickerType;
   changeColorPickerType: (type: ColorPickerType) => void;
@@ -78,15 +97,15 @@ interface ModalHandlerProps {
   setToolSetting: (setting: string, value: ToolSettingValue) => void;
   getToolSettingRestrictions: (setting: string) => ToolSettingRestrictions;
   importFileAsAsset: (file: File) => void; // EditorWrapper provides File, BuiltinLibrary casts to Blob
-  builtinPreviews: unknown; // EditorWrapper: Map<string, BuiltinPreview>, BuiltinLibrary: Record<string, BuiltinLibraryPreview>
-  addFileToBuiltinPreviews: (file: File) => void; // EditorWrapper signature, BuiltinLibrary expects (filename: string, blob: Blob)
-  isAssetInLibrary: (asset: WickAsset) => boolean; // EditorWrapper signature, BuiltinLibrary expects (filename: string)
+  builtinPreviews: unknown;
+  addFileToBuiltinPreviews: (file: File) => void;
+  isAssetInLibrary: (filename: string) => boolean;
   editorVersion: string;
   openProjectFileDialog: () => void;
   openNewProjectConfirmation: () => void;
-  localSavedFiles: LocalFileEntry[]; // EditorWrapper type, SavedProjects expects SavedProject[]
-  loadLocalWickFile: (file: LocalFileEntry) => void; // EditorWrapper type, SavedProjects expects SavedProject
-  deleteLocalWickFile: (file: LocalFileEntry) => void; // EditorWrapper type, SavedProjects expects SavedProject
+  localSavedFiles: LocalFileEntry[];
+  loadLocalWickFile: (file: LocalFileEntry) => void;
+  deleteLocalWickFile: (file: LocalFileEntry) => void;
   reloadSavedWickFiles: () => void;
   getRenderSize: () => string;
   loadAutosavedProject: (callback: () => void) => void;
@@ -102,6 +121,49 @@ interface ModalHandlerProps {
 
 const ModalHandler: React.FC<ModalHandlerProps> = (props) => {
   const isMobile = props.getRenderSize() === "small";
+  const warningInfo = props.warningModalInfo && isGeneralWarningInfo(props.warningModalInfo)
+    ? props.warningModalInfo
+    : FALLBACK_WARNING_INFO;
+
+  const createFileFromBlob = (blob: Blob, fallbackName: string): File => {
+    if (blob instanceof File) {
+      return blob;
+    }
+    const blobWithName = blob as Blob & { name?: string };
+    const name = blobWithName.name ?? fallbackName;
+    return new File([blob], name, { type: blob.type || "application/octet-stream" });
+  };
+
+  const resolveLocalFileEntry = (savedProject: SavedProjectItem): LocalFileEntry | undefined => {
+    return props.localSavedFiles.find((entry) => entry.name === savedProject.name);
+  };
+  const resolvedKeyMapGroups: NonNullable<SettingsModalProps["keyMapGroups"]> =
+    props.keyMapGroups &&
+    typeof props.keyMapGroups === "object" &&
+    !Array.isArray(props.keyMapGroups)
+      ? (props.keyMapGroups as NonNullable<SettingsModalProps["keyMapGroups"]>)
+      : {};
+  const resolvedBuiltinPreviews: BuiltinLibraryProps["builtinPreviews"] =
+    props.builtinPreviews instanceof Map
+      ? Array.from(props.builtinPreviews.entries()).reduce<
+          BuiltinLibraryProps["builtinPreviews"]
+        >((acc, [key, preview]) => {
+          if (
+            preview &&
+            typeof preview === "object" &&
+            "blob" in preview &&
+            (preview as { blob?: unknown }).blob instanceof Blob
+          ) {
+            acc[key] = preview as BuiltinLibraryProps["builtinPreviews"][string];
+          }
+          return acc;
+        }, {})
+      : props.builtinPreviews &&
+          typeof props.builtinPreviews === "object" &&
+          !Array.isArray(props.builtinPreviews)
+        ? (props.builtinPreviews as BuiltinLibraryProps["builtinPreviews"])
+        : {};
+
   return (
     <div>
       <MakeAnimated
@@ -146,17 +208,7 @@ const ModalHandler: React.FC<ModalHandlerProps> = (props) => {
       <GeneralWarning
         toggle={props.closeActiveModal}
         open={props.activeModalName === 'GeneralWarning'}
-        info={props.warningModalInfo as any || {
-          title: '',
-          description: '',
-          acceptText: '',
-          acceptIcon: '',
-          acceptAction: () => { },
-          cancelText: '',
-          cancelIcon: '',
-          cancelAction: () => { },
-          finalAction: () => { },
-        }}
+        info={warningInfo}
       />
       <ExportMedia
         toggle={props.closeActiveModal}
@@ -175,7 +227,7 @@ const ModalHandler: React.FC<ModalHandlerProps> = (props) => {
         addCustomHotKeys={props.addCustomHotKeys}
         resetCustomHotKeys={props.resetCustomHotKeys}
         keyMap={props.keyMap}
-        keyMapGroups={props.keyMapGroups}
+        keyMapGroups={resolvedKeyMapGroups}
         customHotKeys={props.customHotKeys}
         colorPickerType={props.colorPickerType}
         changeColorPickerType={props.changeColorPickerType}
@@ -191,10 +243,14 @@ const ModalHandler: React.FC<ModalHandlerProps> = (props) => {
         toggle={props.closeActiveModal}
         open={props.activeModalName === 'BuiltinLibrary'}
         project={props.project}
-        importFileAsAsset={props.importFileAsAsset as any}
-        builtinPreviews={props.builtinPreviews as any}
-        addFileToBuiltinPreviews={props.addFileToBuiltinPreviews as any}
-        isAssetInLibrary={props.isAssetInLibrary as any}
+        importFileAsAsset={(blob: Blob) => {
+          props.importFileAsAsset(createFileFromBlob(blob, "builtin-asset"));
+        }}
+        builtinPreviews={resolvedBuiltinPreviews}
+        addFileToBuiltinPreviews={(filename: string, blob: Blob) => {
+          props.addFileToBuiltinPreviews(createFileFromBlob(blob, filename));
+        }}
+        isAssetInLibrary={(filename: string) => props.isAssetInLibrary(filename)}
       />
       <EditorInfo
         openModal={props.openModal}
@@ -217,11 +273,21 @@ const ModalHandler: React.FC<ModalHandlerProps> = (props) => {
       <SavedProjects
         toggle={props.closeActiveModal}
         open={props.activeModalName === 'SavedProjects'}
-        localSavedFiles={props.localSavedFiles as any}
-        loadLocalWickFile={props.loadLocalWickFile as any}
-        deleteLocalWickFile={props.deleteLocalWickFile as any}
+        localSavedFiles={props.localSavedFiles}
+        loadLocalWickFile={(project) => {
+          const entry = resolveLocalFileEntry(project);
+          if (entry) {
+            props.loadLocalWickFile(entry);
+          }
+        }}
+        deleteLocalWickFile={(project) => {
+          const entry = resolveLocalFileEntry(project);
+          if (entry) {
+            props.deleteLocalWickFile(entry);
+          }
+        }}
         reloadSavedWickFiles={props.reloadSavedWickFiles}
-        openWarningModal={props.openWarningModal as any}
+        openWarningModal={props.openWarningModal}
       />
       <SimpleProjectSettings
         updateProjectSettings={props.updateProjectSettings}

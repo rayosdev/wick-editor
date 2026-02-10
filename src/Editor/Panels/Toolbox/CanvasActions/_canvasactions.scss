@@ -1,29 +1,89 @@
 @use 'Editor/brand' as *;
 
-$canvas-action-size: 35px;
-
 .canvas-actions-widget {
-  height: $canvas-action-size;
   display: flex;
-  align-items: center;
-  margin: 1px;
+  flex-direction: column;
+  margin: 0;
+  padding: 6px;
 }
 .canvas-actions-widget.vertical {
-  height: unset;
+  width: 100%;
 }
 
-.actions-container {
-  height: 100%;
+.canvas-actions-menu {
   display: flex;
-  flex-direction: row;
-  align-items: center;
+  gap: 10px;
+  max-width: 560px;
 }
-.actions-container.vertical {
+.canvas-actions-menu.vertical {
   flex-direction: column;
+  max-width: none;
 }
 
-.canvas-action-button {
-  width: $canvas-action-size;
-  height: $canvas-action-size;
-  padding: 2px;
+.canvas-actions-menu-group {
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.canvas-actions-menu-group-title {
+  color: $editor-secondary-text;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+}
+
+.canvas-actions-menu-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.canvas-actions-menu-item {
+  min-height: 32px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: $editor-primary-text;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+}
+
+body.hasHover .canvas-actions-menu-item:hover {
+  background-color: $editor-tertiary;
+}
+
+.canvas-actions-menu-item:active {
+  background-color: $editor-modal-gray;
+}
+
+.canvas-actions-menu-item-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+.canvas-actions-menu-item-label {
+  flex: 1 1 auto;
+}
+
+@media (max-width: 800px) {
+  .canvas-actions-menu-group {
+    min-width: 100%;
+  }
+
+  .canvas-actions-menu-item {
+    min-height: 40px;
+    font-size: 13px;
+  }
 }

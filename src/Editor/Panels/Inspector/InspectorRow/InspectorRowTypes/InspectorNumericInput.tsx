@@ -26,7 +26,7 @@ import '../_inspectorrow.scss';
 interface InspectorNumericInputProps {
   tooltip: string;
   val: number | string | null | undefined;
-  onChange: (value: any) => void;
+  onChange: (value: unknown) => void;
   id?: string;
   type?: string;
 }

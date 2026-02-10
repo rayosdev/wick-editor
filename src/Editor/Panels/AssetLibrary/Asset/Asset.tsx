@@ -18,7 +18,11 @@
  */
 
 import React from "react";
-import { DragSource, ConnectDragSource } from "react-dnd";
+import {
+  DragSource,
+  ConnectDragSource,
+  DragSourceConnector,
+} from "react-dnd";
 import "./_asset.scss";
 import DragDropTypes from "Editor/DragDropTypes";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
@@ -39,7 +43,7 @@ interface AssetProps {
   onClick: () => void;
   addSoundToActiveFrame: (asset: AssetData) => void;
   importProjectAsWickFile: (file: File) => void;
-  createAssets: (files: File[], data: any[]) => void;
+  createAssets: (files: File[], data: unknown[]) => void;
   createImageFromAsset: (uuid: string, x: number, y: number, center?: boolean) => void;
   clearSelection: () => void;
   selectObjects: (objects: AssetData[]) => void;
@@ -61,7 +65,7 @@ const assetSource = {
 /**
  * Specifies which props to inject into your component.
  */
-function collect(connect: any) {
+function collect(connect: DragSourceConnector) {
   return {
     connectDragSource: connect.dragSource(),
   };

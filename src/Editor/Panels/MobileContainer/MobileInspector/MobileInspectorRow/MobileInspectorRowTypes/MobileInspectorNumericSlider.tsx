@@ -29,7 +29,7 @@ interface MobileInspectorNumericSliderProps {
   onChange: (value: number) => void;
   icon?: string;
   iconAlt?: string;
-  inputProps?: any;
+  inputProps?: React.ComponentProps<typeof MobileInspectorInput>["inputProps"];
   id?: string;
   divider?: boolean;
 }

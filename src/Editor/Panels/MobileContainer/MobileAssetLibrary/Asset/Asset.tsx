@@ -26,12 +26,34 @@ import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
 import classNames from "classnames";
 
-interface AssetData {
+export interface AssetData {
   uuid: string;
   name: string;
   classname: string;
+  isGifImage?: boolean;
   files?: File[];
 }
+
+export interface CreateAssetOptions {
+  create?: boolean;
+  location?: {
+    x?: number;
+    y?: number;
+  };
+}
+
+export type CreateAssetsFn = (
+  acceptedFiles: File[],
+  rejectedFiles: File[],
+  options?: CreateAssetOptions
+) => void;
+
+export type CreateImageFromAssetFn = (
+  uuid: string,
+  x: number,
+  y: number,
+  center?: boolean
+) => void;
 
 interface MobileAssetProps {
   asset: AssetData;
@@ -39,8 +61,8 @@ interface MobileAssetProps {
   onClick: () => void;
   addSoundToActiveFrame: (asset: AssetData) => void;
   importProjectAsWickFile: (file: File) => void;
-  createAssets: (files: File[], data: any[]) => void;
-  createImageFromAsset: (uuid: string, x: number, y: number, center: boolean) => void;
+  createAssets: CreateAssetsFn;
+  createImageFromAsset: CreateImageFromAssetFn;
   clearSelection: () => void;
   selectObjects: (objects: AssetData[]) => void;
   deleteSelectedObjects: () => void;
@@ -61,7 +83,11 @@ const assetSource = {
 /**
  * Specifies which props to inject into your component.
  */
-function collect(connect: any) {
+interface DragSourceConnector {
+  dragSource: () => ConnectDragSource;
+}
+
+function collect(connect: DragSourceConnector) {
   return {
     connectDragSource: connect.dragSource(),
   };

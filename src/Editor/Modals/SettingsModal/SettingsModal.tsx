@@ -23,7 +23,8 @@ import type {
   CustomHotKeys,
   ProjectSettings as ProjectSettingsType,
   ColorPickerType,
-  ToolSettingRestrictions
+  ToolSettingRestrictions,
+  WickProject,
 } from "Editor/types";
 import WickModal from "Editor/Modals/WickModal/WickModal";
 import TabbedInterface from "Editor/Util/TabbedInterface/TabbedInterface";
@@ -46,7 +47,7 @@ interface SettingsModalProps {
   open: boolean;
   toggle: () => void;
   isMobile?: boolean;
-  project: any; // Wick Engine project instance - no TypeScript definitions available
+  project: WickProject;
   updateProjectSettings: (settings: Partial<ProjectSettingsType>) => void;
   colorPickerType: ColorPickerType;
   changeColorPickerType: (type: ColorPickerType) => void;

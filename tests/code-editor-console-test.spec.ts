@@ -3,7 +3,7 @@ import { test } from '@playwright/test';
 test.describe('Code Editor Console Test', () => {
   test('add script to first frame and check code editor console for errors @headed', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3002');
+    await page.goto('/');
 
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

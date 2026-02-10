@@ -1,6 +1,11 @@
 import AudioExport from "./AudioExport";
 // @ts-ignore - no types available
 import b64toBuff from "base64-arraybuffer";
+import type {
+  WickProject,
+  WickRenderedImage,
+  WickSoundInfo,
+} from "../types/engine.types";
 
 const ENABLE_LOGGING = false;
 const EXPORT_IMAGE_START = 10;
@@ -8,13 +13,13 @@ const EXPORT_AUDIO_START = 40;
 const EXPORT_VIDEO_START = 70;
 
 interface VideoExportArgs {
-  project: any;
+  project: WickProject;
   width?: number;
   height?: number;
   onProgress?: (message: string, percentage: number) => void;
-  onError?: (error: Error) => void;
+  onError?: (error: unknown) => void;
   onFinish: () => void;
-  soundInfo?: any[];
+  soundInfo?: WickSoundInfo[];
 }
 
 interface Dimensions {
@@ -25,6 +30,13 @@ interface Dimensions {
 interface MemoryFile {
   name: string;
   data: Uint8Array;
+}
+
+type WorkerEventType = "ready" | "stdout" | "stderr" | "done" | "exit" | "error";
+
+interface VideoWorkerMessage {
+  type?: WorkerEventType;
+  data?: unknown;
 }
 
 class VideoExport {
@@ -47,7 +59,30 @@ class VideoExport {
 
     onProgress && onProgress("Generating Audio Track...", EXPORT_AUDIO_START);
 
-    return AudioExport.generateAudioFile(args as any);
+    const wrappedOnProgress = onProgress
+      ? (messageOrFrame: string | number, progress?: number | string) => {
+          const message =
+            typeof messageOrFrame === "string"
+              ? messageOrFrame
+              : `Processing audio frame ${messageOrFrame}`;
+          const parsedProgress =
+            typeof progress === "number"
+              ? progress
+              : typeof progress === "string"
+                ? Number.parseFloat(progress)
+                : EXPORT_AUDIO_START;
+          onProgress(
+            message,
+            Number.isFinite(parsedProgress) ? parsedProgress : EXPORT_AUDIO_START
+          );
+        }
+      : undefined;
+
+    return AudioExport.generateAudioFile({
+      project: args.project,
+      soundInfo: args.soundInfo,
+      onProgress: wrappedOnProgress,
+    });
   };
 
   /**
@@ -85,7 +120,7 @@ class VideoExport {
             );
         },
 
-        onFinish: (images: HTMLImageElement[]) => {
+        onFinish: (images: WickRenderedImage[]) => {
           // Load frame images into the web worker's memory
           onProgress && onProgress("Converting Frames", EXPORT_AUDIO_START);
           images.forEach((image) => {
@@ -94,7 +129,11 @@ class VideoExport {
             const name = "frame" + paddedNum + ".jpg";
 
             // Get the base 64 value and convert it to an array buffer.
-            const cleanBase64 = image.src.split(",")[1];
+            const frameSource =
+              image instanceof HTMLCanvasElement
+                ? image.toDataURL("image/jpeg")
+                : image.src;
+            const cleanBase64 = frameSource.split(",")[1];
             const safeBase64 = cleanBase64 ?? "";
             const buffer = b64toBuff.decode(safeBase64);
 
@@ -128,15 +167,18 @@ class VideoExport {
         data = new Uint8Array(data);
       }
       const blob = new Blob([data.buffer as ArrayBuffer]);
-      (window as any).saveFileFromWick(blob, project.name, ".mp4");
+      window.saveFileFromWick?.(blob, project.name, ".mp4");
       onProgress && onProgress("Rendering Complete! Downloading...", 100);
       onFinish();
     };
 
     let workerReady = false;
     const _worker = new Worker("corelibs/video/worker-asm.js");
-    _worker.onmessage = (e: MessageEvent) => {
+    _worker.onmessage = (e: MessageEvent<VideoWorkerMessage>) => {
       const msg = e.data;
+      if (!msg?.type) {
+        return;
+      }
 
       switch (msg.type) {
         case "ready":
@@ -152,7 +194,12 @@ class VideoExport {
           break;
         case "done":
           ENABLE_LOGGING && console.log(msg);
-          onDone(msg.data[0].data);
+          if (Array.isArray(msg.data) && msg.data.length > 0) {
+            const firstOutput = msg.data[0] as { data?: Uint8Array | ArrayBuffer };
+            if (firstOutput?.data) {
+              onDone(firstOutput.data);
+            }
+          }
           break;
         case "exit":
           _worker.terminate();
@@ -258,24 +305,20 @@ class VideoExport {
     };
   }
 
-  static _parseProgressMessage(message: any, args: VideoExportArgs): void {
+  static _parseProgressMessage(message: unknown, args: VideoExportArgs): void {
     if (!message) return;
-    if (!(typeof message === "string")) return;
+    if (typeof message !== "string") return;
     if (!message.includes("pts_time:")) return;
 
-    let time: any;
-
-    time = message.split("pts_time");
-    if (!time) return;
-    time = time[1];
-    if (!time) return;
-    time = time.split("pos");
-    if (!time) return;
-    time = time[0];
-    if (!time) return;
-    time = time.replace(":", "");
-    if (!time) return;
-    const timeNumber = Number(time).toFixed(2);
+    const afterPts = message.split("pts_time")[1];
+    if (!afterPts) return;
+    const beforePos = afterPts.split("pos")[0];
+    if (!beforePos) return;
+    const cleanedTime = beforePos.replace(":", "").trim();
+    if (!cleanedTime) return;
+    const timeValue = Number(cleanedTime);
+    if (!Number.isFinite(timeValue)) return;
+    const timeNumber = timeValue.toFixed(2);
 
     args.onProgress &&
       args.onProgress("Rendered: " + timeNumber + " seconds", 85);

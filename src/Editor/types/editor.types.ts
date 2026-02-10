@@ -82,7 +82,7 @@ export interface ProjectSettings {
   width?: number;
   height?: number;
   framerate?: number;
-  backgroundColor?: string;
+  backgroundColor?: string | { rgba: string };
 }
 
 // ============================================================================
@@ -381,7 +381,7 @@ export interface OnionSkinningColors {
 export interface LocalSavedFile {
   name: string;
   lastModified: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -400,26 +400,26 @@ export interface BasicWarningModalInfo {
  * Resize event handler properties
  */
 export interface ResizeProps {
-  onStopResize: (args: { domElement: HTMLElement; component: any }) => void;
+  onStopResize: (args: { domElement: HTMLElement; component: unknown }) => void;
   onStopPopoutOutlinerResize: (args: {
     domElement: HTMLElement;
-    component: any;
+    component: unknown;
   }) => void;
   onStopInspectorResize: (args: {
     domElement: HTMLElement;
-    component: any;
+    component: unknown;
   }) => void;
   onStopAssetLibraryResize: (args: {
     domElement: HTMLElement;
-    component: any;
+    component: unknown;
   }) => void;
   onStopTimelineResize: (args: {
     domElement: HTMLElement;
-    component: any;
+    component: unknown;
   }) => void;
   onStopCodeEditorResize: (args: {
     domElement: HTMLElement;
-    component: any;
+    component: unknown;
   }) => void;
   onResize: () => void;
   onWindowResize: () => void;
@@ -429,7 +429,7 @@ export interface ResizeProps {
  * Main Editor component state interface
  */
 export interface EditorState {
-  project: any; // Serialized Wick project
+  project: WickProject | null;
   previewPlaying: boolean;
   activeModalName: string | null;
   activeModalQueue: string[];
@@ -438,14 +438,14 @@ export interface EditorState {
   showCanvasActions: boolean;
   showBrushModes: boolean;
   showCodeErrors: boolean;
-  codeError: any; // Wick error object
+  codeError: unknown; // Wick error object
   popoutOutlinerSize: number;
   outlinerPoppedOut: boolean;
   inspectorSize: number;
   timelineSize: number;
   assetLibrarySize: number;
   consoleLogs: ConsoleLogEntry[];
-  warningModalInfo: any; // Complex union type - using any for flexibility
+  warningModalInfo: WarningModalInfo | BasicWarningModalInfo;
   renderProgress: number;
   renderType: string;
   renderStatusMessage: string;

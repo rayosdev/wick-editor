@@ -18,7 +18,7 @@ test.describe('Selection Diagnostic Test', () => {
     });
     
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the editor to load
     await page.waitForLoadState('networkidle');

@@ -1,4 +1,10 @@
-import { expect, test, type APIRequestContext } from "@playwright/test";
+import {
+  expect,
+  test,
+  type APIRequestContext,
+  type ConsoleMessage,
+  type Page,
+} from "@playwright/test";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
@@ -15,9 +21,16 @@ type StoryIndexPayload = {
   stories?: Record<string, StoryEntry>;
 };
 
+type InteractionResult = {
+  action: string;
+  status: "PASS" | "SKIP" | "FAIL";
+  detail: string;
+};
+
 const REPORT_ROOT = path.resolve(process.cwd(), "_report/storybook");
 const STORY_REPORT_DIR = path.join(REPORT_ROOT, "stories");
 const SCREENSHOT_DIR = path.join(REPORT_ROOT, "screenshots");
+const FAILURE_REPORT_PATH = path.join(REPORT_ROOT, "FAILURES.md");
 
 function sanitizeFilePart(value: string): string {
   return value
@@ -30,6 +43,188 @@ function sanitizeFilePart(value: string): string {
 function truncate(value: string, maxLength: number): string {
   if (value.length <= maxLength) return value;
   return `${value.slice(0, maxLength - 1)}…`;
+}
+
+function compactText(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function uniqueTop(values: string[], limit = 4): string[] {
+  const seen = new Set<string>();
+  const list: string[] = [];
+
+  for (const value of values) {
+    if (!value || seen.has(value)) continue;
+    seen.add(value);
+    list.push(value);
+    if (list.length >= limit) break;
+  }
+
+  return list;
+}
+
+function formatList(items: string[]): string {
+  return items.length > 0 ? items.map((item) => `- ${item}`).join("\n") : "- None";
+}
+
+async function runInteractionSmokeChecks(page: Page) {
+  const results: InteractionResult[] = [];
+
+  const firstButton = page.locator("button:visible, [role='button']:visible").first();
+  if ((await firstButton.count()) > 0) {
+    try {
+      await firstButton.click({ timeout: 1500 });
+      results.push({
+        action: "Click first button",
+        status: "PASS",
+        detail: "Clicked a visible button-like element.",
+      });
+    } catch (error) {
+      results.push({
+        action: "Click first button",
+        status: "FAIL",
+        detail: truncate(
+          error instanceof Error ? error.message : String(error),
+          180
+        ),
+      });
+    }
+  } else {
+    results.push({
+      action: "Click first button",
+      status: "SKIP",
+      detail: "No visible button found.",
+    });
+  }
+
+  const firstTextField = page
+    .locator(
+      "input:not([type='hidden']):not([type='checkbox']):not([type='radio']):not([type='file']):not([readonly]):not([disabled]), textarea:not([readonly]):not([disabled])"
+    )
+    .first();
+
+  if ((await firstTextField.count()) > 0) {
+    try {
+      const descriptor = await firstTextField.evaluate((el) => {
+        const input = el as HTMLInputElement | HTMLTextAreaElement;
+        const tag = input.tagName.toLowerCase();
+        const type = (input as HTMLInputElement).type || "text";
+        return `${tag}:${type}`;
+      });
+      const smokeValue = descriptor.endsWith(":number") ? "7" : "qa-smoke";
+      await firstTextField.fill(smokeValue, { timeout: 1500 });
+      results.push({
+        action: "Type into first text field",
+        status: "PASS",
+        detail: `Filled ${descriptor} with "${smokeValue}".`,
+      });
+    } catch (error) {
+      results.push({
+        action: "Type into first text field",
+        status: "FAIL",
+        detail: truncate(
+          error instanceof Error ? error.message : String(error),
+          180
+        ),
+      });
+    }
+  } else {
+    results.push({
+      action: "Type into first text field",
+      status: "SKIP",
+      detail: "No editable text field found.",
+    });
+  }
+
+  const firstCheckbox = page.locator("input[type='checkbox']:not([disabled])").first();
+  if ((await firstCheckbox.count()) > 0) {
+    try {
+      const before = await firstCheckbox.isChecked();
+      await firstCheckbox.click({ timeout: 1500, force: true });
+      const after = await firstCheckbox.isChecked().catch(() => before);
+      results.push({
+        action: "Toggle first checkbox",
+        status: after !== before ? "PASS" : "FAIL",
+        detail:
+          after !== before
+            ? `Checkbox changed from ${before} to ${after}.`
+            : "Checkbox state did not change after click.",
+      });
+    } catch (error) {
+      results.push({
+        action: "Toggle first checkbox",
+        status: "FAIL",
+        detail: truncate(
+          error instanceof Error ? error.message : String(error),
+          180
+        ),
+      });
+    }
+  } else {
+    results.push({
+      action: "Toggle first checkbox",
+      status: "SKIP",
+      detail: "No enabled checkbox found.",
+    });
+  }
+
+  const firstSelect = page.locator("select:not([disabled])").first();
+  if ((await firstSelect.count()) > 0) {
+    try {
+      const optionValues = await firstSelect
+        .locator("option")
+        .evaluateAll((options) =>
+          options
+            .map((option) => ({
+              value: (option as HTMLOptionElement).value,
+              disabled: (option as HTMLOptionElement).disabled,
+            }))
+            .filter((option) => !option.disabled)
+            .map((option) => option.value)
+        );
+
+      if (optionValues.length < 2) {
+        results.push({
+          action: "Select alternate option",
+          status: "SKIP",
+          detail: "Select has fewer than two enabled options.",
+        });
+      } else {
+        const selectedValue = optionValues[1] ?? optionValues[0];
+        if (selectedValue === undefined) {
+          results.push({
+            action: "Select alternate option",
+            status: "SKIP",
+            detail: "No selectable value resolved.",
+          });
+        } else {
+          await firstSelect.selectOption(selectedValue, { timeout: 1500 });
+          results.push({
+            action: "Select alternate option",
+            status: "PASS",
+            detail: `Selected option value "${selectedValue}".`,
+          });
+        }
+      }
+    } catch (error) {
+      results.push({
+        action: "Select alternate option",
+        status: "FAIL",
+        detail: truncate(
+          error instanceof Error ? error.message : String(error),
+          180
+        ),
+      });
+    }
+  } else {
+    results.push({
+      action: "Select alternate option",
+      status: "SKIP",
+      detail: "No enabled select element found.",
+    });
+  }
+
+  return results;
 }
 
 async function fetchStoryEntries(
@@ -81,7 +276,14 @@ test("capture all Storybook stories with screenshots and markdown reports", asyn
 
   const { source, stories } = await fetchStoryEntries(request);
   const summaryRows: string[] = [];
-  const failures: string[] = [];
+  const failures: Array<{
+    id: string;
+    title: string;
+    name: string;
+    notes: string[];
+    reportFile: string;
+    screenshotFile: string;
+  }> = [];
 
   for (const [index, story] of stories.entries()) {
     const storyHash = createHash("sha1")
@@ -100,8 +302,28 @@ test("capture all Storybook stories with screenshots and markdown reports", asyn
 
     let status = "PASS";
     const notes: string[] = [];
+    const consoleMessages: string[] = [];
+    const pageErrors: string[] = [];
+    let interactionResults: InteractionResult[] = [];
+
+    const onConsole = (message: ConsoleMessage) => {
+      const kind = message.type();
+      if (kind !== "error" && kind !== "warning") return;
+      const text = compactText(message.text());
+      if (!text) return;
+      consoleMessages.push(`[${kind}] ${truncate(text, 240)}`);
+    };
+
+    const onPageError = (error: Error) => {
+      const message = compactText(error.message ?? String(error));
+      if (!message) return;
+      pageErrors.push(truncate(message, 240));
+    };
 
     try {
+      page.on("console", onConsole);
+      page.on("pageerror", onPageError);
+
       await page.goto(storyUrlPath, { waitUntil: "domcontentloaded" });
       await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {
         notes.push("Timed out waiting for full network idle; captured current state.");
@@ -117,6 +339,12 @@ test("capture all Storybook stories with screenshots and markdown reports", asyn
       if (renderErrorVisible) {
         status = "FAIL";
         notes.push("Storybook reported a render/import failure in the preview.");
+        const previewErrorText = compactText(
+          (await page.locator("body").innerText().catch(() => "")) ?? ""
+        );
+        if (previewErrorText) {
+          notes.push(`Preview excerpt: ${truncate(previewErrorText, 320)}`);
+        }
       }
 
       const rootVisible = await page
@@ -127,6 +355,31 @@ test("capture all Storybook stories with screenshots and markdown reports", asyn
 
       if (!rootVisible) {
         notes.push("Could not confirm a visible root container.");
+      }
+
+      interactionResults = await runInteractionSmokeChecks(page);
+      const interactionFailures = interactionResults.filter(
+        (result) => result.status === "FAIL"
+      );
+      if (interactionFailures.length > 0) {
+        notes.push(
+          `Interaction checks reported ${interactionFailures.length} failure(s); see interaction section.`
+        );
+      }
+
+      const topPageErrors = uniqueTop(pageErrors);
+      if (topPageErrors.length > 0) {
+        status = "FAIL";
+        notes.push(
+          `Page errors detected (${pageErrors.length}): ${topPageErrors.join(" | ")}`
+        );
+      }
+
+      const topConsole = uniqueTop(consoleMessages);
+      if (topConsole.length > 0) {
+        notes.push(
+          `Console warnings/errors (${consoleMessages.length}): ${topConsole.join(" | ")}`
+        );
       }
 
       await page.screenshot({ path: screenshotAbsPath, fullPage: true });
@@ -142,6 +395,9 @@ test("capture all Storybook stories with screenshots and markdown reports", asyn
       await page.screenshot({ path: screenshotAbsPath, fullPage: true }).catch(() => {
         notes.push("Screenshot capture failed after exception.");
       });
+    } finally {
+      page.off("console", onConsole);
+      page.off("pageerror", onPageError);
     }
 
     const storyReport = `# ${story.title} / ${story.name}
@@ -154,6 +410,23 @@ test("capture all Storybook stories with screenshots and markdown reports", asyn
 ## Screenshot
 ![${story.name}](../screenshots/${screenshotFile})
 
+## Interaction Smoke Checks
+${
+  interactionResults.length > 0
+    ? interactionResults
+        .map(
+          (result) => `- ${result.status} | ${result.action}: ${result.detail}`
+        )
+        .join("\n")
+    : "- No interaction checks executed."
+}
+
+## Page Errors
+${formatList(uniqueTop(pageErrors, 8))}
+
+## Console Warnings/Errors
+${formatList(uniqueTop(consoleMessages, 8))}
+
 ## Notes
 ${notes.length > 0 ? notes.map((note) => `- ${note}`).join("\n") : "- No issues detected."}
 `;
@@ -161,13 +434,41 @@ ${notes.length > 0 ? notes.map((note) => `- ${note}`).join("\n") : "- No issues 
     await fs.writeFile(storyMdAbsPath, storyReport, "utf8");
 
     summaryRows.push(
-      `| ${index + 1} | ${story.title} | ${story.name} | \`${story.id}\` | ${status} | [Report](stories/${storyMdFile}) | [PNG](screenshots/${screenshotFile}) |`
+      `| ${index + 1} | ${story.title} | ${story.name} | \`${story.id}\` | ${status} | ${interactionResults.filter((result) => result.status === "PASS").length}/${interactionResults.length} | [Report](stories/${storyMdFile}) | [PNG](screenshots/${screenshotFile}) |`
     );
 
     if (status !== "PASS") {
-      failures.push(`${story.id}: ${notes.join(" ")}`);
+      failures.push({
+        id: story.id,
+        title: story.title,
+        name: story.name,
+        notes: notes.length > 0 ? notes : ["No notes captured."],
+        reportFile: storyMdFile,
+        screenshotFile,
+      });
     }
   }
+
+  const failureReport = `# Storybook Failures
+
+- Generated At (UTC): \`${new Date().toISOString()}\`
+- Failed Stories: **${failures.length}**
+
+${failures.length === 0
+    ? "No failing stories detected."
+    : failures
+        .map(
+          (failure, idx) => `## ${idx + 1}. ${failure.title} / ${failure.name}
+
+- Story ID: \`${failure.id}\`
+- Notes:
+${failure.notes.map((note) => `  - ${note}`).join("\n")}
+- Report: [stories/${failure.reportFile}](stories/${failure.reportFile})
+- Screenshot: [screenshots/${failure.screenshotFile}](screenshots/${failure.screenshotFile})
+`
+        )
+        .join("\n")}
+`;
 
   const summary = `# Storybook QA Report
 
@@ -176,16 +477,23 @@ ${notes.length > 0 ? notes.map((note) => `- ${note}`).join("\n") : "- No issues 
 - Total Stories: **${stories.length}**
 - Passed: **${stories.length - failures.length}**
 - Failed: **${failures.length}**
+- Failure Details: [FAILURES.md](FAILURES.md)
 
-| # | Title | Story | Story ID | Status | Report | Screenshot |
-| --- | --- | --- | --- | --- | --- | --- |
+| # | Title | Story | Story ID | Status | Interactions | Report | Screenshot |
+| --- | --- | --- | --- | --- | --- | --- | --- |
 ${summaryRows.join("\n")}
 `;
 
+  await fs.writeFile(FAILURE_REPORT_PATH, failureReport, "utf8");
   await fs.writeFile(path.join(REPORT_ROOT, "README.md"), summary, "utf8");
 
   expect(stories.length).toBeGreaterThan(0);
   if (process.env.STORYBOOK_REPORT_STRICT === "1") {
-    expect(failures, `Storybook failures:\n${failures.join("\n")}`).toEqual([]);
+    expect(
+      failures,
+      `Storybook failures:\n${failures
+        .map((failure) => `${failure.id}: ${failure.notes.join(" ")}`)
+        .join("\n")}`
+    ).toEqual([]);
   }
 });

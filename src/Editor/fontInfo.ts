@@ -9,7 +9,12 @@ interface FontFileArgs {
   variant?: string;
   weight?: string;
   callback?: (data: Blob) => void;
-  error?: (error: any) => void;
+  error?: (error: unknown) => void;
+}
+
+interface FontInfoEditor {
+  getExistingFonts: () => string[];
+  hasFont?: (font: string) => boolean;
 }
 
 function getBaseUrl(): string {
@@ -19,9 +24,9 @@ function getBaseUrl(): string {
 
 class FontInfoInterface extends Object {
   private _allFontInfo: FontInfo;
-  private editor: any;
+  private editor: FontInfoEditor;
 
-  constructor(editor: any) {
+  constructor(editor: FontInfoEditor) {
     super();
     this._allFontInfo = {};
 
@@ -146,10 +151,9 @@ class FontInfoInterface extends Object {
     fetch(getBaseUrl() + "fonts/" + folderName + fontFileName)
       .then((response) => response.blob())
       .then((data: Blob) => {
-        (data as any).hasFont = false;
         if (args.callback) args.callback(data);
       })
-      .catch((error: any) => {
+      .catch((error: unknown) => {
         if (args.error) args.error(error);
       });
   }

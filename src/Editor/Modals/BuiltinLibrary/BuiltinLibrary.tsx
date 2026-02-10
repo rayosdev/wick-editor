@@ -23,6 +23,7 @@ import WickModal from "Editor/Modals/WickModal/WickModal";
 import TabbedInterface from "Editor/Util/TabbedInterface/TabbedInterface";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import AudioPlayer from "Editor/Util/AudioPlayer/AudioPlayer";
+import type { WickProject } from "Editor/types";
 
 import wickobjects from "./wickobjects";
 import sounds from "./sounds";
@@ -38,7 +39,7 @@ interface BuiltinPreview {
 interface BuiltinLibraryProps {
   open: boolean;
   toggle: () => void;
-  project: any;
+  project: WickProject;
   importFileAsAsset: (file: Blob) => void;
   builtinPreviews: Record<string, BuiltinPreview>;
   addFileToBuiltinPreviews: (filename: string, blob: Blob) => void;
@@ -62,6 +63,17 @@ const BuiltinLibrary: React.FC<BuiltinLibraryProps> = ({
   addFileToBuiltinPreviews,
   isAssetInLibrary
 }) => {
+  const toNamedFile = (blob: Blob, filename: string): File => {
+    if (blob instanceof File && blob.name === filename) {
+      return blob;
+    }
+
+    return new File([blob], filename, {
+      type: blob.type || "application/octet-stream",
+      lastModified: Date.now(),
+    });
+  };
+
   //Fetch file, add to builtinPreviews
   const importForPreview = (asset: BuiltinAsset, callback?: (blob: Blob) => void): void => {
     const path = ROOT_ASSET_PATH + asset.file;
@@ -69,12 +81,12 @@ const BuiltinLibrary: React.FC<BuiltinLibraryProps> = ({
     fetch(path)
       .then((response) => response.blob())
       .then((blob) => {
-        (blob as any).lastModifiedDate = new Date();
-        (blob as any).name = asset.file.split("/").pop();
+        const filename = asset.file.split("/").pop() || "builtin-asset";
+        const file = toNamedFile(blob, filename);
 
-        addFileToBuiltinPreviews(asset.file, blob);
+        addFileToBuiltinPreviews(asset.file, file);
 
-        callback && callback(blob);
+        callback && callback(file);
       })
       .catch((error) => {
         console.error(

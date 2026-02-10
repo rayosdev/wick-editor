@@ -23,7 +23,7 @@ type GuiElementsCheckResult = {
 test.describe('Timeline and Playhead Functionality', () => {
   test('can create keyframes and move playhead', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3002');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

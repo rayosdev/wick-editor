@@ -1,4 +1,5 @@
 import React, { CSSProperties } from "react";
+import type { PickerColorChange, PickerColorValue } from "./ColorPicker";
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
@@ -15,12 +16,12 @@ import {
 import { SketchFields } from "react-color/lib/components/sketch/SketchFields";
 
 interface WickColorPickerProps {
-  color: any;
+  color: PickerColorValue;
   colorPickerType?: string;
   changeColorPickerType?: (type: string) => void;
   disableAlpha?: boolean;
-  onChangeComplete: (color: any) => void;
-  onChange?: (color: any) => void;
+  onChangeComplete: (color: PickerColorChange) => void;
+  onChange?: (color: PickerColorChange) => void;
   lastColorsUsed?: string[];
   toggle: () => void;
 }
@@ -31,6 +32,11 @@ interface WickColorPickerProps {
  * @returns JSX.Element
  */
 const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
+  const currentColor =
+    typeof props.color === "string"
+      ? props.color
+      : props.color.rgba ?? props.color.toString();
+
   const renderSwatchColumn = (colorList: string[], i: number): JSX.Element => {
     return (
       <div
@@ -39,12 +45,12 @@ const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
       >
         {colorList.map((color, i) => {
           return (
-            <WickSwatch
-              color={color}
-              onChangeComplete={props.onChangeComplete}
-              selectedColor={props.color}
-              key={`swatch-color-${color}-${i}`}
-            />
+              <WickSwatch
+                color={color}
+                onChangeComplete={props.onChangeComplete}
+                selectedColor={currentColor}
+                key={`swatch-color-${color}-${i}`}
+              />
           );
         })}
       </div>
@@ -142,8 +148,10 @@ const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
                   default: {},
                   ":focus": { outline: "2px solid white" },
                 }}
-                onClick={(color: any) => {
-                  props.onChangeComplete(color);
+                onClick={(color: unknown) => {
+                  if (typeof color === "object" && color !== null && "rgb" in color) {
+                    props.onChangeComplete(color as PickerColorChange);
+                  }
                 }}
               />
             </div>
@@ -164,7 +172,7 @@ const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
         position: "absolute",
         width: "100%",
         height: "100%",
-        backgroundColor: props.color,
+        backgroundColor: currentColor,
       },
     };
 

@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import tinycolor from "tinycolor2";
 import { Swatch } from "react-color/lib/components/common";
+import type { PickerColorChange, PickerColorValue } from "../ColorPicker";
 
 interface WickSwatchProps {
   color: string;
-  selectedColor: string;
-  onChangeComplete: (color: any) => void;
+  selectedColor: PickerColorValue;
+  onChangeComplete: (color: PickerColorChange) => void;
 }
 
 /**
@@ -17,7 +18,11 @@ const WickSwatch: React.FC<WickSwatchProps> = ({ color, selectedColor, onChangeC
   const [focused, setFocused] = useState(false);
 
   const colorInfo = tinycolor(color);
-  const selectedColorInfo = tinycolor(selectedColor);
+  const selectedColorString =
+    typeof selectedColor === "string"
+      ? selectedColor
+      : selectedColor.rgba ?? selectedColor.toString();
+  const selectedColorInfo = tinycolor(selectedColorString);
   let contrastColor = "#CCCCCC";
 
   const selected = color === `#${selectedColorInfo.toHex()}`; // TODO clean this check.
@@ -53,8 +58,10 @@ const WickSwatch: React.FC<WickSwatchProps> = ({ color, selectedColor, onChangeC
     >
       <Swatch
         color={color}
-        onClick={(swatchColor: any) => {
-          onChangeComplete(swatchColor);
+        onClick={(swatchColor: unknown) => {
+          if (typeof swatchColor === "object" && swatchColor !== null && "rgb" in swatchColor) {
+            onChangeComplete(swatchColor as PickerColorChange);
+          }
         }}
       />
     </div>

@@ -77,16 +77,16 @@ type BrowserFileAPI = {
     name: string,
     extension: string,
     successCallback?: () => void,
-    failureCallback?: () => void
+    failureCallback?: () => void,
   ) => void;
   loadWickFileEntry?: (
     fileEntry: LocalFileEntry,
-    callback: (blob: File) => void
+    callback: (blob: File) => void,
   ) => void;
   deleteLocalWickFile?: (
     fileEntry: LocalFileEntry,
     successCallback?: () => void,
-    failureCallback?: () => void
+    failureCallback?: () => void,
   ) => void;
   getSavedWickFiles?: (callback: (files: unknown[]) => void) => void;
 };
@@ -104,7 +104,7 @@ function toAutosaveData(input: {
 }
 
 function parseCurrentProjectRecordMaybe(
-  input: unknown
+  input: unknown,
 ): StoredCurrentProjectRecord | null {
   const parsed = CurrentProjectRecordSchema.safeParse(input);
   return parsed.success ? parsed.data : null;
@@ -112,7 +112,7 @@ function parseCurrentProjectRecordMaybe(
 
 function chooseMostRecentCurrentProject(
   primary: StoredCurrentProjectRecord | null,
-  secondary: StoredCurrentProjectRecord | null
+  secondary: StoredCurrentProjectRecord | null,
 ): StoredCurrentProjectRecord | null {
   if (primary && secondary) {
     return primary.lastModified >= secondary.lastModified ? primary : secondary;
@@ -164,7 +164,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       this._onEyedropperPickedColor = (color: string) => {
         this.project.toolSettings.setSetting(
           "fillColor",
-          new window.Wick.Color(color)
+          new window.Wick.Color(color),
         );
       };
 
@@ -263,7 +263,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    *
    */
   getToolSettingRestrictions = (
-    name: string
+    name: string,
   ): { min?: number; max?: number; step?: number; options?: string[] } => {
     return this.project.toolSettings.getSettingRestrictions(name);
   };
@@ -375,7 +375,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   getSelectedTimelineObjects = (): TimelineObject[] => {
     return this.project.selection.getSelectedObjects(
-      "Timeline"
+      "Timeline",
     ) as unknown as TimelineObject[];
   };
 
@@ -384,7 +384,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {<Wick.Frame>)[]} An array containing the selected frames.
    */
   getSelectedFrames = (): WickFrame[] => {
-    return this.project.selection.getSelectedObjects("Frame") as unknown as WickFrame[];
+    return this.project.selection.getSelectedObjects(
+      "Frame",
+    ) as unknown as WickFrame[];
   };
 
   /**
@@ -392,7 +394,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {<Wick.Tween>)[]} An array containing the selected tweens.
    */
   getSelectedTweens = (): WickTween[] => {
-    return this.project.selection.getSelectedObjects("Tween") as unknown as WickTween[];
+    return this.project.selection.getSelectedObjects(
+      "Tween",
+    ) as unknown as WickTween[];
   };
 
   /**
@@ -402,7 +406,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   getSelectedCanvasObjects = (): CanvasObject[] => {
     return this.project.selection.getSelectedObjects(
-      "Canvas"
+      "Canvas",
     ) as unknown as CanvasObject[];
   };
 
@@ -411,7 +415,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {<Wick.Path>)[]} An array containing the selected paths.
    */
   getSelectedPaths = (): WickPath[] => {
-    return this.project.selection.getSelectedObjects("Path") as unknown as WickPath[];
+    return this.project.selection.getSelectedObjects(
+      "Path",
+    ) as unknown as WickPath[];
   };
 
   /**
@@ -419,7 +425,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {<Wick.Clip>)[]} An array containing the selected clips.
    */
   getSelectedClips = (): WickClip[] => {
-    return this.project.selection.getSelectedObjects("Clip") as unknown as WickClip[];
+    return this.project.selection.getSelectedObjects(
+      "Clip",
+    ) as unknown as WickClip[];
   };
 
   /**
@@ -427,7 +435,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {<Wick.Button>)[]} An array containing the selected buttons.
    */
   getSelectedButtons = (): WickClip[] => {
-    return this.project.selection.getSelectedObjects("Button") as unknown as WickClip[];
+    return this.project.selection.getSelectedObjects(
+      "Button",
+    ) as unknown as WickClip[];
   };
 
   /**
@@ -437,7 +447,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   getSelectedAssetLibraryObjects = (): WickAssetEngine[] => {
     return this.project.selection.getSelectedObjects(
-      "AssetLibrary"
+      "AssetLibrary",
     ) as unknown as WickAssetEngine[];
   };
 
@@ -448,7 +458,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   getSelectedSoundAssets = (): WickAssetEngine[] => {
     return this.project.selection.getSelectedObjects(
-      "SoundAsset"
+      "SoundAsset",
     ) as unknown as WickAssetEngine[];
   };
 
@@ -459,7 +469,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   getSelectedImageAssets = (): WickAssetEngine[] => {
     return this.project.selection.getSelectedObjects(
-      "ImageAsset"
+      "ImageAsset",
     ) as unknown as WickAssetEngine[];
   };
 
@@ -519,7 +529,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     if (
       this.project.moveSelection(
         target as unknown as WickFrameEngine | WickLayerEngine,
-        index
+        index,
       )
     ) {
       this.projectDidChange({ actionName: "Moved Selection" });
@@ -531,7 +541,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {object} object - The object to add to the selection.
    */
   selectObject = (object: SelectableObject): void => {
-    this.project.selection.select(object as unknown as { [key: string]: unknown });
+    this.project.selection.select(
+      object as unknown as { [key: string]: unknown },
+    );
     this.projectDidChange({ actionName: "Select Object" });
   };
 
@@ -542,7 +554,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   selectObjects = (objects: SelectableObject[]): void => {
     this.project.selection.selectMultipleObjects(
-      objects as unknown as Array<{ [key: string]: unknown }>
+      objects as unknown as Array<{ [key: string]: unknown }>,
     );
     this.projectDidChange({ actionName: "Select Multiple Objects" });
   };
@@ -554,7 +566,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   deselectObjects = (objects: SelectableObject[]): void => {
     objects.forEach((object) => {
-      this.project.selection.deselect(object as unknown as { [key: string]: unknown });
+      this.project.selection.deselect(
+        object as unknown as { [key: string]: unknown },
+      );
     });
     this.projectDidChange({ actionName: "Deselect Multiple Objects" });
   };
@@ -578,12 +592,12 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Returns the value of a requested selection attribute.
    * @param  {string} attributeName Selection attribute to retrieve.
-   * @return {string|number|undefined} Value of the selection attribute to
-   * retrieve. Returns undefined is attribute does not exist.
+   * @return {string|number|boolean|object|null} Value of the selection attribute to
+   * retrieve. Returns null if attribute does not exist or selection is empty.
    */
   getSelectionAttribute = (
-    attributeName: string
-  ): string | number | boolean | null => {
+    attributeName: string,
+  ): string | number | boolean | object | null => {
     let attribute = this.project.selection[attributeName];
 
     if (attribute instanceof Array) {
@@ -597,10 +611,19 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         return attribute[0];
       }
     } else {
+      // Return primitives directly
       if (
         typeof attribute === "string" ||
         typeof attribute === "number" ||
         typeof attribute === "boolean"
+      ) {
+        return attribute;
+      }
+      // Return objects (like Wick.Color) directly if they exist
+      if (
+        attribute !== null &&
+        attribute !== undefined &&
+        typeof attribute === "object"
       ) {
         return attribute;
       }
@@ -639,7 +662,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   setSelectionAttribute = (
     attribute: string,
-    newValue: string | number | boolean
+    newValue: string | number | boolean,
   ): void => {
     this.project.selection[attribute] = newValue;
     this.projectDidChange({
@@ -654,7 +677,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   isObjectSelected = (object: SelectableObject): boolean => {
     return this.project.selection.isObjectSelected(
-      object as unknown as { [key: string]: unknown }
+      object as unknown as { [key: string]: unknown },
     );
   };
 
@@ -725,7 +748,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {Wick.Clip} object Object to set as focus.
    */
   setFocusObject = (object: WickClipEngine | WickProjectEngine): void => {
-    this.project.focus = object as unknown as WickClipEngine | WickProjectEngine;
+    this.project.focus = object as unknown as
+      | WickClipEngine
+      | WickProjectEngine;
     this.projectDidChange({ actionName: "Set Focus Object" });
   };
 
@@ -778,7 +803,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   deleteScript = (
     scriptOwner: { removeScript: (name: string) => void },
-    scriptName: string
+    scriptName: string,
   ): void => {
     let oldEditorState = this.state.codeEditorOpen;
 
@@ -957,7 +982,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {object} newSettings an object containing all of the settings to update within the project. Accepts valid project settings such as 'name', 'width', 'height', 'framerate', and 'backgroundColor'.
    */
   updateProjectSettings = (
-    newSettings: Partial<Record<string, unknown>>
+    newSettings: Partial<Record<string, unknown>>,
   ): void => {
     const validKeys = [
       "name",
@@ -1011,7 +1036,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     uuid: string,
     x: number,
     y: number,
-    isCanvasSpace?: boolean
+    isCanvasSpace?: boolean,
   ): void => {
     // convert screen position to wick project position
     const paper = this.project.view.paper;
@@ -1037,7 +1062,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         dropPoint.y,
         () => {
           this.projectDidChange({ actionName: "Create Image Path From Asset" });
-        }
+        },
       );
     } else if (obj instanceof window.Wick.ClipAsset) {
       this.project.createClipInstanceFromAsset(
@@ -1048,7 +1073,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
           this.projectDidChange({
             actionName: "Create Clip Instance From Asset",
           });
-        }
+        },
       );
     } else if (obj instanceof window.Wick.SVGAsset) {
       this.project.createSVGInstanceFromAsset(
@@ -1059,7 +1084,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
           this.projectDidChange({
             actionName: "Create SVG Instance From Asset",
           });
-        }
+        },
       );
     } else {
       console.error("object is not an ImageAsset or a ClipAsset");
@@ -1079,7 +1104,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       uuid,
       this.project.width / 2,
       this.project.height / 2,
-      true
+      true,
     );
   };
 
@@ -1094,7 +1119,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     uuid: string,
     x: number,
     y: number,
-    drop: boolean
+    drop: boolean,
   ): void => {
     this.project.guiElement.dragAssetAtPosition?.(uuid, x, y, drop);
   };
@@ -1117,7 +1142,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   importFileAsAsset = (
     file: File,
-    callback?: (asset: WickAssetEngine | null) => void
+    callback?: (asset: WickAssetEngine | null) => void,
   ) => {
     this.project.importFile(file, (asset) => {
       if (callback) callback(asset);
@@ -1178,7 +1203,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   createAssets = (
     acceptedFiles: File[],
     rejectedFiles: File[],
-    options?: { create?: boolean; location?: { x?: number; y?: number } }
+    options?: { create?: boolean; location?: { x?: number; y?: number } },
   ) => {
     const resolvedOptions = options ?? {};
     const location = resolvedOptions.location ?? {};
@@ -1218,7 +1243,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
               this.createImageFromAsset(
                 gifAsset.uuid,
                 location.x ?? 0,
-                location.y ?? 0
+                location.y ?? 0,
               );
           },
         });
@@ -1260,10 +1285,10 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
           this.toast(
             "Could not open a preview window. Try disabling your popup blocker!",
             "error",
-            { autoClose: false }
+            { autoClose: false },
           );
         }
-      }
+      },
     );
   };
 
@@ -1309,11 +1334,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
           this.project.name,
           ".wick",
           success,
-          fail
+          fail,
         );
 
         this.hideWaitOverlay();
-      }
+      },
     );
   };
 
@@ -1425,7 +1450,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         this.project.name + "_imageSequence",
         ".zip",
         success,
-        fail
+        fail,
       );
 
       this.setState({
@@ -1553,7 +1578,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       (file: Blob) => {
         this.hideWaitOverlay();
         onFinish(file);
-      }
+      },
     );
   };
 
@@ -1608,7 +1633,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         };
 
         window.saveFileFromWick?.(file, outputName, ".html", success, fail);
-      }
+      },
     );
   };
 
@@ -1627,7 +1652,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       window.saveFileFromWick?.(
         new Blob([result.buffer as ArrayBuffer]),
         outputName,
-        ".wav"
+        ".wav",
       );
     });
   };
@@ -1657,19 +1682,23 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   setupNewProject = (project?: WickProjectEngine): void => {
     // if (!project) return;
     this.resetEditorForLoad();
-    
+
     // Ensure we have a proper Project object, not a string
-    if (project && typeof project === 'object' && project.classname === 'Project') {
+    if (
+      project &&
+      typeof project === "object" &&
+      project.classname === "Project"
+    ) {
       this.project = project as typeof this.project;
     } else {
       this.project = new window.Wick.Project();
     }
-    
+
     this.project.selection.clear();
 
     // Ensure activeTool is set (fix for loaded projects)
     if (!this.project.activeTool) {
-      this.project.activeTool = 'cursor';
+      this.project.activeTool = "cursor";
     }
 
     // Attach error handling messages
@@ -1730,13 +1759,13 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
             (loadedProject: unknown) => {
               this.setupNewProject(loadedProject as WickProjectEngine);
             },
-            "blob"
+            "blob",
           );
         })
         .catch((e) => {
           this.toast("Could not download project from URL.", "warning");
           console.error(
-            "tryToParseProjectURL: Could not download Wick project."
+            "tryToParseProjectURL: Could not download Wick project.",
           );
           console.error(e);
         });
@@ -1751,8 +1780,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
 
     const projectParam = urlParams.project;
     let projectLink = Array.isArray(projectParam)
-      ? projectParam[0] ?? ""
-      : projectParam ?? "";
+      ? (projectParam[0] ?? "")
+      : (projectParam ?? "");
 
     // No URL param, skip the download
     if (!projectLink) {
@@ -1782,7 +1811,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     if (whitelist.indexOf(url.hostname) === -1) {
       this.toast(
         "Could not open project from link! \n URL is not on whitelist.",
-        "warning"
+        "warning",
       );
       console.error("tryToParseProjectURL: URL is not in the whitelist.");
       return false;
@@ -1821,12 +1850,12 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       } else if (message === "CLICK_NOT_ALLOWED_LAYER_LOCKED") {
         this.toast(
           "The layer you are trying to draw onto is locked.",
-          "warning"
+          "warning",
         );
       } else if (message === "CLICK_NOT_ALLOWED_LAYER_HIDDEN") {
         this.toast(
           "The layer you are trying to draw onto is hidden.",
-          "warning"
+          "warning",
         );
       } else if (message === "CLICK_NOT_ALLOWED_NO_FRAME") {
         this.toast("There is no frame to draw onto.", "warning");
@@ -1861,12 +1890,18 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Save the current project using Dexie (with localforage fallback).
    */
   autoSaveProject = (callback: AutosaveCallback): void => {
-    if (!this.project || this.state.previewPlaying || this.state.activeModalName !== null) {
+    if (
+      !this.project ||
+      this.state.previewPlaying ||
+      this.state.activeModalName !== null
+    ) {
       this.setState({ isAutosaving: false });
       return;
     }
 
-    const autosaveData = window.Wick.AutoSave.generateAutosaveData(this.project as WickProjectEngine);
+    const autosaveData = window.Wick.AutoSave.generateAutosaveData(
+      this.project as WickProjectEngine,
+    );
 
     ProjectStorage.saveAutosave(autosaveData)
       .then(() => ProjectStorage.saveCurrentProject(autosaveData))
@@ -1877,7 +1912,10 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         });
       })
       .catch((err) => {
-        console.warn("Failed to save with Dexie, falling back to localforage:", err);
+        console.warn(
+          "Failed to save with Dexie, falling back to localforage:",
+          err,
+        );
         window.Wick.AutoSave.save(this.project, () => {
           this.saveCurrentProject();
           callback();
@@ -1894,17 +1932,24 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     }
 
     try {
-      const autosaveData = window.Wick.AutoSave.generateAutosaveData(this.project as WickProjectEngine);
+      const autosaveData = window.Wick.AutoSave.generateAutosaveData(
+        this.project as WickProjectEngine,
+      );
 
       ProjectStorage.saveCurrentProject(autosaveData).catch((err) => {
         console.warn("Failed to save current project with Dexie:", err);
-        localforage.setItem("wickEditor_currentProject", {
-          uuid: autosaveData.projectData.uuid,
-          lastModified: Date.now(),
-          autosaveData,
-        }).catch((localErr) => {
-          console.warn("Failed to save current project with localforage:", localErr);
-        });
+        localforage
+          .setItem("wickEditor_currentProject", {
+            uuid: autosaveData.projectData.uuid,
+            lastModified: Date.now(),
+            autosaveData,
+          })
+          .catch((localErr) => {
+            console.warn(
+              "Failed to save current project with localforage:",
+              localErr,
+            );
+          });
       });
     } catch (error) {
       console.warn("Error saving current project:", error);
@@ -1920,7 +1965,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     }
 
     try {
-      const autosaveData = window.Wick.AutoSave.generateAutosaveData(this.project as WickProjectEngine);
+      const autosaveData = window.Wick.AutoSave.generateAutosaveData(
+        this.project as WickProjectEngine,
+      );
       const dataToSave = {
         uuid: autosaveData.projectData.uuid,
         lastModified: Date.now(),
@@ -1955,7 +2002,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
           return;
         }
 
-        const hoursSinceLastSave = (Date.now() - currentProjectEntry.lastModified) / (1000 * 60 * 60);
+        const hoursSinceLastSave =
+          (Date.now() - currentProjectEntry.lastModified) / (1000 * 60 * 60);
         if (hoursSinceLastSave > 24) {
           this.loadCurrentProjectFallback(callback);
           return;
@@ -1968,11 +2016,14 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
             this.setupNewProject(project);
             this.hideWaitOverlay();
             callback();
-          }
+          },
         );
       })
       .catch((err) => {
-        console.warn("Failed to load current project from Dexie, trying fallback:", err);
+        console.warn(
+          "Failed to load current project from Dexie, trying fallback:",
+          err,
+        );
         this.loadCurrentProjectFallback(callback);
       });
   };
@@ -1983,7 +2034,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   loadCurrentProjectFallback = (callback: AutosaveCallback): void => {
     let backupData: StoredCurrentProjectRecord | null = null;
     try {
-      const backupStr = localStorage.getItem("wickEditor_currentProject_backup");
+      const backupStr = localStorage.getItem(
+        "wickEditor_currentProject_backup",
+      );
       if (backupStr) {
         backupData = parseCurrentProjectRecordMaybe(JSON.parse(backupStr));
       }
@@ -1995,10 +2048,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     localforage
       .getItem("wickEditor_currentProject")
       .then((currentProjectData: unknown) => {
-        const parsedCurrentData = parseCurrentProjectRecordMaybe(currentProjectData);
+        const parsedCurrentData =
+          parseCurrentProjectRecordMaybe(currentProjectData);
         const projectData = chooseMostRecentCurrentProject(
           backupData,
-          parsedCurrentData
+          parsedCurrentData,
         );
 
         if (!projectData || !projectData.autosaveData) {
@@ -2006,7 +2060,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
           return;
         }
 
-        const hoursSinceLastSave = (Date.now() - projectData.lastModified) / (1000 * 60 * 60);
+        const hoursSinceLastSave =
+          (Date.now() - projectData.lastModified) / (1000 * 60 * 60);
         if (hoursSinceLastSave > 24) {
           callback();
           return;
@@ -2020,7 +2075,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
             this.setupNewProject(project);
             this.hideWaitOverlay();
             callback();
-          }
+          },
         );
       })
       .catch((err) => {
@@ -2033,7 +2088,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
               this.setupNewProject(project);
               this.hideWaitOverlay();
               callback();
-            }
+            },
           );
         } else {
           console.warn("Failed to load current project from fallback:", err);
@@ -2065,10 +2120,13 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
             lastModified: latest.lastModified,
           });
 
-          window.Wick.AutoSave.generateProjectFromAutosaveData(autosaveData, (project: WickProjectEngine) => {
-            this.setupNewProject(project);
-            this.hideWaitOverlay();
-          });
+          window.Wick.AutoSave.generateProjectFromAutosaveData(
+            autosaveData,
+            (project: WickProjectEngine) => {
+              this.setupNewProject(project);
+              this.hideWaitOverlay();
+            },
+          );
         })
         .catch(() => {
           this.doesAutoSavedProjectExist((exists: boolean) => {
@@ -2087,19 +2145,24 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     ProjectStorage.getLatestAutosave()
       .then((latest) => {
         if (!latest) {
-          window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
-            if (!autosaveList[0]) {
-              callback();
-              return;
-            }
+          window.Wick.AutoSave.getAutosavesList(
+            (autosaveList: AutosaveEntry[]) => {
+              if (!autosaveList[0]) {
+                callback();
+                return;
+              }
 
-            this.showWaitOverlay();
-            window.Wick.AutoSave.load(autosaveList[0].uuid, (project: WickProjectEngine) => {
-              this.setupNewProject(project);
-              this.hideWaitOverlay();
-              callback();
-            });
-          });
+              this.showWaitOverlay();
+              window.Wick.AutoSave.load(
+                autosaveList[0].uuid,
+                (project: WickProjectEngine) => {
+                  this.setupNewProject(project);
+                  this.hideWaitOverlay();
+                  callback();
+                },
+              );
+            },
+          );
           return;
         }
 
@@ -2110,26 +2173,34 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
           lastModified: latest.lastModified,
         });
 
-        window.Wick.AutoSave.generateProjectFromAutosaveData(autosaveData, (project: WickProjectEngine) => {
-          this.setupNewProject(project);
-          this.hideWaitOverlay();
-          callback();
-        });
-      })
-      .catch(() => {
-        window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
-          if (!autosaveList[0]) {
-            callback();
-            return;
-          }
-
-          this.showWaitOverlay();
-          window.Wick.AutoSave.load(autosaveList[0].uuid, (project: WickProjectEngine) => {
+        window.Wick.AutoSave.generateProjectFromAutosaveData(
+          autosaveData,
+          (project: WickProjectEngine) => {
             this.setupNewProject(project);
             this.hideWaitOverlay();
             callback();
-          });
-        });
+          },
+        );
+      })
+      .catch(() => {
+        window.Wick.AutoSave.getAutosavesList(
+          (autosaveList: AutosaveEntry[]) => {
+            if (!autosaveList[0]) {
+              callback();
+              return;
+            }
+
+            this.showWaitOverlay();
+            window.Wick.AutoSave.load(
+              autosaveList[0].uuid,
+              (project: WickProjectEngine) => {
+                this.setupNewProject(project);
+                this.hideWaitOverlay();
+                callback();
+              },
+            );
+          },
+        );
       });
   };
   /**
@@ -2215,8 +2286,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
 
     const focus = this.project.focus;
     if (focus && typeof focus === "object" && "timeline" in focus) {
-      (focus as { timeline: { playheadPosition: number } }).timeline
-        .playheadPosition = 1;
+      (
+        focus as { timeline: { playheadPosition: number } }
+      ).timeline.playheadPosition = 1;
     }
     this.togglePreviewPlaying();
   };
@@ -2384,7 +2456,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   extendSelectedFramesAndPushOtherFrames = (): void => {
     var frames = this.project.selection.getSelectedObjects("Frame");
     this.project.extendFramesAndPushOtherFrames(
-      frames as unknown as Array<{ [key: string]: unknown }>
+      frames as unknown as Array<{ [key: string]: unknown }>,
     );
     this.project.guiElement.draw();
   };
@@ -2392,7 +2464,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   shrinkSelectedFramesAndPullOtherFrames = (): void => {
     var frames = this.project.selection.getSelectedObjects("Frame");
     this.project.shrinkFramesAndPullOtherFrames(
-      frames as unknown as Array<{ [key: string]: unknown }>
+      frames as unknown as Array<{ [key: string]: unknown }>,
     );
     this.project.guiElement.draw();
   };
@@ -2400,7 +2472,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   extendActiveFramesAndPushOtherFrames = (): void => {
     var frames = this.project.activeTimeline.activeFrames;
     this.project.extendFramesAndPushOtherFrames(
-      frames as unknown as Array<{ [key: string]: unknown }>
+      frames as unknown as Array<{ [key: string]: unknown }>,
     );
     this.project.guiElement.draw();
   };
@@ -2408,7 +2480,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   shrinkActiveFramesAndPullOtherFrames = (): void => {
     var frames = this.project.activeTimeline.activeFrames;
     this.project.shrinkFramesAndPullOtherFrames(
-      frames as unknown as Array<{ [key: string]: unknown }>
+      frames as unknown as Array<{ [key: string]: unknown }>,
     );
     this.project.guiElement.draw();
   };

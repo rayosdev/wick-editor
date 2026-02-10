@@ -44,9 +44,7 @@ import codeIconActive from "resources/mobile-container-icons/code-icon-active.sv
 import assetIcon from "resources/mobile-container-icons/asset-icon.svg";
 import assetIconActive from "resources/mobile-container-icons/asset-icon-active.svg";
 
-// Timeline instance type for onRef callback (Timeline is a class component wrapped by react-dnd)
-type TimelineInstance = any;
-
+type TimelineProps = ComponentProps<typeof Timeline>;
 type InspectorScriptWindowProps = ComponentProps<typeof InspectorScriptWindow>;
 type MobileAssetLibraryProps = ComponentProps<typeof MobileAssetLibrary>;
 type MobileInspectorProps = ComponentProps<typeof MobileInspector>;
@@ -54,15 +52,21 @@ type MobileInspectorProps = ComponentProps<typeof MobileInspector>;
 type AssetObject = MobileAssetLibraryProps["assets"][number];
 
 interface MobileContainerProps {
-    project: any; // Wick Engine project instance (engine API)
+    project: TimelineProps["project"];
     projectDidChange: (options: { actionName: string;[key: string]: unknown }) => void;
     projectData: WickProject;
     getSelectedTimelineObjects: () => TimelineObject[];
     setOnionSkinOptions: (options: OnionSkinOptions) => void;
     getOnionSkinOptions: () => OnionSkinOptions;
     setFocusObject: (object: WickClip | WickProject) => void;
-    addTweenKeyframe: (frame: number) => void;
-    onRef: (instance: TimelineInstance | null) => void;
+    addTweenKeyframe: () => void;
+    createTween: () => void;
+    cutFrame: () => void;
+    insertBlankFrame: () => void;
+    movePlayheadForwards: () => void;
+    movePlayheadBackwards: () => void;
+    focusTimelineOfParentClip: () => void;
+    onRef: NonNullable<TimelineProps["onRef"]>;
     dragSoundOntoTimeline: (uuid: string, x: number, y: number, commit: boolean) => void;
     getToolSetting: (name: string) => string | number | boolean;
     setToolSetting: (name: string, value: string | number | boolean) => void;
@@ -110,6 +114,13 @@ const MobileContainer: React.FC<MobileContainerProps> = (props) => {
                     getOnionSkinOptions={props.getOnionSkinOptions}
                     setFocusObject={props.setFocusObject}
                     addTweenKeyframe={props.addTweenKeyframe}
+                    createTween={props.createTween}
+                    cutFrame={props.cutFrame}
+                    insertBlankFrame={props.insertBlankFrame}
+                    movePlayheadForwards={props.movePlayheadForwards}
+                    movePlayheadBackwards={props.movePlayheadBackwards}
+                    focusTimelineOfParentClip={props.focusTimelineOfParentClip}
+                    deleteSelectedObjects={props.deleteSelectedObjects}
                     onRef={props.onRef}
                     dragSoundOntoTimeline={props.dragSoundOntoTimeline}
                 />

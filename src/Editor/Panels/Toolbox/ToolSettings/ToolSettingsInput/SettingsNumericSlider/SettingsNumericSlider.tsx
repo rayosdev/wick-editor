@@ -13,7 +13,7 @@ interface SettingsNumericSliderProps {
   isMobile?: boolean;
   onChange: (value: number) => void;
   value: number;
-  inputRestrictions?: any;
+  inputRestrictions?: Record<string, unknown>;
 }
 
 export default function SettingsNumericSlider(props: SettingsNumericSliderProps): JSX.Element {

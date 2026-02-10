@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Fragment } from "react";
+import { Fragment, type ComponentProps } from "react";
 
 import "./_mobileinspector.scss";
 import "../../Inspector/_inspectorselector.scss";
@@ -67,7 +67,7 @@ import fillOpacityIcon from "resources/mobile-inspector-icons/fillopacity-icon.s
 
 import type { WickAsset } from "Editor/types";
 
-type SelectionAttributes = Record<string, any>; // Dynamic selection attributes - inherently flexible
+type SelectionAttributes = Record<string, unknown>; // Dynamic selection attributes - inherently flexible
 
 type FontInfoInterface = {
     allFontNames: string[];
@@ -91,12 +91,7 @@ type ClipAnimationOption = {
     label: string;
     value: string;
 };
-
-declare global {
-    interface Window {
-        Wick: any;
-    }
-}
+type InspectorAction = ComponentProps<typeof InspectorActionButton>["action"];
 
 interface MobileInspectorProps {
     getAllSelectionAttributes: () => SelectionAttributes;
@@ -110,16 +105,15 @@ interface MobileInspectorProps {
     getSelectionType: () => string;
     getAllSoundAssets: () => WickAsset[];
     getClipAnimationTypes: () => ClipAnimationOption[];
-    editorActions: Record<string, (...args: any[]) => void>; // Action functions
+    editorActions: Record<string, NonNullable<InspectorAction>>; // Action functions
     getToolSetting?: (name: string) => string | number | boolean;
     setToolSetting?: (name: string, value: string | number | boolean) => void;
     selectionIsScriptable?: () => boolean;
-    project?: any; // Wick Engine project instance (not used in MobileInspector)
+    project?: unknown; // Wick Engine project instance (not used in MobileInspector)
     script?: Script;
     scriptInfoInterface?: ScriptWindowScriptInfoInterface;
     deleteScript?: (script: Script, name: string) => void;
     editScript?: (name: string) => void;
-    [key: string]: any; // Additional props inherently flexible
 }
 
 const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
@@ -227,12 +221,16 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
         return (attributes as SelectionAttributes)[attribute];
     };
 
-    const getSelectionFillColorOpacity = (): any => {
-        return getSelectionAttribute("fillColor").alpha;
+    const getSelectionFillColorOpacity = (): number => {
+        const fillColor = getSelectionAttribute("fillColor") as { alpha?: number } | undefined;
+        return fillColor?.alpha ?? 1;
     };
 
-    const setSelectionFillColorOpacity = (value: any): void => {
-        const color = getSelectionAttribute("fillColor");
+    const setSelectionFillColorOpacity = (value: number): void => {
+        const color = getSelectionAttribute("fillColor") as { alpha?: number } | undefined;
+        if (!color) {
+            return;
+        }
         color.alpha = value;
         props.setSelectionAttribute("fillColor", color);
     };
@@ -264,21 +262,24 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
         unknown: [],
     };
 
-    const setSelectionAttribute = (attribute: string, newValue: any): void => {
+    const setSelectionAttribute = (attribute: string, newValue: unknown): void => {
         if (attribute === "fillColorOpacity") {
-            setSelectionFillColorOpacity(newValue);
+            setSelectionFillColorOpacity(Number(newValue));
             return;
         }
         props.setSelectionAttribute(attribute, newValue);
     };
 
     const renderSelectionColor = (): JSX.Element => {
+        const strokeColor = getSelectionAttribute("strokeColor");
+        const fillColor = getSelectionAttribute("fillColor");
+
         return (
             <div className="mobile-inspector-item mobile-inspector-item-style">
                 <div className="mobile-inspector-col-left">
                     <MobileInspectorColor
                         tooltip="Stroke"
-                        val={getSelectionAttribute("strokeColor").toCSS()}
+                        val={strokeColor?.toCSS?.() ?? "#000000"}
                         onChange={(col) => setSelectionAttribute("strokeColor", col)}
                         id="mobile-inspector-selection-stroke-color"
                         stroke={true}
@@ -290,7 +291,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
 
                     <MobileInspectorColor
                         tooltip="Fill"
-                        val={getSelectionAttribute("fillColor").toCSS()}
+                        val={fillColor?.toCSS?.() ?? "#000000"}
                         onChange={(col) => setSelectionAttribute("fillColor", col)}
                         id="mobile-inspector-selection-fill-color"
                         colorPickerType={props.colorPickerType}
@@ -351,9 +352,12 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
                 isSearchable={true}
                 options={options}
                 onChange={(val) => {
-                    const font = val.value as string;
+                    const font = typeof val.value === "string" ? val.value : "";
+                    if (!font) {
+                        return;
+                    }
 
-                    if (props.fontInfoInterface.hasFont(val.value)) {
+                    if (props.fontInfoInterface.hasFont(font)) {
                         setSelectionAttribute("fontFamily", font);
                         return;
                     }
@@ -612,7 +616,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
     };
 
     const renderSelectionSoundAsset = (): JSX.Element => {
-        let options: Array<{ value: any; label: string }> = [
+        let options: Array<{ value: unknown; label: string }> = [
             {
                 value: null,
                 label: "No Sound",
@@ -809,7 +813,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
         );
     };
 
-    const renderActionButton = (action: any, i: number): JSX.Element => {
+    const renderActionButton = (action: InspectorAction, i: number): JSX.Element => {
         return (
             <div key={i} className="mobile-inspector-item">
                 <InspectorActionButton action={action} />

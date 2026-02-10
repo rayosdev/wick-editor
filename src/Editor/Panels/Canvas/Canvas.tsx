@@ -21,6 +21,7 @@ import { useRef, useEffect, useImperativeHandle, forwardRef } from "react";
 import {
     DropTarget,
     type ConnectDropTarget,
+    type DropTargetConnector,
     type DropTargetMonitor,
 } from "react-dnd";
 import type { XYCoord } from "react-dnd";
@@ -77,8 +78,9 @@ export interface CanvasHandle {
 const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
     const canvasContainer = useRef<HTMLDivElement>(null);
     const currentAttachedProject = useRef<WickProjectLike>();
+    const exposedHandle = useRef<CanvasHandle>({});
 
-    useImperativeHandle(ref, () => ({}), []);
+    useImperativeHandle(ref, () => exposedHandle.current, []);
 
     const attachProjectToComponent = (project: WickProjectLike): void => {
         if (!project || project === currentAttachedProject.current) {
@@ -116,7 +118,7 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
     useEffect(() => {
         attachProjectToComponent(props.project);
         updateCanvas(props.project);
-        props.onRef(ref as any);
+        props.onRef(exposedHandle.current);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -181,7 +183,10 @@ const canvasTarget = {
     },
 };
 
-function collect(connect: any, monitor: DropTargetMonitor): CanvasCollectedProps {
+function collect(
+    connect: DropTargetConnector,
+    monitor: DropTargetMonitor
+): CanvasCollectedProps {
     return {
         connectDropTarget: connect.dropTarget(),
         isOver: monitor.isOver(),

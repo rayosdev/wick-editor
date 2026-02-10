@@ -21,8 +21,10 @@ import React, { useMemo } from "react";
 
 import ToolSettingsInput from "./ToolSettingsInput/ToolSettingsInput";
 import PopupMenu from "Editor/Util/PopupMenu/PopupMenu";
+import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 
 import "./_toolsettings.scss";
+import classNames from "classnames";
 
 interface ToolSettingsProps {
     renderSize: "small" | "medium" | "large";
@@ -49,14 +51,6 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
         previewPlaying
     } = props;
 
-    const getToolSetting = (setting: string): any => {
-        return getToolSettingProp(setting);
-    };
-
-    const setToolSetting = (setting: string, newValue: any): void => {
-        setToolSettingProp(setting, newValue);
-    };
-
     const renderCursorSettings = (): JSX.Element => {
         return <div className="settings-input-container" />;
     };
@@ -68,11 +62,11 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                 name="Enable Pressure"
                 icon="brushpressure"
                 type="checkbox"
-                value={getToolSetting("pressureEnabled")}
+                value={Boolean(getToolSettingProp("pressureEnabled"))}
                 onChange={() =>
-                    setToolSetting(
+                    setToolSettingProp(
                         "pressureEnabled",
-                        !getToolSetting("pressureEnabled")
+                        !Boolean(getToolSettingProp("pressureEnabled"))
                     )
                 }
             />
@@ -86,11 +80,11 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                 name="Relative Brush Size"
                 icon="brushrelativesize"
                 type="checkbox"
-                value={getToolSetting("relativeBrushSize")}
+                value={Boolean(getToolSettingProp("relativeBrushSize"))}
                 onChange={() =>
-                    setToolSetting(
+                    setToolSettingProp(
                         "relativeBrushSize",
-                        !getToolSetting("relativeBrushSize")
+                        !Boolean(getToolSettingProp("relativeBrushSize"))
                     )
                 }
             />
@@ -100,6 +94,11 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
     const renderBrushMode = (): JSX.Element => {
         let brushModeIcon = "brushmodenone";
         const brushMode = getToolSettingProp("brushMode");
+        const brushModes = [
+            { value: "none", label: "None", icon: "brushmodenone" },
+            { value: "inside", label: "Inside", icon: "brushmodeinside" },
+            { value: "outside", label: "Outside", icon: "brushmodeoutside" },
+        ] as const;
 
         if (brushMode === "inside") {
             brushModeIcon = "brushmodeinside";
@@ -122,34 +121,41 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                     isOpen={showBrushModes && !previewPlaying}
                     toggle={toggleBrushModes}
                     target="brush-modes-popover-button"
-                    className={"more-canvas-actions-popover"}
+                    className="tool-settings-menu-popover"
                 >
                     <div className="brush-modes-widget">
-                        <div className="actions-container">
-                            <ToolSettingsInput
-                                renderSize={renderSize}
-                                name="None"
-                                icon="brushmodenone"
-                                type="checkbox"
-                                value={getToolSettingProp("brushMode") === "none"}
-                                onChange={() => setToolSettingProp("brushMode", "none")}
-                            />
-                            <ToolSettingsInput
-                                renderSize={renderSize}
-                                name="Inside"
-                                icon="brushmodeinside"
-                                type="checkbox"
-                                value={getToolSettingProp("brushMode") === "inside"}
-                                onChange={() => setToolSettingProp("brushMode", "inside")}
-                            />
-                            <ToolSettingsInput
-                                renderSize={renderSize}
-                                name="Outside"
-                                icon="brushmodeoutside"
-                                type="checkbox"
-                                value={getToolSettingProp("brushMode") === "outside"}
-                                onChange={() => setToolSettingProp("brushMode", "outside")}
-                            />
+                        <div className="tool-selector-menu-header">Brush Modes</div>
+                        <div className="brush-modes-menu-list">
+                            {brushModes.map((mode) => {
+                                const active = brushMode === mode.value;
+                                return (
+                                    <button
+                                        key={mode.value}
+                                        type="button"
+                                        className={classNames(
+                                            "brush-modes-menu-item",
+                                            { active }
+                                        )}
+                                        onClick={() =>
+                                            setToolSettingProp("brushMode", mode.value)
+                                        }
+                                    >
+                                        <ToolIcon
+                                            className="brush-modes-menu-item-icon"
+                                            name={mode.icon}
+                                        />
+                                        <span className="brush-modes-menu-item-label">
+                                            {mode.label}
+                                        </span>
+                                        {active && (
+                                            <ToolIcon
+                                                className="brush-modes-menu-item-check"
+                                                name="check"
+                                            />
+                                        )}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 </PopupMenu>
@@ -165,8 +171,8 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                 name="Corner Radius"
                 icon="cornerradius"
                 type="numeric"
-                value={getToolSetting("cornerRadius")}
-                onChange={(val) => setToolSetting("cornerRadius", val)}
+                value={Number(getToolSettingProp("cornerRadius"))}
+                onChange={(val) => setToolSettingProp("cornerRadius", val)}
                 inputRestrictions={getToolSettingRestrictions(
                     "cornerRadius"
                 )}
@@ -182,8 +188,8 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                 name="Brush Smoothing"
                 icon="brushsmoothness"
                 type="numeric"
-                value={getToolSetting("brushStabilizerWeight")}
-                onChange={(val) => setToolSetting("brushStabilizerWeight", val)}
+                value={Number(getToolSettingProp("brushStabilizerWeight"))}
+                onChange={(val) => setToolSettingProp("brushStabilizerWeight", val)}
                 inputRestrictions={getToolSettingRestrictions(
                     "brushStabilizerWeight"
                 )}
@@ -199,8 +205,8 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                 name="Eraser Size"
                 icon="eraser"
                 type="numeric"
-                value={getToolSetting("eraserSize")}
-                onChange={(val) => setToolSetting("eraserSize", val)}
+                value={Number(getToolSettingProp("eraserSize"))}
+                onChange={(val) => setToolSettingProp("eraserSize", val)}
                 inputRestrictions={getToolSettingRestrictions(
                     "eraserSize"
                 )}
@@ -216,8 +222,8 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                 name="Stroke Width"
                 icon="strokewidth"
                 type="numeric"
-                value={getToolSetting("strokeWidth")}
-                onChange={(val) => setToolSetting("strokeWidth", val)}
+                value={Number(getToolSettingProp("strokeWidth"))}
+                onChange={(val) => setToolSettingProp("strokeWidth", val)}
                 inputRestrictions={getToolSettingRestrictions(
                     "strokeWidth"
                 )}
@@ -233,8 +239,8 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                 name="Brush Size"
                 icon="brushsize"
                 type="numeric"
-                value={getToolSetting("brushSize")}
-                onChange={(val) => setToolSetting("brushSize", val)}
+                value={Number(getToolSettingProp("brushSize"))}
+                onChange={(val) => setToolSettingProp("brushSize", val)}
                 inputRestrictions={getToolSettingRestrictions("brushSize")}
             />
         );
@@ -246,8 +252,8 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                 name="Gap Fill Amount"
                 icon="gapfillamount"
                 type="numeric"
-                value={getToolSetting("gapFillAmount")}
-                onChange={(val) => setToolSetting("gapFillAmount", val)}
+                value={Number(getToolSettingProp("gapFillAmount"))}
+                onChange={(val) => setToolSettingProp("gapFillAmount", val)}
                 inputRestrictions={getToolSettingRestrictions(
                     "gapFillAmount"
                 )}

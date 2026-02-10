@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Global Variables Test', () => {
   test('checks global variables and editor state', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the editor to load
     await page.waitForLoadState('networkidle');

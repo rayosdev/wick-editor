@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Cache Save/Load Drawing Test', () => {
   test('draw line, save to cache, refresh, load from cache, verify line persists', async ({ page }) => {
     // Navigate to editor
-    await page.goto('http://localhost:3002');
+    await page.goto('/');
     await page.waitForLoadState('networkidle');
     await page.waitForFunction(() => window.Wick && window.Wick.Project && window.editor);
     

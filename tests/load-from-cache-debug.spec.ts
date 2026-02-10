@@ -30,7 +30,7 @@ test.describe('Load Project From Cache Debug', () => {
       consoleMessages.push(errorMessage);
     });
 
-    await page.goto('http://localhost:3002');
+    await page.goto('/');
     await page.waitForLoadState('networkidle');
     await page.waitForFunction(() => window.Wick && window.Wick.WickFile);
     console.log('✅ Page loaded and Wick engine available');
@@ -204,7 +204,7 @@ test.describe('Load Project From Cache Debug', () => {
       }
     });
 
-    await page.goto('http://localhost:3002');
+    await page.goto('/');
     await page.waitForLoadState('networkidle');
     await page.waitForFunction(() => window.Wick && window.Wick.WickFile);
 

@@ -14,12 +14,15 @@ const IGNORE_PATTERNS = [
 interface LogEntry {
   id: string;
   method: string;
-  data: any[];
+  data: unknown[];
   timestamp: number;
   type?: string;
 }
 
-function shouldIgnoreLog(args: any[]): boolean {
+type ConsoleMethodFn = (...args: unknown[]) => unknown;
+type ConsoleRef = Console & Record<string, ConsoleMethodFn>;
+
+function shouldIgnoreLog(args: unknown[]): boolean {
   const message = args.map(arg => 
     typeof arg === 'string' ? arg : String(arg)
   ).join(' ');
@@ -27,11 +30,11 @@ function shouldIgnoreLog(args: any[]): boolean {
   return IGNORE_PATTERNS.some(pattern => pattern.test(message));
 }
 
-function buildLogEntry(method: string, args: IArguments): LogEntry {
+function buildLogEntry(method: string, args: unknown[]): LogEntry {
   return {
     id: `${Date.now()}-${logIdCounter++}`,
     method,
-    data: Array.from(args),
+    data: args,
     timestamp: Date.now(),
   };
 }
@@ -53,26 +56,26 @@ export function attachConsoleListener(
     throw new Error("attachConsoleListener requires an onEntry callback");
   }
 
-  const consoleRef = targetConsole;
-  const originals = new Map<string, Function>();
+  const consoleRef = targetConsole as ConsoleRef;
+  const originals = new Map<string, ConsoleMethodFn>();
 
   const wrapMethod = (method: string): void => {
-    const original = consoleRef[method as keyof Console];
+    const original = consoleRef[method];
     if (typeof original !== "function") {
       return;
     }
 
-    originals.set(method, original as Function);
+    originals.set(method, original);
 
-    (consoleRef as any)[method] = function patchedConsoleMethod(...args: any[]) {
+    consoleRef[method] = function patchedConsoleMethod(...args: unknown[]) {
       if (method === CLEAR_METHOD) {
         onEntry({ type: "clear" } as LogEntry);
       } else if (!shouldIgnoreLog(args)) {
         // Only log entries that don't match ignore patterns
-        onEntry(buildLogEntry(method, arguments));
+        onEntry(buildLogEntry(method, args));
       }
 
-      return (original as Function).apply(this, args);
+      return original.apply(this, args);
     };
   };
 
@@ -81,7 +84,7 @@ export function attachConsoleListener(
 
   return function detachConsoleListener(): void {
     originals.forEach((original, method) => {
-      (consoleRef as any)[method] = original;
+      consoleRef[method] = original;
     });
   };
 }

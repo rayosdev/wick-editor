@@ -1,5 +1,10 @@
 // @ts-ignore - no types available
 import toWav from "audiobuffer-to-wav";
+import type {
+  WickAudioProgressCallback,
+  WickProject,
+  WickSoundInfo,
+} from "../types/engine.types";
 
 declare global {
   interface Window {
@@ -10,9 +15,9 @@ declare global {
 window.toWavFunc = toWav;
 
 interface AudioExportArgs {
-  project: any;
-  onProgress?: (progress: number) => void;
-  soundInfo?: any;
+  project: WickProject;
+  onProgress?: WickAudioProgressCallback;
+  soundInfo?: WickSoundInfo[];
 }
 
 class AudioExport {
@@ -22,8 +27,8 @@ class AudioExport {
     const { project, onProgress, soundInfo } = args;
 
     const audioArgs = {
-      soundInfo: soundInfo,
-      onProgress: onProgress,
+      soundInfo,
+      onProgress,
     };
 
     return new Promise((resolve) => {

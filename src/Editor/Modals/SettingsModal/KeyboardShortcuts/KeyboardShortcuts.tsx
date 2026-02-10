@@ -48,6 +48,16 @@ interface ActionChange {
   sequence: string;
 }
 
+interface RecordedKeyCombination {
+  id: string;
+  keys: Record<string, boolean>;
+}
+
+interface GroupedRow {
+  name: string;
+  type: "header" | "member";
+}
+
 interface KeyboardShortcutsProps {
   keyMap: HotKeyMap;
   keyMapGroups: KeyMapGroups;
@@ -68,6 +78,20 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
   const [newActions, setNewActions] = useState<ActionChange[]>([]);
   const [cancelKeyRecording, setCancelKeyRecording] = useState<() => void>(() => () => { });
   const [openTabs, setOpenTabs] = useState<string[]>([]);
+
+  const isRecordedKeyCombination = (
+    value: unknown
+  ): value is RecordedKeyCombination => {
+    return (
+      typeof value === "object" &&
+      value !== null &&
+      "id" in value &&
+      typeof (value as { id?: unknown }).id === "string" &&
+      "keys" in value &&
+      typeof (value as { keys?: unknown }).keys === "object" &&
+      (value as { keys?: unknown }).keys !== null
+    );
+  };
 
   /**
    * Toggles a tab in the hotkey interface.
@@ -201,7 +225,7 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
           {
             // Displays edited action if it exists...
             action0.edited
-              ? makeKey((action0.edited as any).sequence, name)
+              ? makeKey(action0.edited.sequence, name)
               : makeKey(sequence1, name)
           }
         </td>
@@ -216,7 +240,7 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
           {
             // Displays edited action if it exists...
             action1.edited
-              ? makeKey((action1.edited as any).sequence, name)
+              ? makeKey(action1.edited.sequence, name)
               : makeKey(sequence2, name)
           }
         </td>
@@ -226,13 +250,21 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
 
   const beginEdit = (actionName: string, index: number): void => {
     // Begin recording that we are editing a key.
-    const cancelKeyRecordingFn = recordKeyCombination((sequence: any) => {
+    const cancelKeyRecordingFn = recordKeyCombination((sequenceRaw: unknown) => {
+      if (!isRecordedKeyCombination(sequenceRaw)) {
+        return;
+      }
+
+      const sequence: RecordedKeyCombination = {
+        id: sequenceRaw.id,
+        keys: { ...sequenceRaw.keys },
+      };
       if (sequence.keys[" "]) {
         sequence.id = sequence.id.replace(" ", "space");
         delete sequence.keys[" "];
         sequence.keys.space = true;
       }
-      return changeKey(actionName, index, sequence);
+      changeKey(actionName, index, sequence);
     });
 
     // Set that we are editing a key.
@@ -246,8 +278,12 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
   };
 
   // Initiate custom hotkey change locally.
-  const changeKey = (actionName: string, sequenceIndex: number, sequence: any): void => {
-    let actions = [];
+  const changeKey = (
+    actionName: string,
+    sequenceIndex: number,
+    sequence: RecordedKeyCombination
+  ): void => {
+    let actions: ActionChange[] = [];
 
     let keyCommand = sequence.id.toLowerCase();
 
@@ -267,7 +303,7 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
         return;
       }
 
-      action.sequences.forEach((seq: any, index: number) => {
+      action.sequences.forEach((seq: HotKeySequence, index: number) => {
         if (typeof seq === "string" && seq.toLowerCase() === keyCommand) {
           // Remove Sequence
           let act = {
@@ -355,7 +391,7 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
   const getGroupedRows = () => {
     let keyGroups = Object.keys(props.keyMapGroups);
 
-    const groupedRows: any[] = [];
+    const groupedRows: GroupedRow[] = [];
     keyGroups.forEach((groupName) => {
       groupedRows.push({ name: groupName, type: "header" });
       if (openTabs.indexOf(groupName) > -1) {

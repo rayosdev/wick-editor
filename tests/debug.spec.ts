@@ -49,7 +49,7 @@ test("Check for console errors", async ({ page }) => {
     errors.push(error.message);
   });
 
-  await page.goto("http://localhost:3000");
+  await page.goto("/");
 
   // Wait a bit for the page to load
   await page.waitForTimeout(5000);

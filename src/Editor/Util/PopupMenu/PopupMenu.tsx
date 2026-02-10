@@ -50,7 +50,6 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
       isOpen={isOpen}
       toggle={toggle}
       target={target}
-      boundariesElement={"viewport" as any}
       className={classNames(
         "popup-menu-popover",
         mobile && "mobile",

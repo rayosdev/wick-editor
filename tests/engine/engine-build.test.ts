@@ -16,6 +16,11 @@ describe("Engine Build Output", () => {
     expect(fs.existsSync(file), "wickengine.js should exist").toBe(true);
   });
 
+  it("creates wickplayer.js", () => {
+    const file = path.join(distPath, "wickplayer.js");
+    expect(fs.existsSync(file), "wickplayer.js should exist").toBe(true);
+  });
+
   it("wickengine.js is not empty", () => {
     const file = path.join(distPath, "wickengine.js");
     const stats = fs.statSync(file);
@@ -39,10 +44,10 @@ describe("Engine Build Output", () => {
     expect(fs.existsSync(file), "emptyproject.html should exist").toBe(true);
   });
 
-  it("emptyproject.html contains wickengine", () => {
+  it("emptyproject.html contains injected player runtime", () => {
     const file = path.join(distPath, "emptyproject.html");
     const content = fs.readFileSync(file, "utf8");
-    expect(content).toContain("WICK_ENGINE_BUILD_VERSION");
+    expect(content).toContain("Wick Player bundle loaded via Vite build system");
   });
 
   it("creates ZIP export resources", () => {
@@ -52,6 +57,24 @@ describe("Engine Build Output", () => {
       const file = path.join(distPath, filename);
       expect(fs.existsSync(file), `${filename} should exist`).toBe(true);
     });
+  });
+
+  it("ZIP export loader uses player runtime", () => {
+    const file = path.join(distPath, "index.html");
+    const content = fs.readFileSync(file, "utf8");
+    expect(content).toContain("fetch('wickplayer.js')");
+  });
+
+  it("ZIP export loader handles unreadable project files gracefully", () => {
+    const file = path.join(distPath, "index.html");
+    const content = fs.readFileSync(file, "utf8");
+    expect(content).toContain("Could not load project.wick.");
+  });
+
+  it("bundled HTML loader handles unreadable project data gracefully", () => {
+    const file = path.join(distPath, "emptyproject.html");
+    const content = fs.readFileSync(file, "utf8");
+    expect(content).toContain("Could not load bundled Wick project data.");
   });
 
   it("bundle size is reasonable", () => {

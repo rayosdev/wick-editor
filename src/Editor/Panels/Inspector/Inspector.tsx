@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React from "react";
+import React, { type ComponentProps, type InputHTMLAttributes } from "react";
 
 import "./_inspector.scss";
 import "./_inspectorselector.scss";
@@ -41,12 +41,13 @@ import InspectorCheckbox from "./InspectorRow/InspectorRowTypes/InspectorCheckbo
 
 import type { WickAsset } from "Editor/types";
 
-type SelectionAttributes = Record<string, any>; // Dynamic selection attributes - inherently flexible
+type SelectionAttributes = Record<string, unknown>; // Dynamic selection attributes - inherently flexible
 type InspectorSelectorOption = {
     value: string | number | boolean | null | WickAsset; // Selector values can be primitives, null, or assets
     label: string;
-    [key: string]: any; // Additional props inherently flexible
+    [key: string]: unknown; // Additional props inherently flexible
 };
+type InspectorAction = ComponentProps<typeof InspectorActionButton>["action"];
 
 interface FontInfoInterface {
     allFontNames: string[];
@@ -63,7 +64,7 @@ interface InspectorProps {
     getAllSelectionAttributes: () => SelectionAttributes;
     setSelectionAttribute: (attribute: string, value: unknown) => void; // Truly polymorphic
     getSelectionType: () => string;
-    getSelectionInputProps?: (attribute: string) => Record<string, any> | undefined; // Dynamic props
+    getSelectionInputProps?: (attribute: string) => InputHTMLAttributes<HTMLInputElement> | undefined; // Dynamic props
     colorPickerType?: string;
     changeColorPickerType?: (type: string) => void;
     updateLastColors?: (color: string) => void;
@@ -72,18 +73,12 @@ interface InspectorProps {
     importFileAsAsset: (file: File, onComplete: () => void) => void;
     getAllSoundAssets: () => WickAsset[];
     getClipAnimationTypes: () => Array<{ label: string; value: string }>;
-    editorActions: Record<string, (...args: any[]) => void>; // Action functions
+    editorActions: Record<string, NonNullable<InspectorAction>>; // Action functions
     selectionIsScriptable: () => boolean;
     script?: ScriptType;
     deleteScript?: (script: ScriptType, name: string) => void;
     editScript?: (name: string) => void;
     scriptInfoInterface?: ScriptWindowScriptInfoInterface;
-}
-
-declare global {
-    interface Window {
-        Wick: any;
-    }
 }
 
 const Inspector: React.FC<InspectorProps> = (props) => {
@@ -95,19 +90,23 @@ const Inspector: React.FC<InspectorProps> = (props) => {
         return props.getAllSelectionAttributes()[attribute];
     };
 
-    const getSelectionFillColorOpacity = (): any => {
-        return getSelectionAttribute("fillColor").alpha;
+    const getSelectionFillColorOpacity = (): number => {
+        const fillColor = getSelectionAttribute("fillColor") as { alpha?: number } | undefined;
+        return fillColor?.alpha ?? 1;
     };
 
-    const setSelectionFillColorOpacity = (value: any): void => {
-        const color = getSelectionAttribute("fillColor");
+    const setSelectionFillColorOpacity = (value: number): void => {
+        const color = getSelectionAttribute("fillColor") as { alpha?: number } | undefined;
+        if (!color) {
+            return;
+        }
         color.alpha = value;
         setSelectionAttribute("fillColor", color);
     };
 
-    const setSelectionAttribute = (attribute: string, newValue: any): void => {
+    const setSelectionAttribute = (attribute: string, newValue: unknown): void => {
         if (attribute === "fillColorOpacity") {
-            setSelectionFillColorOpacity(newValue);
+            setSelectionFillColorOpacity(Number(newValue));
             return;
         }
         props.setSelectionAttribute(attribute, newValue);
@@ -115,7 +114,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
 
     const getSelectionInputProps = (
         attribute: string
-    ): Record<string, any> | undefined => {
+    ): InputHTMLAttributes<HTMLInputElement> | undefined => {
         return props.getSelectionInputProps?.(attribute);
     };
 
@@ -177,12 +176,15 @@ const Inspector: React.FC<InspectorProps> = (props) => {
     };
 
     const renderSelectionColor = (): JSX.Element => {
+        const fillColor = getSelectionAttribute("fillColor");
+        const strokeColor = getSelectionAttribute("strokeColor");
+
         return (
             <div className="inspector-item">
                 <InspectorColorNumericInput
                     tooltip1="Fill"
                     tooltip2="Opacity"
-                    val1={getSelectionAttribute("fillColor").toCSS()}
+                    val1={fillColor?.toCSS?.() ?? "#000000"}
                     onChange1={(col) => setSelectionAttribute("fillColor", col)}
                     id={"inspector-selection-fill-color"}
                     val2={getSelectionAttribute("fillColorOpacity")}
@@ -196,7 +198,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
                 <InspectorColorNumericInput
                     tooltip1="Stroke"
                     tooltip2="Weight"
-                    val1={getSelectionAttribute("strokeColor").toCSS()}
+                    val1={strokeColor?.toCSS?.() ?? "#000000"}
                     onChange1={(col) => setSelectionAttribute("strokeColor", col)}
                     id={"inspector-selection-stroke-color"}
                     stroke={true}
@@ -240,9 +242,12 @@ const Inspector: React.FC<InspectorProps> = (props) => {
                 isSearchable={true}
                 options={opts}
                 onChange={(val) => {
-                    const font = val.value;
+                    const font = typeof val.value === "string" ? val.value : "";
+                    if (!font) {
+                        return;
+                    }
 
-                    if (props.fontInfoInterface.hasFont(val.value)) {
+                    if (props.fontInfoInterface.hasFont(font)) {
                         setSelectionAttribute("fontFamily", font);
                         return;
                     }
@@ -503,7 +508,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
             },
         ];
 
-        const mapAsset = (asset: any) => {
+        const mapAsset = (asset: WickAsset | null | undefined) => {
             if (!asset) {
                 return {
                     value: "novalue",
@@ -829,7 +834,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
         return renderFunction();
     };
 
-    const renderActionButton = (action: any, i: number): JSX.Element => {
+    const renderActionButton = (action: InspectorAction, i: number): JSX.Element => {
         return (
             <div key={i} className="inspector-item">
                 <InspectorActionButton action={action} />
@@ -838,7 +843,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
     };
 
     const renderActions = (): JSX.Element => {
-        const actions: any[] = [];
+        const actions: string[] = [];
         const selectionType = props.getSelectionType();
 
         Object.keys(actionRules).forEach((action) => {

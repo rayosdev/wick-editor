@@ -54,6 +54,39 @@ export interface WickTransformation {
   };
 }
 
+export interface WickSoundInfo {
+  playheadPosition?: number;
+  start: number;
+  end: number;
+  offset: number;
+  src: string;
+  filetype: string;
+  name?: string;
+  volume?: number;
+  playedFrom?: string;
+  [key: string]: unknown;
+}
+
+export type WickRenderedImage = HTMLImageElement | HTMLCanvasElement;
+
+export interface WickImageSequenceArgs {
+  imageType?: string;
+  width?: number;
+  height?: number;
+  onProgress?: (currentFrame: number, totalFrames: number) => void;
+  onFinish?: (images: WickRenderedImage[]) => void;
+}
+
+export type WickAudioProgressCallback = (
+  messageOrFrame: string | number,
+  progress?: number | string,
+) => void;
+
+export interface WickAudioTrackArgs {
+  soundInfo?: WickSoundInfo[];
+  onProgress?: WickAudioProgressCallback;
+}
+
 export interface WickSelectableObject {
   uuid?: string;
   identifier?: string | null;
@@ -133,7 +166,7 @@ export interface WickToolSettings {
     options?: string[];
   };
   onSettingsChanged(
-    callback: (name: string, value: string | number | boolean) => void
+    callback: (name: string, value: string | number | boolean) => void,
   ): void;
 }
 
@@ -151,7 +184,10 @@ export interface WickBase {
     paper?: {
       Point: new (x?: number, y?: number) => { x: number; y: number };
       view: {
-        viewToProject: (point: { x: number; y: number }) => { x: number; y: number };
+        viewToProject: (point: { x: number; y: number }) => {
+          x: number;
+          y: number;
+        };
       };
       project: {
         view: {
@@ -170,7 +206,7 @@ export interface WickBase {
       uuid: string,
       x: number,
       y: number,
-      drop: boolean
+      drop: boolean,
     ) => void;
     [key: string]: unknown;
   };
@@ -219,8 +255,8 @@ export interface WickFrame extends WickBase {
 export interface WickTween extends WickBase {
   classname: "Tween";
   property: string;
-  startValue: any;
-  endValue: any;
+  startValue: unknown;
+  endValue: unknown;
   startFrame: number;
   endFrame: number;
   easing: string;
@@ -282,7 +318,7 @@ export interface WickProject extends WickBase {
   height: number;
   framerate: number;
   backgroundColor: WickColor;
-  hitTestOptions: Record<string, any>;
+  hitTestOptions: Record<string, unknown>;
   pan: { x: number; y: number };
   zoom: number;
   rotation: number;
@@ -305,6 +341,7 @@ export interface WickProject extends WickBase {
   activeLayer: WickLayer;
   activeFrame: WickFrame;
   activeFrames: WickFrame[];
+  soundsPlayed: WickSoundInfo[];
   error: unknown;
   _internalErrorMessages?: string[];
   canCreateTween?: boolean;
@@ -314,7 +351,10 @@ export interface WickProject extends WickBase {
   zoomOut(): void;
   selectAll(): void;
   moveSelection(target: WickFrame | WickLayer, index: number): boolean;
-  createClipFromSelection(args: { identifier: string; type: "Clip" | "Button" }): void;
+  createClipFromSelection(args: {
+    identifier: string;
+    type: "Clip" | "Button";
+  }): void;
   breakApartSelection(): void;
   deleteSelectedObjects(): void;
   doBooleanOperationOnSelection(op: "unite" | "subtract" | "intersect"): void;
@@ -324,24 +364,29 @@ export interface WickProject extends WickBase {
     asset: WickBase | null,
     x: number,
     y: number,
-    onFinish: (path: WickPath) => void
+    onFinish: (path: WickPath) => void,
   ): void;
   createClipInstanceFromAsset(
     asset: WickBase | null,
     x: number,
     y: number,
-    onFinish: (clip: WickClip) => void
+    onFinish: (clip: WickClip) => void,
   ): void;
   createSVGInstanceFromAsset(
     asset: WickBase | null,
     x: number,
     y: number,
-    onFinish: (path: WickPath) => void
+    onFinish: (path: WickPath) => void,
   ): void;
   importFile(file: File, callback: (asset: WickAsset | null) => void): void;
   getAssets(type?: string): WickAsset[];
   addAsset(asset: WickAsset): void;
   loadAssets(callback: () => void): void;
+  generateImageSequence(args: WickImageSequenceArgs): void;
+  generateAudioTrack(
+    args: WickAudioTrackArgs,
+    callback: (audioBuffer: AudioBuffer | null) => void,
+  ): void;
   prepareProjectForEditor(): void;
   copySelectionToClipboard(): boolean;
   duplicateSelection(): boolean;
@@ -373,10 +418,17 @@ export interface WickFile {
   fromWickFile(
     file: Blob,
     callback: (project: WickProject) => void,
-    type?: string
+    type?: string,
   ): void;
-  fromWickFileData(data: unknown, callback: (project: WickProject) => void): void;
-  toWickFile(project: WickProject, callback: (file: Blob | string) => void, type?: string): void;
+  fromWickFileData(
+    data: unknown,
+    callback: (project: WickProject) => void,
+  ): void;
+  toWickFile(
+    project: WickProject,
+    callback: (file: Blob | string) => void,
+    type?: string,
+  ): void;
   generateMetaData(): unknown;
 }
 
@@ -399,20 +451,23 @@ export interface WickAutoSave {
   delete(uuid: string, callback: () => void): void;
   getAutosavesList(callback: (autosaves: AutosaveEntry[]) => void): void;
   generateAutosaveData(project: WickProject): AutosaveData;
-  generateProjectFromAutosaveData(autosaveData: AutosaveData, callback: (project: WickProject) => void): void;
+  generateProjectFromAutosaveData(
+    autosaveData: AutosaveData,
+    callback: (project: WickProject) => void,
+  ): void;
 }
 
 export interface WickNamespace {
   version: string;
   resourcepath: string;
-  Project: new (args?: any) => WickProject;
-  Clip: new (args?: any) => WickClip;
-  Frame: new (args?: any) => WickFrame;
-  Layer: new (args?: any) => WickLayer;
-  Timeline: new (args?: any) => WickTimeline;
-  Path: new (args?: any) => WickPath;
-  Tween: new (args?: any) => WickTween;
-  Asset: new (args?: any) => WickAsset;
+  Project: new (args?: unknown) => WickProject;
+  Clip: new (args?: unknown) => WickClip;
+  Frame: new (args?: unknown) => WickFrame;
+  Layer: new (args?: unknown) => WickLayer;
+  Timeline: new (args?: unknown) => WickTimeline;
+  Path: new (args?: unknown) => WickPath;
+  Tween: new (args?: unknown) => WickTween;
+  Asset: new (args?: unknown) => WickAsset;
   Selection: new () => WickSelection;
   Clipboard: new () => WickClipboard;
   Color: new (color?: string) => WickColor;
@@ -427,7 +482,7 @@ export interface WickNamespace {
   HTMLPreview: {
     previewProject(
       project: WickProject,
-      callback: (previewWindow: Window | null | undefined) => void
+      callback: (previewWindow: Window | null | undefined) => void,
     ): void;
   };
   ImageSequence: {
@@ -444,7 +499,7 @@ export interface WickNamespace {
     toSVGFile(
       timeline: WickTimeline,
       onError: (message?: string) => void,
-      onFinish: (file: Blob) => void
+      onFinish: (file: Blob) => void,
     ): void;
   };
   ZIPExport: {
@@ -453,14 +508,14 @@ export interface WickNamespace {
   HTMLExport: {
     bundleProject(
       project: WickProject,
-      onFinish: (html: BlobPart | ArrayBuffer) => void
+      onFinish: (html: BlobPart | ArrayBuffer) => void,
     ): void;
   };
   WickObjectFile: {
     toWickObjectFile(
       clip: WickClip,
       type: "blob",
-      onFinish: (file: Blob) => void
+      onFinish: (file: Blob) => void,
     ): void;
   };
   ImageAsset: new (args: { filename: string; src: string }) => WickAsset;
@@ -470,7 +525,7 @@ export interface WickNamespace {
     fromImages(
       imageAssets: WickAsset[],
       project: WickProject,
-      onFinish: (gifAsset: WickAsset) => void
+      onFinish: (gifAsset: WickAsset) => void,
     ): void;
   };
   History: {

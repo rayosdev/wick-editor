@@ -24,15 +24,15 @@ import InspectorInput from 'Editor/Panels/Inspector/InspectorRow/InspectorInput/
 import '../_inspectorrow.scss';
 
 interface InspectorSelectorOption {
-  value: any;
+  value: unknown;
   label: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface InspectorSelectorProps {
   tooltip: string;
-  value: any;
-  onChange: (option: any) => void;
+  value: unknown;
+  onChange: (option: InspectorSelectorOption) => void;
   options: InspectorSelectorOption[];
   className?: string;
   type?: string;

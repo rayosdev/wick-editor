@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('SVG Drag and Drop Test', () => {
   test('tests SVG drag and drop upload functionality', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -98,7 +98,7 @@ test.describe('SVG Drag and Drop Test', () => {
   
   test('tests SVG asset with null item handling', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

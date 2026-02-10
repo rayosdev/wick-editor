@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Export Simple Test', () => {
   test('tests export utilities in browser context', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -48,7 +48,7 @@ test.describe('Export Simple Test', () => {
   
   test('tests HTML and ZIP export availability', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

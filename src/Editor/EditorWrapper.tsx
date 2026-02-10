@@ -8,7 +8,6 @@ import { attachConsoleListener } from "./Util/consoleListener";
 import type { HotKeyMap } from "Editor/types/hotkeys";
 import type {
     WickProject,
-    WickAsset,
     WarningModalInfo,
     ModalName,
     ProjectSettings,
@@ -34,6 +33,8 @@ type ConsoleLogEntry = {
 type ConsoleClearEntry = { type: "clear" };
 
 type ConsoleListenerEntry = ConsoleLogEntry | ConsoleClearEntry;
+type ModalRenderType = "video" | "gif" | "image sequence";
+type ToolSettingValue = string | number | boolean | { rgba: string };
 
 type EditorLikeState = {
     activeModalName: ModalName;
@@ -91,7 +92,7 @@ type EditorLike = {
     exportProjectAsImageSVG: () => void;
     builtinPreviews: Map<string, BuiltinPreview>;
     addFileToBuiltinPreviews: (file: File) => void;
-    isAssetInLibrary: (asset: WickAsset) => boolean;
+    isAssetInLibrary: (filename: string) => boolean;
     openProjectFileDialog: () => void;
     openNewProjectConfirmation: () => void;
     setConsoleLogs: (
@@ -172,6 +173,23 @@ function EditorWrapper({ editor, children }: EditorWrapperProps) {
         };
     }, [editor]);
 
+    const modalRenderType: ModalRenderType =
+        editor.state.renderType === "video"
+            ? "video"
+            : editor.state.renderType === "image-sequence"
+                ? "image sequence"
+                : "gif";
+    const setToolSettingForModal = (
+        setting: string,
+        value: ToolSettingValue
+    ): void => {
+        if (typeof value === "object" && value !== null && "rgba" in value) {
+            editor.setToolSetting(setting, value.rgba);
+            return;
+        }
+        editor.setToolSetting(setting, value);
+    };
+
     return (
         <ErrorBoundary
             fallback={ErrorPage}
@@ -222,7 +240,7 @@ function EditorWrapper({ editor, children }: EditorWrapperProps) {
                     clearAutoSavedProject={editor.clearAutoSavedProject}
                     renderProgress={editor.state.renderProgress}
                     renderStatusMessage={editor.state.renderStatusMessage}
-                    renderType={editor.state.renderType as any}
+                    renderType={modalRenderType}
                     addCustomHotKeys={editor.addCustomHotKeys}
                     resetCustomHotKeys={editor.resetCustomHotKeys}
                     customHotKeys={editor.state.customHotKeys}
@@ -237,7 +255,7 @@ function EditorWrapper({ editor, children }: EditorWrapperProps) {
                     toast={editor.toast}
                     createCombinedHotKeyMap={editor.createCombinedHotKeyMap}
                     getToolSetting={editor.getToolSetting}
-                    setToolSetting={editor.setToolSetting as any} // EditorCore accepts primitives, but SettingsModal can pass WickColor objects
+                    setToolSetting={setToolSettingForModal}
                     getToolSettingRestrictions={editor.getToolSettingRestrictions}
                     exportProjectAsImageSVG={editor.exportProjectAsImageSVG}
                     builtinPreviews={editor.builtinPreviews}

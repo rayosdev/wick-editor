@@ -8,7 +8,7 @@ function getErrorMessage(error: unknown): string {
 
 test.describe('Deserialization Debug', () => {
   test('debug deserialization step by step with detailed logging @headed', async ({ page }) => {
-    await page.goto('http://localhost:3002');
+    await page.goto('/');
     await page.waitForLoadState('networkidle');
     await page.waitForFunction(() => window.Wick && window.Wick.Project && window.editor);
     console.log('✅ Page loaded and Wick engine available');

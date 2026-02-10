@@ -4,7 +4,7 @@ import path from 'path';
 test.describe('SVG Upload Realistic Test', () => {
   test('uploads real SVG file and checks for isPublished error', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -108,7 +108,7 @@ test.describe('SVG Upload Realistic Test', () => {
   
   test('tests SVG asset with project context', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

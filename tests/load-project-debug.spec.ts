@@ -1,11 +1,11 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
 test.describe('Load Project Debug Test', () => {
   test('load timeline-script.wick project and test play functionality @headed', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3002');
+    await page.goto('/');
 
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -77,6 +77,16 @@ test.describe('Load Project Debug Test', () => {
       console.log('Console errors found:', consoleErrors);
     } else {
       console.log('No console errors detected');
+    }
+
+    // Stop preview playback before interacting with docked panels.
+    // While preview is active, the docked overlay intentionally blocks pointer events.
+    const overlay = page.locator('.docked-panel-overlay').first();
+    const overlayVisible = await overlay.isVisible().catch(() => false);
+    if (overlayVisible) {
+      await playButton.click();
+      await expect(overlay).toBeHidden({ timeout: 5000 });
+      await page.waitForTimeout(300);
     }
 
     // Step 4: Open code editor to check its console

@@ -1,7 +1,6 @@
 import React from "react";
 
-import ActionButton from "Editor/Util/ActionButton/ActionButton";
-import ToolboxBreak from "../ToolboxBreak/ToolboxBreak";
+import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 import PopupMenu from "Editor/Util/PopupMenu/PopupMenu";
 import "./_canvasactions.scss";
 
@@ -42,37 +41,58 @@ const CanvasActions: React.FC<CanvasActionsProps> = ({
 }) => {
   const renderActionButton = (action: CanvasAction): JSX.Element => {
     return (
-      <ActionButton
-        color="tool"
-        id={`canvas-action-button-${action.icon}`}
-        tooltip={action.tooltip}
-        action={action.action}
-        tooltipPlace={"bottom"}
-        icon={action.icon}
-        className="canvas-action-button"
-      />
+      <button
+        key={action.icon}
+        type="button"
+        className="canvas-actions-menu-item"
+        onClick={(event) => action.action(event)}
+      >
+        <ToolIcon className="canvas-actions-menu-item-icon" name={action.icon} />
+        <span className="canvas-actions-menu-item-label">{action.tooltip}</span>
+      </button>
     );
   };
+
+  const actionGroups = [
+    {
+      title: "Arrange",
+      actions: [
+        editorActions.sendToBack,
+        editorActions.sendBackward,
+        editorActions.sendForward,
+        editorActions.sendToFront,
+      ],
+    },
+    {
+      title: "Transform",
+      actions: [editorActions.flipHorizontal, editorActions.flipVertical],
+    },
+    {
+      title: "Boolean",
+      actions: [
+        editorActions.booleanUnite,
+        editorActions.booleanSubtract,
+        editorActions.booleanIntersect,
+      ],
+    },
+  ];
 
   const renderActions = (): JSX.Element => {
     return (
       <div
         className={classNames(
-          "actions-container",
+          "canvas-actions-menu",
           renderSize === "small" && "vertical"
         )}
       >
-        {renderActionButton(editorActions.sendToBack)}
-        {renderActionButton(editorActions.sendBackward)}
-        {renderActionButton(editorActions.sendForward)}
-        {renderActionButton(editorActions.sendToFront)}
-        <ToolboxBreak vertical={renderSize === "small"} />
-        {renderActionButton(editorActions.flipHorizontal)}
-        {renderActionButton(editorActions.flipVertical)}
-        <ToolboxBreak vertical={renderSize === "small"} />
-        {renderActionButton(editorActions.booleanUnite)}
-        {renderActionButton(editorActions.booleanSubtract)}
-        {renderActionButton(editorActions.booleanIntersect)}
+        {actionGroups.map((group) => (
+          <div key={group.title} className="canvas-actions-menu-group">
+            <div className="canvas-actions-menu-group-title">{group.title}</div>
+            <div className="canvas-actions-menu-group-items">
+              {group.actions.map(renderActionButton)}
+            </div>
+          </div>
+        ))}
       </div>
     );
   };
@@ -83,11 +103,11 @@ const CanvasActions: React.FC<CanvasActionsProps> = ({
       isOpen={showCanvasActions}
       toggle={toggleCanvasActions}
       target="more-canvas-actions-popover-button"
+      className="canvas-actions-menu-popover"
     >
       <div
         className={classNames(
           "canvas-actions-widget",
-          "more-canvas-actions-popover",
           renderSize === "small" && "vertical"
         )}
       >

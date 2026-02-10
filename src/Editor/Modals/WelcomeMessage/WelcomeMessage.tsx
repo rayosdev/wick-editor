@@ -17,10 +17,11 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React from "react";
+import React, { type ComponentProps } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Modal from "react-modal";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
+import type { WickProject } from "Editor/types";
 
 import "./_welcomemessage.scss";
 
@@ -36,7 +37,7 @@ interface WelcomeModalProps {
   toggle: () => void;
   editorVersion: string;
   isMobile?: boolean;
-  project: any;
+  project: WickProject;
 }
 
 const WelcomeModal: React.FC<WelcomeModalProps> = ({
@@ -45,6 +46,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
   editorVersion,
   isMobile
 }) => {
+  type ModalProps = ComponentProps<typeof Modal>;
   const forumPost =
     "https://forum.wickeditor.com/t/help-needed-wick-editor-version-1-18-new-fill-bucket-outliner-tool-mobile-improvements/3314";
   const updates = [
@@ -117,7 +119,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
     );
   };
 
-  const renderMobileModal = (modalProps: any): JSX.Element => {
+  const renderMobileModal = (modalProps: ModalProps): JSX.Element => {
     return (
       <Modal {...modalProps} className="modal-body welcome-modal-mobile-body">
         <div className="welcome-modal-mobile-image-container">
@@ -154,7 +156,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
     );
   };
 
-  const renderDesktopModal = (modalProps: any): JSX.Element => {
+  const renderDesktopModal = (modalProps: ModalProps): JSX.Element => {
     return (
       <Modal {...modalProps} className="modal-body welcome-modal-body">
         <div id="welcome-modal-interior-content">
@@ -218,7 +220,6 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
 
   const modalProps = {
     isOpen: open,
-    toggle: toggle,
     onRequestClose: toggle,
     overlayClassName: "modal-overlay welcome-modal-overlay",
   };

@@ -5,7 +5,7 @@ import * as path from 'path';
 test.describe('UI Project Loading Test', () => {
   test('load timeline-script.wick project and verify UI updates @headed', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3002');
+    await page.goto('/');
 
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

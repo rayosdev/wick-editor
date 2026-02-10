@@ -15,11 +15,40 @@ interface EditorActions {
   [key: string]: EditorAction;
 }
 
+interface ActionMapEditor {
+  flipSelectedHorizontal: (...args: unknown[]) => void;
+  flipSelectedVertical: (...args: unknown[]) => void;
+  sendSelectionToBack: (...args: unknown[]) => void;
+  sendSelectionToFront: (...args: unknown[]) => void;
+  moveSelectionBackwards: (...args: unknown[]) => void;
+  moveSelectionForwards: (...args: unknown[]) => void;
+  booleanUnite: (...args: unknown[]) => void;
+  booleanSubtract: (...args: unknown[]) => void;
+  booleanIntersect: (...args: unknown[]) => void;
+  createGroupFromSelection: (...args: unknown[]) => void;
+  toggleCodeEditor: (...args: unknown[]) => void;
+  focusTimelineOfSelectedObject: (...args: unknown[]) => void;
+  breakApartSelection: (...args: unknown[]) => void;
+  addTweenToSelection: (...args: unknown[]) => void;
+  beginMakeAnimatedProcess: (...args: unknown[]) => void;
+  beginMakeInteractiveProcess: (...args: unknown[]) => void;
+  focusTimelineOfParentClip: (...args: unknown[]) => void;
+  undoAction: (...args: unknown[]) => void;
+  redoAction: (...args: unknown[]) => void;
+  copySelectionToClipboard: (...args: unknown[]) => void;
+  pasteFromClipboard: (...args: unknown[]) => void;
+  deleteSelectedObjects: (...args: unknown[]) => void;
+  toggleCanvasActions: (...args: unknown[]) => void;
+  createButtonFromSelection: (...args: unknown[]) => void;
+  createClipFromSelection: (...args: unknown[]) => void;
+  createInstanceOfSelectedAsset: (...args: unknown[]) => void;
+}
+
 class ActionMapInterface extends Object {
-  private editor: any;
+  private editor: ActionMapEditor;
   public editorActions: EditorActions = {};
 
-  constructor(editor: any) {
+  constructor(editor: ActionMapEditor) {
     super();
     this.editor = editor;
 

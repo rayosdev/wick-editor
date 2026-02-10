@@ -72,6 +72,10 @@ Wick.Project = class extends Wick.Base {
         this._currentKey = null;
 
         this._tickIntervalID = null;
+        this._tickAnimationFrameID = null;
+        this._tickAccumulatorMs = 0;
+        this._lastTickTimestampMs = null;
+        this._injectResizeHandler = null;
 
         this._hideCursor = false;
         this._muted = false;
@@ -154,7 +158,14 @@ Wick.Project = class extends Wick.Base {
      * TODO: Remove all elements created by this project.
      */
     destroy () {
-        this.guiElement.removeAllEventListeners();
+        if (this._injectResizeHandler) {
+            window.removeEventListener('resize', this._injectResizeHandler);
+            this._injectResizeHandler = null;
+        }
+
+        if (this.guiElement && typeof this.guiElement.removeAllEventListeners === 'function') {
+            this.guiElement.removeAllEventListeners();
+        }
     }
 
     _deserialize (data) {
@@ -1487,7 +1498,7 @@ Wick.Project = class extends Wick.Base {
         this._playing = true;
         this.view.paper.view.autoUpdate = false;
 
-        if (this._tickIntervalID) {
+        if (this._tickIntervalID || this._tickAnimationFrameID !== null) {
             this.stop();
         }
 
@@ -1497,8 +1508,7 @@ Wick.Project = class extends Wick.Base {
 
         this.selection.clear();
 
-        // Start tick loop
-        this._tickIntervalID = setInterval(() => {
+        const runTick = () => {
             args.onBeforeTick();
 
             this.tools.interact.determineMouseTargets();
@@ -1512,13 +1522,65 @@ Wick.Project = class extends Wick.Base {
 
             if(error) {
                 this.stop();
-                return;
+                return true;
             }
 
             // console.time('afterTick');
             args.onAfterTick();
             // console.timeEnd('afterTick');
-        }, 1000 / this.framerate);
+            return false;
+        };
+
+        const stepMs = 1000 / this.framerate;
+        this._tickAccumulatorMs = 0;
+        this._lastTickTimestampMs = null;
+
+        // Prefer requestAnimationFrame for smoother playback while preserving fixed-step logic.
+        if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+            const maxCatchUpTicks = 5;
+
+            const animate = (timestampMs) => {
+                if (!this._playing) return;
+
+                if (this._lastTickTimestampMs === null) {
+                    this._lastTickTimestampMs = timestampMs;
+                }
+
+                let deltaMs = timestampMs - this._lastTickTimestampMs;
+                if (!Number.isFinite(deltaMs) || deltaMs < 0) {
+                    deltaMs = 0;
+                }
+                if (deltaMs > stepMs * maxCatchUpTicks) {
+                    deltaMs = stepMs * maxCatchUpTicks;
+                }
+
+                this._lastTickTimestampMs = timestampMs;
+                this._tickAccumulatorMs += deltaMs;
+
+                let ticksProcessed = 0;
+                while (this._tickAccumulatorMs >= stepMs && ticksProcessed < maxCatchUpTicks) {
+                    if (runTick()) {
+                        return;
+                    }
+                    this._tickAccumulatorMs -= stepMs;
+                    ticksProcessed++;
+                }
+
+                if (ticksProcessed === maxCatchUpTicks) {
+                    // Avoid spiral-of-death when rendering can't keep up.
+                    this._tickAccumulatorMs = 0;
+                }
+
+                this._tickAnimationFrameID = window.requestAnimationFrame(animate);
+            };
+
+            this._tickAnimationFrameID = window.requestAnimationFrame(animate);
+        } else {
+            // Fallback for very old environments without rAF.
+            this._tickIntervalID = setInterval(() => {
+                runTick();
+            }, stepMs);
+        }
     }
 
     /**
@@ -1577,6 +1639,15 @@ Wick.Project = class extends Wick.Base {
 
         this.stopAllSounds();
 
+        if (this._tickAnimationFrameID !== null &&
+            typeof window !== 'undefined' &&
+            typeof window.cancelAnimationFrame === 'function') {
+            window.cancelAnimationFrame(this._tickAnimationFrameID);
+        }
+        this._tickAnimationFrameID = null;
+        this._tickAccumulatorMs = 0;
+        this._lastTickTimestampMs = null;
+
         clearInterval(this._tickIntervalID);
         this._tickIntervalID = null;
 
@@ -1619,9 +1690,15 @@ Wick.Project = class extends Wick.Base {
         this.view.fitMode = 'fill';
         this.view.canvasBGColor = this.backgroundColor.hex;
 
-        window.onresize = function() {
-            project.view.resize();
+        if (this._injectResizeHandler) {
+            window.removeEventListener('resize', this._injectResizeHandler);
         }
+
+        this._injectResizeHandler = () => {
+            this.view.resize();
+        };
+        window.addEventListener('resize', this._injectResizeHandler);
+
         this.view.resize();
         this.view.prerender();
 

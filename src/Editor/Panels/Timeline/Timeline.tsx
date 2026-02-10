@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useRef, useEffect, type ComponentType } from "react";
+import { useRef, useEffect, useState, type ComponentType } from "react";
 import {
     DropTarget,
     type ConnectDropTarget,
@@ -32,6 +32,8 @@ import type {
     TimelineObject,
     OnionSkinOptions,
 } from "Editor/types";
+import ActionButton from "Editor/Util/ActionButton/ActionButton";
+import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 
 import "./_timeline.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -53,16 +55,70 @@ import iconGapFillMenuExtendFrames from "resources/timeline-icons/gapFillMenuExt
 import iconGapFillBlankFrames from "resources/timeline-icons/gapFillBlankFrames.png";
 import iconGapFillExtendFrames from "resources/timeline-icons/gapFillExtendFrames.png";
 
+type TimelineFrameLike = {
+    contentful?: boolean;
+};
+
+type TimelineLayerLike = {
+    getFrameAtPlayheadPosition?: (playheadPosition: number) => TimelineFrameLike | null;
+    activate?: () => void;
+};
+
+type TimelineActiveLike = {
+    layers: TimelineLayerLike[];
+    activeLayerIndex: number;
+    playheadPosition: number;
+};
+
+type TimelineSelectionLike = {
+    clear: () => void;
+    select: (object: TimelineFrameLike) => void;
+    getSelectedObjects?: (type?: string) => unknown[];
+};
+
+type TimelineGuiLike = {
+    onProjectModified?: (callback: () => void) => void;
+    onProjectSoftModified?: (callback: () => void) => void;
+    canvasContainer?: HTMLDivElement | null;
+    draw?: () => void;
+    _canvas?: {
+        getBoundingClientRect?: () => DOMRect;
+    };
+    scrollX?: number;
+    scrollY?: number;
+};
+
+type TimelineProject = {
+    focus?: {
+        isRoot?: boolean;
+        identifier?: string | null;
+    };
+    framerate?: number;
+    view?: {
+        render?: () => void;
+    };
+    guiElement?: TimelineGuiLike;
+    activeTimeline?: TimelineActiveLike;
+    selection?: TimelineSelectionLike;
+};
+
 interface TimelineOwnProps {
-    project: any;
+    project: TimelineProject | null;
     projectDidChange: (options: { actionName: string;[key: string]: unknown }) => void;
     projectData: WickProject;
     getSelectedTimelineObjects: () => TimelineObject[];
     setOnionSkinOptions: (options: OnionSkinOptions) => void;
     getOnionSkinOptions: () => OnionSkinOptions;
     setFocusObject: (object: WickClip | WickProject) => void;
-    addTweenKeyframe: (frame: number) => void;
-    onRef?: (instance: any) => void;
+    addTweenKeyframe: () => void;
+    createTween: () => void;
+    cutFrame: () => void;
+    insertBlankFrame: () => void;
+    deleteSelectedObjects: () => void;
+    movePlayheadForwards: () => void;
+    movePlayheadBackwards: () => void;
+    focusTimelineOfParentClip: () => void;
+    onRef?: (instance: unknown) => void;
     dragSoundOntoTimeline: (uuid: string, x: number, y: number, commit: boolean) => void;
 }
 
@@ -77,16 +133,61 @@ type DraggedSoundItem = {
     uuid: string;
 };
 
-declare global {
-    interface Window {
-        Wick: any;
-    }
-}
+type TimelineContextMenuPosition = {
+    x: number;
+    y: number;
+};
+
+type TimelineContextMenuItem = {
+    id: string;
+    label: string;
+    icon?: string;
+    glyph?: string;
+    action: () => void;
+    disabled?: boolean;
+};
+
+type TimelineContextTargetArea = "frame" | "layer" | "numberLine" | "unknown";
+
+type TimelineContextTarget = {
+    area: TimelineContextTargetArea;
+    layerIndex: number | null;
+    playheadPosition: number | null;
+    frame: TimelineFrameLike | null;
+    label: string;
+};
 
 const Timeline: React.FC<TimelineProps> = (props) => {
-    const canvasContainer = useRef<HTMLDivElement>(null);
-    const currentAttachedProject = useRef<any>(null);
+    const LONG_PRESS_MS = 450;
+    const LONG_PRESS_CANCEL_DISTANCE_PX = 12;
+    const CONTEXT_MENU_WIDTH_PX = 220;
+    const CONTEXT_MENU_HEIGHT_PX = 320;
+    const CONTEXT_MENU_MARGIN_PX = 8;
 
+    const canvasContainer = useRef<HTMLDivElement>(null);
+    const currentAttachedProject = useRef<TimelineProject | null>(null);
+    const contextMenuRef = useRef<HTMLDivElement>(null);
+    const longPressTimerRef = useRef<number | null>(null);
+    const longPressStartRef = useRef<{ x: number; y: number } | null>(null);
+    const longPressTriggeredRef = useRef(false);
+    const [playheadRenderTick, setPlayheadRenderTick] = useState(0);
+    const [contextMenuPosition, setContextMenuPosition] = useState<TimelineContextMenuPosition | null>(null);
+    const [contextMenuTarget, setContextMenuTarget] = useState<TimelineContextTarget | null>(null);
+
+    const focus = props.project?.focus;
+    const isNestedTimeline = Boolean(focus && !focus.isRoot);
+    const focusLabel =
+        typeof focus?.identifier === "string" && focus.identifier.trim().length > 0
+            ? focus.identifier
+            : isNestedTimeline
+                ? "Nested Clip"
+                : "Scene 1";
+    const playheadPosition = Number(props.project?.activeTimeline?.playheadPosition ?? 1);
+    const frameRate = Number(props.project?.framerate ?? 0);
+    const timelineMeta =
+        frameRate > 0
+            ? `Frame ${playheadPosition} | ${frameRate.toFixed(1)} fps`
+            : `Frame ${playheadPosition}`;
     const initializeIcons = (): void => {
         const Icons = window?.Wick?.GUIElement?.Icons;
 
@@ -118,7 +219,7 @@ const Timeline: React.FC<TimelineProps> = (props) => {
 
     const onProjectSoftModified = (): void => {
         if (props.project && props.project.view) {
-            props.project.view.render();
+            props.project.view.render?.();
         }
     };
 
@@ -183,10 +284,590 @@ const Timeline: React.FC<TimelineProps> = (props) => {
 
     const { connectDropTarget, isOver } = props;
 
+    const closeContextMenu = (): void => {
+        setContextMenuPosition(null);
+        setContextMenuTarget(null);
+    };
+
+    const clearLongPressTimer = (): void => {
+        if (longPressTimerRef.current !== null) {
+            window.clearTimeout(longPressTimerRef.current);
+            longPressTimerRef.current = null;
+        }
+    };
+
+    const clearLongPressState = (): void => {
+        clearLongPressTimer();
+        longPressStartRef.current = null;
+    };
+
+    const clampContextMenuPosition = (
+        clientX: number,
+        clientY: number
+    ): TimelineContextMenuPosition => {
+        if (typeof window === "undefined") {
+            return { x: clientX, y: clientY };
+        }
+
+        const maxX = Math.max(
+            CONTEXT_MENU_MARGIN_PX,
+            window.innerWidth - CONTEXT_MENU_WIDTH_PX - CONTEXT_MENU_MARGIN_PX
+        );
+        const maxY = Math.max(
+            CONTEXT_MENU_MARGIN_PX,
+            window.innerHeight - CONTEXT_MENU_HEIGHT_PX - CONTEXT_MENU_MARGIN_PX
+        );
+
+        return {
+            x: Math.min(Math.max(CONTEXT_MENU_MARGIN_PX, clientX), maxX),
+            y: Math.min(Math.max(CONTEXT_MENU_MARGIN_PX, clientY), maxY),
+        };
+    };
+
+    const resolveContextTarget = (
+        clientX: number,
+        clientY: number
+    ): TimelineContextTarget => {
+        const defaultTarget: TimelineContextTarget = {
+            area: "unknown",
+            layerIndex: null,
+            playheadPosition: null,
+            frame: null,
+            label: "Current Selection",
+        };
+
+        const projectGUI = props.project?.guiElement;
+        const activeTimeline = props.project?.activeTimeline;
+        const rect = projectGUI?._canvas?.getBoundingClientRect?.();
+
+        if (!projectGUI || !activeTimeline || !rect) {
+            return defaultTarget;
+        }
+
+        const guiElement = window?.Wick?.GUIElement;
+        const gridCellWidth = Number(guiElement?.GRID_DEFAULT_CELL_WIDTH ?? 38);
+        const gridCellHeight = Number(guiElement?.GRID_DEFAULT_CELL_HEIGHT ?? 42);
+        const layersWidth = Number(guiElement?.LAYERS_CONTAINER_WIDTH ?? 160);
+        const breadcrumbsHeight = Number(guiElement?.BREADCRUMBS_HEIGHT ?? 30);
+        const numberLineHeight = Number(guiElement?.NUMBER_LINE_HEIGHT ?? 35);
+        const scrollX = Number(projectGUI.scrollX ?? 0);
+        const scrollY = Number(projectGUI.scrollY ?? 0);
+
+        const canvasX = clientX - rect.left;
+        const canvasY = clientY - rect.top;
+        const timelineRowsY = canvasY - breadcrumbsHeight - numberLineHeight + scrollY;
+
+        let area: TimelineContextTargetArea = "unknown";
+        let layerIndex: number | null = null;
+        let playheadPosition: number | null = null;
+
+        const inNumberLine =
+            canvasY >= breadcrumbsHeight &&
+            canvasY < breadcrumbsHeight + numberLineHeight &&
+            canvasX >= layersWidth;
+
+        const inTimelineRows = canvasY >= breadcrumbsHeight + numberLineHeight;
+
+        if (inNumberLine) {
+            area = "numberLine";
+            playheadPosition = Math.max(
+                1,
+                Math.floor((canvasX - layersWidth + scrollX) / gridCellWidth) + 1
+            );
+        } else if (inTimelineRows) {
+            const candidateRow = Math.floor(timelineRowsY / gridCellHeight);
+            if (candidateRow >= 0 && candidateRow < activeTimeline.layers.length) {
+                layerIndex = candidateRow;
+            }
+
+            if (canvasX < layersWidth) {
+                area = "layer";
+            } else {
+                area = "frame";
+                playheadPosition = Math.max(
+                    1,
+                    Math.floor((canvasX - layersWidth + scrollX) / gridCellWidth) + 1
+                );
+            }
+        }
+
+        const resolvedLayerIndex =
+            layerIndex !== null ? layerIndex : Number(activeTimeline.activeLayerIndex ?? 0);
+        const resolvedLayer = activeTimeline.layers?.[resolvedLayerIndex];
+        const frameAtTarget =
+            playheadPosition !== null &&
+            resolvedLayer &&
+            typeof resolvedLayer.getFrameAtPlayheadPosition === "function"
+                ? resolvedLayer.getFrameAtPlayheadPosition(playheadPosition)
+                : null;
+
+        const labelParts: string[] = [];
+        if (layerIndex !== null) {
+            labelParts.push(`Layer ${layerIndex + 1}`);
+        }
+        if (playheadPosition !== null) {
+            labelParts.push(`Frame ${playheadPosition}`);
+        }
+
+        return {
+            area,
+            layerIndex,
+            playheadPosition,
+            frame: frameAtTarget,
+            label: labelParts.length > 0 ? labelParts.join(" | ") : "Current Selection",
+        };
+    };
+
+    const applyContextTarget = (
+        target: TimelineContextTarget | null,
+        options: {
+            selectFrame?: boolean;
+            clearSelectionWithoutFrame?: boolean;
+        } = {}
+    ): void => {
+        if (!target || !props.project?.activeTimeline) {
+            return;
+        }
+
+        const activeTimeline = props.project.activeTimeline;
+        const selection = props.project.selection;
+        let didSoftUpdate = false;
+
+        if (
+            typeof target.playheadPosition === "number" &&
+            activeTimeline.playheadPosition !== target.playheadPosition
+        ) {
+            activeTimeline.playheadPosition = target.playheadPosition;
+            didSoftUpdate = true;
+        }
+
+        if (
+            typeof target.layerIndex === "number" &&
+            activeTimeline.activeLayerIndex !== target.layerIndex
+        ) {
+            activeTimeline.activeLayerIndex = target.layerIndex;
+            didSoftUpdate = true;
+        }
+
+        const activeLayer = activeTimeline.layers?.[activeTimeline.activeLayerIndex];
+        const frameAtTarget =
+            typeof target.playheadPosition === "number" &&
+            activeLayer &&
+            typeof activeLayer.getFrameAtPlayheadPosition === "function"
+                ? activeLayer.getFrameAtPlayheadPosition(target.playheadPosition)
+                : null;
+
+        if (options.selectFrame) {
+            if (frameAtTarget && selection) {
+                const selectedFrames = selection.getSelectedObjects?.("Frame") ?? [];
+                const frameAlreadySelected =
+                    selectedFrames.length === 1 && selectedFrames[0] === frameAtTarget;
+
+                if (!frameAlreadySelected) {
+                    selection.clear();
+                    selection.select(frameAtTarget);
+                    activeLayer?.activate?.();
+                    didSoftUpdate = true;
+                }
+            } else if (options.clearSelectionWithoutFrame && selection) {
+                const selectedTimelineObjects =
+                    selection.getSelectedObjects?.("Timeline") ?? [];
+                if (selectedTimelineObjects.length > 0) {
+                    selection.clear();
+                    didSoftUpdate = true;
+                }
+            }
+        }
+
+        if (didSoftUpdate) {
+            props.project.view?.render?.();
+            props.project.guiElement?.draw?.();
+            setPlayheadRenderTick((tick) => tick + 1);
+        }
+    };
+
+    const openContextMenu = (clientX: number, clientY: number): void => {
+        setContextMenuTarget(resolveContextTarget(clientX, clientY));
+        setContextMenuPosition(clampContextMenuPosition(clientX, clientY));
+    };
+
+    const runMenuAction = (action: () => void): void => {
+        action();
+        closeContextMenu();
+    };
+
+    const stepPlayheadBackwards = (): void => {
+        props.movePlayheadBackwards();
+        setPlayheadRenderTick((tick) => tick + 1);
+    };
+
+    const stepPlayheadForwards = (): void => {
+        props.movePlayheadForwards();
+        setPlayheadRenderTick((tick) => tick + 1);
+    };
+
+    const focusParentTimeline = (): void => {
+        props.focusTimelineOfParentClip();
+        setPlayheadRenderTick((tick) => tick + 1);
+    };
+
+    const runContextualFrameAction = (
+        action: () => void,
+        options: {
+            selectFrame?: boolean;
+            clearSelectionWithoutFrame?: boolean;
+        } = {}
+    ): void => {
+        applyContextTarget(contextMenuTarget, options);
+        action();
+    };
+
+    const hasTargetFrame = Boolean(contextMenuTarget?.frame);
+    const canCreateTweenAtTarget = Boolean(contextMenuTarget?.frame?.contentful);
+    const canMovePlayheadToTarget =
+        contextMenuTarget?.playheadPosition !== null &&
+        typeof contextMenuTarget?.playheadPosition === "number";
+
+    const timelineContextMenuItems: TimelineContextMenuItem[] = [
+        {
+            id: "set-playhead-here",
+            label: "Set Playhead Here",
+            icon: "timeline",
+            action: () => applyContextTarget(contextMenuTarget),
+            disabled: !canMovePlayheadToTarget,
+        },
+        {
+            id: "previous-frame",
+            label: "Previous Frame",
+            glyph: "<",
+            action: stepPlayheadBackwards,
+        },
+        {
+            id: "next-frame",
+            label: "Next Frame",
+            glyph: ">",
+            action: stepPlayheadForwards,
+        },
+        {
+            id: "insert-keyframe",
+            label: "Insert Keyframe",
+            icon: "split",
+            action: () =>
+                runContextualFrameAction(props.cutFrame, {
+                    selectFrame: true,
+                    clearSelectionWithoutFrame: true,
+                }),
+            disabled: !hasTargetFrame,
+        },
+        {
+            id: "insert-blank-keyframe",
+            label: "Insert Blank Keyframe",
+            icon: "create",
+            action: () => runContextualFrameAction(props.insertBlankFrame),
+        },
+        {
+            id: "add-tween-keyframe",
+            label: "Add Tween Keyframe",
+            icon: "layerTween",
+            action: () => runContextualFrameAction(props.addTweenKeyframe),
+            disabled: !hasTargetFrame,
+        },
+        {
+            id: "create-tween",
+            label: "Create Tween",
+            icon: "tween",
+            action: () =>
+                runContextualFrameAction(props.createTween, {
+                    selectFrame: true,
+                    clearSelectionWithoutFrame: true,
+                }),
+            disabled: !canCreateTweenAtTarget,
+        },
+        {
+            id: "delete-selection",
+            label: "Delete Selected",
+            icon: "delete",
+            action: () =>
+                runContextualFrameAction(props.deleteSelectedObjects, {
+                    selectFrame: true,
+                    clearSelectionWithoutFrame: true,
+                }),
+            disabled: !hasTargetFrame,
+        },
+    ];
+
+    if (isNestedTimeline) {
+        timelineContextMenuItems.unshift({
+            id: "focus-parent",
+            label: "Back to Parent Timeline",
+            icon: "leaveUp",
+            action: focusParentTimeline,
+        });
+    }
+
+    const handleTimelineContextMenu = (
+        event: React.MouseEvent<HTMLDivElement>
+    ): void => {
+        event.preventDefault();
+        openContextMenu(event.clientX, event.clientY);
+    };
+
+    const handleTimelineTouchStart = (
+        event: React.TouchEvent<HTMLDivElement>
+    ): void => {
+        if (event.touches.length !== 1) {
+            clearLongPressState();
+            return;
+        }
+
+        const touch = event.touches.item(0);
+        if (!touch) {
+            clearLongPressState();
+            return;
+        }
+        const touchX = touch.clientX;
+        const touchY = touch.clientY;
+        longPressTriggeredRef.current = false;
+        longPressStartRef.current = {
+            x: touchX,
+            y: touchY,
+        };
+        clearLongPressTimer();
+
+        longPressTimerRef.current = window.setTimeout(() => {
+            longPressTimerRef.current = null;
+            longPressTriggeredRef.current = true;
+            openContextMenu(touchX, touchY);
+        }, LONG_PRESS_MS);
+    };
+
+    const handleTimelineTouchMove = (
+        event: React.TouchEvent<HTMLDivElement>
+    ): void => {
+        if (!longPressStartRef.current || event.touches.length !== 1) {
+            clearLongPressState();
+            return;
+        }
+
+        const touch = event.touches.item(0);
+        if (!touch) {
+            clearLongPressState();
+            return;
+        }
+        const deltaX = Math.abs(touch.clientX - longPressStartRef.current.x);
+        const deltaY = Math.abs(touch.clientY - longPressStartRef.current.y);
+
+        if (
+            deltaX > LONG_PRESS_CANCEL_DISTANCE_PX ||
+            deltaY > LONG_PRESS_CANCEL_DISTANCE_PX
+        ) {
+            clearLongPressState();
+        }
+    };
+
+    const handleTimelineTouchEnd = (
+        event: React.TouchEvent<HTMLDivElement>
+    ): void => {
+        if (longPressTriggeredRef.current) {
+            event.preventDefault();
+            longPressTriggeredRef.current = false;
+        }
+
+        clearLongPressState();
+    };
+
+    const handleTimelineTouchCancel = (): void => {
+        longPressTriggeredRef.current = false;
+        clearLongPressState();
+    };
+
+    useEffect(() => {
+        return () => {
+            clearLongPressState();
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!contextMenuPosition) {
+            return;
+        }
+
+        const closeOnOutsideInteraction = (event: MouseEvent | TouchEvent) => {
+            const menuElem = contextMenuRef.current;
+            if (!menuElem) {
+                closeContextMenu();
+                return;
+            }
+
+            const target = event.target as Node | null;
+            if (target && menuElem.contains(target)) {
+                return;
+            }
+
+            closeContextMenu();
+        };
+
+        const closeOnEscape = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                closeContextMenu();
+            }
+        };
+
+        window.addEventListener("mousedown", closeOnOutsideInteraction, true);
+        window.addEventListener("touchstart", closeOnOutsideInteraction, true);
+        window.addEventListener("keydown", closeOnEscape, true);
+
+        return () => {
+            window.removeEventListener("mousedown", closeOnOutsideInteraction, true);
+            window.removeEventListener("touchstart", closeOnOutsideInteraction, true);
+            window.removeEventListener("keydown", closeOnEscape, true);
+        };
+    }, [contextMenuPosition]);
+
     const timeline = (
         <div id="animation-timeline-container" aria-label="Timeline">
             {isOver && <div className="drag-drop-overlay" />}
-            <div id="animation-timeline" ref={canvasContainer} />
+            <div className="timeline-flash-shell" data-playhead-render-tick={playheadRenderTick}>
+                <div className="timeline-flash-header">
+                    <div className="timeline-flash-breadcrumb">
+                        {isNestedTimeline && (
+                            <ActionButton
+                                id="timeline-focus-parent"
+                                icon="leaveUp"
+                                color="tool"
+                                tooltip="Back to Parent Timeline"
+                                tooltipPlace="top"
+                                className="timeline-flash-action-button timeline-flash-back-button"
+                                action={focusParentTimeline}
+                            />
+                        )}
+                        <span className="timeline-flash-scene-label">Scene</span>
+                        <span className="timeline-flash-scene-name">{focusLabel}</span>
+                    </div>
+                    <div className="timeline-flash-meta">{timelineMeta}</div>
+                </div>
+
+                <div className="timeline-flash-actions" role="toolbar" aria-label="Timeline Actions">
+                    <ActionButton
+                        id="timeline-step-backward"
+                        text="<"
+                        color="tool"
+                        tooltip="Previous Frame"
+                        tooltipPlace="top"
+                        className="timeline-flash-action-button timeline-flash-text-action"
+                        action={stepPlayheadBackwards}
+                    />
+                    <ActionButton
+                        id="timeline-step-forward"
+                        text=">"
+                        color="tool"
+                        tooltip="Next Frame"
+                        tooltipPlace="top"
+                        className="timeline-flash-action-button timeline-flash-text-action"
+                        action={stepPlayheadForwards}
+                    />
+                    <ActionButton
+                        id="timeline-insert-keyframe"
+                        icon="split"
+                        color="tool"
+                        tooltip="Insert Keyframe"
+                        tooltipPlace="top"
+                        className="timeline-flash-action-button"
+                        action={props.cutFrame}
+                    />
+                    <ActionButton
+                        id="timeline-insert-blank-keyframe"
+                        icon="create"
+                        color="tool"
+                        tooltip="Insert Blank Keyframe"
+                        tooltipPlace="top"
+                        className="timeline-flash-action-button"
+                        action={props.insertBlankFrame}
+                    />
+                    <ActionButton
+                        id="timeline-add-tween-keyframe"
+                        icon="layerTween"
+                        color="tool"
+                        tooltip="Add Tween Keyframe"
+                        tooltipPlace="top"
+                        className="timeline-flash-action-button"
+                        action={props.addTweenKeyframe}
+                    />
+                    <ActionButton
+                        id="timeline-create-tween"
+                        icon="tween"
+                        color="tool"
+                        tooltip="Create Tween"
+                        tooltipPlace="top"
+                        className="timeline-flash-action-button"
+                        action={props.createTween}
+                    />
+                    <ActionButton
+                        id="timeline-delete-selection"
+                        icon="delete"
+                        color="tool"
+                        tooltip="Delete Selected Frames/Objects"
+                        tooltipPlace="top"
+                        className="timeline-flash-action-button"
+                        action={props.deleteSelectedObjects}
+                    />
+                </div>
+
+                <div
+                    id="animation-timeline"
+                    ref={canvasContainer}
+                    onContextMenu={handleTimelineContextMenu}
+                    onTouchStart={handleTimelineTouchStart}
+                    onTouchMove={handleTimelineTouchMove}
+                    onTouchEnd={handleTimelineTouchEnd}
+                    onTouchCancel={handleTimelineTouchCancel}
+                    aria-label="Animation timeline grid"
+                />
+
+                {contextMenuPosition && (
+                    <div
+                        ref={contextMenuRef}
+                        className="timeline-context-menu"
+                        role="menu"
+                        aria-label="Timeline frame actions"
+                        style={{
+                            left: `${contextMenuPosition.x}px`,
+                            top: `${contextMenuPosition.y}px`,
+                        }}
+                    >
+                        <div className="timeline-context-menu-target">
+                            {contextMenuTarget?.label ?? "Current Selection"}
+                        </div>
+                        {timelineContextMenuItems.map((item) => (
+                            <button
+                                key={item.id}
+                                type="button"
+                                className="timeline-context-menu-item"
+                                role="menuitem"
+                                onClick={() => runMenuAction(item.action)}
+                                disabled={item.disabled}
+                            >
+                                {item.icon ? (
+                                    <ToolIcon
+                                        className="timeline-context-menu-item-icon"
+                                        name={item.icon}
+                                    />
+                                ) : (
+                                    <span className="timeline-context-menu-item-glyph">
+                                        {item.glyph}
+                                    </span>
+                                )}
+                                <span className="timeline-context-menu-item-label">
+                                    {item.label}
+                                </span>
+                            </button>
+                        ))}
+                        <div className="timeline-context-menu-hint">
+                            Context actions for selected timeline location
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 

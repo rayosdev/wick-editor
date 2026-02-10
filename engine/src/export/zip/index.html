@@ -1,6 +1,3 @@
-</body>
-</html>
-
 <!DOCTYPE html>
 <html>
   <head>
@@ -10,9 +7,22 @@
 
   <body>
     <script>
+        const showFatalError = (message) => {
+            const loadingBar = document.getElementById('loading-bar');
+            if (loadingBar) loadingBar.textContent = message;
+            console.error(message);
+        };
+
+        const removePreloader = () => {
+            const preloader = document.getElementById('preloader');
+            if (!preloader) return;
+            preloader.style.display = 'none';
+            preloader.remove();
+        };
+
         window.addEventListener('load', function() {
             // Download engine
-            fetch('wickengine.js')
+            fetch('wickplayer.js')
                 .then(resp => resp.text())
                 .then(text => {
                     // Inject engine
@@ -25,22 +35,29 @@
                     fetch('project.wick')
                         .then(resp => resp.blob())
                         .then(blob => {
-                            // Hide preloader
-                            document.getElementById('preloader').style.display = 'none';
-                            document.getElementById('preloader').remove();
-                            // Run project
-                            Wick.WickFile.fromWickFile(blob, project => {
-                                project.inject(document.getElementById('wick-canvas-container'));
+                            Wick.WickFile.fromWickFile(blob, (project) => {
+                                if (!project || typeof project.inject !== 'function') {
+                                    showFatalError('Could not load project.wick.');
+                                    return;
+                                }
+
+                                try {
+                                    project.inject(document.getElementById('wick-canvas-container'));
+                                    removePreloader();
+                                } catch (e) {
+                                    console.error('Could not start Wick project.', e);
+                                    showFatalError('Could not start Wick project.');
+                                }
                             });
                         })
                         .catch((e) => {
-                            console.error('Could not download Wick project.')
-                            console.error(e);
+                            console.error('Could not download Wick project.', e);
+                            showFatalError('Could not download project.wick.');
                         });
                 })
                 .catch((e) => {
-                    console.error('Could not download Wick project.')
-                    console.error(e);
+                    console.error('Could not download Wick project player.', e);
+                    showFatalError('Could not download wickplayer.js.');
                 });
         }, false);
     </script>

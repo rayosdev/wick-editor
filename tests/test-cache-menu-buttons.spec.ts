@@ -9,7 +9,7 @@ test.describe('Cache Menu Buttons', () => {
       consoleMessages.push(`${msg.type().toUpperCase()}: ${text}`);
     });
 
-    await page.goto('http://localhost:3002');
+    await page.goto('/');
     await page.waitForLoadState('networkidle');
     
     // Wait for editor to be ready

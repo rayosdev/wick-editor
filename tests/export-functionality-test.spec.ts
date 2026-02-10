@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Export Functionality Test', () => {
   test('tests export utilities functionality', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -48,7 +48,7 @@ test.describe('Export Functionality Test', () => {
   
   test('tests HTML export functionality', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -91,7 +91,7 @@ test.describe('Export Functionality Test', () => {
   
   test('tests ZIP export functionality', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -134,7 +134,7 @@ test.describe('Export Functionality Test', () => {
   
   test('tests asset functionality after export conversion', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -202,7 +202,7 @@ test.describe('Export Functionality Test', () => {
   
   test('tests drawing and selection after export conversion', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

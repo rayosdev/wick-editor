@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Dexie Storage Test', () => {
   test('verify Dexie storage is working for cache save/load', async ({ page }) => {
     // Navigate to editor
-    await page.goto('http://localhost:3002');
+    await page.goto('/');
     await page.waitForLoadState('networkidle');
     await page.waitForFunction(() => window.Wick && window.Wick.Project && window.editor);
     

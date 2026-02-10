@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('SVG isPublished Error Test', () => {
   test('reproduces the isPublished error with SVG upload', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -35,11 +35,15 @@ test.describe('SVG isPublished Error Test', () => {
       stack?: string;
     } = await page.evaluate(() => {
       try {
+        const dataUri = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIzIiBmaWxsPSJyZWQiIC8+Cjwvc3ZnPg==';
+
         // Create an SVG asset
         const svgAsset = new window.Wick.SVGAsset({
           filename: 'test.svg',
-          src: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIzIiBmaWxsPSJyZWQiIC8+Cjwvc3ZnPg=='
         });
+        // FileAsset constructor stores args.src in a private field; assigning
+        // through the public setter populates FileCache, which SVG import reads from.
+        svgAsset.src = dataUri;
         
         // Test the createInstance method that causes the error
         return new Promise<{
@@ -106,7 +110,7 @@ test.describe('SVG isPublished Error Test', () => {
   
   test('tests SVG processing with Paper.js items', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

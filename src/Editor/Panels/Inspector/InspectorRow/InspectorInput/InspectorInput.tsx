@@ -23,9 +23,11 @@ import '../_inspectorrow.scss';
 
 import WickInput from 'Editor/Util/WickInput/WickInput';
 
+type WickInputProps = React.ComponentProps<typeof WickInput>;
+
 interface InspectorInputProps {
-  inputProps?: any;
-  input?: any;
+  inputProps?: Partial<WickInputProps>;
+  input?: Partial<WickInputProps>;
 }
 
 const InspectorInput: React.FC<InspectorInputProps> = ({ inputProps, input }) => {

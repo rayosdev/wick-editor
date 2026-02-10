@@ -21,25 +21,30 @@ import { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 import Asset from './Asset/Asset';
+import type {
+  AssetData,
+  CreateAssetsFn,
+  CreateImageFromAssetFn,
+} from './Asset/Asset';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import WickInput from 'Editor/Util/WickInput/WickInput';
 import ToolIcon from 'Editor/Util/ToolIcon/ToolIcon';
-import type { ToastType, ToastOptions, WickAsset, WickProject } from 'Editor/types';
+import type { ToastType, ToastOptions, WickProject } from 'Editor/types';
 
 import './_mobileassetlibrary.scss';
 
 interface MobileAssetLibraryProps {
-  assets: WickAsset[];
+  assets: AssetData[];
   openImportAssetFileDialog: () => void;
   openModal: (modalName: string) => void;
-  isObjectSelected: (obj: WickAsset) => boolean;
+  isObjectSelected: (obj: AssetData) => boolean;
   clearSelection: () => void;
-  selectObjects: (objects: WickAsset[]) => void;
-  createAssets: (files: FileList | File[]) => void;
+  selectObjects: (objects: AssetData[]) => void;
+  createAssets: CreateAssetsFn;
   importProjectAsWickFile: (file: File) => void;
-  createImageFromAsset: (asset: WickAsset) => void;
+  createImageFromAsset: CreateImageFromAssetFn;
   deleteSelectedObjects: () => void;
-  addSoundToActiveFrame: (sound: WickAsset) => void;
+  addSoundToActiveFrame: (sound: AssetData) => void;
   projectData?: WickProject;
   toast?: (message: string, type?: ToastType, options?: ToastOptions) => void;
 }
@@ -59,30 +64,30 @@ const MobileAssetLibrary: React.FC<MobileAssetLibraryProps> = (props) => {
     setFilterText(text);
   };
 
-  const filterArray = (array: WickAsset[]): WickAsset[] => {
+  const filterArray = (array: AssetData[]): AssetData[] => {
     const filterTextLower = filterText.toLowerCase();
     return array.filter(item => {
       return !item.isGifImage && item.name.toLowerCase().includes(filterTextLower);
     });
   };
 
-  const makeNode = (assetObject: WickAsset, i: number): JSX.Element => {
+  const makeNode = (assetObject: AssetData, i: number): JSX.Element => {
     return (
       <Asset
         key={i}
-        asset={assetObject as any}
+        asset={assetObject}
         isSelected={props.isObjectSelected(assetObject)}
         onClick={() => {
           props.clearSelection();
           props.selectObjects([assetObject]);
         }}
-        createAssets={props.createAssets as any}
+        createAssets={props.createAssets}
         importProjectAsWickFile={props.importProjectAsWickFile}
-        createImageFromAsset={props.createImageFromAsset as any}
+        createImageFromAsset={props.createImageFromAsset}
         deleteSelectedObjects={props.deleteSelectedObjects}
         clearSelection={props.clearSelection}
-        selectObjects={props.selectObjects as any}
-        addSoundToActiveFrame={props.addSoundToActiveFrame as any}
+        selectObjects={props.selectObjects}
+        addSoundToActiveFrame={props.addSoundToActiveFrame}
       />
     );
   };
@@ -92,8 +97,8 @@ const MobileAssetLibrary: React.FC<MobileAssetLibraryProps> = (props) => {
    * @param  {Wick.Asset[]} assets An array of Wick.Asset objects.
    * @return {Wick.Asset[]}        Returns a sorted array of Wick.Assets.
    */
-  const sortAssets = (assets: WickAsset[]): WickAsset[] => {
-    const copiedAssets: WickAsset[] = [].concat(assets as any);
+  const sortAssets = (assets: AssetData[]): AssetData[] => {
+    const copiedAssets: AssetData[] = [...assets];
 
     // Perform alphabetic sort.
     copiedAssets.sort((a, b) => a.name.localeCompare(b.name));

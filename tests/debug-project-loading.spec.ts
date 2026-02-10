@@ -26,7 +26,7 @@ test.describe('Debug Project Loading', () => {
       consoleMessages.push(errorMessage);
     });
 
-    await page.goto('http://localhost:3002');
+    await page.goto('/');
     await page.waitForLoadState('networkidle');
     await page.waitForFunction(() => window.Wick && window.Wick.Project && window.editor);
     console.log('✅ Page loaded and Wick engine available');

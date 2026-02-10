@@ -20,18 +20,23 @@
 import React, { useState, useEffect } from "react";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import WickInput, { SelectOption } from "Editor/Util/WickInput/WickInput";
+import type {
+  ColorPickerType,
+  ProjectSettings as ProjectSettingsType,
+  WickProject,
+} from "Editor/types";
 
 import "./_projectsettings.scss";
 
 import classNames from "classnames";
 
 interface ProjectSettingsProps {
-  project: any;
-  updateProjectSettings: (settings: any) => void;
+  project: WickProject;
+  updateProjectSettings: (settings: Partial<ProjectSettingsType>) => void;
   toggle?: () => void;
   isMobile?: boolean;
-  colorPickerType?: any;
-  changeColorPickerType?: (type: any) => void;
+  colorPickerType?: ColorPickerType;
+  changeColorPickerType?: (type: ColorPickerType) => void;
   updateLastColors?: (color: string) => void;
   lastColorsUsed?: string[];
 }
@@ -78,12 +83,31 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
     }
   };
 
+  const getProjectBackgroundColor = (): string => {
+    const color = props.project.backgroundColor;
+
+    if (typeof color === "string") {
+      return color;
+    }
+
+    if (
+      color &&
+      typeof color === "object" &&
+      "rgba" in color &&
+      typeof (color as { rgba?: unknown }).rgba === "string"
+    ) {
+      return (color as { rgba: string }).rgba;
+    }
+
+    return "#ffffff";
+  };
+
   const [name, setName] = useState<string>(props.project.name);
   const [width, setWidth] = useState<number>(props.project.width);
   const [height, setHeight] = useState<number>(props.project.height);
   const [framerate, setFramerate] = useState<number>(props.project.framerate);
   const [backgroundColor, setBackgroundColor] = useState<string>(
-    props.project.backgroundColor.rgba
+    getProjectBackgroundColor()
   );
   const [preset, setPreset] = useState<string>(
     getPreset(props.project.width, props.project.height)
@@ -95,14 +119,14 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
     setWidth(props.project.width);
     setHeight(props.project.height);
     setFramerate(props.project.framerate);
-    setBackgroundColor(props.project.backgroundColor.rgba);
+    setBackgroundColor(getProjectBackgroundColor());
     setPreset(getPreset(props.project.width, props.project.height));
   }, [
     props.project.name,
     props.project.width,
     props.project.height,
     props.project.framerate,
-    props.project.backgroundColor.rgba,
+    props.project.backgroundColor,
   ]);
 
   const reset = (): void => {
@@ -110,7 +134,7 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
     setWidth(props.project.width);
     setHeight(props.project.height);
     setFramerate(props.project.framerate);
-    setBackgroundColor(props.project.backgroundColor.rgba);
+    setBackgroundColor(getProjectBackgroundColor());
     setPreset(getPreset(props.project.width, props.project.height));
   };
 

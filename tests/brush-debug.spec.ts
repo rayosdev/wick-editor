@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Brush Debug Test', () => {
   test('debugs brush tool addPathToProject method', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the editor to load
     await page.waitForLoadState('networkidle');

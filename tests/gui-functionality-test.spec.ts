@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('GUI Functionality Test', () => {
   test('tests GUI elements availability and functionality', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -51,7 +51,7 @@ test.describe('GUI Functionality Test', () => {
   
   test('tests GUI element creation and basic functionality', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -116,7 +116,7 @@ test.describe('GUI Functionality Test', () => {
   
   test('tests GUI element methods and properties', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
@@ -185,7 +185,7 @@ test.describe('GUI Functionality Test', () => {
   
   test('tests drawing and selection after GUI conversion', async ({ page }) => {
     // Navigate to the editor
-    await page.goto('http://localhost:3004');
+    await page.goto('/');
     
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

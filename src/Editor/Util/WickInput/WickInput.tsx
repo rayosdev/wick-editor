@@ -24,6 +24,10 @@ import Select from "react-select";
 import "react-dropdown/style.css";
 
 import ColorPicker from "Editor/Util/ColorPicker/ColorPicker";
+import type {
+  PickerColorChange,
+  PickerColorValue,
+} from "Editor/Util/ColorPicker/ColorPicker";
 import ReactTooltip from "react-tooltip";
 import WickButton from "./WickButton/WickButton";
 
@@ -35,7 +39,7 @@ import classNames from "classnames";
 
 export interface SelectOption {
   label: string;
-  value: any;
+  value: unknown;
 }
 
 interface WickInputProps {
@@ -45,12 +49,19 @@ interface WickInputProps {
   tooltip?: string;
   tooltipID?: string;
   tooltipPlace?: 'top' | 'bottom' | 'left' | 'right';
-  value?: any;
-  onChange?: (value: any) => void;
+  value?: unknown;
+  onChange?: (value: unknown) => void;
   readOnly?: boolean;
   min?: number;
   max?: number;
   options?: SelectOption[];
+  color?: PickerColorValue;
+  stroke?: boolean;
+  placement?: React.ComponentProps<typeof ColorPicker>["placement"];
+  colorPickerType?: string;
+  changeColorPickerType?: (type: string) => void;
+  disableAlpha?: boolean;
+  lastColorsUsed?: string[];
   id?: string;
   name?: string;
   label?: string;
@@ -58,8 +69,8 @@ interface WickInputProps {
   updateLastColors?: (color: string) => void;
   buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
   secondaryAction?: () => void;
-  onClick?: (e?: any) => void;
-  onTouch?: (e?: any) => void;
+  onClick?: (e?: React.SyntheticEvent) => void;
+  onTouch?: (e?: React.SyntheticEvent) => void;
   [key: string]: any; // For spread props
 }
 
@@ -70,7 +81,7 @@ interface WickInputProps {
  * @param ref - Optional ref forwarded to the component
  * @returns JSX.Element
  */
-const WickInput = forwardRef<any, WickInputProps>((props, _ref) => {
+const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
   const renderTooltip = (tooltipID: string): JSX.Element => {
     // Detect if on mobile to disable tooltips.
 
@@ -177,8 +188,8 @@ const WickInput = forwardRef<any, WickInputProps>((props, _ref) => {
   };
 
   const renderColor = (): JSX.Element => {
-    const wrappedOnChange = (color: any): void => {
-      let newColor = color;
+    const wrappedOnChange = (color: PickerColorChange): void => {
+      let newColor: string | PickerColorChange = color;
 
       // TODO: Check if we can just use HEX here.
       if (color.rgb) {
@@ -187,7 +198,9 @@ const WickInput = forwardRef<any, WickInputProps>((props, _ref) => {
         newColor = str;
       }
 
-      props.updateLastColors && props.updateLastColors(newColor);
+      props.updateLastColors && props.updateLastColors(
+        typeof newColor === "string" ? newColor : String(newColor)
+      );
       props.onChange && props.onChange(newColor);
     };
 
@@ -195,7 +208,13 @@ const WickInput = forwardRef<any, WickInputProps>((props, _ref) => {
       <ColorPicker
         id={props.id || "color-picker"}
         className={classNames("wick-color-picker", props.className)}
-        {...(props as any)}
+        color={props.color}
+        stroke={props.stroke}
+        placement={props.placement}
+        colorPickerType={props.colorPickerType}
+        changeColorPickerType={props.changeColorPickerType}
+        disableAlpha={props.disableAlpha}
+        lastColorsUsed={props.lastColorsUsed}
         onChangeComplete={props.onChange ? wrappedOnChange : undefined}
       />
     );
@@ -208,7 +227,7 @@ const WickInput = forwardRef<any, WickInputProps>((props, _ref) => {
 
     if (value === undefined) {
       value = {
-        label: props.value,
+        label: String(props.value ?? ""),
         value: props.value,
       };
     }
@@ -238,7 +257,7 @@ const WickInput = forwardRef<any, WickInputProps>((props, _ref) => {
             }
             return style;
           },
-          control: (_provided: any, _state: any) => {
+          control: () => {
             return {};
           },
         }}
@@ -269,19 +288,47 @@ const WickInput = forwardRef<any, WickInputProps>((props, _ref) => {
     if (!props.name)
       throw new Error("WickInput radio buttons require a name.");
 
-    const { type, containerclassname, tooltip, tooltipID, tooltipPlace, updateLastColors, buttonProps, secondaryAction, onTouch, ...radioProps } = props;
+    const {
+      type,
+      containerclassname,
+      tooltip,
+      tooltipID,
+      tooltipPlace,
+      updateLastColors,
+      buttonProps,
+      secondaryAction,
+      onTouch,
+      onChange,
+      ...radioProps
+    } = props;
 
     return (
       <Input
         type="radio"
-        {...(radioProps as any)}
+        {...(radioProps as unknown as React.ComponentProps<typeof Input>)}
+        onChange={
+          onChange
+            ? (event: React.ChangeEvent<HTMLInputElement>) => {
+                onChange(event.target.value);
+              }
+            : undefined
+        }
         className={classNames("wick-radio", props.className)}
       />
     );
   };
 
   const renderButton = (): JSX.Element => {
-    return <WickButton {...props as any}>{props.children}</WickButton>;
+    return (
+      <WickButton
+        onClick={props.onClick ? () => props.onClick?.() : undefined}
+        secondaryAction={props.secondaryAction}
+        className={props.className}
+        buttonProps={props.buttonProps}
+      >
+        {props.children}
+      </WickButton>
+    );
   };
 
   const renderContent = (): ReactNode => {

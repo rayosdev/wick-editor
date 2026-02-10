@@ -1,8 +1,15 @@
 // @ts-ignore - no types available
 import { GIFEncoder, quantize, applyPalette } from "gifenc";
+import type { WickProject } from "../types/engine.types";
+
+type GifFrameOptions = {
+  palette: unknown;
+  delay: number;
+  first?: boolean;
+};
 
 interface CreateAnimatedGIFArgs {
-  project: any;
+  project: WickProject;
   width?: number;
   height?: number;
   onProgress: (message: string, percentage: number) => void;
@@ -35,7 +42,7 @@ class GIFExport {
     let framesProcessed = 0;
     let totalFrames = 0;
 
-    gif.on("finished", (gif: any) => {
+    gif.on("finished", (gif: Blob) => {
       onProgress(
         "Saving GIF file (this may take a while)...",
         finishedProgress
@@ -83,7 +90,7 @@ class GIFExport {
         const indexedData = applyPalette(rgbaData, palette);
 
         // Add frame to gif
-        const frameOptions: any = {
+        const frameOptions: GifFrameOptions = {
           palette: palette,
           delay: frameDelay,
         };
