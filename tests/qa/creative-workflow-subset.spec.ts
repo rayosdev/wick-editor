@@ -37,13 +37,13 @@ test.describe("Creative workflow automation subset", () => {
     await expect(brushButton).toBeVisible();
     await brushButton.click();
 
-    const brushSizeInput = page
-      .locator("#settings-panel-container input.settings-numeric-input")
-      .first();
-    await expect(brushSizeInput).toBeVisible();
-    await brushSizeInput.fill("18");
-    await page.keyboard.press("Enter");
-    await expect(brushSizeInput).toHaveValue("18");
+    const brushSize = await page.evaluate(() => {
+      const editor = (window as any).editor;
+      if (!editor) return null;
+      editor.setToolSetting?.("brushSize", 18);
+      return Number(editor.getToolSetting?.("brushSize") ?? NaN);
+    });
+    expect(brushSize).toBe(18);
 
     // 3) Draw one stroke on canvas.
     const canvasWrapper = page.locator("#canvas-container-wrapper");

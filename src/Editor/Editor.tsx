@@ -1172,8 +1172,8 @@ class Editor extends EditorCore {
                     <DockedPanel showOverlay={this.state.previewPlaying}>
                       <Toolbox
                         project={this.state.project}
-                        getActiveToolName={() => this.getActiveTool()?.name || 'cursor'}
-                        activeToolName={this.getActiveTool()?.name || 'cursor'}
+                        getActiveToolName={() => this.getActiveTool() || "cursor"}
+                        activeToolName={this.getActiveTool() || "cursor"}
                         setActiveTool={this.setActiveTool}
                         getToolSetting={this.getToolSetting}
                         setToolSetting={this.setToolSetting}
@@ -1257,7 +1257,7 @@ class Editor extends EditorCore {
                                 zoomIn={this.zoomIn}
                                 zoomOut={this.zoomOut}
                                 recenterCanvas={this.recenterCanvas}
-                                activeToolName={this.getActiveTool()?.name || 'cursor'}
+                                activeToolName={this.getActiveTool() || "cursor"}
                                 setActiveTool={this.setActiveTool}
                                 previewPlaying={this.state.previewPlaying}
                                 togglePreviewPlaying={this.togglePreviewPlaying}

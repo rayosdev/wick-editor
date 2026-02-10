@@ -1,28 +1,30 @@
-import { db } from './database';
+import { db } from "./database";
+import { parseCachedProjectString } from "./schemas";
 
 /**
  * Project Cache Storage
  * Handles caching of Wick project files
  */
 export class ProjectCache {
-  private static readonly CACHE_KEY = 'wick_cached_project';
+  private static readonly CACHE_KEY = "wick_cached_project";
 
   /**
    * Save a project to cache
    */
   static async save(projectData: string): Promise<void> {
     try {
+      parseCachedProjectString(projectData);
       await db.projectCache.put({
         key: this.CACHE_KEY,
         data: projectData,
         timestamp: Date.now(),
       });
-      console.debug('[ProjectCache] Saved project to cache', {
+      console.debug("[ProjectCache] Saved project to cache", {
         size: projectData.length,
         timestamp: Date.now(),
       });
     } catch (error) {
-      console.error('[ProjectCache] Save error:', error);
+      console.error("[ProjectCache] Save error:", error);
       throw error;
     }
   }
@@ -34,7 +36,8 @@ export class ProjectCache {
     try {
       const cached = await db.projectCache.get(this.CACHE_KEY);
       if (cached) {
-        console.debug('[ProjectCache] Loaded project from cache', {
+        parseCachedProjectString(cached.data);
+        console.debug("[ProjectCache] Loaded project from cache", {
           size: cached.data.length,
           timestamp: cached.timestamp,
         });
@@ -42,7 +45,7 @@ export class ProjectCache {
       }
       return null;
     } catch (error) {
-      console.error('[ProjectCache] Load error:', error);
+      console.error("[ProjectCache] Load error:", error);
       return null;
     }
   }
@@ -55,6 +58,7 @@ export class ProjectCache {
       const cached = await db.projectCache.get(this.CACHE_KEY);
       return !!cached;
     } catch (error) {
+      void error;
       return false;
     }
   }
@@ -65,9 +69,9 @@ export class ProjectCache {
   static async clear(): Promise<void> {
     try {
       await db.projectCache.delete(this.CACHE_KEY);
-      console.debug('[ProjectCache] Cleared project cache');
+      console.debug("[ProjectCache] Cleared project cache");
     } catch (error) {
-      console.error('[ProjectCache] Clear error:', error);
+      console.error("[ProjectCache] Clear error:", error);
     }
   }
 
@@ -77,11 +81,10 @@ export class ProjectCache {
   static async getTimestamp(): Promise<number | null> {
     try {
       const cached = await db.projectCache.get(this.CACHE_KEY);
-      return cached?.timestamp || null;
+      return cached?.timestamp ?? null;
     } catch (error) {
+      void error;
       return null;
     }
   }
 }
-
-

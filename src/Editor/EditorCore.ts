@@ -21,6 +21,7 @@ import { Component } from "react";
 import type { EditorCoreUIState } from "./types/EditorCore.types";
 import queryString from "query-string";
 import { localforageAdapter as localforage, ProjectStorage } from "../storage";
+import { CurrentProjectRecordSchema } from "../storage/schemas";
 import VideoExport from "./export/VideoExport";
 import GIFExport from "./export/GIFExport";
 import GIFImport from "./import/GIFImport";
@@ -43,10 +44,12 @@ import type {
   WickProject as WickProjectEngine,
   SerializedProject,
   AutosaveData,
+  WickToolName,
 } from "./types/engine.types";
+import type { CurrentProjectRecord as StoredCurrentProjectRecord } from "../storage/schemas";
 
 type EditorCoreProps = Record<string, never>;
-type EditorCoreState = EditorCoreUIState & Record<string, any>;
+type EditorCoreState = EditorCoreUIState & Record<string, unknown>;
 type AutosaveEntry = { uuid: string };
 type ExportMediaArgs = {
   name?: string;
@@ -67,6 +70,35 @@ type WickFileInputEvent = {
   };
 };
 
+function toAutosaveData(input: {
+  projectData: unknown;
+  objectsData: unknown[];
+  lastModified: number;
+}): AutosaveData {
+  return {
+    projectData: input.projectData as SerializedProject,
+    objectsData: input.objectsData as AutosaveData["objectsData"],
+    lastModified: input.lastModified,
+  };
+}
+
+function parseCurrentProjectRecordMaybe(
+  input: unknown
+): StoredCurrentProjectRecord | null {
+  const parsed = CurrentProjectRecordSchema.safeParse(input);
+  return parsed.success ? parsed.data : null;
+}
+
+function chooseMostRecentCurrentProject(
+  primary: StoredCurrentProjectRecord | null,
+  secondary: StoredCurrentProjectRecord | null
+): StoredCurrentProjectRecord | null {
+  if (primary && secondary) {
+    return primary.lastModified >= secondary.lastModified ? primary : secondary;
+  }
+  return primary ?? secondary ?? null;
+}
+
 class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   [key: string]: any;
   project!: WickProjectEngine;
@@ -76,12 +108,27 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Returns the name of the active tool.
    * @returns {string} The string representation active tool name.
    */
-  getActiveTool = (): any => {
-    // Safety check: ensure activeTool is set
-    if (!this.project.activeTool) {
-      this.project.activeTool = 'cursor';
+  getActiveTool = (): WickToolName => {
+    const activeTool = this.project.activeTool;
+
+    if (!activeTool) {
+      this.project.activeTool = "cursor";
+      return "cursor";
     }
-    return this.project.activeTool;
+
+    if (typeof activeTool === "string") {
+      return activeTool as WickToolName;
+    }
+
+    if (
+      typeof activeTool === "object" &&
+      "name" in activeTool &&
+      typeof (activeTool as { name?: string }).name === "string"
+    ) {
+      return (activeTool as { name: WickToolName }).name;
+    }
+
+    return "cursor";
   };
 
   /**
@@ -89,9 +136,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {string} newTool - The string representation of the tool to switch to.
    */
   setActiveTool = (newTool: string) => {
-    if (newTool !== this.getActiveTool().name) {
+    if (newTool !== this.getActiveTool()) {
       this.lastUsedTool = this.getActiveTool();
-      this.project.activeTool = newTool;
+      this.project.activeTool = newTool as WickToolName;
 
       this._onEyedropperPickedColor = (color: string) => {
         this.project.toolSettings.setSetting(
@@ -1494,9 +1541,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   importProjectAsWickFile = (file: File): void => {
     this.showWaitOverlay();
-    window.Wick.WickFile.fromWickFile(file, (project: any) => {
+    window.Wick.WickFile.fromWickFile(file, (project: unknown) => {
       if (project) {
-        this.setupNewProject(project);
+        this.setupNewProject(project as WickProject);
         this.toast(`Opened ${file.name || "project"} successfully.`, "success");
       } else {
         this.toast("Could not open project.", "error");
@@ -1583,8 +1630,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         .then((blob) => {
           window.Wick.WickFile.fromWickFile(
             blob,
-            (loadedProject: any) => {
-              this.setupNewProject(loadedProject);
+            (loadedProject: unknown) => {
+              this.setupNewProject(loadedProject as WickProject);
             },
             "blob"
           );
@@ -1837,25 +1884,25 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Fallback loader that checks localforage/localStorage backups.
    */
   loadCurrentProjectFallback = (callback: AutosaveCallback): void => {
-    let backupData: any = null;
+    let backupData: StoredCurrentProjectRecord | null = null;
     try {
       const backupStr = localStorage.getItem("wickEditor_currentProject_backup");
       if (backupStr) {
-        backupData = JSON.parse(backupStr);
+        backupData = parseCurrentProjectRecordMaybe(JSON.parse(backupStr));
       }
     } catch (e) {
+      void e;
       // ignore backup parse errors
     }
 
     localforage
       .getItem("wickEditor_currentProject")
-      .then((currentProjectData: any) => {
-        let projectData = currentProjectData;
-        if (backupData && currentProjectData) {
-          projectData = backupData.lastModified > currentProjectData.lastModified ? backupData : currentProjectData;
-        } else if (backupData) {
-          projectData = backupData;
-        }
+      .then((currentProjectData: unknown) => {
+        const parsedCurrentData = parseCurrentProjectRecordMaybe(currentProjectData);
+        const projectData = chooseMostRecentCurrentProject(
+          backupData,
+          parsedCurrentData
+        );
 
         if (!projectData || !projectData.autosaveData) {
           callback();
@@ -1869,8 +1916,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         }
 
         this.showWaitOverlay();
+        const autosaveData = toAutosaveData(projectData.autosaveData);
         window.Wick.AutoSave.generateProjectFromAutosaveData(
-          projectData.autosaveData,
+          autosaveData,
           (project: WickProjectEngine) => {
             this.setupNewProject(project);
             this.hideWaitOverlay();
@@ -1881,8 +1929,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       .catch((err) => {
         if (backupData && backupData.autosaveData) {
           this.showWaitOverlay();
+          const autosaveData = toAutosaveData(backupData.autosaveData);
           window.Wick.AutoSave.generateProjectFromAutosaveData(
-            backupData.autosaveData,
+            autosaveData,
             (project: WickProjectEngine) => {
               this.setupNewProject(project);
               this.hideWaitOverlay();
@@ -1913,11 +1962,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
           }
 
           this.showWaitOverlay();
-          const autosaveData: AutosaveData = {
-            projectData: latest.projectData as SerializedProject,
+          const autosaveData: AutosaveData = toAutosaveData({
+            projectData: latest.projectData,
             objectsData: latest.objectsData,
             lastModified: latest.lastModified,
-          };
+          });
 
           window.Wick.AutoSave.generateProjectFromAutosaveData(autosaveData, (project: WickProjectEngine) => {
             this.setupNewProject(project);
@@ -1958,11 +2007,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         }
 
         this.showWaitOverlay();
-        const autosaveData: AutosaveData = {
-          projectData: latest.projectData as SerializedProject,
+        const autosaveData: AutosaveData = toAutosaveData({
+          projectData: latest.projectData,
           objectsData: latest.objectsData,
           lastModified: latest.lastModified,
-        };
+        });
 
         window.Wick.AutoSave.generateProjectFromAutosaveData(autosaveData, (project: WickProjectEngine) => {
           this.setupNewProject(project);

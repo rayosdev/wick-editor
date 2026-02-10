@@ -2,12 +2,11 @@ import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Playwright config for local development
- * Assumes dev server is already running on port 3002
- *
- * Usage:
- *   Terminal 1: npm start
- *   Terminal 2: npm run test:e2e
+ * Auto-starts Vite when needed and reuses an existing server.
  */
+const baseURL = process.env.PW_BASE_URL || "http://localhost:3002";
+const useManagedServer = !process.env.PW_BASE_URL;
+
 export default defineConfig({
   testDir: "./tests",
   testMatch: "**/*.spec.ts",
@@ -16,9 +15,19 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: "list",
+  webServer: useManagedServer
+    ? {
+      command: "npm start",
+      url: baseURL,
+      reuseExistingServer: true,
+      timeout: 120000,
+      stdout: "pipe",
+      stderr: "pipe",
+    }
+    : undefined,
 
   use: {
-    baseURL: process.env.PW_BASE_URL || "http://localhost:3002",
+    baseURL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",

@@ -59,7 +59,7 @@ Wick.Clipboard = class {
      * @param {Wick.Base[]} objects - the objects to copy to the clipboard
      */
     copyObjectsToClipboard (project, objects) {
-        if(!project || (!project instanceof Wick.Project)) console.error('copyObjectsToClipboard(): project is required');
+        if(!project || !(project instanceof Wick.Project)) console.error('copyObjectsToClipboard(): project is required');
 
         // Get the playhead position of the "first" frame in the list of objects
         var playheadCopyOffset = null;
@@ -129,7 +129,7 @@ Wick.Clipboard = class {
      * @returns {boolean} True if there is something to paste in the clipboard, false if the clipboard is empty.
      */
     pasteObjectsFromClipboard (project) {
-        if(!project || (!project instanceof Wick.Project)) console.error('pasteObjectsFromClipboard(): project is required');
+        if(!project || !(project instanceof Wick.Project)) console.error('pasteObjectsFromClipboard(): project is required');
 
         if(!this.clipboardData) {
             return false;

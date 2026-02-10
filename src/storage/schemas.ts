@@ -37,12 +37,30 @@ export const SettingsRecordSchema = z.object({
   value: z.unknown(),
 });
 
+export const CachedProjectDataSchema = z
+  .object({
+    export: z
+      .object({
+        object: z.unknown().optional(),
+        children: z.array(z.unknown()).optional(),
+      })
+      .passthrough()
+      .optional(),
+    project: z.unknown().optional(),
+    metadata: z.unknown().optional(),
+  })
+  .passthrough()
+  .refine((value) => Boolean(value.export || value.project), {
+    message: "Cached project must include either export or project payload",
+  });
+
 export type ProjectData = z.infer<typeof ProjectDataSchema>;
 export type SerializedAutosaveObject = z.infer<typeof SerializedAutosaveObjectSchema>;
 export type AutosavePayload = z.infer<typeof AutosavePayloadSchema>;
 export type AutosaveRecord = z.infer<typeof AutosaveRecordSchema>;
 export type CurrentProjectRecord = z.infer<typeof CurrentProjectRecordSchema>;
 export type SettingsRecord = z.infer<typeof SettingsRecordSchema>;
+export type CachedProjectData = z.infer<typeof CachedProjectDataSchema>;
 
 export function parseAutosavePayload(input: unknown): AutosavePayload {
   return AutosavePayloadSchema.parse(input);
@@ -58,4 +76,13 @@ export function parseCurrentProjectRecord(input: unknown): CurrentProjectRecord 
 
 export function parseSettingsRecord(input: unknown): SettingsRecord {
   return SettingsRecordSchema.parse(input);
+}
+
+export function parseCachedProjectData(input: unknown): CachedProjectData {
+  return CachedProjectDataSchema.parse(input);
+}
+
+export function parseCachedProjectString(input: string): CachedProjectData {
+  const parsed = JSON.parse(input) as unknown;
+  return parseCachedProjectData(parsed);
 }

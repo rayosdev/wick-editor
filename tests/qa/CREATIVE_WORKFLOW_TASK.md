@@ -94,14 +94,19 @@ These selectors are based on current code/tests and should be treated as primary
 - Open/close code editor paths.
 - Cache save/cache load flow.
 
-### Executable Subset Spec
-- File: `tests/qa/creative-workflow-subset.spec.ts`
-- Run:
-  - `npx playwright test tests/qa/creative-workflow-subset.spec.ts --config=playwright.config.dev.ts --project=chromium`
+### Executable QA Specs
+- Files:
+  - `tests/qa/creative-workflow-subset.spec.ts`
+  - `tests/qa/creative-workflow-animation-color.spec.ts`
+  - `tests/qa/creative-workflow-code-editor.spec.ts`
+  - `tests/qa/creative-workflow-text-path.spec.ts`
+- Run full QA workflow:
+  - `npx playwright test tests/qa/*.spec.ts --config=playwright.config.dev.ts --project=chromium`
 
 ### Semi-automatable
 - Tween verification (UI plus project-state introspection).
 - Color changes through UI pickers (popover interactions vary).
+- Code editor alert/prompt flows are automated via equivalent script probes in `tests/qa/creative-workflow-code-editor.spec.ts` (`this.__qaProbe`, `this.__guessResult`) to keep runs deterministic in headless mode.
 
 ### Best manual validation
 - Visual quality of path edits.

@@ -79,8 +79,9 @@ export class FileCache {
     try {
       const cachedFiles = await db.fileCache.bulkGet(assetUuids);
       cachedFiles.forEach((cached, index) => {
-        if (cached) {
-          files.set(assetUuids[index], cached.data);
+        const uuid = assetUuids[index];
+        if (cached && uuid) {
+          files.set(uuid, cached.data);
         }
       });
     } catch (error) {
@@ -90,5 +91,4 @@ export class FileCache {
     return files;
   }
 }
-
 
