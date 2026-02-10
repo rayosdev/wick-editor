@@ -146,10 +146,12 @@ test.describe('SVG Upload Realistic Test', () => {
           results
         };
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
         return {
           success: false,
-          error: error.message,
-          stack: error.stack
+          error: errorMessage,
+          stack: errorStack
         };
       }
     });
@@ -159,6 +161,9 @@ test.describe('SVG Upload Realistic Test', () => {
     if (!projectContextTest.success) {
       console.log('SVG Asset with project context test failed:', projectContextTest.error);
       console.log('Stack trace:', projectContextTest.stack);
+    }
+    if (!projectContextTest.results) {
+      throw new Error('Expected project context test results');
     }
     
     expect(projectContextTest.success).toBe(true);

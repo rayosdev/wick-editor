@@ -809,14 +809,6 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
         );
     };
 
-    const renderUnknown = (): JSX.Element => {
-        return (
-            <div>
-                <div className="inspector-content"></div>
-            </div>
-        );
-    };
-
     const renderActionButton = (action: any, i: number): JSX.Element => {
         return (
             <div key={i} className="mobile-inspector-item">

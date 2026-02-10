@@ -20,7 +20,32 @@ export function setDebug() {
   debug = true;
 }
 
+type DecoderExports = {
+  _malloc: (size: number) => number;
+  _free: (pointer: number) => void;
+  _read_buffer: (pointer: number, length: number) => void;
+  _play: () => number;
+};
+
+type DecoderFrameData = {
+  buf: Uint32Array;
+  ms: number;
+};
+
+type DecoderTask = {
+  ptr: number;
+  width: number;
+  height: number;
+  len: number;
+  f: DecoderFrameData[];
+};
+
 export class Decoder {
+  private _view: Uint8Array;
+  private _u32view: Uint32Array;
+  private _exports: Promise<DecoderExports>;
+  private _task?: DecoderTask;
+
   constructor() {
     const memory = new WebAssembly.Memory({initial: 256, maximum: 256});
     const view = this._view = new Uint8Array(memory.buffer);
@@ -37,8 +62,8 @@ export class Decoder {
       abortOnCannotGrowMemory() { throw new Error('abortOnCannotGrowMemory'); },
       enlargeMemory() { throw new Error('enlargeMemory'); },
       getTotalMemory() { return view.length; },
-      ___setErrNo(v) { throw new Error('errno'); },
-      _emscripten_memcpy_big(dst, src, num) {
+      ___setErrNo(_v: number) { throw new Error('errno'); },
+      _emscripten_memcpy_big(dst: number, src: number, num: number) {
         view.set(view.subarray(src, src + num), dst);
         return dst;
       },
@@ -55,23 +80,26 @@ export class Decoder {
     debug && console.time('fastgif-instantiate');
     this._exports = WebAssembly.instantiate(source, {env}).then((wa) => {
       debug && console.timeEnd('fastgif-instantiate');
-      return wa.instance.exports;
+      return wa.instance.exports as unknown as DecoderExports;
     });
   }
 
-  _oninit(ptr, width, height) {
+  _oninit(ptr: number, width: number, height: number): void {
     const len = width * height;
     this._task = {ptr: ptr/4, width, height, len, f: []};
   }
 
-  _onframe(ms) {
+  _onframe(ms: number): void {
     const t = this._task;
+    if (!t) {
+      return;
+    }
     const buf = new Uint32Array(t.len);
     buf.set(this._u32view.subarray(t.ptr, t.ptr + t.len));
-    t.f.push({buf, ms})
+    t.f.push({buf, ms});
   }
 
-  readString(at) {
+  readString(at: number): string {
     const v = this._view.slice(at);
     let i;
     for (i = 0; i < v.length; ++i) {
@@ -87,10 +115,10 @@ export class Decoder {
    * @param {!ArrayBuffer} buffer
    * @return {!Promise<!Array<{frame: !ImageData, ms: number}>>}
    */
-  decode(buffer) {
-    let cleanup;
+  decode(buffer: ArrayBuffer): Promise<Array<{ imageData: ImageData; delay: number }>> {
+    let cleanup: () => void = () => {};
 
-    const p = this._exports.then((exports) => {
+    const p = this._exports.then((exports: DecoderExports) => {
       const buf = new Uint8Array(buffer);
       const at = exports._malloc(buf.length);
       cleanup = () => exports._free(at);
@@ -106,9 +134,18 @@ export class Decoder {
 
       const task = this._task;
       delete this._task;
+      if (!task) {
+        throw new Error('decoder task was not initialized');
+      }
 
-      return task.f.map((frame) => {
-        const arr = new Uint8ClampedArray(frame.buf.buffer);
+      return task.f.map((frame: DecoderFrameData) => {
+        // Force an ArrayBuffer-backed typed array for ImageData ctor compatibility.
+        const bytes = new Uint8Array(
+          frame.buf.buffer,
+          frame.buf.byteOffset,
+          frame.buf.byteLength
+        );
+        const arr = Uint8ClampedArray.from(bytes);
         return {
           imageData: new ImageData(arr, task.width, task.height),
           delay: frame.ms,

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -12,13 +12,10 @@ test.describe('ProjectDidChange Debug', () => {
     // Step 1: Monitor projectDidChange calls
     console.log('\nStep 1: Setting up monitoring...');
     
-    let projectDidChangeCalls = 0;
-    let setStateCalls = 0;
-    
     await page.evaluate(() => {
       if (window.editor && window.editor.projectDidChange) {
         const originalProjectDidChange = window.editor.projectDidChange;
-        window.editor.projectDidChange = function(options) {
+        window.editor.projectDidChange = function(options: unknown) {
           console.log('🔍 projectDidChange called with:', options);
           window.projectDidChangeCallCount = (window.projectDidChangeCallCount || 0) + 1;
           const result = originalProjectDidChange.call(this, options);
@@ -29,7 +26,7 @@ test.describe('ProjectDidChange Debug', () => {
       
       if (window.editor && window.editor.setState) {
         const originalSetState = window.editor.setState;
-        window.editor.setState = function(newState, callback) {
+        window.editor.setState = function(newState: unknown, callback?: () => void) {
           console.log('🔍 setState called with:', newState);
           window.setStateCallCount = (window.setStateCallCount || 0) + 1;
           const result = originalSetState.call(this, newState, callback);
@@ -49,7 +46,7 @@ test.describe('ProjectDidChange Debug', () => {
       return new Promise((resolve, reject) => {
         if (window.Wick && window.Wick.WickFile) {
           const blob = new Blob([projectData], { type: 'application/json' });
-          window.Wick.WickFile.fromWickFile(blob, (loadedProject) => {
+          window.Wick.WickFile.fromWickFile(blob, (loadedProject: unknown) => {
             if (loadedProject && window.editor) {
               console.log('About to call setupNewProject');
               window.editor.setupNewProject(loadedProject);
@@ -93,8 +90,9 @@ test.describe('ProjectDidChange Debug', () => {
           console.log('Manual projectDidChange completed');
           return { success: true };
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
           console.error('Manual projectDidChange failed:', error);
-          return { success: false, error: error.message };
+          return { success: false, error: errorMessage };
         }
       }
       return { success: false, error: 'No projectDidChange method' };
@@ -136,9 +134,10 @@ test.describe('ProjectDidChange Debug', () => {
             childrenCount: serialized.children?.length || 0
           };
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
           return {
             success: false,
-            error: error.message
+            error: errorMessage
           };
         }
       }
@@ -150,7 +149,6 @@ test.describe('ProjectDidChange Debug', () => {
     console.log('\n🎉 ProjectDidChange debug completed!');
   });
 });
-
 
 
 

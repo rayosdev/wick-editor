@@ -65,11 +65,11 @@ test.describe('Project.js Conversion Testing', () => {
           projectType: typeof project,
           projectClass: project.constructor.name
         };
-      } catch (error) {
+      } catch (error: unknown) {
         return {
           success: false,
-          error: error.message,
-          stack: error.stack
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
         };
       }
     });
@@ -143,11 +143,11 @@ test.describe('Project.js Conversion Testing', () => {
           layer1Class: layer1.constructor.name,
           layer2Class: layer2.constructor.name
         };
-      } catch (error) {
+      } catch (error: unknown) {
         return {
           success: false,
-          error: error.message,
-          stack: error.stack
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
         };
       }
     });
@@ -217,11 +217,11 @@ test.describe('Project.js Conversion Testing', () => {
           frame1Class: frame1.constructor.name,
           frame2Class: frame2.constructor.name
         };
-      } catch (error) {
+      } catch (error: unknown) {
         return {
           success: false,
-          error: error.message,
-          stack: error.stack
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
         };
       }
     });
@@ -288,11 +288,11 @@ test.describe('Project.js Conversion Testing', () => {
           afterStopCurrentFrame,
           afterSeekCurrentFrame
         };
-      } catch (error) {
+      } catch (error: unknown) {
         return {
           success: false,
-          error: error.message,
-          stack: error.stack
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
         };
       }
     });
@@ -352,11 +352,11 @@ test.describe('Project.js Conversion Testing', () => {
           hasSerialize,
           hasDeserialize
         };
-      } catch (error) {
+      } catch (error: unknown) {
         return {
           success: false,
-          error: error.message,
-          stack: error.stack
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
         };
       }
     });

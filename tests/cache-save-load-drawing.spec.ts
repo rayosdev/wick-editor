@@ -63,7 +63,9 @@ test.describe('Cache Save/Load Drawing Test', () => {
         // Debug: Check frame state after adding path
         const childrenAfter = activeFrame.getChildren ? activeFrame.getChildren().length : 0;
         const allChildren = activeFrame.getChildren ? activeFrame.getChildren() : [];
-        const pathInChildrenAfter = allChildren.some(child => child === wickPath || child.uuid === wickPath.uuid);
+        const pathInChildrenAfter = allChildren.some((child: { uuid?: string }) => {
+          return child === wickPath || child.uuid === wickPath.uuid;
+        });
         
         // Ensure the path has a view and is rendered
         // The view creates the paper.js representation
@@ -89,10 +91,10 @@ test.describe('Cache Save/Load Drawing Test', () => {
         // Also check if path is in children (this is what gets serialized)
         // Use getChildren() instead of children property
         const children = activeFrame.getChildren ? activeFrame.getChildren() : [];
-        const pathInChildren = children.some(child => {
+        const pathInChildren = children.some((child: { classname?: string }) => {
           return child && (child.classname === 'Path' || child instanceof Wick.Path);
         });
-        const pathChildrenCount = children.filter(child => {
+        const pathChildrenCount = children.filter((child: { classname?: string }) => {
           return child && (child.classname === 'Path' || child instanceof Wick.Path);
         }).length;
         
@@ -131,10 +133,12 @@ test.describe('Cache Save/Load Drawing Test', () => {
           message: 'Line created successfully'
         };
       } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        const errorStack = e instanceof Error ? e.stack : undefined;
         return {
           error: 'Failed to create path',
-          errorMessage: e.message,
-          stack: e.stack
+          errorMessage,
+          stack: errorStack
         };
       }
     });
@@ -145,7 +149,7 @@ test.describe('Cache Save/Load Drawing Test', () => {
     expect(drawingResult.hasPath).toBe(true);
     expect(drawingResult.pathCount).toBeGreaterThan(0);
     // Path should have JSON data (either segments or pathData)
-    expect(drawingResult.pathHasJson || drawingResult.pathSegments > 0).toBe(true);
+    expect(drawingResult.pathHasJson || (drawingResult.pathSegments ?? 0) > 0).toBe(true);
 
     // Step 2: Save to cache
     console.log('\n=== STEP 2: SAVING TO CACHE ===');
@@ -263,7 +267,6 @@ test.describe('Cache Save/Load Drawing Test', () => {
       const hasLocalforage = !!(window as any).localforage;
       
       // Check Dexie database directly
-      let dexieData = null;
       if (hasDexie) {
         try {
           // Access Dexie database
@@ -337,9 +340,10 @@ test.describe('Cache Save/Load Drawing Test', () => {
           storageUsed: hasDexie ? 'dexie' : (hasLocalforage ? 'localforage' : 'localStorage')
         };
       } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : String(e);
         return {
           error: 'Failed to parse cached data',
-          errorMessage: e.message
+          errorMessage
         };
       }
     });
@@ -397,7 +401,7 @@ test.describe('Cache Save/Load Drawing Test', () => {
       const pathCount = paths.length;
       
       // Check if we have paths with valid JSON data
-      const pathsWithData = paths.filter(p => {
+      const pathsWithData = paths.filter((p: { json?: { segments?: unknown[] } }) => {
         return p.json && 
                p.json.segments && 
                Array.isArray(p.json.segments) && 
@@ -456,4 +460,3 @@ test.describe('Cache Save/Load Drawing Test', () => {
     console.log('\n✅ TEST COMPLETE: Drawing successfully saved and loaded from cache!');
   });
 });
-

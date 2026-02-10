@@ -17,7 +17,7 @@ interface EditorActions {
 
 class ActionMapInterface extends Object {
   private editor: any;
-  public editorActions: EditorActions;
+  public editorActions: EditorActions = {};
 
   constructor(editor: any) {
     super();
@@ -88,8 +88,8 @@ class ActionMapInterface extends Object {
       },
       createGroupFromSelection: {
         icon: 'createGroup',
-        tooltip: 'Create Group from Selection(NYI)',
-        action: () => console.error('NYI'),
+        tooltip: 'Create Group from Selection',
+        action: this.editor.createGroupFromSelection,
         id: 'action-create-group',
       },
       editCode: {
@@ -113,8 +113,8 @@ class ActionMapInterface extends Object {
       },
       addTweenToSelection: {
         icon: 'addTween',
-        tooltip: 'Add Tween to Frame(NYI)',
-        action: () => console.error('NYI'),
+        tooltip: 'Add Tween to Selection',
+        action: this.editor.addTweenToSelection,
         id: 'action-add-tween',
       },
       makeAnimated: {

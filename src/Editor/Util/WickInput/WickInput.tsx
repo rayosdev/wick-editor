@@ -70,7 +70,7 @@ interface WickInputProps {
  * @param ref - Optional ref forwarded to the component
  * @returns JSX.Element
  */
-const WickInput = forwardRef<any, WickInputProps>((props, ref) => {
+const WickInput = forwardRef<any, WickInputProps>((props, _ref) => {
   const renderTooltip = (tooltipID: string): JSX.Element => {
     // Detect if on mobile to disable tooltips.
 

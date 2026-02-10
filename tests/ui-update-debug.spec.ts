@@ -34,7 +34,7 @@ test.describe('UI Update Debug', () => {
     await page.evaluate((projectData) => {
       return new Promise((resolve) => {
         const blob = new Blob([projectData], { type: 'application/json' });
-        window.Wick.WickFile.fromWickFile(blob, (project) => {
+        window.Wick.WickFile.fromWickFile(blob, (project: unknown) => {
           if (project && window.editor) {
             window.editor.setupNewProject(project);
             console.log('Project loaded successfully');
@@ -93,7 +93,6 @@ test.describe('UI Update Debug', () => {
     console.log('\n🎉 UI update debug test completed!');
   });
 });
-
 
 
 

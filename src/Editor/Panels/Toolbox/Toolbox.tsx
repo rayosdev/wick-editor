@@ -191,7 +191,7 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                     <WickInput
                         type="color"
                         color={fillColor?.rgba}
-                        onChange={(color) => {
+                        onChange={(color: string) => {
                             props.setToolSetting(
                                 "fillColor",
                                 new (window as any).Wick.Color(color)
@@ -214,7 +214,7 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                     <WickInput
                         type="color"
                         color={strokeColor?.rgba}
-                        onChange={(color) => {
+                        onChange={(color: string) => {
                             props.setToolSetting(
                                 "strokeColor",
                                 new (window as any).Wick.Color(color)

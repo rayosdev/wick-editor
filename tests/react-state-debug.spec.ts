@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -41,7 +41,7 @@ test.describe('React State Debug', () => {
       return new Promise((resolve, reject) => {
         if (window.Wick && window.Wick.WickFile) {
           const blob = new Blob([projectData], { type: 'application/json' });
-          window.Wick.WickFile.fromWickFile(blob, (loadedProject) => {
+          window.Wick.WickFile.fromWickFile(blob, (loadedProject: unknown) => {
             if (loadedProject && window.editor) {
               window.editor.setupNewProject(loadedProject);
               console.log('Project loaded successfully via WickFile');
@@ -163,10 +163,11 @@ test.describe('React State Debug', () => {
             serializedName: serialized.name || 'N/A'
           };
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
           return {
             exists: true,
             isFunction: typeof window.editor.project.serialize === 'function',
-            error: error.message
+            error: errorMessage
           };
         }
       }
@@ -178,7 +179,6 @@ test.describe('React State Debug', () => {
     console.log('\n🎉 React state debug test completed!');
   });
 });
-
 
 
 

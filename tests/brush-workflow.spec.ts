@@ -186,10 +186,13 @@ test.describe('Brush Tool Complete Workflow', () => {
     const strokeSizes: number[] = [];
     
     // Test 3 different brush sizes: 10, 20, 30
-    const testSizes = [10, 20, 30];
+    const testSizes = [10, 20, 30] as const;
     
     for (let i = 0; i < testSizes.length; i++) {
       const size = testSizes[i];
+      if (size === undefined) {
+        continue;
+      }
       const yOffset = 100 + (i * 80); // Space strokes vertically
       
       console.log(`\n${i + 1}. Drawing stroke ${i + 1} with size ${size}...`);
@@ -334,17 +337,24 @@ test.describe('Brush Tool Complete Workflow', () => {
     console.log('='.repeat(60));
     
     for (let i = 0; i < strokeSizes.length; i++) {
-      console.log(`Stroke ${i + 1}: ${strokeSizes[i]}px (expected: ${testSizes[i]})`);
+      const measured = strokeSizes[i];
+      const expected = testSizes[i];
+      console.log(`Stroke ${i + 1}: ${measured ?? 'N/A'}px (expected: ${expected ?? 'N/A'})`);
     }
     
     // Verify each stroke is larger than the previous
     if (strokeSizes.length === 3) {
-      const increasing = strokeSizes[1] > strokeSizes[0] && strokeSizes[2] > strokeSizes[1];
+      const [first, second, third] = strokeSizes;
+      if (first === undefined || second === undefined || third === undefined) {
+        throw new Error('Expected exactly 3 measured stroke widths');
+      }
+
+      const increasing = second > first && third > second;
       console.log(`\n✓ Strokes increase in size: ${increasing}`);
-      console.log(`  ${strokeSizes[0]} < ${strokeSizes[1]} < ${strokeSizes[2]}`);
+      console.log(`  ${first} < ${second} < ${third}`);
       
-      expect(strokeSizes[1], 'Stroke 2 should be larger than Stroke 1').toBeGreaterThan(strokeSizes[0]);
-      expect(strokeSizes[2], 'Stroke 3 should be larger than Stroke 2').toBeGreaterThan(strokeSizes[1]);
+      expect(second, 'Stroke 2 should be larger than Stroke 1').toBeGreaterThan(first);
+      expect(third, 'Stroke 3 should be larger than Stroke 2').toBeGreaterThan(second);
     }
     
     console.log('='.repeat(60));
@@ -352,4 +362,3 @@ test.describe('Brush Tool Complete Workflow', () => {
     console.log('='.repeat(60));
   });
 });
-

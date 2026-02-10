@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 test.describe('Code Editor Console Test', () => {
   test('add script to first frame and check code editor console for errors @headed', async ({ page }) => {
@@ -89,7 +89,11 @@ test.describe('Code Editor Console Test', () => {
       console.log(`Found ${errorElements.length} potential error elements`);
       
       for (let i = 0; i < errorElements.length; i++) {
-        const errorText = await errorElements[i].textContent();
+        const errorElement = errorElements[i];
+        if (!errorElement) {
+          continue;
+        }
+        const errorText = await errorElement.textContent();
         console.log(`Error element ${i + 1}: ${errorText}`);
       }
     } else {

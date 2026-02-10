@@ -1,5 +1,25 @@
 import { test, expect } from '@playwright/test';
 
+type TimelineCheckResult = {
+  timelineExists: boolean;
+  frameAdded: boolean;
+  playheadMoved: boolean;
+  initialPosition: number;
+  newPosition: number;
+};
+
+type GuiElementsCheckResult = {
+  hasButton: boolean;
+  hasTooltip: boolean;
+  hasScrollbar: boolean;
+  hasActionButton: boolean;
+  hasSelectionBox: boolean;
+  hasScrollbarGrabber: boolean;
+  hasPlayhead: boolean;
+  hasOnionSkinRange: boolean;
+  hasLayerButton: boolean;
+};
+
 test.describe('Timeline and Playhead Functionality', () => {
   test('can create keyframes and move playhead', async ({ page }) => {
     // Navigate to the editor
@@ -36,7 +56,7 @@ test.describe('Timeline and Playhead Functionality', () => {
     console.log('✅ Project created successfully');
     
     // Test timeline functionality
-    const timelineWorks = await page.evaluate(() => {
+    const timelineWorks = await page.evaluate<TimelineCheckResult | false>(() => {
       try {
         const project = new window.Wick.Project();
         const timeline = project.activeTimeline;
@@ -64,6 +84,9 @@ test.describe('Timeline and Playhead Functionality', () => {
     });
     
     expect(timelineWorks).toBeTruthy();
+    if (timelineWorks === false) {
+      throw new Error('Timeline evaluation failed');
+    }
     expect(timelineWorks.timelineExists).toBe(true);
     expect(timelineWorks.frameAdded).toBe(true);
     expect(timelineWorks.playheadMoved).toBe(true);
@@ -74,7 +97,7 @@ test.describe('Timeline and Playhead Functionality', () => {
     console.log(`   - Playhead moved from ${timelineWorks.initialPosition} to ${timelineWorks.newPosition}`);
     
     // Test GUI elements (our converted TypeScript components)
-    const guiElementsWork = await page.evaluate(() => {
+    const guiElementsWork = await page.evaluate<GuiElementsCheckResult | false>(() => {
       try {
         // Test if our converted GUI elements are available
         const hasButton = !!window.Wick.GUIElement.Button;
@@ -105,6 +128,9 @@ test.describe('Timeline and Playhead Functionality', () => {
     });
     
     expect(guiElementsWork).toBeTruthy();
+    if (guiElementsWork === false) {
+      throw new Error('GUI element evaluation failed');
+    }
     expect(guiElementsWork.hasButton).toBe(true);
     expect(guiElementsWork.hasTooltip).toBe(true);
     expect(guiElementsWork.hasScrollbar).toBe(true);

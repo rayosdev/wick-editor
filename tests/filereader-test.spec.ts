@@ -13,8 +13,22 @@ test.describe('FileReader Test', () => {
     const projectPath = path.join(__dirname, 'test-projects', 'timeline-script.wick');
     const projectData = fs.readFileSync(projectPath, 'utf8');
 
-    const result = await page.evaluate((projectData) => {
-      return new Promise((resolve) => {
+    const result: {
+      success: boolean;
+      error?: string;
+      result?: string | ArrayBuffer | null;
+      data?: unknown;
+      parsed?: boolean;
+      event?: ProgressEvent<FileReader>;
+    } = await page.evaluate((projectData) => {
+      return new Promise<{
+        success: boolean;
+        error?: string;
+        result?: string | ArrayBuffer | null;
+        data?: unknown;
+        parsed?: boolean;
+        event?: ProgressEvent<FileReader>;
+      }>((resolve) => {
         console.log('Testing FileReader directly...');
         
         const blob = new Blob([projectData], { type: 'application/json' });
@@ -22,11 +36,25 @@ test.describe('FileReader Test', () => {
         
         fr.onload = function() {
           console.log('FileReader onload called');
-          console.log('FileReader result type:', typeof fr.result);
-          console.log('FileReader result length:', fr.result ? fr.result.length : 'null');
+          const resultValue = fr.result;
+          const resultLength =
+            typeof resultValue === 'string'
+              ? resultValue.length
+              : resultValue
+                ? resultValue.byteLength
+                : 'null';
+          console.log('FileReader result type:', typeof resultValue);
+          console.log('FileReader result length:', resultLength);
           
           try {
-            const data = JSON.parse(fr.result);
+            if (typeof resultValue !== 'string') {
+              resolve({
+                success: false,
+                error: 'Expected FileReader.readAsText() to return a string'
+              });
+              return;
+            }
+            const data = JSON.parse(resultValue);
             console.log('Parsed data:', {
               hasProject: !!data.project,
               hasExport: !!data.export,
@@ -35,16 +63,17 @@ test.describe('FileReader Test', () => {
             
             resolve({
               success: true,
-              result: fr.result,
+              result: resultValue,
               data: data,
               parsed: true
             });
           } catch (e) {
+            const errorMessage = e instanceof Error ? e.message : String(e);
             console.log('JSON parse error:', e);
             resolve({
               success: false,
-              error: e.message,
-              result: fr.result
+              error: errorMessage,
+              result: resultValue
             });
           }
         };
@@ -69,8 +98,6 @@ test.describe('FileReader Test', () => {
     console.log('🎉 FileReader test completed!');
   });
 });
-
-
 
 
 

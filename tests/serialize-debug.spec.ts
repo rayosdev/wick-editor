@@ -14,9 +14,30 @@ test.describe('Serialize Debug', () => {
     const projectData = fs.readFileSync(projectPath, 'utf8');
 
     const result = await page.evaluate((projectData) => {
-      return new Promise((resolve) => {
+      return new Promise<{
+        success: boolean;
+        projectState?: {
+          wickExists: boolean;
+          projectExists: boolean;
+          hasProject: boolean;
+          projectName?: string;
+          projectWidth?: number;
+          projectHeight?: number;
+          projectFramerate?: number;
+        };
+        serializedProject?: {
+          name?: string;
+          width?: number;
+          height?: number;
+        } | null;
+        reactState?: {
+          projectAccessible: boolean;
+          projectName?: string;
+        };
+        error?: string;
+      }>((resolve) => {
         const blob = new Blob([projectData], { type: 'application/json' });
-        window.Wick.WickFile.fromWickFile(blob, (project) => {
+        window.Wick.WickFile.fromWickFile(blob, (project: unknown) => {
           if (project && window.editor) {
             console.log('Project loaded, calling setupNewProject...');
             window.editor.setupNewProject(project);
@@ -47,7 +68,8 @@ test.describe('Serialize Debug', () => {
                 console.log('Serialized project width:', serializedProject.width);
                 console.log('Serialized project height:', serializedProject.height);
               } catch (e) {
-                console.log('Serialize failed:', e.message);
+                const errorMessage = e instanceof Error ? e.message : String(e);
+                console.log('Serialize failed:', errorMessage);
               }
               
               // Check React state
@@ -93,6 +115,9 @@ test.describe('Serialize Debug', () => {
       
       for (let i = 0; i < elements.length; i++) {
         const element = elements[i];
+        if (!element) {
+          continue;
+        }
         const text = element.textContent || '';
         if (text.includes('My Project')) {
           projectNameElements.push({
@@ -110,14 +135,15 @@ test.describe('Serialize Debug', () => {
     console.log('Elements containing "My Project":', projectNameElements);
 
     expect(result.success).toBe(true);
+    if (!result.projectState) {
+      throw new Error('Expected projectState in serialize debug result');
+    }
     expect(result.projectState.hasProject).toBe(true);
     expect(result.projectState.projectName).toBe('My Project');
 
     console.log('\n🎉 Serialize debug test completed!');
   });
 });
-
-
 
 
 

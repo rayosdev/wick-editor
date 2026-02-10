@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -28,7 +28,7 @@ test.describe('Console Monitor Test', () => {
         return new Promise((resolve, reject) => {
           if (window.Wick && window.Wick.WickFile) {
             const blob = new Blob([projectData], { type: 'application/json' });
-            window.Wick.WickFile.fromWickFile(blob, (loadedProject) => {
+            window.Wick.WickFile.fromWickFile(blob, (loadedProject: unknown) => {
               if (loadedProject && window.editor) {
                 console.log('About to call setupNewProject');
                 window.editor.setupNewProject(loadedProject);
@@ -61,7 +61,6 @@ test.describe('Console Monitor Test', () => {
     console.log('\n🎉 Console monitor test completed!');
   });
 });
-
 
 
 

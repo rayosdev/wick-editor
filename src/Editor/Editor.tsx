@@ -300,14 +300,14 @@ class Editor extends EditorCore {
       name: "WickEditor",
       description: "Live Data storage of the Wick Editor app.",
     });
-    
+
     // Initialize Dexie database and expose to window for index.html access
     import("../storage").then(({ db, ProjectCache }) => {
       // Open database connection
       db.open().catch((err) => {
         console.error("[Storage] Failed to open database:", err);
       });
-      
+
       // Expose to window for index.html cache functions
       if (typeof window !== 'undefined') {
         (window as any).__wickStorage = {
@@ -402,7 +402,7 @@ class Editor extends EditorCore {
               this.stopPreviewPlaying(null);
               return;
             }
-            
+
             console.error(
               new Error(
                 `${error.message} on line ${error.lineNumber} in script "${error.name}".`

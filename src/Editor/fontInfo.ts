@@ -12,6 +12,11 @@ interface FontFileArgs {
   error?: (error: any) => void;
 }
 
+function getBaseUrl(): string {
+  const meta = import.meta as ImportMeta & { env?: { BASE_URL?: string } };
+  return meta.env?.BASE_URL ?? "/";
+}
+
 class FontInfoInterface extends Object {
   private _allFontInfo: FontInfo;
   private editor: any;
@@ -26,7 +31,7 @@ class FontInfoInterface extends Object {
   }
 
   _getAllFontInfo = (): void => {
-    fetch(import.meta.env.BASE_URL + "fonts/fontList.json")
+    fetch(getBaseUrl() + "fonts/fontList.json")
       .then((response) => response.json())
       .then((data: FontInfo) => {
         this.allFontInfo = data;
@@ -46,7 +51,7 @@ class FontInfoInterface extends Object {
    * @returns {string[]} fonts that currently exist in the project.
    */
   get allFontNames(): string[] {
-    let existingFonts = this.editor.getExistingFonts();
+    let existingFonts: string[] = this.editor.getExistingFonts();
 
     existingFonts = existingFonts.sort(function (a: string, b: string) {
       return a.localeCompare(b);
@@ -138,7 +143,7 @@ class FontInfoInterface extends Object {
     const folderName = font + "/";
     const fontFileName = font + "_" + weight + variant + ".ttf";
 
-    fetch(import.meta.env.BASE_URL + "fonts/" + folderName + fontFileName)
+    fetch(getBaseUrl() + "fonts/" + folderName + fontFileName)
       .then((response) => response.blob())
       .then((data: Blob) => {
         (data as any).hasFont = false;

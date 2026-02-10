@@ -21,23 +21,42 @@ test.describe('Direct WickFile Test', () => {
     });
 
     // Test WickFile.fromWickFile directly
-    const result = await page.evaluate((projectData) => {
-      return new Promise((resolve) => {
+    const result: {
+      success: boolean;
+      resultType?: string;
+      isNull?: boolean;
+      isUndefined?: boolean;
+      hasClassname?: string;
+      hasChildren?: number | null;
+      error?: string;
+    } = await page.evaluate((projectData) => {
+      return new Promise<{
+        success: boolean;
+        resultType?: string;
+        isNull?: boolean;
+        isUndefined?: boolean;
+        hasClassname?: string;
+        hasChildren?: number | null;
+        error?: string;
+      }>((resolve) => {
         console.log('Testing WickFile.fromWickFile directly...');
         
         if (window.Wick && window.Wick.WickFile) {
           const blob = new Blob([projectData], { type: 'application/json' });
           
-          window.Wick.WickFile.fromWickFile(blob, (result) => {
+          window.Wick.WickFile.fromWickFile(blob, (result: unknown) => {
+            const wickResult = result as {
+              classname?: string;
+              getChildren?: () => unknown[];
+            } | null | undefined;
             console.log('Direct WickFile callback result:', typeof result, result);
             resolve({
               success: true,
-              result: result,
               resultType: typeof result,
               isNull: result === null,
               isUndefined: result === undefined,
-              hasClassname: result && result.classname,
-              hasChildren: result && result.getChildren && result.getChildren().length
+              hasClassname: wickResult?.classname,
+              hasChildren: wickResult?.getChildren ? wickResult.getChildren().length : null
             });
           });
         } else {
@@ -75,9 +94,10 @@ test.describe('Direct WickFile Test', () => {
           hasChildren: project.getChildren().length
         };
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         return {
           success: false,
-          error: error.message
+          error: errorMessage
         };
       }
     });
@@ -88,7 +108,6 @@ test.describe('Direct WickFile Test', () => {
     console.log('🎉 Direct WickFile test completed!');
   });
 });
-
 
 
 

@@ -85,10 +85,12 @@ test.describe('Comprehensive Functionality Test', () => {
           hasViewScrollToZoom: typeof window.paper.View.prototype.enableScrollToZoom !== 'undefined'
         };
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
         return {
           success: false,
-          error: error.message,
-          stack: error.stack
+          error: errorMessage,
+          stack: errorStack
         };
       }
     });
@@ -247,10 +249,12 @@ test.describe('Comprehensive Functionality Test', () => {
           wickFileToWickFile: typeof wickFile.toWickFile === 'function'
         };
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
         return {
           success: false,
-          error: error.message,
-          stack: error.stack
+          error: errorMessage,
+          stack: errorStack
         };
       }
     });

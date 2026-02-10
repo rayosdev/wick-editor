@@ -33,3 +33,5 @@ engine/docs/*
 
 playwright-report/*
 .playwright-mcp/
+
+/_report/*

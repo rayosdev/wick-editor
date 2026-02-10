@@ -19,11 +19,6 @@ interface LogEntry {
   type?: string;
 }
 
-interface ConsoleListenerOptions {
-  onEntry: (entry: LogEntry) => void;
-  targetConsole?: Console;
-}
-
 function shouldIgnoreLog(args: any[]): boolean {
   const message = args.map(arg => 
     typeof arg === 'string' ? arg : String(arg)

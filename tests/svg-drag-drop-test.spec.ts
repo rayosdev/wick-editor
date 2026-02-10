@@ -125,10 +125,12 @@ test.describe('SVG Drag and Drop Test', () => {
           walkItemsUndefined: result2
         };
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
         return {
           success: false,
-          error: error.message,
-          stack: error.stack
+          error: errorMessage,
+          stack: errorStack
         };
       }
     });

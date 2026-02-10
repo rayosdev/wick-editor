@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 test.describe('Manual Project Loading Test', () => {
   test('load project using File menu and verify UI updates @headed', async ({ page }) => {
@@ -65,6 +65,9 @@ test.describe('Manual Project Loading Test', () => {
       
       for (let i = 0; i < Math.min(allButtons.length, 10); i++) {
         const button = allButtons[i];
+        if (!button) {
+          continue;
+        }
         const text = await button.textContent();
         const title = await button.getAttribute('title');
         const ariaLabel = await button.getAttribute('aria-label');

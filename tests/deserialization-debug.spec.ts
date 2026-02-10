@@ -1,6 +1,10 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
 
 test.describe('Deserialization Debug', () => {
   test('debug deserialization step by step with detailed logging @headed', async ({ page }) => {
@@ -35,7 +39,7 @@ test.describe('Deserialization Debug', () => {
     // Step 2: Test WickFile.fromWickFile step by step
     console.log('\n=== STEP 2: Testing WickFile.fromWickFile ===');
     
-    const wickFileTest = await page.evaluate((projectData) => {
+    const wickFileTest = await page.evaluate<any, string>((projectData: string) => {
       console.log('🔍 Starting WickFile.fromWickFile test...');
       
       if (!window.Wick || !window.Wick.WickFile) {
@@ -49,44 +53,45 @@ test.describe('Deserialization Debug', () => {
         const blob = new Blob([projectData], { type: 'application/json' });
         console.log('✅ Blob created, size:', blob.size);
         
-        return new Promise((resolve) => {
+        return new Promise<any>((resolve) => {
           console.log('🔍 Calling WickFile.fromWickFile...');
           const startTime = Date.now();
           
-          window.Wick.WickFile.fromWickFile(blob, (loadedProject) => {
+          window.Wick.WickFile.fromWickFile(blob, (loadedProject: unknown) => {
+            const loaded = loadedProject as any;
             const endTime = Date.now();
             console.log(`✅ WickFile.fromWickFile completed in ${endTime - startTime}ms`);
             
-            if (loadedProject) {
+            if (loaded) {
               console.log('✅ Project loaded successfully');
-              console.log('- loadedProject.classname:', loadedProject.classname);
-              console.log('- loadedProject.name:', loadedProject.name);
-              console.log('- loadedProject.width:', loadedProject.width);
-              console.log('- loadedProject.height:', loadedProject.height);
-              console.log('- loadedProject.framerate:', loadedProject.framerate);
-              console.log('- loadedProject.children count:', loadedProject.children?.length);
-              console.log('- loadedProject.focus:', loadedProject.focus);
-              console.log('- loadedProject.uuid:', loadedProject.uuid);
+              console.log('- loadedProject.classname:', loaded.classname);
+              console.log('- loadedProject.name:', loaded.name);
+              console.log('- loadedProject.width:', loaded.width);
+              console.log('- loadedProject.height:', loaded.height);
+              console.log('- loadedProject.framerate:', loaded.framerate);
+              console.log('- loadedProject.children count:', loaded.children?.length);
+              console.log('- loadedProject.focus:', loaded.focus);
+              console.log('- loadedProject.uuid:', loaded.uuid);
               
               // Test if the project has the necessary methods
-              console.log('- loadedProject.serialize exists:', typeof loadedProject.serialize === 'function');
-              console.log('- loadedProject.view exists:', !!loadedProject.view);
-              console.log('- loadedProject.guiElement exists:', !!loadedProject.guiElement);
+              console.log('- loadedProject.serialize exists:', typeof loaded.serialize === 'function');
+              console.log('- loadedProject.view exists:', !!loaded.view);
+              console.log('- loadedProject.guiElement exists:', !!loaded.guiElement);
               
               resolve({
                 success: true,
                 project: {
-                  classname: loadedProject.classname,
-                  name: loadedProject.name,
-                  width: loadedProject.width,
-                  height: loadedProject.height,
-                  framerate: loadedProject.framerate,
-                  childrenCount: loadedProject.children?.length,
-                  focus: loadedProject.focus,
-                  uuid: loadedProject.uuid,
-                  hasSerialize: typeof loadedProject.serialize === 'function',
-                  hasView: !!loadedProject.view,
-                  hasGuiElement: !!loadedProject.guiElement
+                  classname: loaded.classname,
+                  name: loaded.name,
+                  width: loaded.width,
+                  height: loaded.height,
+                  framerate: loaded.framerate,
+                  childrenCount: loaded.children?.length,
+                  focus: loaded.focus,
+                  uuid: loaded.uuid,
+                  hasSerialize: typeof loaded.serialize === 'function',
+                  hasView: !!loaded.view,
+                  hasGuiElement: !!loaded.guiElement
                 },
                 duration: endTime - startTime
               });
@@ -96,18 +101,18 @@ test.describe('Deserialization Debug', () => {
             }
           });
         });
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('❌ Error in WickFile.fromWickFile:', error);
-        return { success: false, error: error.message };
+        return { success: false, error: getErrorMessage(error) };
       }
-    }, projectData);
+    }, projectData) as any;
 
     console.log('WickFile test result:', wickFileTest);
 
     // Step 3: Test setupNewProject step by step
     console.log('\n=== STEP 3: Testing setupNewProject ===');
     
-    const setupNewProjectTest = await page.evaluate((projectData) => {
+    const setupNewProjectTest = await page.evaluate<any, string>((projectData: string) => {
       console.log('🔍 Starting setupNewProject test...');
       
       if (!window.Wick || !window.Wick.WickFile || !window.editor) {
@@ -115,12 +120,13 @@ test.describe('Deserialization Debug', () => {
         return { success: false, error: 'Required objects not available' };
       }
 
-      return new Promise((resolve) => {
+      return new Promise<any>((resolve) => {
         console.log('🔍 Loading project first...');
         const blob = new Blob([projectData], { type: 'application/json' });
         
-        window.Wick.WickFile.fromWickFile(blob, (loadedProject) => {
-          if (!loadedProject) {
+        window.Wick.WickFile.fromWickFile(blob, (loadedProject: unknown) => {
+          const loaded = loadedProject as any;
+          if (!loaded) {
             console.error('❌ Failed to load project for setupNewProject test');
             resolve({ success: false, error: 'Failed to load project' });
             return;
@@ -138,7 +144,7 @@ test.describe('Deserialization Debug', () => {
           
           if (window.editor.projectDidChange) {
             const originalProjectDidChange = window.editor.projectDidChange;
-            window.editor.projectDidChange = function(options) {
+            window.editor.projectDidChange = function(options: unknown) {
               console.log('🔍 projectDidChange called with:', options);
               projectDidChangeCalled = true;
               const result = originalProjectDidChange.call(this, options);
@@ -149,7 +155,10 @@ test.describe('Deserialization Debug', () => {
           
           if (window.editor.setState) {
             const originalSetState = window.editor.setState;
-            window.editor.setState = function(newState, callback) {
+            window.editor.setState = function(
+              newState: { project?: { name?: string } },
+              callback?: () => void
+            ) {
               console.log('🔍 setState called with project name:', newState?.project?.name);
               setStateCalled = true;
               const result = originalSetState.call(this, newState, callback);
@@ -162,7 +171,7 @@ test.describe('Deserialization Debug', () => {
             console.log('🔍 Calling setupNewProject...');
             const startTime = Date.now();
             
-            window.editor.setupNewProject(loadedProject);
+            window.editor.setupNewProject(loaded);
             
             const endTime = Date.now();
             console.log(`✅ setupNewProject completed in ${endTime - startTime}ms`);
@@ -203,13 +212,13 @@ test.describe('Deserialization Debug', () => {
                 childrenCount: reactState?.project?.children?.length
               }
             });
-          } catch (error) {
+          } catch (error: unknown) {
             console.error('❌ Error in setupNewProject:', error);
-            resolve({ success: false, error: error.message });
+            resolve({ success: false, error: getErrorMessage(error) });
           }
         });
       });
-    }, projectData);
+    }, projectData) as any;
 
     console.log('setupNewProject test result:', setupNewProjectTest);
 
@@ -260,9 +269,9 @@ test.describe('Deserialization Debug', () => {
             uuid: serialized.uuid
           }
         };
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('❌ Error in project.serialize():', error);
-        return { success: false, error: error.message };
+        return { success: false, error: getErrorMessage(error) };
       }
     });
 
@@ -300,10 +309,6 @@ test.describe('Deserialization Debug', () => {
     console.log('\n🎉 Deserialization debug completed!');
   });
 });
-
-
-
-
 
 
 

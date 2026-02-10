@@ -19,7 +19,11 @@ test.describe('Drawing Verification Test', () => {
         return {
           hasProject: true,
           activeFrameObjects: project.activeFrame && project.activeFrame.objects ? project.activeFrame.objects.length : 0,
-          allObjects: project.activeFrame && project.activeFrame.objects ? project.activeFrame.objects.map(obj => ({
+          allObjects: project.activeFrame && project.activeFrame.objects ? project.activeFrame.objects.map((obj: {
+            uuid?: string;
+            classname?: string;
+            name?: string;
+          }) => ({
             uuid: obj.uuid,
             classname: obj.classname,
             name: obj.name
@@ -71,7 +75,11 @@ test.describe('Drawing Verification Test', () => {
         return {
           hasProject: true,
           activeFrameObjects: project.activeFrame && project.activeFrame.objects ? project.activeFrame.objects.length : 0,
-          allObjects: project.activeFrame && project.activeFrame.objects ? project.activeFrame.objects.map(obj => ({
+          allObjects: project.activeFrame && project.activeFrame.objects ? project.activeFrame.objects.map((obj: {
+            uuid?: string;
+            classname?: string;
+            name?: string;
+          }) => ({
             uuid: obj.uuid,
             classname: obj.classname,
             name: obj.name
@@ -104,7 +112,11 @@ test.describe('Drawing Verification Test', () => {
         const selection = project.selection;
         return {
           selectionCount: selection ? selection.numObjects : 0,
-          selectedObjects: selection ? selection.getSelectedObjects().map(obj => ({
+          selectedObjects: selection ? selection.getSelectedObjects().map((obj: {
+            uuid?: string;
+            classname?: string;
+            name?: string;
+          }) => ({
             uuid: obj.uuid,
             classname: obj.classname,
             name: obj.name

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -19,7 +19,15 @@ test.describe('Project State Debug', () => {
       return new Promise((resolve) => {
         if (window.Wick && window.Wick.WickFile) {
           const blob = new Blob([projectData], { type: 'application/json' });
-          window.Wick.WickFile.fromWickFile(blob, (loadedProject) => {
+          window.Wick.WickFile.fromWickFile(blob, (loadedProject: {
+            name?: string;
+            width?: number;
+            height?: number;
+            framerate?: number;
+            classname?: string;
+            uuid?: string;
+            children?: unknown[];
+          } | null) => {
             if (loadedProject) {
               console.log('🔍 Loaded project state:');
               console.log('- name:', loadedProject.name);
@@ -88,7 +96,12 @@ test.describe('Project State Debug', () => {
       return new Promise((resolve) => {
         if (window.Wick && window.Wick.WickFile) {
           const blob = new Blob([projectData], { type: 'application/json' });
-          window.Wick.WickFile.fromWickFile(blob, (loadedProject) => {
+          window.Wick.WickFile.fromWickFile(blob, (loadedProject: {
+            name?: string;
+            width?: number;
+            height?: number;
+            framerate?: number;
+          } | null) => {
             if (loadedProject && window.editor) {
               console.log('🔍 Before setupNewProject:');
               console.log('- editor.project.name:', window.editor.project?.name);
@@ -132,8 +145,9 @@ test.describe('Project State Debug', () => {
                   }
                 });
               } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
                 console.error('❌ Error serializing project:', error);
-                resolve({ success: false, error: error.message });
+                resolve({ success: false, error: errorMessage });
               }
             } else {
               resolve({ success: false, error: 'Failed to load project or editor not available' });
@@ -150,8 +164,6 @@ test.describe('Project State Debug', () => {
     console.log('\n🎉 Project state debug completed!');
   });
 });
-
-
 
 
 

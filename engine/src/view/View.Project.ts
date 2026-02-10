@@ -55,6 +55,18 @@ Wick.View.Project = class extends Wick.View {
         return 10000;
     }
 
+    static get PINCH_ACCELERATION_BASE() {
+        return 0.15;
+    }
+
+    static get PINCH_ACCELERATION_MULTIPLIER() {
+        return 12;
+    }
+
+    static get PINCH_ACCELERATION_MAX_BOOST() {
+        return 2.5;
+    }
+
     /*
      * Create a new Project View.
      */
@@ -266,7 +278,8 @@ Wick.View.Project = class extends Wick.View {
         if (isZoomGesture) {
             // ZOOM: Pinch-to-zoom or ctrl/cmd + scroll
             const deltaY = event.deltaY || 0;
-            const d = deltaY * multiplier * 0.001;
+            const baseDelta = deltaY * multiplier * 0.001;
+            const d = this._transformPinchDelta(baseDelta);
 
             // Get mouse position in view coordinates for zoom-to-point
             const rect = this._svgCanvas.getBoundingClientRect();
@@ -367,7 +380,9 @@ Wick.View.Project = class extends Wick.View {
             if (this._gestureStartZoom && this._gesturePoint) {
                 // More responsive: increased scale sensitivity
                 const scaleFactor = 1.5; // Increase responsiveness
-                const adjustedScale = 1 + (e.scale - 1) * scaleFactor;
+                const scaleDelta = (e.scale - 1) * scaleFactor;
+                const adjustedDelta = this._transformPinchDelta(scaleDelta);
+                const adjustedScale = Math.max(0.1, 1 + adjustedDelta);
                 const newZoom = this._gestureStartZoom * adjustedScale;
                 const clampedZoom = Math.max(
                     Wick.View.Project.ZOOM_MIN, 
@@ -476,7 +491,9 @@ Wick.View.Project = class extends Wick.View {
                 if (distanceChange > 5) {
                     const scaleFactor = 1.5;
                     const scale = currentDistance / this._touchStartDistance;
-                    const adjustedScale = 1 + (scale - 1) * scaleFactor;
+                    const scaleDelta = (scale - 1) * scaleFactor;
+                    const adjustedDelta = this._transformPinchDelta(scaleDelta);
+                    const adjustedScale = Math.max(0.1, 1 + adjustedDelta);
                     const newZoom = this._touchStartZoom * adjustedScale;
                     const clampedZoom = Math.max(
                         Wick.View.Project.ZOOM_MIN, 
@@ -530,6 +547,18 @@ Wick.View.Project = class extends Wick.View {
         }
 
         this.model.tools.none.activate();
+    }
+
+    // Reverse pinch direction and apply gentle acceleration for natural feel
+    _transformPinchDelta(rawDelta) {
+        if (!rawDelta) return 0;
+        const reversed = -rawDelta;
+        const magnitude = Math.abs(reversed);
+        const boost = Wick.View.Project.PINCH_ACCELERATION_BASE + Math.min(
+            magnitude * Wick.View.Project.PINCH_ACCELERATION_MULTIPLIER,
+            Wick.View.Project.PINCH_ACCELERATION_MAX_BOOST
+        );
+        return reversed * boost;
     }
 
     _displayCanvasInContainer(canvas) {

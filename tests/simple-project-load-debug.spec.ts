@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -32,7 +32,7 @@ test.describe('Simple Project Load Debug', () => {
     await page.evaluate(() => {
       if (window.editor && window.editor.projectDidChange) {
         const originalProjectDidChange = window.editor.projectDidChange;
-        window.editor.projectDidChange = function(options) {
+        window.editor.projectDidChange = function(options: unknown) {
           console.log('🔍 projectDidChange called with:', options);
           const result = originalProjectDidChange.call(this, options);
           console.log('🔍 projectDidChange completed');
@@ -45,7 +45,7 @@ test.describe('Simple Project Load Debug', () => {
     await page.evaluate(() => {
       if (window.editor && window.editor.setState) {
         const originalSetState = window.editor.setState;
-        window.editor.setState = function(newState, callback) {
+        window.editor.setState = function(newState: unknown, callback?: () => void) {
           console.log('🔍 setState called with:', newState);
           const result = originalSetState.call(this, newState, callback);
           console.log('🔍 setState completed');
@@ -59,7 +59,7 @@ test.describe('Simple Project Load Debug', () => {
       return new Promise((resolve, reject) => {
         if (window.Wick && window.Wick.WickFile) {
           const blob = new Blob([projectData], { type: 'application/json' });
-          window.Wick.WickFile.fromWickFile(blob, (loadedProject) => {
+          window.Wick.WickFile.fromWickFile(blob, (loadedProject: unknown) => {
             if (loadedProject && window.editor) {
               console.log('🔍 About to call setupNewProject');
               window.editor.setupNewProject(loadedProject);
@@ -126,9 +126,10 @@ test.describe('Simple Project Load Debug', () => {
             childrenCount: serialized.children?.length || 0
           };
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
           return {
             success: false,
-            error: error.message
+            error: errorMessage
           };
         }
       }
@@ -139,7 +140,6 @@ test.describe('Simple Project Load Debug', () => {
     console.log('\n🎉 Simple project load debug completed!');
   });
 });
-
 
 
 

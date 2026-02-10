@@ -92,9 +92,10 @@ test.describe('Engine Integration - Build System', () => {
           hasHeight: typeof project.height !== 'undefined'
         };
       } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : String(e);
         return {
           success: false,
-          error: e.message
+          error: errorMessage
         };
       }
     });
@@ -119,4 +120,3 @@ test.describe('Engine Integration - Build System', () => {
     await expect(page.locator('#animation-timeline-container')).toBeVisible();
   });
 });
-

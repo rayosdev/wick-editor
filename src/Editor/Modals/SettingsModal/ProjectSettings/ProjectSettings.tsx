@@ -221,55 +221,6 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
     );
   };
 
-  const renderWidthObject = (): JSX.Element => {
-    return (
-      <div
-        className={classNames(
-          "project-setting-element",
-          props.isMobile && "mobile"
-        )}
-      >
-        <div className="project-settings-property-container project-settings-size-input-container">
-          <span>
-            <label
-              htmlFor="project width"
-              className="project-settings-property-label"
-            >
-              Width (px)
-            </label>
-            <WickInput
-              id="project width"
-              type="numeric"
-              min={projectMinWidth}
-              value={width}
-              onChange={changeProjectWidth}
-              className="project-settings-size-input"
-            />
-          </span>
-          <span>
-            <div className="project-settings-split">x</div>
-          </span>
-          <span>
-            <label
-              htmlFor="project height"
-              className="project-settings-property-label"
-            >
-              Height (px)
-            </label>
-            <WickInput
-              id="project height"
-              type="numeric"
-              min={projectMinHeight}
-              value={height}
-              onChange={changeProjectHeight}
-              className="project-settings-size-input"
-            />
-          </span>
-        </div>
-      </div>
-    );
-  };
-
   const renderSizeObjectMobile = (): JSX.Element => {
     return (
       <div className={classNames("project-setting-element", "mobile")}>

@@ -29,10 +29,12 @@ test.describe('GUI Functionality Test', () => {
           hasScrollbar: typeof window.Wick.GUIElement?.Scrollbar !== 'undefined'
         };
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
         return {
           success: false,
-          error: error.message,
-          stack: error.stack
+          error: errorMessage,
+          stack: errorStack
         };
       }
     });
@@ -89,10 +91,12 @@ test.describe('GUI Functionality Test', () => {
           timelineHasFramesContainer: timeline.framesContainer !== null
         };
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
         return {
           success: false,
-          error: error.message,
-          stack: error.stack
+          error: errorMessage,
+          stack: errorStack
         };
       }
     });
@@ -153,10 +157,12 @@ test.describe('GUI Functionality Test', () => {
           buttonCanAutoScroll: button.canAutoScrollY === false
         };
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
         return {
           success: false,
-          error: error.message,
-          stack: error.stack
+          error: errorMessage,
+          stack: errorStack
         };
       }
     });

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 test('compare Gulp vs Vite - check for setFullySelected error', async ({ page }) => {
   const errors: string[] = [];
@@ -48,4 +48,3 @@ test('compare Gulp vs Vite - check for setFullySelected error', async ({ page })
   // This test just logs - doesn't fail
   console.log('\nTest complete - check logs above');
 });
-

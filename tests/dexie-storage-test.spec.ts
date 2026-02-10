@@ -47,7 +47,8 @@ test.describe('Dexie Storage Test', () => {
           return { success: true, method: 'localStorage' };
         }
       } catch (e) {
-        return { success: false, error: e.message, method: 'unknown' };
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        return { success: false, error: errorMessage, method: 'unknown' };
       }
     }, testProjectData);
     
@@ -70,7 +71,8 @@ test.describe('Dexie Storage Test', () => {
         }
         return { found: false, reason: 'Dexie not available' };
       } catch (e) {
-        return { found: false, error: e.message };
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        return { found: false, error: errorMessage };
       }
     });
     
@@ -101,8 +103,8 @@ test.describe('Dexie Storage Test', () => {
             dataSize: data?.length || 0,
           };
         } else if ((window as any).__wickDebug && (window as any).__wickDebug.loadFromIndexedDB) {
-          const data = await new Promise((resolve) => {
-            (window as any).__wickDebug.loadFromIndexedDB('wick_cached_project', (success: boolean) => {
+          const data = await new Promise<string | null>((resolve) => {
+            (window as any).__wickDebug.loadFromIndexedDB('wick_cached_project', (_success: boolean) => {
               const cached = localStorage.getItem('wick_cached_project');
               resolve(cached);
             });
@@ -111,7 +113,7 @@ test.describe('Dexie Storage Test', () => {
             success: true,
             method: 'indexeddb',
             hasData: !!data,
-            dataSize: data?.length || 0,
+            dataSize: typeof data === 'string' ? data.length : 0,
           };
         } else {
           const data = localStorage.getItem('wick_cached_project');
@@ -123,7 +125,8 @@ test.describe('Dexie Storage Test', () => {
           };
         }
       } catch (e) {
-        return { success: false, error: e.message };
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        return { success: false, error: errorMessage };
       }
     });
     
@@ -162,7 +165,8 @@ test.describe('Dexie Storage Test', () => {
         }
         return { success: false, reason: 'No data found' };
       } catch (e) {
-        return { success: false, error: e.message };
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        return { success: false, error: errorMessage };
       }
     });
     
@@ -174,4 +178,3 @@ test.describe('Dexie Storage Test', () => {
     console.log('\n✅ Dexie storage test complete!');
   });
 });
-

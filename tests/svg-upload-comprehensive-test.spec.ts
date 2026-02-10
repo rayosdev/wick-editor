@@ -137,9 +137,10 @@ test.describe('SVG Upload Comprehensive Test', () => {
           getInstances: svgAsset.getInstances()
         };
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         return {
           success: false,
-          error: error.message
+          error: errorMessage
         };
       }
     });
@@ -159,9 +160,10 @@ test.describe('SVG Upload Comprehensive Test', () => {
           extensions
         };
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         return {
           success: false,
-          error: error.message
+          error: errorMessage
         };
       }
     });

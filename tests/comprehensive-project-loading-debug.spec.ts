@@ -2,6 +2,25 @@ import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function getErrorStack(error: unknown): string | undefined {
+  return error instanceof Error ? error.stack : undefined;
+}
+
+type LoadedProjectDebug = {
+  classname?: string;
+  name?: string;
+  width?: number;
+  height?: number;
+  framerate?: number;
+  uuid?: string;
+  _focus?: unknown;
+  getChildren?: () => unknown[];
+};
+
 test.describe('Comprehensive Project Loading Debug', () => {
   test('debug project loading with extensive logging @headed', async ({ page }) => {
     // Capture ALL console messages with detailed logging
@@ -73,7 +92,7 @@ test.describe('Comprehensive Project Loading Debug', () => {
 
     // Step 3: Test FileReader directly
     console.log('\n=== STEP 3: TESTING FILEREADER ===');
-    const fileReaderTest = await page.evaluate((projectData) => {
+    const fileReaderTest = await page.evaluate((projectData: string) => {
       return new Promise((resolve) => {
         console.log('Testing FileReader...');
         const blob = new Blob([projectData], { type: 'application/json' });
@@ -82,26 +101,28 @@ test.describe('Comprehensive Project Loading Debug', () => {
         fr.onload = function() {
           console.log('FileReader onload triggered');
           console.log('FileReader result type:', typeof fr.result);
-          console.log('FileReader result length:', fr.result ? fr.result.length : 'null');
+          const resultText = typeof fr.result === 'string' ? fr.result : '';
+          console.log('FileReader result length:', resultText ? resultText.length : 'null');
           
           try {
-            const data = JSON.parse(fr.result);
+            const data = JSON.parse(resultText);
             console.log('FileReader JSON parse successful');
             resolve({
               success: true,
               resultType: typeof fr.result,
-              resultLength: fr.result ? fr.result.length : 0,
+              resultLength: resultText ? resultText.length : 0,
               parsedData: {
                 hasProject: !!data.project,
                 hasExport: !!data.export,
                 projectKeys: data.project ? Object.keys(data.project) : []
               }
             });
-          } catch (e) {
-            console.log('FileReader JSON parse failed:', e.message);
+          } catch (e: unknown) {
+            const message = getErrorMessage(e);
+            console.log('FileReader JSON parse failed:', message);
             resolve({
               success: false,
-              error: e.message,
+              error: message,
               result: fr.result
             });
           }
@@ -124,7 +145,7 @@ test.describe('Comprehensive Project Loading Debug', () => {
 
     // Step 4: Test WickFile.fromWickFile with detailed debugging
     console.log('\n=== STEP 4: TESTING WICKFILE.FROMWICKFILE ===');
-    const wickFileTest = await page.evaluate((projectData) => {
+    const wickFileTest = await page.evaluate((projectData: string) => {
       return new Promise((resolve) => {
         console.log('Starting WickFile.fromWickFile test...');
         
@@ -139,44 +160,46 @@ test.describe('Comprehensive Project Loading Debug', () => {
         console.log('Blob created, size:', blob.size);
         
         try {
-          window.Wick.WickFile.fromWickFile(blob, (result) => {
+          window.Wick.WickFile.fromWickFile(blob, (result: unknown) => {
+            const loaded = result as LoadedProjectDebug | null;
             console.log('WickFile.fromWickFile callback executed');
             console.log('Callback result type:', typeof result);
             console.log('Callback result is null:', result === null);
             console.log('Callback result is undefined:', result === undefined);
             
-            if (result) {
-              console.log('Result has classname:', result.classname);
-              console.log('Result has name:', result.name);
-              console.log('Result has width:', result.width);
-              console.log('Result has height:', result.height);
-              console.log('Result has framerate:', result.framerate);
-              console.log('Result has children:', result.getChildren ? result.getChildren().length : 'no getChildren method');
-              console.log('Result has focus:', result._focus);
-              console.log('Result focus type:', typeof result._focus);
+            if (loaded) {
+              console.log('Result has classname:', loaded.classname);
+              console.log('Result has name:', loaded.name);
+              console.log('Result has width:', loaded.width);
+              console.log('Result has height:', loaded.height);
+              console.log('Result has framerate:', loaded.framerate);
+              console.log('Result has children:', loaded.getChildren ? loaded.getChildren().length : 'no getChildren method');
+              console.log('Result has focus:', loaded._focus);
+              console.log('Result focus type:', typeof loaded._focus);
             }
             
             resolve({
               success: true,
-              result: result,
+              result: loaded,
               resultType: typeof result,
               isNull: result === null,
               isUndefined: result === undefined,
-              hasClassname: result && result.classname,
-              hasName: result && result.name,
-              hasWidth: result && result.width,
-              hasHeight: result && result.height,
-              hasFramerate: result && result.framerate,
-              hasChildren: result && result.getChildren ? result.getChildren().length : null,
-              focus: result && result._focus
+              hasClassname: loaded && loaded.classname,
+              hasName: loaded && loaded.name,
+              hasWidth: loaded && loaded.width,
+              hasHeight: loaded && loaded.height,
+              hasFramerate: loaded && loaded.framerate,
+              hasChildren: loaded && loaded.getChildren ? loaded.getChildren().length : null,
+              focus: loaded && loaded._focus
             });
           });
-        } catch (e) {
-          console.log('Error calling WickFile.fromWickFile:', e.message);
+        } catch (e: unknown) {
+          const message = getErrorMessage(e);
+          console.log('Error calling WickFile.fromWickFile:', message);
           resolve({
             success: false,
-            error: e.message,
-            stack: e.stack
+            error: message,
+            stack: getErrorStack(e)
           });
         }
       });
@@ -185,7 +208,7 @@ test.describe('Comprehensive Project Loading Debug', () => {
 
     // Step 5: Test editor.setupNewProject with detailed debugging
     console.log('\n=== STEP 5: TESTING EDITOR.SETUPNEWPROJECT ===');
-    const setupNewProjectTest = await page.evaluate((projectData) => {
+    const setupNewProjectTest = await page.evaluate((projectData: string) => {
       return new Promise((resolve) => {
         console.log('Starting editor.setupNewProject test...');
         
@@ -197,10 +220,11 @@ test.describe('Comprehensive Project Loading Debug', () => {
         
         const blob = new Blob([projectData], { type: 'application/json' });
         
-        window.Wick.WickFile.fromWickFile(blob, (project) => {
+        window.Wick.WickFile.fromWickFile(blob, (project: unknown) => {
+          const loaded = project as LoadedProjectDebug | null;
           console.log('WickFile callback received project:', project);
           
-          if (!project) {
+          if (!loaded) {
             console.log('No project received from WickFile');
             resolve({ success: false, error: 'No project received from WickFile' });
             return;
@@ -209,15 +233,15 @@ test.describe('Comprehensive Project Loading Debug', () => {
           try {
             console.log('Calling editor.setupNewProject...');
             console.log('Project before setup:', {
-              name: project.name,
-              width: project.width,
-              height: project.height,
-              framerate: project.framerate,
-              focus: project._focus,
-              children: project.getChildren ? project.getChildren().length : 'no getChildren'
+              name: loaded.name,
+              width: loaded.width,
+              height: loaded.height,
+              framerate: loaded.framerate,
+              focus: loaded._focus,
+              children: loaded.getChildren ? loaded.getChildren().length : 'no getChildren'
             });
             
-            window.editor.setupNewProject(project);
+            window.editor.setupNewProject(loaded);
             
             console.log('setupNewProject completed successfully');
             
@@ -242,18 +266,27 @@ test.describe('Comprehensive Project Loading Debug', () => {
               success: true,
               projectState: projectState
             });
-          } catch (setupError) {
-            console.log('setupNewProject failed:', setupError.message);
-            console.log('setupNewProject error stack:', setupError.stack);
+          } catch (setupError: unknown) {
+            const message = getErrorMessage(setupError);
+            console.log('setupNewProject failed:', message);
+            console.log('setupNewProject error stack:', getErrorStack(setupError));
             resolve({
               success: false,
-              error: setupError.message,
-              stack: setupError.stack
+              error: message,
+              stack: getErrorStack(setupError)
             });
           }
         });
       });
-    }, projectData);
+    }, projectData) as {
+      success: boolean;
+      projectState?: {
+        hasProject?: boolean;
+        projectName?: string;
+      };
+      error?: string;
+      stack?: string;
+    };
     console.log('setupNewProject test result:', setupNewProjectTest);
 
     // Step 6: Check final project state
@@ -323,7 +356,7 @@ test.describe('Comprehensive Project Loading Debug', () => {
     expect(wickAvailability.wickFileExists).toBe(true);
     expect(wickAvailability.editorExists).toBe(true);
     
-    if (setupNewProjectTest.success) {
+    if (setupNewProjectTest.success && setupNewProjectTest.projectState) {
       expect(setupNewProjectTest.projectState.hasProject).toBe(true);
       expect(setupNewProjectTest.projectState.projectName).toBe('My Project');
     }
@@ -331,9 +364,6 @@ test.describe('Comprehensive Project Loading Debug', () => {
     console.log('\n🎉 Comprehensive project loading debug test completed!');
   });
 });
-
-
-
 
 
 

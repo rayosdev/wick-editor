@@ -41,7 +41,7 @@ interface HandlerGroups {
 }
 
 interface Handlers {
-  [key: string]: (e?: KeyboardEvent) => void;
+  [key: string]: (e: KeyboardEvent) => void;
 }
 
 interface CustomHotKeys {
@@ -52,8 +52,8 @@ class HotKeyInterface extends Object {
   private editor: any;
   private repeatKeyTimeout: NodeJS.Timeout | null;
   private repeatKeyInterval: NodeJS.Timeout | null;
-  private keyMap: KeyMap;
-  private handlers: Handlers;
+  private keyMap: KeyMap = {};
+  private handlers: Handlers = {};
   private customHotKeys: CustomHotKeys;
   private essentialKeys: string[];
 
@@ -368,12 +368,16 @@ class HotKeyInterface extends Object {
       name: 'Finish Repeating',
       sequences: [],
     };
+    const finishRepeating = this.keyMap['finish-repeating'];
+    if (!finishRepeating) {
+      return;
+    }
     // Map all repeatable sequences to the custom handler that clears the repeat timers (see finishRepeating)
     for(const name in this.keyMap) {
       const key = this.keyMap[name];
-      if(key.repeatable) {
+      if(key && key.repeatable) {
         key.sequences.forEach(sequence => {
-          this.keyMap['finish-repeating'].sequences.push({
+          finishRepeating.sequences.push({
             sequence: sequence as string,
             action: 'keyup',
           });
@@ -542,7 +546,7 @@ class HotKeyInterface extends Object {
     for(const name in this.handlers) {
       const origHandler = this.handlers[name];
       this.handlers[name] = ((e: KeyboardEvent) => {
-        this.wrapHotkeyFunction(e, name, origHandler);
+        this.wrapHotkeyFunction(e, name, origHandler || (() => {}));
       });
     }
 
@@ -552,18 +556,22 @@ class HotKeyInterface extends Object {
     });
   };
 
-  wrapHotkeyFunction = (e: KeyboardEvent, name: string, fn: () => void): void => {
+  wrapHotkeyFunction = (
+    e: KeyboardEvent,
+    name: string,
+    fn: (e: KeyboardEvent) => void
+  ): void => {
     if(e.target && (e.target as HTMLElement).tagName !== 'INPUT' && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
       // If we are not on a text input area, use the hotkey's function
       e.preventDefault();
-      fn();
+      fn(e);
 
       // Start the repeat timers if this hotkey is repeatable
       const options = this.keyMap[name];
-      if(options.repeatable) {
+      if(options && options.repeatable) {
         this.repeatKeyTimeout = setTimeout(() => {
           this.repeatKeyInterval = setInterval(() => {
-            fn();
+            fn(e);
           }, options.repeatMS || HotKeyInterface.DEFAULT_REPEAT_MS);
         }, options.startMS || HotKeyInterface.DEFAULT_REPEAT_START_MS);
       }
@@ -574,11 +582,16 @@ class HotKeyInterface extends Object {
   };
 
   finishRepeating = (): void => {
-    if(this.repeatKeyInterval || this.repeatKeyTimeout) {
+    const hadRepeating = Boolean(this.repeatKeyInterval || this.repeatKeyTimeout);
+    if(this.repeatKeyInterval) {
       clearInterval(this.repeatKeyInterval);
-      clearTimeout(this.repeatKeyTimeout);
       this.repeatKeyInterval = null;
+    }
+    if(this.repeatKeyTimeout) {
+      clearTimeout(this.repeatKeyTimeout);
       this.repeatKeyTimeout = null;
+    }
+    if (hadRepeating) {
       this.editor.projectDidChange();
     }
   };
@@ -630,9 +643,13 @@ class HotKeyInterface extends Object {
     }
 
     Object.keys(keyMap).forEach((actionName) => {
+      const currentAction = keyMap[actionName];
+      if (!currentAction) {
+        return;
+      }
 
       // Set default attributes...
-      const oldSequences = keyMap[actionName].sequences.concat([]);
+      const oldSequences = currentAction.sequences.concat([]);
       oldSequences.forEach((sequence, i) => {
         let newSequence = sequence;
 
@@ -649,7 +666,7 @@ class HotKeyInterface extends Object {
 
       // Copy over each action.
       newKeyMap[actionName] = {
-        name: keyMap[actionName].name,
+        name: currentAction.name,
         sequences: oldSequences, // Ensure we get a deep copy of this array, avoid reference errors.
       };
       
@@ -669,15 +686,16 @@ class HotKeyInterface extends Object {
 
     const keyup_exceptions = ["activate-pan", 'activate-eyedropper'];
     keyup_exceptions.forEach((exception) => {
-      if (customKeys[exception]) {
-        Object.keys(customKeys[exception]).forEach((key, i) => {
-          const customSequence = customKeys[exception][key];
-          if ((customSequence || customSequence === "") && newKeyMap["de" + exception]) {
+      const customSequenceList = customKeys[exception];
+      const deactivateEntry = newKeyMap["de" + exception];
+      if (customSequenceList) {
+        customSequenceList.forEach((customSequence, i) => {
+          if ((customSequence || customSequence === "") && deactivateEntry) {
             if (typeof customSequence === "string") {
-              newKeyMap["de" + exception].sequences[i] = {sequence: customSequence, action: "keyup"};
+              deactivateEntry.sequences[i] = {sequence: customSequence, action: "keyup"};
             }
             else if (typeof customSequence === "object") {
-              newKeyMap["de" + exception].sequences[i] = {...customSequence, action: "keyup"};
+              deactivateEntry.sequences[i] = {...customSequence, action: "keyup"};
             }
           }
         });
@@ -696,7 +714,7 @@ class HotKeyInterface extends Object {
   filterObject(filters: string[], obj: any): any {
     const map: any = {};
 
-    this.essentialKeys.forEach(key => {
+    filters.forEach(key => {
       if (key in obj) {
         map[key] = obj[key];
       }
@@ -707,7 +725,7 @@ class HotKeyInterface extends Object {
 
   // Replaces keys with symbols.
   static replaceKeys (str: string): string {
-    const keys = [
+    const keys: Array<[string, string]> = [
       ['shift', '⇪'],
       ['Shift', '⇪'],
       ['arrowleft', '⇨'],

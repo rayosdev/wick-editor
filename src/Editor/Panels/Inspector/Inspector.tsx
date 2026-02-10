@@ -700,6 +700,11 @@ const Inspector: React.FC<InspectorProps> = (props) => {
         return renderGroupContent();
     };
 
+    // Kept for planned inspector variants while avoiding unused symbol errors.
+    void renderSelectionStrokeWidth;
+    void renderGroup;
+    void renderMultiGroup;
+
     const renderClip = (): JSX.Element => {
         return renderGroupContent();
     };

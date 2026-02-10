@@ -7,6 +7,7 @@ interface CreateAnimatedGIFArgs {
   height?: number;
   onProgress: (message: string, percentage: number) => void;
   onFinish: (blob: Blob) => void;
+  onError?: (message?: string) => void;
 }
 
 class GIFExport {

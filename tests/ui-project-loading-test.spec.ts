@@ -40,7 +40,7 @@ test.describe('UI Project Loading Test', () => {
         if (window.Wick && window.Wick.WickFile) {
           const blob = new Blob([projectData], { type: 'application/json' });
           
-          window.Wick.WickFile.fromWickFile(blob, (loadedProject) => {
+          window.Wick.WickFile.fromWickFile(blob, (loadedProject: unknown) => {
             if (loadedProject && window.editor) {
               window.editor.setupNewProject(loadedProject);
               console.log('Project loaded successfully via WickFile');

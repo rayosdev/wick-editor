@@ -28,7 +28,16 @@ test.describe('SVG Upload Error Test', () => {
     });
     
     // Test SVGAsset functionality directly
-    const svgAssetTest = await page.evaluate(() => {
+    const svgAssetTest: {
+      success: boolean;
+      classname?: string;
+      hasInstances?: boolean;
+      getInstances?: unknown;
+      mimeTypes?: string[];
+      extensions?: string[];
+      error?: string;
+      stack?: string;
+    } = await page.evaluate(() => {
       try {
         // Test creating an SVG asset
         const svgAsset = new window.Wick.SVGAsset({
@@ -53,10 +62,12 @@ test.describe('SVG Upload Error Test', () => {
           extensions
         };
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
         return {
           success: false,
-          error: error.message,
-          stack: error.stack
+          error: errorMessage,
+          stack: errorStack
         };
       }
     });
@@ -136,7 +147,16 @@ test.describe('SVG Upload Error Test', () => {
     await expect(page.locator('#canvas-container-wrapper')).toBeVisible();
     
     // Test specific SVGAsset methods that might cause the isPublished error
-    const methodTest = await page.evaluate(() => {
+    const methodTest: {
+      success: boolean;
+      instanceMethods?: { classname?: string };
+      staticMethods?: {
+        getValidMIMETypes?: string[];
+        getValidExtensions?: string[];
+      };
+      error?: string;
+      stack?: string;
+    } = await page.evaluate(() => {
       try {
         // Create an SVG asset
         const svgAsset = new window.Wick.SVGAsset({
@@ -167,10 +187,12 @@ test.describe('SVG Upload Error Test', () => {
           staticMethods: staticResults
         };
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
         return {
           success: false,
-          error: error.message,
-          stack: error.stack
+          error: errorMessage,
+          stack: errorStack
         };
       }
     });
@@ -180,6 +202,9 @@ test.describe('SVG Upload Error Test', () => {
     if (!methodTest.success) {
       console.log('SVG Asset methods test failed:', methodTest.error);
       console.log('Stack trace:', methodTest.stack);
+    }
+    if (!methodTest.instanceMethods || !methodTest.staticMethods) {
+      throw new Error('Expected SVG method test details to be present');
     }
     
     expect(methodTest.success).toBe(true);

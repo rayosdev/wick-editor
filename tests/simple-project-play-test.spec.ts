@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -59,7 +59,7 @@ test.describe('Simple Project Play Test', () => {
         const blob = new Blob([projectData], { type: 'application/json' });
         
         // Use WickFile to load the project
-        window.Wick.WickFile.fromWickFile(blob, (loadedProject) => {
+        window.Wick.WickFile.fromWickFile(blob, (loadedProject: unknown) => {
           if (loadedProject && window.editor) {
             window.editor.setupNewProject(loadedProject);
             console.log('Project loaded successfully via WickFile');

@@ -95,7 +95,8 @@ class VideoExport {
 
             // Get the base 64 value and convert it to an array buffer.
             const cleanBase64 = image.src.split(",")[1];
-            const buffer = b64toBuff.decode(cleanBase64);
+            const safeBase64 = cleanBase64 ?? "";
+            const buffer = b64toBuff.decode(safeBase64);
 
             // Store name and buffer in memfs appropriate object.
             imageData.push({ name: name, data: new Uint8Array(buffer) });
@@ -126,7 +127,7 @@ class VideoExport {
       if (!(data instanceof Uint8Array)) {
         data = new Uint8Array(data);
       }
-      const blob = new Blob([data]);
+      const blob = new Blob([data.buffer as ArrayBuffer]);
       (window as any).saveFileFromWick(blob, project.name, ".mp4");
       onProgress && onProgress("Rendering Complete! Downloading...", 100);
       onFinish();

@@ -20,14 +20,6 @@ test.describe('SVG Upload Test', () => {
       }
     });
     
-    // Create a simple SVG file content
-    const svgContent = `<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
-    </svg>`;
-    
-    // Convert to base64 data URL
-    const base64Svg = `data:image/svg+xml;base64,${Buffer.from(svgContent).toString('base64')}`;
-    
     // Find the asset upload button
     const uploadButton = page.locator('#action-button-tooltip-button-asset-upload > button');
     await expect(uploadButton).toBeVisible();
@@ -125,6 +117,9 @@ test.describe('SVG Upload Test', () => {
     });
     
     expect(svgAssetMethods).not.toBeNull();
+    if (!svgAssetMethods) {
+      throw new Error('Expected SVG asset methods to be available');
+    }
     expect(svgAssetMethods.getValidMIMETypes).toBe('function');
     expect(svgAssetMethods.getValidExtensions).toBe('function');
     expect(svgAssetMethods.walkItems).toBe('function');

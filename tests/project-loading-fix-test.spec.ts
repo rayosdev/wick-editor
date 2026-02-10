@@ -51,7 +51,7 @@ test.describe('Project Loading Fix Test', () => {
           const blob = new Blob([projectData], { type: 'application/json' });
           
           // Use WickFile to load the project
-          window.Wick.WickFile.fromWickFile(blob, (loadedProject) => {
+          window.Wick.WickFile.fromWickFile(blob, (loadedProject: unknown) => {
             if (loadedProject && window.editor) {
               window.editor.setupNewProject(loadedProject);
               console.log('Project loaded successfully via WickFile');

@@ -56,7 +56,7 @@ test.describe('Debug Project Loading', () => {
           if (window.Wick && window.Wick.WickFile) {
             const blob = new Blob([projectData], { type: 'application/json' });
             
-            window.Wick.WickFile.fromWickFile(blob, (result) => {
+            window.Wick.WickFile.fromWickFile(blob, (result: unknown) => {
               console.log('WickFile.fromWickFile callback called with:', typeof result, result);
               
               if (result && window.editor) {
@@ -135,7 +135,6 @@ test.describe('Debug Project Loading', () => {
     console.log('🎉 Debug test completed!');
   });
 });
-
 
 
 

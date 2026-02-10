@@ -73,8 +73,12 @@ test.describe('Brush Debug Test', () => {
           paperProject: window.paper && window.paper.project ? {
             hasActiveLayer: !!window.paper.project.activeLayer,
             activeLayerChildren: window.paper.project.activeLayer ? window.paper.project.activeLayer.children.length : 0,
-            allChildren: window.paper.project.activeLayer ? window.paper.project.activeLayer.children.map(child => ({
-              className: child.constructor.name,
+            allChildren: window.paper.project.activeLayer ? window.paper.project.activeLayer.children.map((child: {
+              constructor?: { name?: string };
+              name?: string;
+              data?: unknown;
+            }) => ({
+              className: child.constructor?.name ?? 'Unknown',
               name: child.name,
               data: child.data
             })) : []

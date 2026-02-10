@@ -85,7 +85,8 @@ test.describe('Global Variables Test', () => {
             hasProject: value && value.project ? true : false
           };
         } catch (e) {
-          results[path] = { error: e.message };
+          const errorMessage = e instanceof Error ? e.message : String(e);
+          results[path] = { error: errorMessage };
         }
       });
       return results;

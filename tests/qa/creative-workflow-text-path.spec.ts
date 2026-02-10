@@ -177,6 +177,9 @@ test.describe("Creative workflow: text and path editing", () => {
     });
 
     expect(lineInfo.ok).toBe(true);
+    if (!lineInfo.ok || !lineInfo.firstSegmentScreen || !lineInfo.firstSegment || !lineInfo.uuid) {
+      throw new Error("Failed to locate a line segment for path editing");
+    }
 
     // 3) Edit line endpoint with path cursor.
     const pathCursorTool = page.locator(
@@ -214,6 +217,9 @@ test.describe("Creative workflow: text and path editing", () => {
     }, lineInfo.uuid);
 
     expect(movedSegment.ok).toBe(true);
+    if (!movedSegment.ok || movedSegment.x === undefined || movedSegment.y === undefined) {
+      throw new Error("Failed to read moved path segment coordinates");
+    }
 
     const deltaX = Math.abs(movedSegment.x - lineInfo.firstSegment.x);
     const deltaY = Math.abs(movedSegment.y - lineInfo.firstSegment.y);

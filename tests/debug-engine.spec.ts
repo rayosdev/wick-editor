@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 test('debug - capture all console output', async ({ page }) => {
   const logs: string[] = [];
@@ -54,4 +54,3 @@ test('debug - capture all console output', async ({ page }) => {
   // Just log, don't fail
   console.log('\nTest complete - check logs above');
 });
-

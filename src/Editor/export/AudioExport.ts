@@ -12,7 +12,7 @@ window.toWavFunc = toWav;
 interface AudioExportArgs {
   project: any;
   onProgress?: (progress: number) => void;
-  soundInfo: any;
+  soundInfo?: any;
 }
 
 class AudioExport {

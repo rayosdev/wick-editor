@@ -81,23 +81,28 @@ test.describe('Load Project From Cache Debug', () => {
           if (window.Wick && window.Wick.WickFile) {
             const blob = new Blob([cachedData], { type: 'application/json' });
             
-            window.Wick.WickFile.fromWickFile(blob, (result) => {
+            window.Wick.WickFile.fromWickFile(blob, (result: unknown) => {
+              const loaded = result as { name?: string; uuid?: string } | null;
               console.log('[ProjectLoad] cache:load:fromWickFile:done', { 
-                success: !!result,
-                projectName: result?.name,
-                projectUuid: result?.uuid 
+                success: !!loaded,
+                projectName: loaded?.name,
+                projectUuid: loaded?.uuid 
               });
               
-              if (result && window.editor) {
+              if (loaded && window.editor) {
                 try {
                   console.log('[ProjectLoad] cache:load:setupProject:start');
-                  window.editor.setupNewProject(result);
+                  window.editor.setupNewProject(loaded);
                   console.log('[ProjectLoad] cache:load:setupProject:done');
                   resolve();
-                } catch (setupError) {
+                } catch (setupError: unknown) {
+                  const setupErrorObj = setupError as {
+                    message?: string;
+                    stack?: string;
+                  };
                   console.error('[ProjectLoad] cache:load:setupProject:error', { 
-                    message: setupError?.message,
-                    stack: setupError?.stack 
+                    message: setupErrorObj.message,
+                    stack: setupErrorObj.stack 
                   });
                   reject(setupError);
                 }
@@ -126,8 +131,8 @@ test.describe('Load Project From Cache Debug', () => {
     if (await page.evaluate(() => !!window.__wickDebug?.loadFromCache)) {
       await page.evaluate(() => {
         return new Promise<void>((resolve, reject) => {
-          if (window.__wickDebug?.loadFromCache) {
-            window.__wickDebug.loadFromCache('wick_cached_project', (success) => {
+            if (window.__wickDebug?.loadFromCache) {
+            window.__wickDebug.loadFromCache('wick_cached_project', (success: boolean) => {
               if (success) {
                 console.log('[ProjectLoad] cache:__wickDebug:load:success');
                 resolve();
@@ -206,11 +211,10 @@ test.describe('Load Project From Cache Debug', () => {
     // Read project file
     const projectPath = path.join(__dirname, 'test-projects', 'timeline-script.wick');
     const projectData = fs.readFileSync(projectPath, 'utf8');
-    const projectJson = JSON.parse(projectData);
 
     // Save to IndexedDB using localforage (if available) or localStorage fallback
     console.log('\nSaving project to IndexedDB/localforage...');
-    const saveResult = await page.evaluate(async (projectDataString) => {
+    const saveResult = await page.evaluate(async (projectDataString: string) => {
       try {
         // Try to use localforage (IndexedDB) if available
         if (window.localforage) {
@@ -236,9 +240,10 @@ test.describe('Load Project From Cache Debug', () => {
           });
           return { method: 'localStorage', success: !!saved };
         }
-      } catch (e) {
-        console.error('[ProjectLoad] cache:save:error', { message: e?.message, stack: e?.stack });
-        return { method: 'error', success: false, error: e?.message };
+      } catch (e: unknown) {
+        const err = e as { message?: string; stack?: string };
+        console.error('[ProjectLoad] cache:save:error', { message: err.message, stack: err.stack });
+        return { method: 'error', success: false, error: err.message };
       }
     }, projectData);
     
@@ -246,7 +251,7 @@ test.describe('Load Project From Cache Debug', () => {
     if (!saveResult.success) {
       console.warn('⚠️  IndexedDB save failed, using localStorage fallback...');
       // Fallback to localStorage if IndexedDB failed
-      await page.evaluate((projectDataString) => {
+      await page.evaluate((projectDataString: string) => {
         localStorage.setItem('wick_test_cached_project', projectDataString);
         console.log('[ProjectLoad] cache:localStorage:fallback:save', { 
           key: 'wick_test_cached_project',
@@ -277,8 +282,9 @@ test.describe('Load Project From Cache Debug', () => {
                 } else {
                   console.log('[ProjectLoad] cache:indexeddb:load:notfound');
                 }
-              } catch (e) {
-                console.warn('[ProjectLoad] cache:indexeddb:load:error', { message: e?.message });
+              } catch (e: unknown) {
+                const err = e as { message?: string };
+                console.warn('[ProjectLoad] cache:indexeddb:load:error', { message: err.message });
               }
             } else {
               console.log('[ProjectLoad] cache:indexeddb:load:unavailable');
@@ -311,7 +317,7 @@ test.describe('Load Project From Cache Debug', () => {
             }
 
             const blob = new Blob([cachedData], { type: 'application/json' });
-            window.Wick.WickFile.fromWickFile(blob, (result) => {
+            window.Wick.WickFile.fromWickFile(blob, (result: unknown) => {
               if (result && window.editor) {
                 window.editor.setupNewProject(result);
                 resolve();

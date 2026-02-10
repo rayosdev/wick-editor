@@ -1,14 +1,16 @@
 import * as fastgif from "./fastgif";
+import type { WickAsset, WickProject } from "../types/engine.types";
 
 interface GIFImportArgs {
   gifFile: File;
-  project: any;
-  onFinish: (gifAsset: any) => void;
+  project: WickProject;
+  onFinish: (gifAsset: WickAsset) => void;
+  onProgress?: (percent: number) => void;
 }
 
 class GIFImport {
   static importGIFIntoProject(args: GIFImportArgs): void {
-    const { gifFile, project, onFinish } = args;
+    const { gifFile, project, onFinish, onProgress } = args;
 
     const reader = new FileReader();
     reader.onload = (e: ProgressEvent<FileReader>) => {
@@ -19,36 +21,39 @@ class GIFImport {
       const wasmDecoder = new fastgif.Decoder();
       wasmDecoder
         .decode(buf)
-        .then((decoded: Array<{ frame: ImageData; ms: number }>) => {
+        .then((decoded: Array<{ imageData: ImageData; delay: number }>) => {
+          onProgress?.(25);
           const tempCanvas = document.createElement("canvas");
           const tempCtx = tempCanvas.getContext("2d");
 
           if (!tempCtx) return;
 
           decoded.forEach((frame) => {
-            tempCanvas.width = frame.frame.width;
-            tempCanvas.height = frame.frame.height;
-            tempCtx.putImageData(frame.frame, 0, 0);
+            tempCanvas.width = frame.imageData.width;
+            tempCanvas.height = frame.imageData.height;
+            tempCtx.putImageData(frame.imageData, 0, 0);
             dataURLs.push(tempCanvas.toDataURL());
           });
 
-          const imageAssets: any[] = [];
+          const imageAssets: WickAsset[] = [];
           dataURLs.forEach((dataURL) => {
-            const imageAsset = new (window as any).Wick.ImageAsset({
+            const imageAsset = new window.Wick.ImageAsset({
               filename: gifFile.name + "_" + dataURLs.indexOf(dataURL) + ".png",
               src: dataURL,
             });
             project.addAsset(imageAsset);
             imageAssets.push(imageAsset);
           });
+          onProgress?.(75);
 
           project.loadAssets(() => {
-            (window as any).Wick.GIFAsset.fromImages(
+            window.Wick.GIFAsset.fromImages(
               imageAssets,
               project,
-              (gifAsset: any) => {
+              (gifAsset: WickAsset) => {
                 gifAsset.name = gifFile.name;
                 gifAsset.filename = gifFile.name;
+                onProgress?.(100);
                 onFinish(gifAsset);
               }
             );

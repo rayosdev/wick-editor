@@ -28,7 +28,12 @@ test.describe('SVG isPublished Error Test', () => {
     });
     
     // Test the specific SVG processing that causes the error
-    const svgProcessingTest = await page.evaluate(() => {
+    const svgProcessingTest: {
+      success: boolean;
+      wickItem?: string;
+      error?: string;
+      stack?: string;
+    } = await page.evaluate(() => {
       try {
         // Create an SVG asset
         const svgAsset = new window.Wick.SVGAsset({
@@ -37,8 +42,11 @@ test.describe('SVG isPublished Error Test', () => {
         });
         
         // Test the createInstance method that causes the error
-        return new Promise((resolve) => {
-          svgAsset.createInstance((wickItem) => {
+        return new Promise<{
+          success: boolean;
+          wickItem?: string;
+        }>((resolve) => {
+          svgAsset.createInstance((wickItem: { classname?: string } | null) => {
             resolve({
               success: true,
               wickItem: wickItem ? wickItem.classname : 'null'
@@ -46,10 +54,12 @@ test.describe('SVG isPublished Error Test', () => {
           });
         });
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
         return {
           success: false,
-          error: error.message,
-          stack: error.stack
+          error: errorMessage,
+          stack: errorStack
         };
       }
     });
@@ -106,8 +116,21 @@ test.describe('SVG isPublished Error Test', () => {
     await expect(page.locator('#canvas-container-wrapper')).toBeVisible();
     
     // Test Paper.js SVG import directly
-    const paperSvgTest = await page.evaluate(() => {
+    const paperSvgTest: {
+      success: boolean;
+      wickItem?: string;
+      error?: string;
+      stack?: string;
+    } = await page.evaluate(() => {
       try {
+        const paper = window.paper;
+        if (!paper || !paper.project) {
+          return {
+            success: false,
+            error: 'Paper.js project not available',
+          };
+        }
+
         // Create a simple SVG string
         const svgString = '<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" /></svg>';
         
@@ -125,10 +148,12 @@ test.describe('SVG isPublished Error Test', () => {
           wickItem: wickItem ? wickItem.classname : 'null'
         };
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
         return {
           success: false,
-          error: error.message,
-          stack: error.stack
+          error: errorMessage,
+          stack: errorStack
         };
       }
     });

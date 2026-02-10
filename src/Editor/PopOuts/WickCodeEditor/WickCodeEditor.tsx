@@ -40,7 +40,10 @@ import "ace-builds/src-noconflict/theme-github";
 // Configure ACE editor worker path and disable workers
 import ace from "ace-builds";
 ace.config.set("workerPath", "/");
-ace.config.set("useWorker", false);
+(ace.config as { set: (key: string, value: unknown) => void }).set(
+    "useWorker",
+    false
+);
 
 import "Editor/styles/PopOuts/_wickcodeeditor.css";
 
@@ -284,7 +287,7 @@ const WickCodeEditor = ({
                                     id="code-editor-font"
                                     type="numeric"
                                     value={codeEditorWindowProperties.fontSize}
-                                    onChange={(value) => {
+                                    onChange={(value: string | number) => {
                                         const nextValue = typeof value === "number" ? value : Number(value);
                                         if (!Number.isNaN(nextValue)) {
                                             updateCodeEditorWindowProperties({ fontSize: nextValue });

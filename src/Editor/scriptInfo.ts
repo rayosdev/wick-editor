@@ -40,11 +40,12 @@ class ScriptInfoInterface extends Object {
         const scriptData: ScriptData[] = [];
 
         for (const scriptType of Object.keys(this.scriptsByType)) {
-            for (const scriptName of this.scriptsByType[scriptType]) {
+            const names = this.scriptsByType[scriptType] ?? [];
+            for (const scriptName of names) {
                 scriptData.push({
                     name: scriptName,
                     type: scriptType,
-                    description: this.scriptDescriptions[scriptName],
+                    description: this.scriptDescriptions[scriptName] ?? "",
                 });
             }
         }
@@ -72,8 +73,10 @@ class ScriptInfoInterface extends Object {
 
         if (!typeA || !typeB) return 0;
 
-        const indA = this.scriptsByType[typeA].indexOf(scriptA.name);
-        const indB = this.scriptsByType[typeB].indexOf(scriptB.name);
+        const typeAScripts = this.scriptsByType[typeA] ?? [];
+        const typeBScripts = this.scriptsByType[typeB] ?? [];
+        const indA = typeAScripts.indexOf(scriptA.name);
+        const indB = typeBScripts.indexOf(scriptB.name);
 
         // will be added to the index of the script for sorting purposes.
         const spacer: { [type: string]: number } = {
@@ -82,8 +85,8 @@ class ScriptInfoInterface extends Object {
             'Timeline': 0
         };
 
-        const finalIndA = indA + spacer[typeA];
-        const finalIndB = indB + spacer[typeB];
+        const finalIndA = indA + (spacer[typeA] ?? 0);
+        const finalIndB = indB + (spacer[typeB] ?? 0);
 
         return finalIndA - finalIndB;
     };
@@ -97,7 +100,7 @@ class ScriptInfoInterface extends Object {
         const scriptsByType = this.scriptsByType;
 
         for (const scriptType of Object.keys(scriptsByType)) {
-            if (scriptsByType[scriptType].indexOf(name) !== -1) {
+            if ((scriptsByType[scriptType] ?? []).indexOf(name) !== -1) {
                 return scriptType;
             }
         }
@@ -419,7 +422,7 @@ class ScriptInfoInterface extends Object {
                 events.push({
                     name: key,
                     snippet: "onEvent('<EVENT_FN>', function () {\n  //Add code here!\n});".replace('<EVENT_FN>', key),
-                    description: descriptions[key],
+                    description: descriptions[key] ?? "",
                 });
             }
         });

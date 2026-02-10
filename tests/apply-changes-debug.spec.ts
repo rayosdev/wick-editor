@@ -73,8 +73,12 @@ test.describe('Apply Changes Debug Test', () => {
           paperProject: window.paper && window.paper.project ? {
             hasActiveLayer: !!window.paper.project.activeLayer,
             activeLayerChildren: window.paper.project.activeLayer ? window.paper.project.activeLayer.children.length : 0,
-            allChildren: window.paper.project.activeLayer ? window.paper.project.activeLayer.children.map(child => ({
-              className: child.constructor.name,
+            allChildren: window.paper.project.activeLayer ? window.paper.project.activeLayer.children.map((child: {
+              constructor?: { name?: string };
+              name?: string;
+              data?: unknown;
+            }) => ({
+              className: child.constructor?.name ?? 'Unknown',
               name: child.name,
               data: child.data
             })) : []
@@ -96,9 +100,10 @@ test.describe('Apply Changes Debug Test', () => {
             activeFrameObjects: window.project.activeFrame && window.project.activeFrame.objects ? window.project.activeFrame.objects.length : 0
           };
         } catch (e) {
+          const errorMessage = e instanceof Error ? e.message : String(e);
           return {
             success: false,
-            error: e.message
+            error: errorMessage
           };
         }
       }
@@ -113,7 +118,11 @@ test.describe('Apply Changes Debug Test', () => {
         return {
           hasProject: true,
           activeFrameObjects: project.activeFrame && project.activeFrame.objects ? project.activeFrame.objects.length : 0,
-          allObjects: project.activeFrame && project.activeFrame.objects ? project.activeFrame.objects.map(obj => ({
+          allObjects: project.activeFrame && project.activeFrame.objects ? project.activeFrame.objects.map((obj: {
+            uuid?: string;
+            classname?: string;
+            name?: string;
+          }) => ({
             uuid: obj.uuid,
             classname: obj.classname,
             name: obj.name

@@ -27,8 +27,6 @@ import GIFExport from "./export/GIFExport";
 import GIFImport from "./import/GIFImport";
 import AudioExport from "./export/AudioExport";
 import type {
-  WickProject,
-  WickAsset,
   WickClip,
   WickFrame,
   WickPath,
@@ -42,6 +40,10 @@ import type {
 } from "./types";
 import type {
   WickProject as WickProjectEngine,
+  WickAsset as WickAssetEngine,
+  WickClip as WickClipEngine,
+  WickFrame as WickFrameEngine,
+  WickLayer as WickLayerEngine,
   SerializedProject,
   AutosaveData,
   WickToolName,
@@ -68,6 +70,25 @@ type WickFileInputEvent = {
   target: {
     files: FileList | File[] | null;
   };
+};
+type BrowserFileAPI = {
+  saveFileFromWick?: (
+    file: Blob,
+    name: string,
+    extension: string,
+    successCallback?: () => void,
+    failureCallback?: () => void
+  ) => void;
+  loadWickFileEntry?: (
+    fileEntry: LocalFileEntry,
+    callback: (blob: File) => void
+  ) => void;
+  deleteLocalWickFile?: (
+    fileEntry: LocalFileEntry,
+    successCallback?: () => void,
+    failureCallback?: () => void
+  ) => void;
+  getSavedWickFiles?: (callback: (files: unknown[]) => void) => void;
 };
 
 function toAutosaveData(input: {
@@ -266,7 +287,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Shrinks the brush/eraser size by a given amount.
    */
   changeBrushSize = (amt: number): void => {
-    const tool = this.project.activeTool.name;
+    const tool = this.getActiveTool();
     let option: string | undefined;
     if (tool === "brush") {
       option = "brushSize";
@@ -286,8 +307,13 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Moves the active timeline's playhead forward one frame.
    */
   movePlayheadForwards = (): void => {
-    this.project.focus.timeline.playheadPosition++;
-    this.project.guiElement.checkForPlayheadAutoscroll();
+    const focus = this.project.focus;
+    if (!focus || typeof focus !== "object" || !("timeline" in focus)) {
+      return;
+    }
+    (focus as { timeline: { playheadPosition: number } }).timeline
+      .playheadPosition++;
+    this.project.guiElement.checkForPlayheadAutoscroll?.();
     this.project.view.render();
     this.project.guiElement.draw();
   };
@@ -296,8 +322,13 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Moves the active timeline's playhead backwards one frame.
    */
   movePlayheadBackwards = (): void => {
-    this.project.focus.timeline.playheadPosition--;
-    this.project.guiElement.checkForPlayheadAutoscroll();
+    const focus = this.project.focus;
+    if (!focus || typeof focus !== "object" || !("timeline" in focus)) {
+      return;
+    }
+    (focus as { timeline: { playheadPosition: number } }).timeline
+      .playheadPosition--;
+    this.project.guiElement.checkForPlayheadAutoscroll?.();
     this.project.view.render();
     this.project.guiElement.draw();
   };
@@ -331,7 +362,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   getSelectedObjectScript = (): ScriptableObject | null => {
     if (this.selectionIsScriptable()) {
-      return this.project.selection.getSelectedObject();
+      return this.project.selection.getSelectedObject() as unknown as ScriptableObject;
     } else {
       return null;
     }
@@ -343,7 +374,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * tweens and frames
    */
   getSelectedTimelineObjects = (): TimelineObject[] => {
-    return this.project.selection.getSelectedObjects("Timeline");
+    return this.project.selection.getSelectedObjects(
+      "Timeline"
+    ) as unknown as TimelineObject[];
   };
 
   /**
@@ -351,7 +384,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {<Wick.Frame>)[]} An array containing the selected frames.
    */
   getSelectedFrames = (): WickFrame[] => {
-    return this.project.selection.getSelectedObjects("Frame");
+    return this.project.selection.getSelectedObjects("Frame") as unknown as WickFrame[];
   };
 
   /**
@@ -359,7 +392,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {<Wick.Tween>)[]} An array containing the selected tweens.
    */
   getSelectedTweens = (): WickTween[] => {
-    return this.project.selection.getSelectedObjects("Tween");
+    return this.project.selection.getSelectedObjects("Tween") as unknown as WickTween[];
   };
 
   /**
@@ -368,7 +401,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * the selected clips and paths
    */
   getSelectedCanvasObjects = (): CanvasObject[] => {
-    return this.project.selection.getSelectedObjects("Canvas");
+    return this.project.selection.getSelectedObjects(
+      "Canvas"
+    ) as unknown as CanvasObject[];
   };
 
   /**
@@ -376,7 +411,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {<Wick.Path>)[]} An array containing the selected paths.
    */
   getSelectedPaths = (): WickPath[] => {
-    return this.project.selection.getSelectedObjects("Path");
+    return this.project.selection.getSelectedObjects("Path") as unknown as WickPath[];
   };
 
   /**
@@ -384,7 +419,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {<Wick.Clip>)[]} An array containing the selected clips.
    */
   getSelectedClips = (): WickClip[] => {
-    return this.project.selection.getSelectedObjects("Clip");
+    return this.project.selection.getSelectedObjects("Clip") as unknown as WickClip[];
   };
 
   /**
@@ -392,7 +427,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {<Wick.Button>)[]} An array containing the selected buttons.
    */
   getSelectedButtons = (): WickClip[] => {
-    return this.project.selection.getSelectedObjects("Button");
+    return this.project.selection.getSelectedObjects("Button") as unknown as WickClip[];
   };
 
   /**
@@ -400,8 +435,10 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {(<Wick.ImageAsset>|<Wick.SoundAsset>)[]} An array containing the
    * selected assets
    */
-  getSelectedAssetLibraryObjects = (): WickAsset[] => {
-    return this.project.selection.getSelectedObjects("AssetLibrary");
+  getSelectedAssetLibraryObjects = (): WickAssetEngine[] => {
+    return this.project.selection.getSelectedObjects(
+      "AssetLibrary"
+    ) as unknown as WickAssetEngine[];
   };
 
   /**
@@ -409,8 +446,10 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {(<Wick.SoundAsset>)[]} An array containing the selected sound
    * assets.
    */
-  getSelectedSoundAssets = (): WickAsset[] => {
-    return this.project.selection.getSelectedObjects("SoundAsset");
+  getSelectedSoundAssets = (): WickAssetEngine[] => {
+    return this.project.selection.getSelectedObjects(
+      "SoundAsset"
+    ) as unknown as WickAssetEngine[];
   };
 
   /**
@@ -418,8 +457,10 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {(<Wick.ImageAsset>)[]} An array containing the selected image
    * assets.
    */
-  getSelectedImageAssets = (): WickAsset[] => {
-    return this.project.selection.getSelectedObjects("ImageAsset");
+  getSelectedImageAssets = (): WickAssetEngine[] => {
+    return this.project.selection.getSelectedObjects(
+      "ImageAsset"
+    ) as unknown as WickAssetEngine[];
   };
 
   /**
@@ -428,10 +469,10 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @return {object|null} selected scriptable object.
    */
   getSelectedScriptableObject = (): ScriptableObject | null => {
-    return (
-      this.project.selection.getSelectedObject().isScriptable &&
-      this.project.selection.getSelectedObject()
-    );
+    const selected = this.project.selection.getSelectedObject();
+    return selected && selected.isScriptable
+      ? (selected as unknown as ScriptableObject)
+      : null;
   };
 
   /**
@@ -475,7 +516,12 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {number} index The index to insert at
    */
   moveSelection = (target: WickFrame | WickLayer, index: number): void => {
-    if (this.project.moveSelection(target, index)) {
+    if (
+      this.project.moveSelection(
+        target as unknown as WickFrameEngine | WickLayerEngine,
+        index
+      )
+    ) {
       this.projectDidChange({ actionName: "Moved Selection" });
     }
   };
@@ -485,7 +531,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {object} object - The object to add to the selection.
    */
   selectObject = (object: SelectableObject): void => {
-    this.project.selection.select(object);
+    this.project.selection.select(object as unknown as { [key: string]: unknown });
     this.projectDidChange({ actionName: "Select Object" });
   };
 
@@ -495,7 +541,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {object[]} objects - The objects to add to the selection.
    */
   selectObjects = (objects: SelectableObject[]): void => {
-    this.project.selection.selectMultipleObjects(objects);
+    this.project.selection.selectMultipleObjects(
+      objects as unknown as Array<{ [key: string]: unknown }>
+    );
     this.projectDidChange({ actionName: "Select Multiple Objects" });
   };
 
@@ -506,7 +554,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   deselectObjects = (objects: SelectableObject[]): void => {
     objects.forEach((object) => {
-      this.project.selection.deselect(object);
+      this.project.selection.deselect(object as unknown as { [key: string]: unknown });
     });
     this.projectDidChange({ actionName: "Deselect Multiple Objects" });
   };
@@ -549,7 +597,14 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         return attribute[0];
       }
     } else {
-      return attribute;
+      if (
+        typeof attribute === "string" ||
+        typeof attribute === "number" ||
+        typeof attribute === "boolean"
+      ) {
+        return attribute;
+      }
+      return null;
     }
   };
 
@@ -598,7 +653,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {boolean} - True if the object is selected, false otherwise
    */
   isObjectSelected = (object: SelectableObject): boolean => {
-    return this.project.selection.isObjectSelected(object);
+    return this.project.selection.isObjectSelected(
+      object as unknown as { [key: string]: unknown }
+    );
   };
 
   /**
@@ -640,11 +697,35 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   };
 
   /**
+   * Creates a "group" from the current canvas selection.
+   * In Wick, grouping maps to creating a clip without wrapping a single selected clip.
+   */
+  createGroupFromSelection = (): void => {
+    const selection = this.project.selection;
+
+    if (selection.numObjects === 0) {
+      this.toast("Select objects to group.", "warning");
+      return;
+    }
+
+    if (selection.numObjects === 1 && selection.types[0] === "Clip") {
+      this.toast("Selection is already grouped.", "info");
+      return;
+    }
+
+    this.project.createClipFromSelection({
+      identifier: "Group",
+      type: "Clip",
+    });
+    this.projectDidChange({ actionName: "Create Group From Selection" });
+  };
+
+  /**
    * Updates the focus object of the project.
    * @param {Wick.Clip} object Object to set as focus.
    */
-  setFocusObject = (object: WickClip | WickProject): void => {
-    this.project.focus = object;
+  setFocusObject = (object: WickClipEngine | WickProjectEngine): void => {
+    this.project.focus = object as unknown as WickClipEngine | WickProjectEngine;
     this.projectDidChange({ actionName: "Set Focus Object" });
   };
 
@@ -933,7 +1014,10 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     isCanvasSpace?: boolean
   ): void => {
     // convert screen position to wick project position
-    let paper = this.project.view.paper;
+    const paper = this.project.view.paper;
+    if (!paper) {
+      return;
+    }
     let dropPoint = new paper.Point();
     if (isCanvasSpace) {
       dropPoint = new paper.Point(x, y);
@@ -951,7 +1035,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         window.Wick.ObjectCache.getObjectByUUID(uuid),
         dropPoint.x,
         dropPoint.y,
-        (_path: WickPath) => {
+        () => {
           this.projectDidChange({ actionName: "Create Image Path From Asset" });
         }
       );
@@ -960,7 +1044,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         window.Wick.ObjectCache.getObjectByUUID(uuid),
         dropPoint.x,
         dropPoint.y,
-        (_clip: WickClip) => {
+        () => {
           this.projectDidChange({
             actionName: "Create Clip Instance From Asset",
           });
@@ -971,7 +1055,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         window.Wick.ObjectCache.getObjectByUUID(uuid),
         dropPoint.x,
         dropPoint.y,
-        (_svg: WickPath) => {
+        () => {
           this.projectDidChange({
             actionName: "Create SVG Instance From Asset",
           });
@@ -987,6 +1071,10 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   createInstanceOfSelectedAsset = (): void => {
     const uuid = this.project.selection.getSelectedObject().uuid;
+    if (!uuid) {
+      this.toast("No selected asset to create.", "warning");
+      return;
+    }
     this.createImageFromAsset(
       uuid,
       this.project.width / 2,
@@ -1008,10 +1096,10 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     y: number,
     drop: boolean
   ): void => {
-    this.project.guiElement.dragAssetAtPosition(uuid, x, y, drop);
+    this.project.guiElement.dragAssetAtPosition?.(uuid, x, y, drop);
   };
 
-  addSoundToActiveFrame = (soundAsset: WickAsset): void => {
+  addSoundToActiveFrame = (soundAsset: WickAssetEngine): void => {
     const frame = this.project.activeFrame;
     if (frame !== null) {
       frame.sound = soundAsset;
@@ -1029,9 +1117,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   importFileAsAsset = (
     file: File,
-    callback?: (asset: WickAsset | null) => void
+    callback?: (asset: WickAssetEngine | null) => void
   ) => {
-    this.project.importFile(file, (asset: WickAsset | null) => {
+    this.project.importFile(file, (asset) => {
       if (callback) callback(asset);
 
       if (!asset) {
@@ -1073,7 +1161,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   isAssetInLibrary = (filename: string): boolean => {
     let assets = this.project.getAssets();
     for (let i = 0; i < assets.length; i++) {
-      if (assets[i].filename === filename) {
+      const asset = assets[i];
+      if (asset && asset.filename === filename) {
         return true;
       }
     }
@@ -1107,7 +1196,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       });
     }
 
-    let createCallback = (asset: WickAsset | null) => {
+    let createCallback = (asset: WickAssetEngine | null) => {
       if (!asset) return;
       if (resolvedOptions.create)
         this.createImageFromAsset(asset.uuid, location.x ?? 0, location.y ?? 0);
@@ -1122,7 +1211,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
           onProgress: (percent: number) => {
             console.log("GIFImport onProgress: " + percent);
           },
-          onFinish: (gifAsset: WickAsset) => {
+          onFinish: (gifAsset: WickAssetEngine) => {
             this.project.addAsset(gifAsset);
             this.projectDidChange({ actionName: "Add Asset" });
             if (resolvedOptions.create)
@@ -1215,7 +1304,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         };
 
         const wickBlob = new Blob([file], { type: "application/wick" });
-        window.saveFileFromWick(
+        window.saveFileFromWick?.(
           wickBlob,
           this.project.name,
           ".wick",
@@ -1270,7 +1359,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         });
       };
 
-      window.saveFileFromWick(gifBlob, outputName, ".gif", success, fail);
+      window.saveFileFromWick?.(gifBlob, outputName, ".gif", success, fail);
 
       this.setState({
         renderStatusMessage: "Finished creating GIF.",
@@ -1331,7 +1420,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         });
       };
 
-      window.saveFileFromWick(
+      window.saveFileFromWick?.(
         sequenceBlobZip,
         this.project.name + "_imageSequence",
         ".zip",
@@ -1450,7 +1539,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       };
 
       const outputName = name ?? this.project.name;
-      window.saveFileFromWick(file, outputName, ".svg", success, fail);
+      window.saveFileFromWick?.(file, outputName, ".svg", success, fail);
 
       this.hideWaitOverlay();
     };
@@ -1489,7 +1578,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         });
       };
 
-      window.saveFileFromWick(blob, outputName, ".zip", success, fail);
+      window.saveFileFromWick?.(blob, outputName, ".zip", success, fail);
     });
   };
 
@@ -1518,7 +1607,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
           });
         };
 
-        window.saveFileFromWick(file, outputName, ".html", success, fail);
+        window.saveFileFromWick?.(file, outputName, ".html", success, fail);
       }
     );
   };
@@ -1530,8 +1619,16 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     AudioExport.generateAudioFile({
       project: this.project,
     }).then((result) => {
+      if (!result) {
+        this.toast("Could not export audio track.", "error");
+        return;
+      }
       const outputName = args.name ?? "audiotrack";
-      window.saveFileFromWick(new Blob([result]), outputName, ".wav");
+      window.saveFileFromWick?.(
+        new Blob([result.buffer as ArrayBuffer]),
+        outputName,
+        ".wav"
+      );
     });
   };
 
@@ -1543,7 +1640,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     this.showWaitOverlay();
     window.Wick.WickFile.fromWickFile(file, (project: unknown) => {
       if (project) {
-        this.setupNewProject(project as WickProject);
+        this.setupNewProject(project as WickProjectEngine);
         this.toast(`Opened ${file.name || "project"} successfully.`, "success");
       } else {
         this.toast("Could not open project.", "error");
@@ -1557,7 +1654,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * history, selection, and all other ability to retrieve your project.
    * @param {Wick.Project} project - the project to load.
    */
-  setupNewProject = (project?: WickProject): void => {
+  setupNewProject = (project?: WickProjectEngine): void => {
     // if (!project) return;
     this.resetEditorForLoad();
     
@@ -1631,7 +1728,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
           window.Wick.WickFile.fromWickFile(
             blob,
             (loadedProject: unknown) => {
-              this.setupNewProject(loadedProject as WickProject);
+              this.setupNewProject(loadedProject as WickProjectEngine);
             },
             "blob"
           );
@@ -2066,8 +2163,8 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   /**
    * Return all possible sound assets.
    */
-  getAllSoundAssets = (): WickAsset[] => {
-    return this.project.getAssets("Sound");
+  getAllSoundAssets = (): WickAssetEngine[] => {
+    return this.project.getAssets("Sound") as unknown as WickAssetEngine[];
   };
 
   /**
@@ -2087,7 +2184,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
 
     // Apply the change of the current selection before clearing it.
     if (this.project.selection.numObjects > 0) {
-      this.project.view.applyChanges();
+      this.project.view.applyChanges?.();
       this.project.selection.clear();
     }
 
@@ -2116,7 +2213,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   startPreviewPlayFromBeginning = (): void => {
     if (this.state.previewPlaying) return;
 
-    this.project.focus.timeline.playheadPosition = 1;
+    const focus = this.project.focus;
+    if (focus && typeof focus === "object" && "timeline" in focus) {
+      (focus as { timeline: { playheadPosition: number } }).timeline
+        .playheadPosition = 1;
+    }
     this.togglePreviewPlaying();
   };
 
@@ -2138,7 +2239,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         let obj = window.Wick.ObjectCache.getObjectByUUID(objectUuid);
 
         if (obj) {
-          this.selectObject(obj);
+          this.selectObject(obj as unknown as SelectableObject);
         }
       }
 
@@ -2216,6 +2317,13 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   };
 
   /**
+   * Adds tweens to selected frames, or to the active frame when valid.
+   */
+  addTweenToSelection = (): void => {
+    this.createTween();
+  };
+
+  /**
    * Returns all existing fonts in the project.
    */
   getExistingFonts = (): string[] => {
@@ -2254,6 +2362,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   };
 
   createTween = (): void => {
+    if (!this.project.canCreateTween) {
+      this.toast("Select a contentful frame to add a tween.", "warning");
+      return;
+    }
+
     this.project.createTween();
     this.projectDidChange({ actionName: "Create Tween" });
   };
@@ -2270,25 +2383,33 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
 
   extendSelectedFramesAndPushOtherFrames = (): void => {
     var frames = this.project.selection.getSelectedObjects("Frame");
-    this.project.extendFramesAndPushOtherFrames(frames);
+    this.project.extendFramesAndPushOtherFrames(
+      frames as unknown as Array<{ [key: string]: unknown }>
+    );
     this.project.guiElement.draw();
   };
 
   shrinkSelectedFramesAndPullOtherFrames = (): void => {
     var frames = this.project.selection.getSelectedObjects("Frame");
-    this.project.shrinkFramesAndPullOtherFrames(frames);
+    this.project.shrinkFramesAndPullOtherFrames(
+      frames as unknown as Array<{ [key: string]: unknown }>
+    );
     this.project.guiElement.draw();
   };
 
   extendActiveFramesAndPushOtherFrames = (): void => {
     var frames = this.project.activeTimeline.activeFrames;
-    this.project.extendFramesAndPushOtherFrames(frames);
+    this.project.extendFramesAndPushOtherFrames(
+      frames as unknown as Array<{ [key: string]: unknown }>
+    );
     this.project.guiElement.draw();
   };
 
   shrinkActiveFramesAndPullOtherFrames = (): void => {
     var frames = this.project.activeTimeline.activeFrames;
-    this.project.shrinkFramesAndPullOtherFrames(frames);
+    this.project.shrinkFramesAndPullOtherFrames(
+      frames as unknown as Array<{ [key: string]: unknown }>
+    );
     this.project.guiElement.draw();
   };
 
@@ -2298,7 +2419,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     if (!(clip instanceof window.Wick.Clip)) return;
 
     window.Wick.WickObjectFile.toWickObjectFile(clip, "blob", (file: Blob) => {
-      window.saveFileFromWick(file, clip.identifier || "object", ".wickobj");
+      window.saveFileFromWick?.(file, clip.identifier || "object", ".wickobj");
     });
   };
 
@@ -2330,8 +2451,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {*} fileEntry
    */
   loadLocalWickFile = (fileEntry: LocalFileEntry): void => {
-    if (window.loadWickFileEntry) {
-      window.loadWickFileEntry(fileEntry, (blob: File) => {
+    const fileApi = window as Window & BrowserFileAPI;
+    if (fileApi.loadWickFileEntry) {
+      fileApi.loadWickFileEntry(fileEntry, (blob: File) => {
         // Wraps the file in a fake event. TODO: Simplify this.
         this.handleWickFileLoad({
           target: {
@@ -2349,15 +2471,17 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {FileEntry} fileEntry
    */
   deleteLocalWickFile = (fileEntry: LocalFileEntry): void => {
-    window.deleteLocalWickFile(fileEntry);
+    const fileApi = window as Window & BrowserFileAPI;
+    fileApi.deleteLocalWickFile?.(fileEntry);
   };
 
   /**
    * Reloads any saved files currently on disk.
    */
   reloadSavedWickFiles = (): void => {
-    if (window.getSavedWickFiles) {
-      window.getSavedWickFiles((files: File[]) => {
+    const fileApi = window as Window & BrowserFileAPI;
+    if (fileApi.getSavedWickFiles) {
+      fileApi.getSavedWickFiles((files: unknown[]) => {
         this.setState({
           localSavedFiles: files,
         });

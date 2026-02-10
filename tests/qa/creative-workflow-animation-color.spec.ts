@@ -116,6 +116,9 @@ test.describe("Creative workflow: animation and color", () => {
 
     expect(tweenResult.ok).toBe(true);
     expect(tweenResult.tweenCount).toBeGreaterThan(0);
+    if (tweenResult.finalX === undefined || tweenResult.initialX === undefined) {
+      throw new Error("Tween result is missing movement coordinates");
+    }
     expect(tweenResult.finalX).toBeGreaterThan(tweenResult.initialX);
 
     // Confirm preview can play with tweened content.

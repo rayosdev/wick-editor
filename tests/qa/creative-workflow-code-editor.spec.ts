@@ -130,7 +130,7 @@ async function runMouseclickScript(
     }
 
     try {
-      const fn = new Function([], scriptSource);
+      const fn = new Function(scriptSource);
       fn.bind(button)();
       return { ok: true };
     } catch (error) {
