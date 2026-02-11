@@ -48,6 +48,8 @@ interface CustomHotKeys {
   [actionName: string]: (string | KeySequence)[];
 }
 
+type TimelineShortcutPreset = "wick" | "flash";
+
 interface HotKeyEditor {
   setActiveTool: (toolName: string) => void;
   activateLastTool: (...args: unknown[]) => void;
@@ -106,6 +108,7 @@ class HotKeyInterface extends Object {
   private keyMap: KeyMap = {};
   private handlers: Handlers = {};
   private customHotKeys: CustomHotKeys;
+  private timelineShortcutPreset: TimelineShortcutPreset;
   private essentialKeys: string[];
 
   static get DEFAULT_REPEAT_START_MS(): number {
@@ -132,6 +135,7 @@ class HotKeyInterface extends Object {
 
     // Initialize custom hotkeys;
     this.customHotKeys = {};
+    this.timelineShortcutPreset = "wick";
 
     // Keys that should always work.
     this.essentialKeys = ['preview-play-toggle'];
@@ -658,6 +662,10 @@ class HotKeyInterface extends Object {
     this.customHotKeys = customHotKeys;
   };
 
+  setTimelineShortcutPreset = (preset: TimelineShortcutPreset): void => {
+    this.timelineShortcutPreset = preset === "flash" ? "flash" : "wick";
+  };
+
   // Returns the application keymap, with modifications for custom hotkeys.
   getKeyMap = (): KeyMap => {
     return this.modifyKeyMap(this.keyMap, this.customHotKeys);
@@ -721,17 +729,26 @@ class HotKeyInterface extends Object {
         sequences: oldSequences, // Ensure we get a deep copy of this array, avoid reference errors.
       };
       
-      // Update keymap with new attributes.
-      if (customKeys[actionName]) {
-        const customSequences = customKeys[actionName];
+    });
 
-        if (customSequences[0] || customSequences[0] === "") {
-          newKeyMap[actionName].sequences[0] = customSequences[0];
-        }
+    this.applyTimelinePresetOverrides(newKeyMap);
 
-        if (customSequences[1] || customSequences[1] === "") {
-          newKeyMap[actionName].sequences[1] = customSequences[1];
-        }
+    Object.keys(newKeyMap).forEach((actionName) => {
+      if (!customKeys[actionName]) {
+        return;
+      }
+
+      const customSequences = customKeys[actionName];
+      const actionEntry = newKeyMap[actionName];
+      if (!actionEntry) {
+        return;
+      }
+      if (customSequences[0] || customSequences[0] === "") {
+        actionEntry.sequences[0] = customSequences[0];
+      }
+
+      if (customSequences[1] || customSequences[1] === "") {
+        actionEntry.sequences[1] = customSequences[1];
       }
     });
 
@@ -754,6 +771,28 @@ class HotKeyInterface extends Object {
     });
 
     return newKeyMap;
+  };
+
+  private applyTimelinePresetOverrides = (keyMap: KeyMap): void => {
+    if (this.timelineShortcutPreset !== "flash") {
+      return;
+    }
+
+    const applySequence = (actionName: string, sequence: string): void => {
+      const entry = keyMap[actionName];
+      if (!entry) {
+        return;
+      }
+
+      const nextSequences = entry.sequences.concat([]);
+      nextSequences[0] = sequence;
+      entry.sequences = nextSequences;
+    };
+
+    applySequence("extend-frame", "f5");
+    applySequence("cut-frame", "f6");
+    applySequence("insert-blank-frame", "f7");
+    applySequence("shrink-frame", "shift+f5");
   };
 
   /**

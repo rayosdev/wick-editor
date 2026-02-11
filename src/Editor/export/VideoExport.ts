@@ -1,5 +1,4 @@
 import AudioExport from "./AudioExport";
-// @ts-ignore - no types available
 import b64toBuff from "base64-arraybuffer";
 import type {
   WickProject,

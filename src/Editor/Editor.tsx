@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// @ts-nocheck - Phase 1 TypeScript conversion: Structure in place, detailed types to be added in Phase 2
+// @ts-nocheck - TODO: full Editor shell typing migration
 
 import React from "react";
 
@@ -124,6 +124,8 @@ class Editor extends EditorCore {
 
   customHotKeysKey: string = "wickEditorcustomHotKeys";
   colorPickerTypeKey: string = "wickEditorColorPickerType";
+  timelineRendererModeKey: string = "wickEditorTimelineRendererMode";
+  timelineShortcutPresetKey: string = "wickEditorTimelineShortcutPreset";
 
   // TypeScript requires we define state type
   state: EditorState;
@@ -158,6 +160,9 @@ class Editor extends EditorCore {
       outlinerPoppedOut: false,
       inspectorSize: 250,
       timelineSize: 175,
+      timelineRendererMode: "dom",
+      timelineShortcutPreset: "wick",
+      timelineSoftRenderTick: 0,
       assetLibrarySize: 150,
       consoleLogs: [],
       warningModalInfo: {
@@ -222,8 +227,9 @@ class Editor extends EditorCore {
     this.hotKeyInterface = new HotKeyInterface(this);
 
     // Init actions
-    // @ts-expect-error - ActionMapInterface expects specific editor interface
-    this.actionMapInterface = new ActionMapInterface(this);
+    this.actionMapInterface = new ActionMapInterface(
+      this as unknown as ConstructorParameters<typeof ActionMapInterface>[0]
+    );
 
     // Init Script Info
     this.scriptInfoInterface = new ScriptInfoInterface();
@@ -339,6 +345,8 @@ class Editor extends EditorCore {
 
     this.customHotKeysKey = "wickEditorcustomHotKeys";
     this.colorPickerTypeKey = "wickEditorColorPickerType";
+    this.timelineRendererModeKey = "wickEditorTimelineRendererMode";
+    this.timelineShortcutPresetKey = "wickEditorTimelineShortcutPreset";
 
     // Set up custom hotkeys if they exist.
     localForage.getItem(this.customHotKeysKey).then((customHotKeys) => {
@@ -357,6 +365,40 @@ class Editor extends EditorCore {
         colorPickerType: colorPickerType,
       });
     });
+
+    // Set timeline renderer mode state.
+    localForage.getItem(this.timelineRendererModeKey).then((timelineRendererMode) => {
+      const normalizedMode =
+        timelineRendererMode === "classic" || timelineRendererMode === "dom"
+          ? timelineRendererMode
+          : "dom";
+
+      if (timelineRendererMode !== normalizedMode) {
+        localForage.setItem(this.timelineRendererModeKey, normalizedMode);
+      }
+
+      this.setState({
+        timelineRendererMode: normalizedMode,
+      });
+    });
+
+    localForage
+      .getItem(this.timelineShortcutPresetKey)
+      .then((timelineShortcutPreset) => {
+        const normalizedPreset =
+          timelineShortcutPreset === "flash" || timelineShortcutPreset === "wick"
+            ? timelineShortcutPreset
+            : "wick";
+
+        if (timelineShortcutPreset !== normalizedPreset) {
+          localForage.setItem(this.timelineShortcutPresetKey, normalizedPreset);
+        }
+
+        this.hotKeyInterface.setTimelineShortcutPreset(normalizedPreset);
+        this.setState({
+          timelineShortcutPreset: normalizedPreset,
+        });
+      });
 
     // Setup the initial project state
     this.setState({
@@ -517,6 +559,29 @@ class Editor extends EditorCore {
     this.setState({
       colorPickerType: type,
     });
+  };
+
+  setTimelineRendererMode = (mode) => {
+    const normalizedMode = mode === "classic" ? "classic" : "dom";
+    localForage.setItem(this.timelineRendererModeKey, normalizedMode);
+    this.setState({
+      timelineRendererMode: normalizedMode,
+    });
+  };
+
+  setTimelineShortcutPreset = (preset) => {
+    const normalizedPreset = preset === "flash" ? "flash" : "wick";
+    localForage.setItem(this.timelineShortcutPresetKey, normalizedPreset);
+    this.hotKeyInterface.setTimelineShortcutPreset(normalizedPreset);
+    this.setState({
+      timelineShortcutPreset: normalizedPreset,
+    });
+  };
+
+  notifyTimelineSoftRender = () => {
+    this.setState((prevState) => ({
+      timelineSoftRenderTick: (prevState.timelineSoftRenderTick || 0) + 1,
+    }));
   };
 
   onWindowResize = () => {
@@ -1377,6 +1442,11 @@ class Editor extends EditorCore {
                               }
                               onRef={(ref) => (this.timelineComponent = ref)}
                               dragSoundOntoTimeline={this.dragSoundOntoTimeline}
+                              timelineRendererMode={this.state.timelineRendererMode}
+                              onTimelineRendererModeChange={this.setTimelineRendererMode}
+                              timelineShortcutPreset={this.state.timelineShortcutPreset}
+                              onTimelineShortcutPresetChange={this.setTimelineShortcutPreset}
+                              timelineSoftRenderTick={this.state.timelineSoftRenderTick}
                               getToolSetting={this.getToolSetting}
                               setToolSetting={this.setToolSetting}
                               getSelectionType={this.getSelectionType}
@@ -1441,6 +1511,12 @@ class Editor extends EditorCore {
                               }
                               onRef={(ref) => (this.timelineComponent = ref)}
                               dragSoundOntoTimeline={this.dragSoundOntoTimeline}
+                              timelineRendererMode={this.state.timelineRendererMode}
+                              onTimelineRendererModeChange={this.setTimelineRendererMode}
+                              timelineShortcutPreset={this.state.timelineShortcutPreset}
+                              onTimelineShortcutPresetChange={this.setTimelineShortcutPreset}
+                              timelineSoftRenderTick={this.state.timelineSoftRenderTick}
+                              toast={this.toast}
                             />
                           )}
                         </DockedPanel>

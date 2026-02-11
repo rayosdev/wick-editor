@@ -100,6 +100,16 @@ export default defineConfig({
       },
     },
   ],
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: "modern-compiler",
+      },
+      sass: {
+        api: "modern-compiler",
+      },
+    },
+  },
   publicDir: "public",
   server: {
     host: '0.0.0.0', // Expose to local network

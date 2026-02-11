@@ -68,6 +68,11 @@ interface MobileContainerProps {
     focusTimelineOfParentClip: () => void;
     onRef: NonNullable<TimelineProps["onRef"]>;
     dragSoundOntoTimeline: (uuid: string, x: number, y: number, commit: boolean) => void;
+    timelineRendererMode: TimelineProps["timelineRendererMode"];
+    onTimelineRendererModeChange: TimelineProps["onTimelineRendererModeChange"];
+    timelineShortcutPreset: TimelineProps["timelineShortcutPreset"];
+    onTimelineShortcutPresetChange: TimelineProps["onTimelineShortcutPresetChange"];
+    timelineSoftRenderTick: TimelineProps["timelineSoftRenderTick"];
     getToolSetting: (name: string) => string | number | boolean;
     setToolSetting: (name: string, value: string | number | boolean) => void;
     getSelectionType: MobileInspectorProps["getSelectionType"];
@@ -123,6 +128,12 @@ const MobileContainer: React.FC<MobileContainerProps> = (props) => {
                     deleteSelectedObjects={props.deleteSelectedObjects}
                     onRef={props.onRef}
                     dragSoundOntoTimeline={props.dragSoundOntoTimeline}
+                    timelineRendererMode={props.timelineRendererMode}
+                    onTimelineRendererModeChange={props.onTimelineRendererModeChange}
+                    timelineShortcutPreset={props.timelineShortcutPreset}
+                    onTimelineShortcutPresetChange={props.onTimelineShortcutPresetChange}
+                    timelineSoftRenderTick={props.timelineSoftRenderTick}
+                    toast={props.toast}
                 />
             </Fragment>
         );

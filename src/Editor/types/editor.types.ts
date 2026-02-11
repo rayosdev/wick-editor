@@ -443,6 +443,9 @@ export interface EditorState {
   outlinerPoppedOut: boolean;
   inspectorSize: number;
   timelineSize: number;
+  timelineRendererMode: "dom" | "classic";
+  timelineShortcutPreset: "wick" | "flash";
+  timelineSoftRenderTick: number;
   assetLibrarySize: number;
   consoleLogs: ConsoleLogEntry[];
   warningModalInfo: WarningModalInfo | BasicWarningModalInfo;

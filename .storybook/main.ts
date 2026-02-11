@@ -18,6 +18,16 @@ const config: StorybookConfig = {
           resources: path.resolve(__dirname, "../src/resources"),
         },
       },
+      css: {
+        preprocessorOptions: {
+          scss: {
+            api: "modern-compiler",
+          },
+          sass: {
+            api: "modern-compiler",
+          },
+        },
+      },
     });
   },
 };

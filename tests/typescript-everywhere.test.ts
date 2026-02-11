@@ -10,6 +10,18 @@ const authoredAllowlist = new Set([
   path.normalize("engine/src/export/zip/wickengine.js"),
 ]);
 
+const tsHygieneRoots = ["src", "tests", "types"] as const;
+const tsHygieneSelfFile = path.normalize("tests/typescript-everywhere.test.ts");
+const tsSuppressionAllowlist = new Set([
+  path.normalize("src/Editor/Editor.tsx"),
+]);
+const tsExpectErrorAllowlist = new Set<string>([]);
+
+const explicitAnyPattern = /(:\s*any\b|<any\b|as any\b|\bany\[\])/;
+const tsIgnorePattern = /@ts-ignore\b/;
+const tsNocheckPattern = /@ts-nocheck\b/;
+const tsExpectErrorPattern = /@ts-expect-error\b/;
+
 function collectFiles(rootDir: string): string[] {
   if (!fs.existsSync(rootDir)) return [];
 
@@ -30,6 +42,15 @@ function collectFiles(rootDir: string): string[] {
 
 function toRepoRelative(absolutePath: string): string {
   return path.normalize(path.relative(repoRoot, absolutePath));
+}
+
+function collectTypeScriptFiles(roots: readonly string[]): string[] {
+  return roots
+    .flatMap((root) => collectFiles(path.join(repoRoot, root)))
+    .filter((absolutePath) => /\.(ts|tsx)$/.test(absolutePath))
+    .map(toRepoRelative)
+    .filter((repoRelative) => repoRelative !== tsHygieneSelfFile)
+    .sort();
 }
 
 describe("TypeScript everywhere guards", () => {
@@ -53,5 +74,60 @@ describe("TypeScript everywhere guards", () => {
       .sort();
 
     expect(legacyVitestTests).toEqual([]);
+  });
+
+  it("has no explicit any in authored TypeScript", () => {
+    const offending = collectTypeScriptFiles(tsHygieneRoots).flatMap(
+      (repoRelative) => {
+        const absolutePath = path.join(repoRoot, repoRelative);
+        const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
+        return lines
+          .map((line, index) => ({ line, index: index + 1 }))
+          .filter(({ line }) => explicitAnyPattern.test(line))
+          .map(({ index }) => `${repoRelative}:${index}`);
+      },
+    );
+
+    expect(offending).toEqual([]);
+  });
+
+  it("does not use @ts-ignore or @ts-nocheck outside allowlist", () => {
+    const offending = collectTypeScriptFiles(tsHygieneRoots).flatMap(
+      (repoRelative) => {
+        if (tsSuppressionAllowlist.has(repoRelative)) {
+          return [];
+        }
+
+        const absolutePath = path.join(repoRoot, repoRelative);
+        const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
+        return lines
+          .map((line, index) => ({ line, index: index + 1 }))
+          .filter(
+            ({ line }) => tsIgnorePattern.test(line) || tsNocheckPattern.test(line),
+          )
+          .map(({ index }) => `${repoRelative}:${index}`);
+      },
+    );
+
+    expect(offending).toEqual([]);
+  });
+
+  it("does not use @ts-expect-error outside allowlist", () => {
+    const offending = collectTypeScriptFiles(tsHygieneRoots).flatMap(
+      (repoRelative) => {
+        if (tsExpectErrorAllowlist.has(repoRelative)) {
+          return [];
+        }
+
+        const absolutePath = path.join(repoRoot, repoRelative);
+        const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
+        return lines
+          .map((line, index) => ({ line, index: index + 1 }))
+          .filter(({ line }) => tsExpectErrorPattern.test(line))
+          .map(({ index }) => `${repoRelative}:${index}`);
+      },
+    );
+
+    expect(offending).toEqual([]);
   });
 });

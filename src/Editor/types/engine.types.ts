@@ -124,6 +124,8 @@ export interface WickSelection {
   get(type?: string): WickSelectableObject[];
   getSelectedObject(type?: string): WickSelectableObject;
   getSelectedObjects(type?: string): WickSelectableObject[];
+  getLeftmostFrames(): WickFrame[];
+  getRightmostFrames(): WickFrame[];
   sendToBack(): void;
   bringToFront(): void;
   moveBackwards(): void;
@@ -228,6 +230,9 @@ export interface WickTimeline extends WickBase {
   activeFrames: WickFrame[];
   addLayer(layer: WickLayer, index?: number): void;
   removeLayer(layer: WickLayer): void;
+  moveLayer(layer: WickLayer, index: number): void;
+  deferFrameGapResolve(): void;
+  resolveFrameGaps(frames?: WickFrame[]): void;
 }
 
 export interface WickLayer extends WickBase {
@@ -235,9 +240,13 @@ export interface WickLayer extends WickBase {
   frames: WickFrame[];
   activeFrame: WickFrame;
   locked: boolean;
+  hidden: boolean;
   visible: boolean;
+  index?: number;
   addFrame(frame: WickFrame, index?: number): void;
   removeFrame(frame: WickFrame): void;
+  getFrameAtPlayheadPosition(playheadPosition: number): WickFrame | null;
+  activate(): void;
 }
 
 export interface WickFrame extends WickBase {

@@ -42,15 +42,25 @@ export interface SelectOption {
   value: unknown;
 }
 
+type WickInputDynamicValue = ReturnType<typeof JSON.parse>;
+
 interface WickInputProps {
-  type?: 'numeric' | 'text' | 'slider' | 'select' | 'color' | 'checkbox' | 'radio' | 'button';
+  type?:
+    | "numeric"
+    | "text"
+    | "slider"
+    | "select"
+    | "color"
+    | "checkbox"
+    | "radio"
+    | "button";
   className?: string;
   containerclassname?: string;
   tooltip?: string;
   tooltipID?: string;
-  tooltipPlace?: 'top' | 'bottom' | 'left' | 'right';
-  value?: unknown;
-  onChange?: (value: unknown) => void;
+  tooltipPlace?: "top" | "bottom" | "left" | "right";
+  value?: WickInputDynamicValue;
+  onChange?: (value: WickInputDynamicValue) => void;
   readOnly?: boolean;
   min?: number;
   max?: number;
@@ -71,7 +81,7 @@ interface WickInputProps {
   secondaryAction?: () => void;
   onClick?: (e?: React.SyntheticEvent) => void;
   onTouch?: (e?: React.SyntheticEvent) => void;
-  [key: string]: any; // For spread props
+  [key: string]: WickInputDynamicValue; // For spread props
 }
 
 /**

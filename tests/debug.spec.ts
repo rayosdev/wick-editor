@@ -1,9 +1,12 @@
-// @ts-nocheck - TODO: Remove when properly typing test files
-import { test, expect } from "@playwright/test";
+import { test } from "@playwright/test";
+
+type DebugRequestFailure = {
+  errorText?: string;
+};
 
 test("Check for console errors", async ({ page }) => {
-  const errors = [];
-  const logs = [];
+  const errors: string[] = [];
+  const logs: string[] = [];
   // Console error messages that are known, benign warnings we can ignore for E2E
   const ignoredErrorPatterns = [
     /Support for defaultProps will be removed/, // reactstrap warning about defaultProps
@@ -40,9 +43,10 @@ test("Check for console errors", async ({ page }) => {
   // Capture network request failures (e.g., blocked analytics requests)
   page.on("requestfailed", (req) => {
     const failure = req.failure();
-    const text = failure?.errorText ?? JSON.stringify(failure) ?? "unknown";
+    const failureData = failure as DebugRequestFailure | null;
+    const text = failureData?.errorText ?? JSON.stringify(failureData) ?? "unknown";
     errors.push(`requestfailed: ${req.url()} -> ${text}`);
-    logs.push(`requestfailed: ${req.url()} -> ${JSON.stringify(failure)}`);
+    logs.push(`requestfailed: ${req.url()} -> ${JSON.stringify(failureData)}`);
   });
 
   page.on("pageerror", (error) => {

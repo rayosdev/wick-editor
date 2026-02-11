@@ -21,10 +21,10 @@ test.describe('Wick Editor smoke', () => {
 
     // Timeline area renders
     await expect(page.locator('#animation-timeline-container')).toBeVisible();
+    await expect(page.locator('[data-timeline-renderer-mode="dom"]')).toBeVisible();
 
     // Verify Wick engine is loaded
     const wickLoaded = await page.evaluate(() => typeof window.Wick !== 'undefined');
     expect(wickLoaded).toBe(true);
   });
 });
-

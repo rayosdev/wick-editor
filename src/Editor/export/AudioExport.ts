@@ -1,4 +1,3 @@
-// @ts-ignore - no types available
 import toWav from "audiobuffer-to-wav";
 import type {
   WickAudioProgressCallback,

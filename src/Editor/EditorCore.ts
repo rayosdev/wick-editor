@@ -91,6 +91,8 @@ type BrowserFileAPI = {
   getSavedWickFiles?: (callback: (files: unknown[]) => void) => void;
 };
 
+type EditorDynamicValue = ReturnType<typeof JSON.parse>;
+
 function toAutosaveData(input: {
   projectData: unknown;
   objectsData: unknown[];
@@ -121,9 +123,16 @@ function chooseMostRecentCurrentProject(
 }
 
 class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
-  [key: string]: any;
+  [key: string]: EditorDynamicValue;
   project!: WickProjectEngine;
   protected _autosaveDebounceTimeoutID?: number;
+
+  protected triggerTimelineSoftRender = (): void => {
+    const notify = (
+      this as unknown as { notifyTimelineSoftRender?: () => void }
+    ).notifyTimelineSoftRender;
+    notify?.();
+  };
 
   /**
    * Returns the name of the active tool.
@@ -316,6 +325,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     this.project.guiElement.checkForPlayheadAutoscroll?.();
     this.project.view.render();
     this.project.guiElement.draw();
+    this.triggerTimelineSoftRender();
   };
 
   /**
@@ -331,6 +341,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     this.project.guiElement.checkForPlayheadAutoscroll?.();
     this.project.view.render();
     this.project.guiElement.draw();
+    this.triggerTimelineSoftRender();
   };
 
   /**
@@ -2415,22 +2426,26 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     var frames = this.project.selection.getSelectedObjects("Frame");
     this.project.extendFrames(frames);
     this.project.guiElement.draw();
+    this.triggerTimelineSoftRender();
   };
 
   shrinkFrame = (): void => {
     var frames = this.project.selection.getSelectedObjects("Frame");
     this.project.shrinkFrames(frames);
     this.project.guiElement.draw();
+    this.triggerTimelineSoftRender();
   };
 
   moveFrameRight = (): void => {
     this.project.moveSelectedFramesRight();
     this.project.guiElement.draw();
+    this.triggerTimelineSoftRender();
   };
 
   moveFrameLeft = (): void => {
     this.project.moveSelectedFramesLeft();
     this.project.guiElement.draw();
+    this.triggerTimelineSoftRender();
   };
 
   createTween = (): void => {
@@ -2459,6 +2474,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       frames as unknown as Array<{ [key: string]: unknown }>,
     );
     this.project.guiElement.draw();
+    this.triggerTimelineSoftRender();
   };
 
   shrinkSelectedFramesAndPullOtherFrames = (): void => {
@@ -2467,6 +2483,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       frames as unknown as Array<{ [key: string]: unknown }>,
     );
     this.project.guiElement.draw();
+    this.triggerTimelineSoftRender();
   };
 
   extendActiveFramesAndPushOtherFrames = (): void => {
@@ -2475,6 +2492,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       frames as unknown as Array<{ [key: string]: unknown }>,
     );
     this.project.guiElement.draw();
+    this.triggerTimelineSoftRender();
   };
 
   shrinkActiveFramesAndPullOtherFrames = (): void => {
@@ -2483,6 +2501,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       frames as unknown as Array<{ [key: string]: unknown }>,
     );
     this.project.guiElement.draw();
+    this.triggerTimelineSoftRender();
   };
 
   exportSelectedClip = (): void => {

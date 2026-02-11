@@ -1,9 +1,9 @@
-// @ts-ignore - no types available
 import { GIFEncoder, quantize, applyPalette } from "gifenc";
+import type { Palette } from "gifenc";
 import type { WickProject } from "../types/engine.types";
 
 type GifFrameOptions = {
-  palette: unknown;
+  palette: Palette;
   delay: number;
   first?: boolean;
 };
@@ -103,8 +103,8 @@ class GIFExport {
           // Last frame
           gif.writeFrame(indexedData, width, height, frameOptions);
           gif.finish();
-          const output = gif.bytes();
-          const blob = new Blob([output], { type: "image/gif" });
+          const output = Uint8Array.from(gif.bytes());
+          const blob = new Blob([output.buffer], { type: "image/gif" });
           onProgress(
             "Saving GIF file (this may take a while)...",
             finishedProgress
