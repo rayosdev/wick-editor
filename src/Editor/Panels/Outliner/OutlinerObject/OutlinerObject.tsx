@@ -313,7 +313,7 @@ export const OutlinerObject = ({
                                 tooltip="Edit Timeline"
                             />
                         )}
-                        {data.sound && <img className="outliner-sound-icon" src={soundIcon} alt="sound" />}
+                        {Boolean(data.sound) && <img className="outliner-sound-icon" src={soundIcon} alt="sound" />}
                         {data.hasContentfulScripts && (
                             <input
                                 type="image"

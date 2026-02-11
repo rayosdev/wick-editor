@@ -540,11 +540,4 @@ export interface WickNamespace {
   [key: string]: unknown;
 }
 
-declare global {
-  interface Window {
-    Wick: any;
-    paper: any;
-  }
-}
-
 export {};

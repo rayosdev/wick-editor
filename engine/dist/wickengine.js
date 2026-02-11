@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2026.2.11.0.17.11";
+  var WICK_ENGINE_BUILD_VERSION = "2026.2.11.9.31.14";
   (function() {
 
     var _a;
@@ -38267,88 +38267,66 @@
       }
       /**
        * Create a project from a wick file.
-       * @param {Blob | string} wickFile - Wick file containing project data (can be a Blob or a dataURL string)
+       * @param {Blob | string} wickFile - Can be a Blob, Data URI string, raw base64 string, or raw JSON string.
        * @param {function} callback - Function called when the project is done being loaded
+       * @param {string} format - Optional hint. "base64" forces raw base64 decoding.
        */
-      static fromWickFile(wickFile, callback) {
-        if (typeof wickFile === "string") {
-          wickFile = Wick.ExportUtils.dataURItoBlob(wickFile);
+      static fromWickFile(wickFile, callback, format = "blob") {
+        try {
+          if (typeof wickFile === "string") {
+            const input = wickFile.trim();
+            if (input.startsWith("{") || input.startsWith("[")) {
+              wickFile = new Blob([input], { type: "application/json" });
+            } else if (/^data:/i.test(input)) {
+              wickFile = Wick.ExportUtils.dataURItoBlob(input);
+            } else {
+              const base64 = input.replace(/\s+/g, "");
+              if (format === "base64" || /^[A-Za-z0-9+/=]+$/.test(base64)) {
+                wickFile = Wick.ExportUtils.dataURItoBlob(
+                  `data:application/json;base64,${base64}`
+                );
+              } else {
+                wickFile = Wick.ExportUtils.dataURItoBlob(input);
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Wick.WickFile.fromWickFile: Failed to decode wick file input", e);
+          callback(null);
+          return;
         }
         var fr = new FileReader();
         fr.onload = function() {
           try {
             const text = fr.result;
             const data = JSON.parse(text);
-            const debugInfo = {
-              hasExport: !!(data && data.export),
-              hasProject: !!(data && data.project),
-              hasObject: !!(data && data.object),
-              hasChildren: !!(data && data.children),
-              dataKeys: data ? Object.keys(data) : [],
-              wickBaseAvailable: !!Wick.Base,
-              wickBaseImportAvailable: !!(Wick.Base && Wick.Base.import),
-              wickBaseFromDataAvailable: !!(Wick.Base && Wick.Base.fromData)
-            };
-            try {
-              console.log("WickFile.fromWickFile: Debug info:", debugInfo);
-            } catch (e) {
-              alert("WickFile.fromWickFile: Debug info: " + JSON.stringify(debugInfo));
-            }
             if (data && data.export && data.export.object && data.export.children) {
-              console.log("WickFile.fromWickFile: Using new export format");
-              try {
-                const project = Wick.Base.import(data.export, null);
-                console.log("WickFile.fromWickFile: Import successful, project:", project);
-                callback(project);
-                return;
-              } catch (importError) {
-                console.error("WickFile.fromWickFile: Import failed:", importError);
-                callback(null);
-                return;
-              }
+              callback(Wick.Base.import(data.export, null));
+              return;
             }
             if (data && data.project) {
-              console.log("WickFile.fromWickFile: Using legacy format");
-              try {
-                const project = new window.Wick.Project();
-                project.name = data.project.name;
-                project.width = data.project.width;
-                project.height = data.project.height;
-                project.framerate = data.project.framerate;
-                project.backgroundColor = new window.Wick.Color(data.project.backgroundColor);
-                project.onionSkinEnabled = data.project.onionSkinEnabled;
-                project.onionSkinSeekForwards = data.project.onionSkinSeekForwards;
-                project.onionSkinSeekBackwards = data.project.onionSkinSeekBackwards;
-                const clips = project.getChildren("Clip");
-                if (clips.length > 0) {
-                  project._focus = clips[0].uuid;
-                } else {
-                  project._focus = null;
-                }
-                console.log("WickFile.fromWickFile: Legacy project created successfully");
-                if (data.project.children && data.project.children.length > 0) {
-                  console.warn("Wick.WickFile.fromWickFile: legacy file missing object graph; children will not be reconstructed.");
-                }
-                callback(project);
-                return;
-              } catch (fromDataError) {
-                console.error("WickFile.fromWickFile: Legacy project creation failed:", fromDataError);
-                callback(null);
-                return;
+              const project = new window.Wick.Project();
+              project.name = data.project.name;
+              project.width = data.project.width;
+              project.height = data.project.height;
+              project.framerate = data.project.framerate;
+              project.backgroundColor = new window.Wick.Color(data.project.backgroundColor);
+              project.onionSkinEnabled = data.project.onionSkinEnabled;
+              project.onionSkinSeekForwards = data.project.onionSkinSeekForwards;
+              project.onionSkinSeekBackwards = data.project.onionSkinSeekBackwards;
+              const clips = project.getChildren("Clip");
+              project._focus = clips.length > 0 ? clips[0].uuid : null;
+              if (data.project.children && data.project.children.length > 0) {
+                console.warn(
+                  "Wick.WickFile.fromWickFile: legacy file missing object graph; children will not be reconstructed."
+                );
               }
+              callback(project);
+              return;
             }
             if (data && data.object && data.children) {
-              console.log("WickFile.fromWickFile: Using fallback format");
-              try {
-                const project = Wick.Base.import(data, null);
-                console.log("WickFile.fromWickFile: Fallback import successful, project:", project);
-                callback(project);
-                return;
-              } catch (fallbackError) {
-                console.error("WickFile.fromWickFile: Fallback import failed:", fallbackError);
-                callback(null);
-                return;
-              }
+              callback(Wick.Base.import(data, null));
+              return;
             }
             console.error("Wick.WickFile.fromWickFile: Unrecognized wick file format");
             callback(null);
@@ -38374,10 +38352,16 @@
         };
         var wickFileString = JSON.stringify(wickFileData);
         var wickFileBlob = new Blob([wickFileString], { type: "application/json" });
-        if (format === "dataurl") {
+        if (format === "dataurl" || format === "base64") {
           var fr = new FileReader();
           fr.onload = function() {
-            callback(fr.result);
+            const result = String(fr.result || "");
+            if (format === "base64") {
+              const commaIndex = result.indexOf(",");
+              callback(commaIndex >= 0 ? result.slice(commaIndex + 1) : result);
+            } else {
+              callback(result);
+            }
           };
           fr.readAsDataURL(wickFileBlob);
         } else {
@@ -38660,6 +38644,22 @@
       }
     }
     Wick.ZIPExport = ZIPExport;
+    function generateUUID() {
+      if (typeof uuidv4 === "function") {
+        return uuidv4();
+      }
+      if (typeof window !== "undefined" && typeof window.uuidv4 === "function") {
+        return window.uuidv4();
+      }
+      if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+        return crypto.randomUUID();
+      }
+      return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (ch) => {
+        const rand = Math.floor(Math.random() * 16);
+        const val = ch === "x" ? rand : rand & 3 | 8;
+        return val.toString(16);
+      });
+    }
     Wick.Base = class {
       /**
        * Creates a Base object.
@@ -38672,7 +38672,7 @@
           Wick._originals[this.classname] = new Wick[this.classname]();
         }
         if (!args) args = {};
-        this._uuid = args.uuid || uuidv4();
+        this._uuid = args.uuid || generateUUID();
         this._identifier = args.identifier || null;
         this._name = args.name || null;
         this._view = null;
@@ -38787,7 +38787,7 @@
        */
       copy() {
         var data = this.serialize();
-        data.uuid = uuidv4();
+        data.uuid = generateUUID();
         var copy = Wick.Base.fromData(data);
         copy._childrenData = null;
         this.getChildren().forEach((child) => {
@@ -39492,27 +39492,52 @@
         this._publishedMode = false;
         this._showClipBorders = true;
         this._userErrorCallback = null;
+        const RuntimeFallbackTool = Wick.Tools.RuntimeFallback || (Wick.Tools.RuntimeFallback = class extends Wick.Tool {
+          constructor(args2) {
+            super();
+            if (!args2) args2 = {};
+            this.name = args2.name || "runtimeFallback";
+            this._fallbackCursor = args2.cursor || "default";
+          }
+          get cursor() {
+            return this._fallbackCursor || "default";
+          }
+          get isDrawingTool() {
+            return false;
+          }
+          isInProgress() {
+            return false;
+          }
+          discard() {
+          }
+        });
+        const createTool = (toolName2, ToolCtor, cursor) => {
+          if (typeof ToolCtor === "function") {
+            return new ToolCtor();
+          }
+          return new RuntimeFallbackTool({ name: toolName2, cursor });
+        };
         this._tools = {
-          brush: new Wick.Tools.Brush(),
-          cursor: new Wick.Tools.Cursor(),
-          ellipse: new Wick.Tools.Ellipse(),
-          eraser: new Wick.Tools.Eraser(),
-          eyedropper: new Wick.Tools.Eyedropper(),
-          fillbucket: new Wick.Tools.FillBucket(),
-          interact: new Wick.Tools.Interact(),
-          line: new Wick.Tools.Line(),
-          none: new Wick.Tools.None(),
-          pan: new Wick.Tools.Pan(),
-          pathcursor: new Wick.Tools.PathCursor(),
-          pencil: new Wick.Tools.Pencil(),
-          rectangle: new Wick.Tools.Rectangle(),
-          text: new Wick.Tools.Text(),
-          zoom: new Wick.Tools.Zoom()
+          brush: createTool("brush", Wick.Tools.Brush, "crosshair"),
+          cursor: createTool("cursor", Wick.Tools.Cursor, "default"),
+          ellipse: createTool("ellipse", Wick.Tools.Ellipse, "crosshair"),
+          eraser: createTool("eraser", Wick.Tools.Eraser, "crosshair"),
+          eyedropper: createTool("eyedropper", Wick.Tools.Eyedropper, "copy"),
+          fillbucket: createTool("fillbucket", Wick.Tools.FillBucket, "crosshair"),
+          interact: createTool("interact", Wick.Tools.Interact, "default"),
+          line: createTool("line", Wick.Tools.Line, "crosshair"),
+          none: createTool("none", Wick.Tools.None, "default"),
+          pan: createTool("pan", Wick.Tools.Pan, "grab"),
+          pathcursor: createTool("pathcursor", Wick.Tools.PathCursor, "default"),
+          pencil: createTool("pencil", Wick.Tools.Pencil, "crosshair"),
+          rectangle: createTool("rectangle", Wick.Tools.Rectangle, "crosshair"),
+          text: createTool("text", Wick.Tools.Text, "text"),
+          zoom: createTool("zoom", Wick.Tools.Zoom, "zoom-in")
         };
         for (var toolName in this._tools) {
           this._tools[toolName].project = this;
         }
-        this.activeTool = "cursor";
+        this.activeTool = this.tools.cursor ? "cursor" : "interact";
         this._toolSettings = new Wick.ToolSettings();
         this._toolSettings.onSettingsChanged((name, value) => {
           if (name === "fillColor") {

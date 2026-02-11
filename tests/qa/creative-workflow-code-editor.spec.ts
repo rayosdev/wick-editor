@@ -1,8 +1,65 @@
 import { expect, type Page, test } from "@playwright/test";
 
+type AceEditorLike = {
+  setValue: (source: string, cursorPosition: number) => void;
+  clearSelection: () => void;
+  getValue: () => string;
+};
+
+type AceLike = {
+  edit: (root: Element) => AceEditorLike;
+};
+
+type WickButtonLike = {
+  uuid?: string;
+  __qaProbe?: string | null;
+  __guessInput?: number;
+  __guessResult?: string | null;
+  getScript?: (name: string) => { src?: string } | undefined;
+  [key: string]: unknown;
+};
+
+type WickLike = {
+  ObjectCache?: {
+    getObjectByUUID?: (uuid: string) => WickButtonLike | undefined;
+  };
+};
+
+type EditorProjectLike = {
+  root?: unknown;
+  focus?: { isRoot?: boolean };
+  selection?: {
+    types?: string[];
+    getSelectedObject?: () => WickButtonLike | undefined;
+  };
+  playing?: boolean;
+  isPlaying?: boolean;
+};
+
+type EditorLike = {
+  state?: {
+    previewPlaying?: boolean;
+  };
+  project?: EditorProjectLike;
+  setFocusObject?: (focus: unknown) => void;
+  clearSelection?: () => void;
+  selectObject?: (object: WickButtonLike) => void;
+  selectAll?: () => void;
+  createButtonFromSelection?: (name: string) => void;
+  editScript?: (name: string) => void;
+};
+
+type CodeEditorWindow = Window & {
+  ace?: AceLike;
+  editor?: EditorLike;
+  project?: EditorProjectLike;
+  Wick?: WickLike;
+};
+
 async function setAceScript(page: Page, source: string): Promise<void> {
   const updated = await page.evaluate((code) => {
-    const aceGlobal = (window as any).ace;
+    const bridge = window as CodeEditorWindow;
+    const aceGlobal = bridge.ace;
     const root = document.querySelector("#wick-code-editor-resizeable .ace_editor");
     if (!aceGlobal || !root) {
       return false;
@@ -47,8 +104,9 @@ async function drawBaseShape(page: Page): Promise<void> {
 
 async function isPreviewPlaying(page: Page): Promise<boolean> {
   return page.evaluate(() => {
-    const editor = (window as any).editor;
-    const project = editor?.project || (window as any).project;
+    const bridge = window as CodeEditorWindow;
+    const editor = bridge.editor;
+    const project = editor?.project || bridge.project;
     return Boolean(editor?.state?.previewPlaying || project?.playing || project?.isPlaying);
   });
 }
@@ -78,7 +136,8 @@ async function readMouseclickSource(
   buttonUuid: string
 ): Promise<string | null> {
   return page.evaluate((uuid) => {
-    const Wick = (window as any).Wick;
+    const bridge = window as CodeEditorWindow;
+    const Wick = bridge.Wick;
     const button = Wick?.ObjectCache?.getObjectByUUID?.(uuid);
     return button?.getScript?.("mouseclick")?.src ?? null;
   }, buttonUuid);
@@ -86,8 +145,9 @@ async function readMouseclickSource(
 
 async function selectButtonInEditor(page: Page, buttonUuid: string): Promise<void> {
   const selected = await page.evaluate((uuid) => {
-    const editor = (window as any).editor;
-    const Wick = (window as any).Wick;
+    const bridge = window as CodeEditorWindow;
+    const editor = bridge.editor;
+    const Wick = bridge.Wick;
     if (!editor || !Wick) {
       return false;
     }
@@ -119,7 +179,8 @@ async function runMouseclickScript(
   buttonUuid: string
 ): Promise<void> {
   const runResult = await page.evaluate((uuid) => {
-    const Wick = (window as any).Wick;
+    const bridge = window as CodeEditorWindow;
+    const Wick = bridge.Wick;
     const button = Wick?.ObjectCache?.getObjectByUUID?.(uuid);
     if (!button) {
       return { ok: false, reason: "button-not-found" };
@@ -167,8 +228,9 @@ test.describe("Creative workflow: code editor scripting", () => {
 
     // Convert drawn object into button.
     const convertState = await page.evaluate(() => {
-      const editor = (window as any).editor;
-      const Wick = (window as any).Wick;
+      const bridge = window as CodeEditorWindow;
+      const editor = bridge.editor;
+      const Wick = bridge.Wick;
       if (!editor) return { ok: false };
 
       editor.selectAll();
@@ -204,7 +266,8 @@ test.describe("Creative workflow: code editor scripting", () => {
 
     // Open internal code editor directly on mouseclick script.
     await page.evaluate(() => {
-      const editor = (window as any).editor;
+      const bridge = window as CodeEditorWindow;
+      const editor = bridge.editor;
       editor.editScript("mouseclick");
     });
 
@@ -232,7 +295,8 @@ test.describe("Creative workflow: code editor scripting", () => {
       .poll(
         async () =>
           page.evaluate((uuid) => {
-            const Wick = (window as any).Wick;
+            const bridge = window as CodeEditorWindow;
+            const Wick = bridge.Wick;
             const button = Wick?.ObjectCache?.getObjectByUUID?.(uuid);
             return button?.__qaProbe ?? null;
           }, buttonUuid),
@@ -245,7 +309,8 @@ test.describe("Creative workflow: code editor scripting", () => {
 
     // Script 2: guessing game branch logic.
     await page.evaluate(() => {
-      const editor = (window as any).editor;
+      const bridge = window as CodeEditorWindow;
+      const editor = bridge.editor;
       editor.editScript("mouseclick");
     });
 
@@ -276,7 +341,8 @@ if (guess === target) {
 
     // Correct path
     await page.evaluate((uuid) => {
-      const Wick = (window as any).Wick;
+      const bridge = window as CodeEditorWindow;
+      const Wick = bridge.Wick;
       const button = Wick?.ObjectCache?.getObjectByUUID?.(uuid);
       if (button) {
         button.__guessInput = 3;
@@ -288,7 +354,8 @@ if (guess === target) {
       .poll(
         async () =>
           page.evaluate((uuid) => {
-            const Wick = (window as any).Wick;
+            const bridge = window as CodeEditorWindow;
+            const Wick = bridge.Wick;
             const button = Wick?.ObjectCache?.getObjectByUUID?.(uuid);
             return button?.__guessResult ?? null;
           }, buttonUuid),
@@ -298,7 +365,8 @@ if (guess === target) {
 
     // Incorrect path
     await page.evaluate((uuid) => {
-      const Wick = (window as any).Wick;
+      const bridge = window as CodeEditorWindow;
+      const Wick = bridge.Wick;
       const button = Wick?.ObjectCache?.getObjectByUUID?.(uuid);
       if (button) {
         button.__guessInput = 1;
@@ -310,7 +378,8 @@ if (guess === target) {
       .poll(
         async () =>
           page.evaluate((uuid) => {
-            const Wick = (window as any).Wick;
+            const bridge = window as CodeEditorWindow;
+            const Wick = bridge.Wick;
             const button = Wick?.ObjectCache?.getObjectByUUID?.(uuid);
             return button?.__guessResult ?? null;
           }, buttonUuid),

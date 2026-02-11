@@ -1,5 +1,35 @@
 import { expect, test } from "@playwright/test";
 
+type AnimationProjectLike = {
+  selection?: {
+    numObjects?: number;
+  };
+  activeFrame?: {
+    tweens?: unknown[];
+  };
+  playheadPosition?: number;
+  playing?: boolean;
+  isPlaying?: boolean;
+};
+
+type AnimationEditorLike = {
+  project?: AnimationProjectLike;
+  selectAll?: () => void;
+  setSelectionAttribute?: (name: string, value: unknown) => void;
+  getSelectionAttribute?: (name: string) => unknown;
+  addTweenKeyframe?: () => void;
+};
+
+type AnimationWickLike = {
+  Color: new (value: string) => unknown;
+};
+
+type AnimationWindow = Window & {
+  editor?: AnimationEditorLike;
+  project?: AnimationProjectLike;
+  Wick?: AnimationWickLike;
+};
+
 test.describe("Creative workflow: animation and color", () => {
   test("change colors and create tween motion", async ({ page }) => {
     await page.addInitScript(() => {
@@ -47,7 +77,8 @@ test.describe("Creative workflow: animation and color", () => {
 
     // Ensure selection exists.
     const selectedCount = await page.evaluate(() => {
-      const editor = (window as any).editor;
+      const bridge = window as AnimationWindow;
+      const editor = bridge.editor;
       editor?.selectAll?.();
       return editor?.project?.selection?.numObjects ?? 0;
     });
@@ -55,8 +86,9 @@ test.describe("Creative workflow: animation and color", () => {
 
     // Apply fill/stroke color and stroke width changes.
     const colorResult = await page.evaluate(() => {
-      const editor = (window as any).editor;
-      const Wick = (window as any).Wick;
+      const bridge = window as AnimationWindow;
+      const editor = bridge.editor;
+      const Wick = bridge.Wick;
 
       if (!editor || !Wick) {
         return { ok: false };
@@ -69,17 +101,17 @@ test.describe("Creative workflow: animation and color", () => {
       const fillColor = editor.getSelectionAttribute("fillColor");
       const strokeColor = editor.getSelectionAttribute("strokeColor");
       const strokeWidth = Number(editor.getSelectionAttribute("strokeWidth"));
+      const toCSSValue = (value: unknown): string => {
+        if (value && typeof (value as { toCSS?: () => string }).toCSS === "function") {
+          return (value as { toCSS: () => string }).toCSS();
+        }
+        return String(value);
+      };
 
       return {
         ok: true,
-        fillColor:
-          fillColor && typeof fillColor.toCSS === "function"
-            ? fillColor.toCSS()
-            : String(fillColor),
-        strokeColor:
-          strokeColor && typeof strokeColor.toCSS === "function"
-            ? strokeColor.toCSS()
-            : String(strokeColor),
+        fillColor: toCSSValue(fillColor),
+        strokeColor: toCSSValue(strokeColor),
         strokeWidth,
       };
     });
@@ -89,7 +121,8 @@ test.describe("Creative workflow: animation and color", () => {
 
     // Create tween motion between frame 1 and frame 12.
     const tweenResult = await page.evaluate(() => {
-      const editor = (window as any).editor;
+      const bridge = window as AnimationWindow;
+      const editor = bridge.editor;
       const project = editor?.project;
       if (!editor || !project) {
         return { ok: false };
@@ -128,8 +161,9 @@ test.describe("Creative workflow: animation and color", () => {
     await page.waitForTimeout(800);
 
     const isPlaying = await page.evaluate(() => {
-      const editor = (window as any).editor;
-      const project = editor?.project || (window as any).project;
+      const bridge = window as AnimationWindow;
+      const editor = bridge.editor;
+      const project = editor?.project || bridge.project;
       return Boolean(project?.playing || project?.isPlaying);
     });
     expect(isPlaying).toBe(true);

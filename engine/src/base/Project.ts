@@ -84,29 +84,59 @@ Wick.Project = class extends Wick.Base {
 
         this._userErrorCallback = null;
 
+        const RuntimeFallbackTool = Wick.Tools.RuntimeFallback || (Wick.Tools.RuntimeFallback = class extends Wick.Tool {
+            constructor(args) {
+                super();
+                if (!args) args = {};
+                this.name = args.name || 'runtimeFallback';
+                this._fallbackCursor = args.cursor || 'default';
+            }
+
+            get cursor() {
+                return this._fallbackCursor || 'default';
+            }
+
+            get isDrawingTool() {
+                return false;
+            }
+
+            isInProgress() {
+                return false;
+            }
+
+            discard() {}
+        });
+
+        const createTool = (toolName, ToolCtor, cursor) => {
+            if (typeof ToolCtor === 'function') {
+                return new ToolCtor();
+            }
+            return new RuntimeFallbackTool({ name: toolName, cursor });
+        };
+
         this._tools = {
-            brush: new Wick.Tools.Brush(),
-            cursor: new Wick.Tools.Cursor(),
-            ellipse: new Wick.Tools.Ellipse(),
-            eraser: new Wick.Tools.Eraser(),
-            eyedropper: new Wick.Tools.Eyedropper(),
-            fillbucket: new Wick.Tools.FillBucket(),
-            interact: new Wick.Tools.Interact(),
-            line: new Wick.Tools.Line(),
-            none: new Wick.Tools.None(),
-            pan: new Wick.Tools.Pan(),
-            pathcursor: new Wick.Tools.PathCursor(),
-            pencil: new Wick.Tools.Pencil(),
-            rectangle: new Wick.Tools.Rectangle(),
-            text: new Wick.Tools.Text(),
-            zoom: new Wick.Tools.Zoom(),
+            brush: createTool('brush', Wick.Tools.Brush, 'crosshair'),
+            cursor: createTool('cursor', Wick.Tools.Cursor, 'default'),
+            ellipse: createTool('ellipse', Wick.Tools.Ellipse, 'crosshair'),
+            eraser: createTool('eraser', Wick.Tools.Eraser, 'crosshair'),
+            eyedropper: createTool('eyedropper', Wick.Tools.Eyedropper, 'copy'),
+            fillbucket: createTool('fillbucket', Wick.Tools.FillBucket, 'crosshair'),
+            interact: createTool('interact', Wick.Tools.Interact, 'default'),
+            line: createTool('line', Wick.Tools.Line, 'crosshair'),
+            none: createTool('none', Wick.Tools.None, 'default'),
+            pan: createTool('pan', Wick.Tools.Pan, 'grab'),
+            pathcursor: createTool('pathcursor', Wick.Tools.PathCursor, 'default'),
+            pencil: createTool('pencil', Wick.Tools.Pencil, 'crosshair'),
+            rectangle: createTool('rectangle', Wick.Tools.Rectangle, 'crosshair'),
+            text: createTool('text', Wick.Tools.Text, 'text'),
+            zoom: createTool('zoom', Wick.Tools.Zoom, 'zoom-in'),
         };
 
         for (var toolName in this._tools) {
             this._tools[toolName].project = this;
         }
 
-        this.activeTool = 'cursor';
+        this.activeTool = this.tools.cursor ? 'cursor' : 'interact';
 
         this._toolSettings = new Wick.ToolSettings();
         this._toolSettings.onSettingsChanged((name, value) => {

@@ -1,5 +1,82 @@
 import { expect, type Page, test } from "@playwright/test";
 
+type WickPathLike = {
+  uuid?: string;
+  textContent?: string;
+  setText?: (text: string) => void;
+  view?: {
+    item?: {
+      className?: string;
+      segments?: Array<{
+        point?: {
+          x: number;
+          y: number;
+        };
+      }>;
+    };
+  };
+};
+
+type PaperLineLike = {
+  strokeColor?: unknown;
+  strokeWidth?: number;
+  exportJSON: (options: { asString: false }) => unknown;
+  remove: () => void;
+};
+
+type ProjectPaperViewLike = {
+  element?: {
+    getBoundingClientRect: () => {
+      left: number;
+      top: number;
+      width: number;
+      height: number;
+    };
+  };
+  projectToView: (x: number, y: number) => { x: number; y: number };
+  _scope: {
+    Point: new (x: number, y: number) => unknown;
+    Color: new (value: string) => unknown;
+    Path: {
+      Line: new (pointA: unknown, pointB: unknown) => PaperLineLike;
+    };
+  };
+};
+
+type ProjectLike = {
+  activeFrame?: {
+    paths?: WickPathLike[];
+    addPath?: (path: WickPathLike) => void;
+  };
+  view?: {
+    render?: () => void;
+    paper?: {
+      view?: ProjectPaperViewLike;
+    };
+  };
+  tools?: {
+    text?: {
+      editingText?: unknown;
+    };
+  };
+};
+
+type TextPathEditorLike = {
+  project?: ProjectLike;
+};
+
+type TextPathWickLike = {
+  Path: new (data: { json: unknown }) => WickPathLike;
+  ObjectCache?: {
+    getObjectByUUID?: (uuid: string) => WickPathLike | undefined;
+  };
+};
+
+type TextPathWindow = Window & {
+  editor?: TextPathEditorLike;
+  Wick?: TextPathWickLike;
+};
+
 async function getCanvasBounds(page: Page): Promise<{
   x: number;
   y: number;
@@ -45,14 +122,15 @@ test.describe("Creative workflow: text and path editing", () => {
 
     // Deterministic text edit in headless mode: update latest PointText path content.
     const textEdited = await page.evaluate((nextText) => {
-      const editor = (window as any).editor;
+      const bridge = window as TextPathWindow;
+      const editor = bridge.editor;
       const frame = editor?.project?.activeFrame;
       if (!frame) {
         return false;
       }
 
       const textPaths = (frame.paths || []).filter(
-        (path: any) => path?.view?.item?.className === "PointText"
+        (path: WickPathLike) => path?.view?.item?.className === "PointText"
       );
       const latestText = textPaths[textPaths.length - 1];
       if (!latestText || typeof latestText.setText !== "function") {
@@ -67,16 +145,17 @@ test.describe("Creative workflow: text and path editing", () => {
     await page.waitForTimeout(300);
 
     const textState = await page.evaluate((expectedText) => {
-      const editor = (window as any).editor;
+      const bridge = window as TextPathWindow;
+      const editor = bridge.editor;
       const frame = editor?.project?.activeFrame;
       if (!frame) {
         return { ok: false, textCount: 0, containsExpected: false };
       }
 
       const textPaths = (frame.paths || []).filter(
-        (path: any) => path?.view?.item?.className === "PointText"
+        (path: WickPathLike) => path?.view?.item?.className === "PointText"
       );
-      const containsExpected = textPaths.some((path: any) =>
+      const containsExpected = textPaths.some((path: WickPathLike) =>
         String(path?.textContent ?? "").includes(expectedText)
       );
 
@@ -93,7 +172,8 @@ test.describe("Creative workflow: text and path editing", () => {
 
     // Guard against text-tool transient state bug during tool switch in headless mode.
     await page.evaluate(() => {
-      const editor = (window as any).editor;
+      const bridge = window as TextPathWindow;
+      const editor = bridge.editor;
       const textTool = editor?.project?.tools?.text;
       if (textTool) {
         textTool.editingText = null;
@@ -117,8 +197,9 @@ test.describe("Creative workflow: text and path editing", () => {
     await page.waitForTimeout(400);
 
     const lineInfo = await page.evaluate(() => {
-      const editor = (window as any).editor;
-      const Wick = (window as any).Wick;
+      const bridge = window as TextPathWindow;
+      const editor = bridge.editor;
+      const Wick = bridge.Wick;
       const project = editor?.project;
       const frame = project?.activeFrame;
       const paperView = project?.view?.paper?.view;
@@ -127,7 +208,7 @@ test.describe("Creative workflow: text and path editing", () => {
       }
 
       let candidates = (frame.paths || []).filter(
-        (path: any) =>
+        (path: WickPathLike) =>
           path?.view?.item &&
           path.view.item.className !== "PointText" &&
           Number(path?.view?.item?.segments?.length ?? 0) >= 2
@@ -149,7 +230,7 @@ test.describe("Creative workflow: text and path editing", () => {
         project.view.render();
 
         candidates = (frame.paths || []).filter(
-          (path: any) =>
+          (path: WickPathLike) =>
             path?.view?.item &&
             path.view.item.className !== "PointText" &&
             Number(path?.view?.item?.segments?.length ?? 0) >= 2
@@ -202,7 +283,8 @@ test.describe("Creative workflow: text and path editing", () => {
     await page.waitForTimeout(350);
 
     const movedSegment = await page.evaluate((uuid) => {
-      const Wick = (window as any).Wick;
+      const bridge = window as TextPathWindow;
+      const Wick = bridge.Wick;
       const linePath = Wick?.ObjectCache?.getObjectByUUID?.(uuid);
       const point = linePath?.view?.item?.segments?.[0]?.point;
       if (!point) {

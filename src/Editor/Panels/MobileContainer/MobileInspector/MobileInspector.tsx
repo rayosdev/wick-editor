@@ -212,13 +212,13 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
         },
     };
 
-    const getSelectionAttribute = (attribute: string): any => {
+    const getSelectionAttribute = <T = unknown>(attribute: string): T => {
         if (attribute === "fillColorOpacity") {
-            return getSelectionFillColorOpacity();
+            return getSelectionFillColorOpacity() as T;
         }
 
         const attributes = props.getAllSelectionAttributes?.() ?? {};
-        return (attributes as SelectionAttributes)[attribute];
+        return (attributes as SelectionAttributes)[attribute] as T;
     };
 
     const getSelectionFillColorOpacity = (): number => {
@@ -271,8 +271,8 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
     };
 
     const renderSelectionColor = (): JSX.Element => {
-        const strokeColor = getSelectionAttribute("strokeColor");
-        const fillColor = getSelectionAttribute("fillColor");
+        const strokeColor = getSelectionAttribute<{ toCSS?: () => string } | undefined>("strokeColor");
+        const fillColor = getSelectionAttribute<{ toCSS?: () => string } | undefined>("fillColor");
 
         return (
             <div className="mobile-inspector-item mobile-inspector-item-style">
@@ -414,7 +414,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
         ];
 
         const weight = Math.min(
-            Math.max(getSelectionAttribute("fontWeight"), 100),
+            Math.max(getSelectionAttribute<number>("fontWeight"), 100),
             900,
         );
 
@@ -680,13 +680,12 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
     };
 
     const renderSoundContent = (): JSX.Element => {
+        const hasSound = Boolean(getSelectionAttribute("sound"));
         return (
             <div className="mobile-inspector-item">
                 {renderSelectionSoundAsset()}
-                {getSelectionAttribute("sound") &&
-                    renderSelectionSoundVolume()}
-                {getSelectionAttribute("sound") &&
-                    renderSelectionSoundStart()}
+                {hasSound && renderSelectionSoundVolume()}
+                {hasSound && renderSelectionSoundStart()}
             </div>
         );
     };
@@ -704,7 +703,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
                         setSelectionAttribute("animationType", val.value);
                     }}
                 />
-                {getSelectionAttribute("singleFrameNumber") && (
+                {Boolean(getSelectionAttribute("singleFrameNumber")) && (
                     <MobileInspectorNumericInput
                         tooltip="Frame"
                         val={getSelectionAttribute("singleFrameNumber")}
@@ -716,11 +715,11 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
                 {getSelectionAttribute("animationType") !== "single" && (
                     <MobileInspectorCheckbox
                         tooltip="Synced"
-                        checked={getSelectionAttribute("isSynced")}
+                        checked={Boolean(getSelectionAttribute("isSynced"))}
                         onChange={() =>
                             setSelectionAttribute(
                                 "isSynced",
-                                !getSelectionAttribute("isSynced"),
+                                !Boolean(getSelectionAttribute("isSynced")),
                             )
                         }
                     />

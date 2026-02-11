@@ -17,6 +17,27 @@
  * along with Wick Engine.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+function generateUUID(): string {
+    if (typeof uuidv4 === 'function') {
+        return uuidv4();
+    }
+
+    if (typeof window !== 'undefined' && typeof window.uuidv4 === 'function') {
+        return window.uuidv4();
+    }
+
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+
+    // RFC4122 v4 fallback for environments without uuid helpers.
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (ch) => {
+        const rand = Math.floor(Math.random() * 16);
+        const val = ch === 'x' ? rand : ((rand & 0x3) | 0x8);
+        return val.toString(16);
+    });
+}
+
 /**
  * The base class for all objects within the Wick Engine.
  */
@@ -51,7 +72,7 @@ Wick.Base = class {
 
         if (!args) args = {};
 
-        this._uuid = args.uuid || uuidv4();
+        this._uuid = args.uuid || generateUUID();
         this._identifier = args.identifier || null;
         this._name = args.name || null;
 
@@ -187,7 +208,7 @@ Wick.Base = class {
      */
     copy(): any {
         var data = this.serialize();
-        data.uuid = uuidv4();
+        data.uuid = generateUUID();
         var copy = Wick.Base.fromData(data);
 
         copy._childrenData = null;

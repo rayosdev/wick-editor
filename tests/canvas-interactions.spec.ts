@@ -1,6 +1,21 @@
 // @ts-nocheck - TODO: Remove when properly typing test files
 import { test, expect } from "@playwright/test";
 
+type CanvasInteractionWindow = Window & {
+  editor?: {
+    project?: {
+      view?: {
+        paper?: {
+          view?: {
+            zoom?: number;
+            center?: { x?: number; y?: number };
+          };
+        };
+      };
+    };
+  };
+};
+
 /**
  * E2E tests for canvas mouse/trackpad interactions
  * These tests complement the Vitest unit tests by verifying actual browser behavior
@@ -33,7 +48,8 @@ test.describe("Canvas Mouse/Trackpad Interactions", () => {
 
     // Get initial zoom level from Paper.js view
     const initialZoom = await page.evaluate(() => {
-      return (window as any).editor?.project?.view?.paper?.view?.zoom || 1;
+      const bridge = window as CanvasInteractionWindow;
+      return bridge.editor?.project?.view?.paper?.view?.zoom || 1;
     });
 
     // Note: Wick Editor has inverted zoom (positive deltaY = zoom in)
@@ -49,7 +65,8 @@ test.describe("Canvas Mouse/Trackpad Interactions", () => {
 
     // Check zoom increased
     const newZoom = await page.evaluate(() => {
-      return (window as any).editor?.project?.view?.paper?.view?.zoom || 1;
+      const bridge = window as CanvasInteractionWindow;
+      return bridge.editor?.project?.view?.paper?.view?.zoom || 1;
     });
 
     expect(newZoom).toBeGreaterThan(initialZoom);
@@ -61,7 +78,8 @@ test.describe("Canvas Mouse/Trackpad Interactions", () => {
 
     // Get initial center position
     const initialCenter = await page.evaluate(() => {
-      const view = (window as any).editor?.project?.view?.paper?.view;
+      const bridge = window as CanvasInteractionWindow;
+      const view = bridge.editor?.project?.view?.paper?.view;
       return { x: view?.center?.x || 0, y: view?.center?.y || 0 };
     });
 
@@ -74,7 +92,8 @@ test.describe("Canvas Mouse/Trackpad Interactions", () => {
 
     // Check center moved
     const newCenter = await page.evaluate(() => {
-      const view = (window as any).editor?.project?.view?.paper?.view;
+      const bridge = window as CanvasInteractionWindow;
+      const view = bridge.editor?.project?.view?.paper?.view;
       return { x: view?.center?.x || 0, y: view?.center?.y || 0 };
     });
 
@@ -96,7 +115,8 @@ test.describe("Canvas Mouse/Trackpad Interactions", () => {
     await page.waitForTimeout(100);
 
     const minZoom = await page.evaluate(() => {
-      return (window as any).editor?.project?.view?.paper?.view?.zoom || 1;
+      const bridge = window as CanvasInteractionWindow;
+      return bridge.editor?.project?.view?.paper?.view?.zoom || 1;
     });
 
     // Try to zoom out more (should stay at min)
@@ -106,7 +126,8 @@ test.describe("Canvas Mouse/Trackpad Interactions", () => {
     await page.waitForTimeout(100);
 
     const stillMinZoom = await page.evaluate(() => {
-      return (window as any).editor?.project?.view?.paper?.view?.zoom || 1;
+      const bridge = window as CanvasInteractionWindow;
+      return bridge.editor?.project?.view?.paper?.view?.zoom || 1;
     });
 
     expect(stillMinZoom).toBe(minZoom);
@@ -119,7 +140,8 @@ test.describe("Canvas Mouse/Trackpad Interactions", () => {
 
     // Get initial canvas zoom
     const canvasZoomBefore = await page.evaluate(() => {
-      return (window as any).editor?.project?.view?.paper?.view?.zoom || 1;
+      const bridge = window as CanvasInteractionWindow;
+      return bridge.editor?.project?.view?.paper?.view?.zoom || 1;
     });
 
     // Scroll on timeline (should NOT zoom canvas)
@@ -131,7 +153,8 @@ test.describe("Canvas Mouse/Trackpad Interactions", () => {
 
     // Canvas zoom should be unchanged
     const canvasZoomAfter = await page.evaluate(() => {
-      return (window as any).editor?.project?.view?.paper?.view?.zoom || 1;
+      const bridge = window as CanvasInteractionWindow;
+      return bridge.editor?.project?.view?.paper?.view?.zoom || 1;
     });
 
     expect(canvasZoomAfter).toBe(canvasZoomBefore);
@@ -157,7 +180,8 @@ test.describe("Touch Gestures (Mobile/Tablet)", () => {
 
     // Get initial center
     const initialCenter = await page.evaluate(() => {
-      const view = (window as any).editor?.project?.view?.paper?.view;
+      const bridge = window as CanvasInteractionWindow;
+      const view = bridge.editor?.project?.view?.paper?.view;
       return { x: view?.center?.x || 0, y: view?.center?.y || 0 };
     });
 
@@ -212,7 +236,8 @@ test.describe("Cross-browser Compatibility", () => {
     await page.waitForTimeout(100);
 
     const zoom = await page.evaluate(() => {
-      return (window as any).editor?.project?.view?.paper?.view?.zoom || 1;
+      const bridge = window as CanvasInteractionWindow;
+      return bridge.editor?.project?.view?.paper?.view?.zoom || 1;
     });
 
     expect(zoom).toBeGreaterThan(0.5);
@@ -286,7 +311,8 @@ test.describe("Performance", () => {
     // Count how many times Paper.js view updates during rapid scrolling
     const updateCount = await page.evaluate(async () => {
       let count = 0;
-      const view = (window as any).editor?.project?.view?.paper?.view;
+      const bridge = window as CanvasInteractionWindow;
+      const view = bridge.editor?.project?.view?.paper?.view;
       if (!view) return 0;
 
       const originalZoomSetter = Object.getOwnPropertyDescriptor(

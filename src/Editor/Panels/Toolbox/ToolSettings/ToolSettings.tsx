@@ -17,11 +17,12 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import ToolSettingsInput from "./ToolSettingsInput/ToolSettingsInput";
 import PopupMenu from "Editor/Util/PopupMenu/PopupMenu";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
+import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
 import "./_toolsettings.scss";
 import classNames from "classnames";
@@ -38,6 +39,20 @@ interface ToolSettingsProps {
     previewPlaying?: boolean;
 }
 
+type ToolPresetItem = {
+    id: string;
+    label: string;
+    icon: string;
+    active: boolean;
+    apply: () => void;
+};
+
+type ToolPresetMenuData = {
+    title: string;
+    subtitle: string;
+    items: ToolPresetItem[];
+};
+
 const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
     const {
         renderSize,
@@ -50,6 +65,24 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
         showBrushModes,
         previewPlaying
     } = props;
+
+    const [showToolPresets, setShowToolPresets] = useState(false);
+
+    const toggleToolPresets = (): void => {
+        setShowToolPresets((previous) => !previous);
+    };
+
+    useEffect(() => {
+        setShowToolPresets(false);
+    }, [activeTool, previewPlaying]);
+
+    const getNumericToolSetting = (setting: string): number => {
+        return Number(getToolSettingProp(setting));
+    };
+
+    const setNumericToolSetting = (setting: string, value: number): void => {
+        setToolSettingProp(setting, value);
+    };
 
     const renderCursorSettings = (): JSX.Element => {
         return <div className="settings-input-container" />;
@@ -93,16 +126,16 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
 
     const renderBrushMode = (): JSX.Element => {
         let brushModeIcon = "brushmodenone";
-        const brushMode = getToolSettingProp("brushMode");
+        const brushMode = String(getToolSettingProp("brushMode"));
         const brushModes = [
             { value: "none", label: "None", icon: "brushmodenone" },
             { value: "inside", label: "Inside", icon: "brushmodeinside" },
-            { value: "outside", label: "Outside", icon: "brushmodeoutside" },
+            { value: "behind", label: "Behind", icon: "brushmodeoutside" },
         ] as const;
 
         if (brushMode === "inside") {
             brushModeIcon = "brushmodeinside";
-        } else if (brushMode === "outside") {
+        } else if (brushMode === "behind" || brushMode === "outside") {
             brushModeIcon = "brushmodeoutside";
         }
 
@@ -127,7 +160,10 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                         <div className="tool-selector-menu-header">Brush Modes</div>
                         <div className="brush-modes-menu-list">
                             {brushModes.map((mode) => {
-                                const active = brushMode === mode.value;
+                                const active =
+                                    mode.value === "behind"
+                                        ? brushMode === "behind" || brushMode === "outside"
+                                        : brushMode === mode.value;
                                 return (
                                     <button
                                         key={mode.value}
@@ -326,6 +362,292 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
         );
     };
 
+    const getToolPresetMenuData = (): ToolPresetMenuData | null => {
+        if (activeTool === "brush") {
+            const brushSize = getNumericToolSetting("brushSize");
+            const brushSmoothness = getNumericToolSetting("brushStabilizerWeight");
+            const brushMode = String(getToolSettingProp("brushMode"));
+
+            return {
+                title: "Brush Presets",
+                subtitle: "Quick setups for size, smoothing, and mode",
+                items: [
+                    {
+                        id: "brush-size-small",
+                        label: "Size 4",
+                        icon: "brushsize",
+                        active: brushSize === 4,
+                        apply: () => setNumericToolSetting("brushSize", 4),
+                    },
+                    {
+                        id: "brush-size-medium",
+                        label: "Size 10",
+                        icon: "brushsize",
+                        active: brushSize === 10,
+                        apply: () => setNumericToolSetting("brushSize", 10),
+                    },
+                    {
+                        id: "brush-size-large",
+                        label: "Size 20",
+                        icon: "brushsize",
+                        active: brushSize === 20,
+                        apply: () => setNumericToolSetting("brushSize", 20),
+                    },
+                    {
+                        id: "brush-smooth-loose",
+                        label: "Smoothing 0",
+                        icon: "brushsmoothness",
+                        active: brushSmoothness === 0,
+                        apply: () => setNumericToolSetting("brushStabilizerWeight", 0),
+                    },
+                    {
+                        id: "brush-smooth-balanced",
+                        label: "Smoothing 20",
+                        icon: "brushsmoothness",
+                        active: brushSmoothness === 20,
+                        apply: () => setNumericToolSetting("brushStabilizerWeight", 20),
+                    },
+                    {
+                        id: "brush-smooth-stable",
+                        label: "Smoothing 60",
+                        icon: "brushsmoothness",
+                        active: brushSmoothness === 60,
+                        apply: () => setNumericToolSetting("brushStabilizerWeight", 60),
+                    },
+                    {
+                        id: "brush-mode-none",
+                        label: "Mode: None",
+                        icon: "brushmodenone",
+                        active: brushMode === "none",
+                        apply: () => setToolSettingProp("brushMode", "none"),
+                    },
+                    {
+                        id: "brush-mode-behind",
+                        label: "Mode: Behind",
+                        icon: "brushmodeoutside",
+                        active: brushMode === "behind" || brushMode === "outside",
+                        apply: () => setToolSettingProp("brushMode", "behind"),
+                    },
+                    {
+                        id: "brush-mode-inside",
+                        label: "Mode: Inside",
+                        icon: "brushmodeinside",
+                        active: brushMode === "inside",
+                        apply: () => setToolSettingProp("brushMode", "inside"),
+                    },
+                ],
+            };
+        }
+
+        if (activeTool === "eraser") {
+            const eraserSize = getNumericToolSetting("eraserSize");
+            return {
+                title: "Eraser Presets",
+                subtitle: "Fast edge cleanup and broad erase modes",
+                items: [
+                    {
+                        id: "eraser-size-small",
+                        label: "Size 6",
+                        icon: "eraser",
+                        active: eraserSize === 6,
+                        apply: () => setNumericToolSetting("eraserSize", 6),
+                    },
+                    {
+                        id: "eraser-size-medium",
+                        label: "Size 12",
+                        icon: "eraser",
+                        active: eraserSize === 12,
+                        apply: () => setNumericToolSetting("eraserSize", 12),
+                    },
+                    {
+                        id: "eraser-size-large",
+                        label: "Size 24",
+                        icon: "eraser",
+                        active: eraserSize === 24,
+                        apply: () => setNumericToolSetting("eraserSize", 24),
+                    },
+                ],
+            };
+        }
+
+        if (
+            activeTool === "pencil" ||
+            activeTool === "line" ||
+            activeTool === "ellipse" ||
+            activeTool === "rectangle"
+        ) {
+            const strokeWidth = getNumericToolSetting("strokeWidth");
+            const cornerRadius = getNumericToolSetting("cornerRadius");
+            const showCornerRadiusPresets = activeTool === "rectangle";
+
+            return {
+                title: "Shape Presets",
+                subtitle: showCornerRadiusPresets
+                    ? "Stroke and corner presets for quick shape styling"
+                    : "Stroke width presets for fast shape styling",
+                items: [
+                    {
+                        id: "shape-stroke-thin",
+                        label: "Stroke 1",
+                        icon: "strokewidth",
+                        active: strokeWidth === 1,
+                        apply: () => setNumericToolSetting("strokeWidth", 1),
+                    },
+                    {
+                        id: "shape-stroke-medium",
+                        label: "Stroke 3",
+                        icon: "strokewidth",
+                        active: strokeWidth === 3,
+                        apply: () => setNumericToolSetting("strokeWidth", 3),
+                    },
+                    {
+                        id: "shape-stroke-bold",
+                        label: "Stroke 6",
+                        icon: "strokewidth",
+                        active: strokeWidth === 6,
+                        apply: () => setNumericToolSetting("strokeWidth", 6),
+                    },
+                    ...(showCornerRadiusPresets
+                        ? [
+                            {
+                                id: "shape-corner-sharp",
+                                label: "Corners 0",
+                                icon: "cornerradius",
+                                active: cornerRadius === 0,
+                                apply: () => setNumericToolSetting("cornerRadius", 0),
+                            },
+                            {
+                                id: "shape-corner-soft",
+                                label: "Corners 8",
+                                icon: "cornerradius",
+                                active: cornerRadius === 8,
+                                apply: () => setNumericToolSetting("cornerRadius", 8),
+                            },
+                            {
+                                id: "shape-corner-round",
+                                label: "Corners 20",
+                                icon: "cornerradius",
+                                active: cornerRadius === 20,
+                                apply: () => setNumericToolSetting("cornerRadius", 20),
+                            },
+                        ]
+                        : []),
+                ],
+            };
+        }
+
+        if (activeTool === "fillbucket") {
+            const gapFillAmount = getNumericToolSetting("gapFillAmount");
+            return {
+                title: "Fill Presets",
+                subtitle: "Control how aggressively gaps are treated",
+                items: [
+                    {
+                        id: "fill-gap-tight",
+                        label: "Gap Fill 0",
+                        icon: "gapfillamount",
+                        active: gapFillAmount === 0,
+                        apply: () => setNumericToolSetting("gapFillAmount", 0),
+                    },
+                    {
+                        id: "fill-gap-default",
+                        label: "Gap Fill 1",
+                        icon: "gapfillamount",
+                        active: gapFillAmount === 1,
+                        apply: () => setNumericToolSetting("gapFillAmount", 1),
+                    },
+                    {
+                        id: "fill-gap-loose",
+                        label: "Gap Fill 3",
+                        icon: "gapfillamount",
+                        active: gapFillAmount === 3,
+                        apply: () => setNumericToolSetting("gapFillAmount", 3),
+                    },
+                    {
+                        id: "fill-gap-wide",
+                        label: "Gap Fill 5",
+                        icon: "gapfillamount",
+                        active: gapFillAmount === 5,
+                        apply: () => setNumericToolSetting("gapFillAmount", 5),
+                    },
+                ],
+            };
+        }
+
+        return null;
+    };
+
+    const presetMenuData = getToolPresetMenuData();
+
+    const renderToolPresetMenu = (): JSX.Element | null => {
+        if (!presetMenuData) {
+            return null;
+        }
+
+        return (
+            <div
+                id="tool-settings-presets-popover-button"
+                className="tool-settings-presets-anchor"
+            >
+                <ActionButton
+                    id="tool-settings-presets-toggle"
+                    icon="settings"
+                    color="tool"
+                    tooltip={presetMenuData.title}
+                    className="tool-settings-presets-toggle"
+                    action={toggleToolPresets}
+                    isActive={() => showToolPresets}
+                />
+                <PopupMenu
+                    mobile={isMobile}
+                    isOpen={showToolPresets && !previewPlaying}
+                    toggle={toggleToolPresets}
+                    target="tool-settings-presets-popover-button"
+                    className="tool-settings-menu-popover tool-settings-presets-menu-popover"
+                >
+                    <div className="tool-settings-presets-widget">
+                        <div className="tool-selector-menu-header">
+                            {presetMenuData.title}
+                        </div>
+                        <div className="tool-selector-menu-subtitle">
+                            {presetMenuData.subtitle}
+                        </div>
+                        <div className="tool-settings-presets-list">
+                            {presetMenuData.items.map((item) => (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    className={classNames(
+                                        "tool-settings-presets-item",
+                                        { active: item.active }
+                                    )}
+                                    onClick={() => {
+                                        item.apply();
+                                        setShowToolPresets(false);
+                                    }}
+                                >
+                                    <ToolIcon
+                                        className="tool-settings-presets-item-icon"
+                                        name={item.icon}
+                                    />
+                                    <span className="tool-settings-presets-item-label">
+                                        {item.label}
+                                    </span>
+                                    {item.active && (
+                                        <ToolIcon
+                                            className="tool-settings-presets-item-check"
+                                            name="check"
+                                        />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </PopupMenu>
+            </div>
+        );
+    };
+
     const settingsFunctions = useMemo(() => ({
         cursor: renderCursorSettings,
         brush: renderBrushSettings,
@@ -347,7 +669,12 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
         return <div className="default" />;
     };
 
-    return <div id="settings-panel-container">{renderSettings()}</div>;
+    return (
+        <div id="settings-panel-container">
+            {renderSettings()}
+            {renderToolPresetMenu()}
+        </div>
+    );
 };
 
 export default ToolSettings;

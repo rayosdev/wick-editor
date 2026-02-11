@@ -1,5 +1,10 @@
 import { test } from '@playwright/test';
 
+type DebugWindow = Window & {
+  WICK_ENGINE_BUILD_VERSION?: string;
+  wickLoadErrors?: unknown[];
+};
+
 test('debug - capture all console output', async ({ page }) => {
   const logs: string[] = [];
   const errors: string[] = [];
@@ -42,11 +47,12 @@ test('debug - capture all console output', async ({ page }) => {
   
   console.log('\n=== CHECKING WINDOW.WICK ===');
   const wickCheck = await page.evaluate(() => {
+    const bridge = window as DebugWindow;
     return {
       wickExists: typeof window.Wick !== 'undefined',
       wickKeys: window.Wick ? Object.keys(window.Wick) : [],
-      buildVersion: (window as any).WICK_ENGINE_BUILD_VERSION,
-      errors: (window as any).wickLoadErrors || []
+      buildVersion: bridge.WICK_ENGINE_BUILD_VERSION,
+      errors: bridge.wickLoadErrors || []
     };
   });
   console.log(JSON.stringify(wickCheck, null, 2));

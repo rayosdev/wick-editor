@@ -2,6 +2,57 @@ import { test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
+type DebugProjectLike = {
+  classname?: unknown;
+  name?: unknown;
+  width?: unknown;
+  height?: unknown;
+  framerate?: unknown;
+  children?: unknown[];
+  focus?: unknown;
+  uuid?: unknown;
+  serialize?: () => unknown;
+  view?: unknown;
+  guiElement?: unknown;
+};
+
+type WickFileTestResult = {
+  success: boolean;
+  error?: string;
+  duration?: number;
+  project?: {
+    classname?: unknown;
+    name?: unknown;
+    width?: unknown;
+    height?: unknown;
+    framerate?: unknown;
+    childrenCount?: number;
+    focus?: unknown;
+    uuid?: unknown;
+    hasSerialize?: boolean;
+    hasView?: boolean;
+    hasGuiElement?: boolean;
+  };
+};
+
+type SetupProjectSummary = {
+  name?: unknown;
+  width?: unknown;
+  height?: unknown;
+  framerate?: unknown;
+  childrenCount?: number;
+};
+
+type SetupNewProjectTestResult = {
+  success: boolean;
+  error?: string;
+  projectDidChangeCalled?: boolean;
+  setStateCalled?: boolean;
+  duration?: number;
+  newProject?: SetupProjectSummary;
+  reactState?: SetupProjectSummary;
+};
+
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
@@ -39,7 +90,7 @@ test.describe('Deserialization Debug', () => {
     // Step 2: Test WickFile.fromWickFile step by step
     console.log('\n=== STEP 2: Testing WickFile.fromWickFile ===');
     
-    const wickFileTest = await page.evaluate<any, string>((projectData: string) => {
+    const wickFileTest = await page.evaluate<WickFileTestResult, string>((projectData: string) => {
       console.log('🔍 Starting WickFile.fromWickFile test...');
       
       if (!window.Wick || !window.Wick.WickFile) {
@@ -53,12 +104,12 @@ test.describe('Deserialization Debug', () => {
         const blob = new Blob([projectData], { type: 'application/json' });
         console.log('✅ Blob created, size:', blob.size);
         
-        return new Promise<any>((resolve) => {
+        return new Promise<WickFileTestResult>((resolve) => {
           console.log('🔍 Calling WickFile.fromWickFile...');
           const startTime = Date.now();
           
           window.Wick.WickFile.fromWickFile(blob, (loadedProject: unknown) => {
-            const loaded = loadedProject as any;
+            const loaded = loadedProject as DebugProjectLike;
             const endTime = Date.now();
             console.log(`✅ WickFile.fromWickFile completed in ${endTime - startTime}ms`);
             
@@ -105,14 +156,14 @@ test.describe('Deserialization Debug', () => {
         console.error('❌ Error in WickFile.fromWickFile:', error);
         return { success: false, error: getErrorMessage(error) };
       }
-    }, projectData) as any;
+    }, projectData);
 
     console.log('WickFile test result:', wickFileTest);
 
     // Step 3: Test setupNewProject step by step
     console.log('\n=== STEP 3: Testing setupNewProject ===');
     
-    const setupNewProjectTest = await page.evaluate<any, string>((projectData: string) => {
+    const setupNewProjectTest = await page.evaluate<SetupNewProjectTestResult, string>((projectData: string) => {
       console.log('🔍 Starting setupNewProject test...');
       
       if (!window.Wick || !window.Wick.WickFile || !window.editor) {
@@ -120,12 +171,12 @@ test.describe('Deserialization Debug', () => {
         return { success: false, error: 'Required objects not available' };
       }
 
-      return new Promise<any>((resolve) => {
+      return new Promise<SetupNewProjectTestResult>((resolve) => {
         console.log('🔍 Loading project first...');
         const blob = new Blob([projectData], { type: 'application/json' });
         
         window.Wick.WickFile.fromWickFile(blob, (loadedProject: unknown) => {
-          const loaded = loadedProject as any;
+          const loaded = loadedProject as DebugProjectLike;
           if (!loaded) {
             console.error('❌ Failed to load project for setupNewProject test');
             resolve({ success: false, error: 'Failed to load project' });
@@ -218,7 +269,7 @@ test.describe('Deserialization Debug', () => {
           }
         });
       });
-    }, projectData) as any;
+    }, projectData);
 
     console.log('setupNewProject test result:', setupNewProjectTest);
 
@@ -309,7 +360,6 @@ test.describe('Deserialization Debug', () => {
     console.log('\n🎉 Deserialization debug completed!');
   });
 });
-
 
 
 

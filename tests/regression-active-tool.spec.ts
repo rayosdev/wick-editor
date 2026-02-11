@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
 
+type ActiveToolWindow = Window & {
+  editor?: {
+    getActiveTool?: () => string;
+  };
+};
+
 test.describe("Active Tool Regression", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
@@ -17,7 +23,10 @@ test.describe("Active Tool Regression", () => {
     page,
   }) => {
     const getActiveTool = () =>
-      page.evaluate(() => (window as any).editor?.getActiveTool?.());
+      page.evaluate(() => {
+        const bridge = window as ActiveToolWindow;
+        return bridge.editor?.getActiveTool?.();
+      });
 
     await expect
       .poll(getActiveTool, {

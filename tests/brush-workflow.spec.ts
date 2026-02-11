@@ -1,5 +1,28 @@
 import { test, expect } from '@playwright/test';
 
+type BrushPathLike = {
+  strokeWidth?: number;
+  strokeColor?: unknown;
+  fillColor?: unknown;
+  [key: string]: unknown;
+};
+
+type BrushProjectLike = {
+  toolSettings?: {
+    getSetting: (name: string) => Record<string, unknown> | undefined;
+  };
+  activeFrame?: {
+    paths?: BrushPathLike[];
+  };
+};
+
+type BrushWorkflowWindow = Window & {
+  wickEditor?: {
+    project?: BrushProjectLike;
+  };
+  editorProject?: BrushProjectLike;
+};
+
 test.describe('Brush Tool Complete Workflow', () => {
   test('select brush, change size, and draw stroke', async ({ page }) => {
     // Track errors
@@ -209,13 +232,14 @@ test.describe('Brush Tool Complete Workflow', () => {
       // Verify the tool settings actually updated
       const toolSettings = await page.evaluate(() => {
         try {
+          const bridge = window as BrushWorkflowWindow;
           const wick = window.Wick;
           if (!wick || !wick.Tools || !wick.Tools.Brush) {
             return { error: 'Brush tool not found' };
           }
           
           // Check tool settings
-          const toolSettings = (window as any).wickEditor?.project?.toolSettings;
+          const toolSettings = bridge.wickEditor?.project?.toolSettings;
           if (!toolSettings) {
             return { error: 'No tool settings found' };
           }
@@ -258,23 +282,24 @@ test.describe('Brush Tool Complete Workflow', () => {
       // Measure the actual stroke size from the Wick project
       const strokeInfo = await page.evaluate((strokeIndex) => {
         try {
+          const bridge = window as BrushWorkflowWindow;
           // Try multiple ways to access the project
-          let project = null;
+          let project: BrushProjectLike | null = null;
           
           // Method 1: Check if there's a global reference
-          if ((window as any).wickEditor && (window as any).wickEditor.project) {
-            project = (window as any).wickEditor.project;
+          if (bridge.wickEditor?.project) {
+            project = bridge.wickEditor.project;
           }
           
           // Method 2: Check window.Wick directly
-          if (!project && window.Wick && (window as any).editorProject) {
-            project = (window as any).editorProject;
+          if (!project && window.Wick && bridge.editorProject) {
+            project = bridge.editorProject;
           }
           
           // Method 3: Get from React component state (if accessible)
           if (!project) {
-            const root = document.querySelector('#root');
-            if (root && (root as any)._reactRootContainer) {
+            const root = document.querySelector('#root') as (Element & { _reactRootContainer?: unknown }) | null;
+            if (root && root._reactRootContainer) {
               // Try to traverse React fiber tree (this is fragile but worth trying)
             }
           }
@@ -303,6 +328,12 @@ test.describe('Brush Tool Complete Workflow', () => {
           }
           
           const path = paths[strokeIndex];
+          if (!path) {
+            return {
+              error: `Path at index ${strokeIndex} was undefined`,
+              availablePaths: paths.length
+            };
+          }
           const strokeWidth = path.strokeWidth;
           
           return {

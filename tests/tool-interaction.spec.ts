@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
 
+type ToolInteractionWindow = Window & {
+  TWEEN?: unknown;
+};
+
 test.describe('Tool Interactions', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
@@ -67,11 +71,12 @@ test.describe('Tool Interactions', () => {
 
   test('verify all critical libraries are loaded', async ({ page }) => {
     const libsCheck = await page.evaluate(() => {
+      const bridge = window as ToolInteractionWindow;
       return {
         paper: typeof window.paper !== 'undefined',
         platform: typeof window.platform !== 'undefined',
         Croquis: typeof window.Croquis !== 'undefined',
-        TWEEN: typeof window.TWEEN !== 'undefined' || typeof (window as any).TWEEN !== 'undefined',
+        TWEEN: typeof window.TWEEN !== 'undefined' || typeof bridge.TWEEN !== 'undefined',
         Wick: typeof window.Wick !== 'undefined'
       };
     });
@@ -82,4 +87,3 @@ test.describe('Tool Interactions', () => {
     expect(libsCheck.Wick, 'Wick should be defined').toBe(true);
   });
 });
-

@@ -3,6 +3,17 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "../src/Editor/styles/default_styles.css";
 import "../src/Editor/styles/default_theme.css";
 
+declare global {
+  interface Window {
+    Wick?: Record<string, unknown> & { resourcepath?: string };
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.Wick = window.Wick ?? {};
+  window.Wick.resourcepath = window.Wick.resourcepath ?? "corelibs/wick-engine/";
+}
+
 const preview: Preview = {
   parameters: {
     layout: "fullscreen",

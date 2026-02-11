@@ -15,8 +15,21 @@ type PaperGlobal = {
   Point: new (x?: number | { x: number; y: number }, y?: number) => PointLike;
 };
 
+type ViewProjectGlobal = typeof globalThis & {
+  paper?: PaperGlobal;
+  Wick?: {
+    View: new (model: Record<string, unknown>) => {
+      model: Record<string, unknown>;
+      paper: Record<string, unknown>;
+      fireEvent: () => void;
+      render: () => void;
+    };
+  };
+};
+
 function getPaper(): PaperGlobal {
-  const paper = (globalThis as any).paper as PaperGlobal | undefined;
+  const globalScope = globalThis as ViewProjectGlobal;
+  const paper = globalScope.paper;
   if (!paper) {
     throw new Error("paper mock was not initialized");
   }
@@ -27,8 +40,9 @@ function getPaper(): PaperGlobal {
 describe("ViewProject - Mouse/Trackpad Improvements", () => {
   beforeEach(() => {
     const paper = getPaper();
+    const globalScope = globalThis as ViewProjectGlobal;
 
-    (globalThis as any).Wick = {
+    globalScope.Wick = {
       View: class {
         model: Record<string, unknown>;
         paper: Record<string, unknown>;

@@ -1,5 +1,51 @@
 import { test, expect } from '@playwright/test';
 
+type StorageBridge = {
+  __wickStorage?: {
+    db?: {
+      name?: string;
+      verno?: number;
+      projectCache?: unknown;
+    };
+  };
+  localforage?: unknown;
+};
+
+type SerializedNode = {
+  classname?: string;
+  uuid?: string;
+  children?: Array<SerializedNode | string>;
+};
+
+type SerializedProject = {
+  children?: SerializedNode[];
+};
+
+type SerializedObject = {
+  classname?: string;
+  uuid?: string;
+  [key: string]: unknown;
+};
+
+type CachedProjectData = {
+  project?: SerializedProject;
+  export?: unknown;
+  objects?: SerializedObject[];
+};
+
+type PathJsonSegment = {
+  point?: {
+    x?: number;
+    y?: number;
+  };
+};
+
+type PathJsonShape = {
+  segments?: PathJsonSegment[];
+  strokeColor?: unknown;
+  strokeWidth?: number | string;
+};
+
 test.describe('Cache Save/Load Drawing Test', () => {
   test('draw line, save to cache, refresh, load from cache, verify line persists', async ({ page }) => {
     // Navigate to editor
@@ -156,11 +202,12 @@ test.describe('Cache Save/Load Drawing Test', () => {
     
     // Check which storage system is available before save
     const storageCheck = await page.evaluate(() => {
+      const bridge = window as Window & StorageBridge;
       return {
-        hasDexie: !!(window as any).__wickStorage && !!(window as any).__wickStorage.db,
-        hasLocalforage: !!(window as any).localforage,
-        dexieDbName: (window as any).__wickStorage?.db?.name,
-        dexieVersion: (window as any).__wickStorage?.db?.verno,
+        hasDexie: !!bridge.__wickStorage?.db,
+        hasLocalforage: !!bridge.localforage,
+        dexieDbName: bridge.__wickStorage?.db?.name,
+        dexieVersion: bridge.__wickStorage?.db?.verno,
       };
     });
     console.log('Storage system check:', storageCheck);
@@ -173,7 +220,7 @@ test.describe('Cache Save/Load Drawing Test', () => {
       const project = window.project;
       const activeFrame = project.activeFrame;
       const paths = activeFrame.paths || [];
-      const serialized = project.serialize();
+      const serialized = project.serialize() as SerializedProject;
       
       return {
         pathCount: paths.length,
@@ -188,24 +235,52 @@ test.describe('Cache Save/Load Drawing Test', () => {
             return { error: 'No serialized data or children' };
           }
           
-          const debug: any = {
+          const debug: {
+            projectChildrenCount: number;
+            projectChildrenTypes: (string | undefined)[];
+            layerFound?: boolean;
+            layerChildrenCount?: number;
+            layerChildrenTypes?: (string | undefined)[];
+            frameFound?: boolean;
+            frameChildrenCount?: number;
+            frameChildrenTypes?: (string | undefined)[];
+            frameChildrenUuids?: (string | SerializedNode | undefined)[];
+            pathsInFrame?: number;
+          } = {
             projectChildrenCount: serialized.children ? serialized.children.length : 0,
-            projectChildrenTypes: serialized.children ? serialized.children.map((c: any) => c.classname) : []
+            projectChildrenTypes: serialized.children
+              ? serialized.children.map((c: SerializedNode) => c.classname)
+              : []
           };
           
-          const layer = serialized.children.find((c: any) => c.classname === 'Layer');
+          const layer = serialized.children.find((c: SerializedNode) => c.classname === 'Layer');
           if (layer) {
             debug.layerFound = true;
             debug.layerChildrenCount = layer.children ? layer.children.length : 0;
-            debug.layerChildrenTypes = layer.children ? layer.children.map((c: any) => c.classname) : [];
+            debug.layerChildrenTypes = layer.children
+              ? layer.children.map((c: SerializedNode | string) => (typeof c === 'string' ? undefined : c.classname))
+              : [];
             
-            const frame = layer.children ? layer.children.find((c: any) => c.classname === 'Frame') : null;
+            const frame = layer.children
+              ? (() => {
+                const frameCandidate = layer.children?.find(
+                  (c: SerializedNode | string) => typeof c !== 'string' && c.classname === 'Frame'
+                );
+                return typeof frameCandidate === 'string' ? null : frameCandidate ?? null;
+              })()
+              : null;
             if (frame) {
               debug.frameFound = true;
               debug.frameChildrenCount = frame.children ? frame.children.length : 0;
-              debug.frameChildrenTypes = frame.children ? frame.children.map((c: any) => c.classname) : [];
-              debug.frameChildrenUuids = frame.children ? frame.children.map((c: any) => c.uuid || c) : [];
-              debug.pathsInFrame = frame.children ? frame.children.filter((c: any) => c.classname === 'Path').length : 0;
+              debug.frameChildrenTypes = frame.children
+                ? frame.children.map((c: SerializedNode | string) => (typeof c === 'string' ? undefined : c.classname))
+                : [];
+              debug.frameChildrenUuids = frame.children
+                ? frame.children.map((c: SerializedNode | string) => (typeof c === 'string' ? c : c.uuid || c))
+                : [];
+              debug.pathsInFrame = frame.children
+                ? frame.children.filter((c: SerializedNode | string) => typeof c !== 'string' && c.classname === 'Path').length
+                : 0;
             } else {
               debug.frameFound = false;
             }
@@ -217,15 +292,18 @@ test.describe('Cache Save/Load Drawing Test', () => {
         })(),
         serializedPaths: (() => {
           if (!serialized || !serialized.children) return 0;
-          const layer = serialized.children.find((c: any) => c.classname === 'Layer');
+          const layer = serialized.children.find((c: SerializedNode) => c.classname === 'Layer');
           if (!layer || !layer.children) return 0;
-          const frame = layer.children.find((c: any) => c.classname === 'Frame');
+          const frameCandidate = layer.children.find(
+            (c: SerializedNode | string) => typeof c !== 'string' && c.classname === 'Frame'
+          );
+          const frame = typeof frameCandidate === 'string' ? null : frameCandidate;
           if (!frame || !frame.children) return 0;
-          return frame.children.filter((c: any) => c.classname === 'Path').length;
+          return frame.children.filter((c: SerializedNode | string) => typeof c !== 'string' && c.classname === 'Path').length;
         })(),
         activeFrameChildren: activeFrame.getChildren ? activeFrame.getChildren().length : 0,
         activeFrameChildrenTypes: activeFrame.getChildren ? 
-          activeFrame.getChildren().map((c: any) => c.classname || c.constructor?.name) : []
+          activeFrame.getChildren().map((c: { classname?: string; constructor?: { name?: string } }) => c.classname || c.constructor?.name) : []
       };
     });
     
@@ -262,15 +340,16 @@ test.describe('Cache Save/Load Drawing Test', () => {
     // Step 4: Check cached data before loading
     console.log('\n=== STEP 4: CHECKING CACHED DATA ===');
     const cachedDataCheck = await page.evaluate(() => {
+      const bridge = window as Window & StorageBridge;
       // Check which storage system is available
-      const hasDexie = !!(window as any).__wickStorage && (window as any).__wickStorage.db;
-      const hasLocalforage = !!(window as any).localforage;
+      const hasDexie = !!bridge.__wickStorage?.db;
+      const hasLocalforage = !!bridge.localforage;
       
       // Check Dexie database directly
       if (hasDexie) {
         try {
           // Access Dexie database
-          const db = (window as any).__wickStorage.db;
+          const db = bridge.__wickStorage?.db;
           if (db && db.projectCache) {
             // Try to read from Dexie
             // Note: This is async, so we'll check localStorage as fallback
@@ -291,32 +370,33 @@ test.describe('Cache Save/Load Drawing Test', () => {
       }
       
       try {
-        const parsed = JSON.parse(cached);
+        const parsed = JSON.parse(cached) as CachedProjectData;
         // Check if path data is in the cached file
         const hasProject = !!parsed.project;
         const hasExport = !!parsed.export;
-        const hasObjects = !!parsed.objects && Array.isArray(parsed.objects);
+        const objects = Array.isArray(parsed.objects) ? parsed.objects : [];
+        const hasObjects = objects.length > 0;
         
         // Look for Path objects in the export.objects array
-        const pathObjects = hasObjects ? parsed.objects.filter((obj: any) => 
-          obj && (obj.classname === 'Path' || obj.classname === 'path')
-        ) : [];
+        const pathObjects = objects.filter(
+          (obj: SerializedObject) => obj && (obj.classname === 'Path' || obj.classname === 'path')
+        );
         
         // Check project structure for path references
         let pathUuidsInProject = 0;
         if (parsed.project && parsed.project.children) {
           // Recursively search for Path UUIDs
-          const findPathUuids = (children: any[]): string[] => {
+          const findPathUuids = (children: Array<SerializedNode | string>): string[] => {
             const uuids: string[] = [];
             if (!children) return uuids;
-            children.forEach((child: any) => {
+            children.forEach((child) => {
               if (child && typeof child === 'string') {
                 // It's a UUID - check if it's a path
-                const obj = parsed.objects?.find((o: any) => o.uuid === child);
+                const obj = objects.find((o: SerializedObject) => o.uuid === child);
                 if (obj && obj.classname === 'Path') {
                   uuids.push(child);
                 }
-              } else if (child && child.children) {
+              } else if (child && typeof child !== 'string' && child.children) {
                 uuids.push(...findPathUuids(child.children));
               }
             });
@@ -331,7 +411,7 @@ test.describe('Cache Save/Load Drawing Test', () => {
           hasProject,
           hasExport,
           hasObjects,
-          objectsCount: hasObjects ? parsed.objects.length : 0,
+          objectsCount: objects.length,
           pathObjectsCount: pathObjects.length,
           pathUuidsInProject,
           pathObjects: pathObjects.slice(0, 2), // First 2 for debugging
@@ -411,13 +491,13 @@ test.describe('Cache Save/Load Drawing Test', () => {
       // Get details about the first path if it exists
       let firstPathDetails = null;
       if (paths.length > 0 && paths[0].json) {
-        const json = paths[0].json;
+        const json = paths[0].json as PathJsonShape;
         firstPathDetails = {
           hasSegments: !!json.segments,
           segmentCount: json.segments ? json.segments.length : 0,
           hasStrokeColor: !!json.strokeColor,
           strokeWidth: json.strokeWidth || null,
-          segments: json.segments ? json.segments.map((s: any) => ({
+          segments: json.segments ? json.segments.map((s: PathJsonSegment) => ({
             point: s.point ? { x: s.point.x, y: s.point.y } : null
           })) : []
         };

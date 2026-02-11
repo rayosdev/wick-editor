@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import SafeStoryWrapper from "./SafeStoryWrapper";
 
 type ComponentModule = Record<string, unknown> & {
@@ -11,18 +13,129 @@ type DynamicComponentStoryProps = {
   args?: Record<string, unknown>;
 };
 
-function resolveComponent(mod: ComponentModule): React.ComponentType<any> {
-  if (typeof mod.default === "function") {
-    return mod.default as React.ComponentType<any>;
+type DynamicStoryComponent = React.ComponentType<Record<string, unknown>>;
+const DndProviderComponent = DndProvider as unknown as React.ComponentType<{
+  backend: unknown;
+  children?: React.ReactNode;
+}>;
+
+const STORYBOOK_SELECT_OPTIONS = [
+  { label: "Option A", value: "option-a" },
+  { label: "Option B", value: "option-b" },
+];
+
+function isReactComponentType(candidate: unknown): boolean {
+  if (typeof candidate === "function") {
+    return true;
   }
 
-  for (const candidate of Object.values(mod)) {
-    if (typeof candidate === "function") {
-      return candidate as React.ComponentType<any>;
+  if (typeof candidate === "object" && candidate !== null) {
+    const reactType = (candidate as { $$typeof?: unknown }).$$typeof;
+    if (typeof reactType === "symbol") {
+      const token = String(reactType);
+      return (
+        token.includes("react.forward_ref") ||
+        token.includes("react.memo") ||
+        token.includes("react.lazy")
+      );
     }
   }
 
-  throw new Error("No React component export found.");
+  return false;
+}
+
+function resolveComponent(
+  mod: ComponentModule,
+  componentName: string
+): DynamicStoryComponent {
+  const candidates = [
+    mod.default,
+    mod[componentName as keyof ComponentModule],
+    ...Object.values(mod),
+  ];
+
+  for (const candidate of candidates) {
+    if (isReactComponentType(candidate)) {
+      return candidate as DynamicStoryComponent;
+    }
+  }
+
+  throw new Error(
+    `No React component export found. Available exports: ${Object.keys(mod).join(", ") || "(none)"}`
+  );
+}
+
+function fallbackForProp(prop: string): unknown {
+  const key = prop.toLowerCase();
+  if (
+    key.startsWith("on") ||
+    key.startsWith("set") ||
+    key.startsWith("get") ||
+    key.includes("action") ||
+    key.includes("handler") ||
+    key.includes("callback")
+  ) {
+    return () => undefined;
+  }
+
+  if (key.includes("tooltip")) return "Storybook tooltip";
+  if (key.includes("title")) return "Storybook Title";
+  if (key.includes("label")) return "Storybook Label";
+  if (key.includes("name")) return "Storybook Name";
+  if (key.includes("color")) return "#00a8ff";
+  if (key.includes("checked") || key.startsWith("is") || key.startsWith("has")) {
+    return false;
+  }
+
+  if (
+    key === "options" ||
+    key.endsWith("options") ||
+    key.includes("assets") ||
+    key.includes("scripts") ||
+    key.includes("items") ||
+    key.includes("list")
+  ) {
+    return key.includes("options") ? STORYBOOK_SELECT_OPTIONS : [];
+  }
+
+  if (
+    key.includes("index") ||
+    key.includes("count") ||
+    key.includes("size") ||
+    key.includes("width") ||
+    key.includes("height") ||
+    key.includes("opacity") ||
+    key === "val" ||
+    key === "value"
+  ) {
+    return 1;
+  }
+
+  if (key === "type") return "text";
+  if (key.includes("id")) return "storybook-id";
+  if (key.includes("classname")) return "";
+  if (key.includes("project")) return { name: "Storybook Project", assets: [] };
+
+  return undefined;
+}
+
+function createSafeArgs(args: Record<string, unknown>): Record<string, unknown> {
+  return new Proxy(args, {
+    get(target, prop, receiver) {
+      if (typeof prop !== "string") {
+        return Reflect.get(target, prop, receiver);
+      }
+
+      if (Reflect.has(target, prop)) {
+        const value = Reflect.get(target, prop, receiver);
+        if (value !== undefined) {
+          return value;
+        }
+      }
+
+      return fallbackForProp(prop);
+    },
+  });
 }
 
 export default function DynamicComponentStory({
@@ -30,7 +143,7 @@ export default function DynamicComponentStory({
   loader,
   args = {},
 }: DynamicComponentStoryProps): JSX.Element {
-  const [LoadedComponent, setLoadedComponent] = useState<React.ComponentType<any> | null>(null);
+  const [LoadedComponent, setLoadedComponent] = useState<DynamicStoryComponent | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -42,7 +155,7 @@ export default function DynamicComponentStory({
     loader()
       .then((mod) => {
         if (!cancelled) {
-          setLoadedComponent(() => resolveComponent(mod));
+          setLoadedComponent(() => resolveComponent(mod, componentName));
         }
       })
       .catch((error: unknown) => {
@@ -55,6 +168,8 @@ export default function DynamicComponentStory({
       cancelled = true;
     };
   }, [loader]);
+
+  const safeArgs = createSafeArgs(args);
 
   if (loadError) {
     return (
@@ -99,7 +214,9 @@ export default function DynamicComponentStory({
 
   return (
     <SafeStoryWrapper componentName={componentName}>
-      <LoadedComponent {...args} />
+      <DndProviderComponent backend={HTML5Backend}>
+        <LoadedComponent {...safeArgs} />
+      </DndProviderComponent>
     </SafeStoryWrapper>
   );
 }

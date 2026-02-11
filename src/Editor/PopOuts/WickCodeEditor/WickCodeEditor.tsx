@@ -140,6 +140,9 @@ export interface WickCodeEditorProps {
 }
 
 type ConsoleView = "console" | "options";
+type ResizePanelLike = {
+    domElement?: Element | Text | null;
+};
 
 const mapErrorToMarkers = (error?: CodeError | null): IMarker[] => {
     if (!error) {
@@ -218,7 +221,7 @@ const WickCodeEditor = ({
         });
     };
 
-    const resizeConsole = (panel: any): void => {
+    const resizeConsole = (panel: ResizePanelLike): void => {
         const element = panel?.domElement;
         if (element instanceof HTMLElement) {
             updateCodeEditorWindowProperties({

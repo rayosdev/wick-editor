@@ -1,22 +1,50 @@
 import React from "react";
 import * as ReactDOM from "react-dom";
 
-const globalAny = globalThis as any;
+class CanvasMock {}
 
-if (typeof globalAny.process === "undefined") {
-  globalAny.process = { env: {} };
+type ProcessGlobal = {
+  process?: {
+    env: Record<string, string | undefined>;
+  };
+};
+
+type PlatformGlobal = {
+  platform?: {
+    os: {
+      architecture: string;
+      family: string;
+      version: string;
+    };
+  };
+};
+
+type CanvasGlobal = {
+  HTMLCanvasElement?: typeof CanvasMock;
+};
+
+type ReactGlobal = {
+  React?: typeof React;
+  ReactDOM?: typeof ReactDOM;
+};
+
+const processGlobal = globalThis as unknown as ProcessGlobal;
+if (typeof processGlobal.process === "undefined") {
+  processGlobal.process = { env: {} };
 }
 
-if (typeof globalAny.platform === "undefined") {
-  globalAny.platform = {
+const platformGlobal = globalThis as unknown as PlatformGlobal;
+if (typeof platformGlobal.platform === "undefined") {
+  platformGlobal.platform = {
     os: { architecture: "x64", family: "unknown", version: "0" },
   };
 }
 
-if (!globalAny.HTMLCanvasElement) {
-  class CanvasMock {}
-  globalAny.HTMLCanvasElement = CanvasMock;
+const canvasGlobal = globalThis as unknown as CanvasGlobal;
+if (!canvasGlobal.HTMLCanvasElement) {
+  canvasGlobal.HTMLCanvasElement = CanvasMock;
 }
 
-globalAny.React = React;
-globalAny.ReactDOM = ReactDOM;
+const reactGlobal = globalThis as unknown as ReactGlobal;
+reactGlobal.React = React;
+reactGlobal.ReactDOM = ReactDOM;

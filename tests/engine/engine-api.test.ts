@@ -2,6 +2,33 @@ import { beforeAll, describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 
+type JsdomModule = {
+  JSDOM: new (
+    html: string,
+    options: {
+      runScripts: "outside-only";
+      resources: "usable";
+      pretendToBeVisual: true;
+    }
+  ) => {
+    window: Window & typeof globalThis;
+  };
+};
+
+type CanvasModule = {
+  Canvas: new (width: number, height: number) => {
+    style?: Record<string, string>;
+    addEventListener?: () => void;
+    removeEventListener?: () => void;
+    getBoundingClientRect?: () => {
+      top: number;
+      left: number;
+      width: number;
+      height: number;
+    };
+  };
+};
+
 type EngineWindow = Window &
   typeof globalThis & {
     Wick?: {
@@ -30,8 +57,8 @@ describe.skip("Engine API (Node.js - Optional)", () => {
 
     const engineCode = fs.readFileSync(enginePath, "utf8");
 
-    const { JSDOM } = require("jsdom") as any;
-    const { Canvas } = require("canvas") as any;
+    const { JSDOM } = require("jsdom") as JsdomModule;
+    const { Canvas } = require("canvas") as CanvasModule;
 
     const dom = new JSDOM("<!DOCTYPE html><html><body></body></html>", {
       runScripts: "outside-only",
@@ -45,7 +72,7 @@ describe.skip("Engine API (Node.js - Optional)", () => {
     const originalCreateElement = windowRef.document.createElement.bind(windowRef.document);
     windowRef.document.createElement = ((tagName: string): HTMLElement => {
       if (tagName.toLowerCase() === "canvas") {
-        const canvasElement = new Canvas(800, 600) as any;
+        const canvasElement = new Canvas(800, 600);
         canvasElement.style = {};
         canvasElement.addEventListener = () => {};
         canvasElement.removeEventListener = () => {};

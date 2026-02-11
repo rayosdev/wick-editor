@@ -1,5 +1,12 @@
 import { expect, test } from "@playwright/test";
 
+type WorkflowSubsetWindow = Window & {
+  editor?: {
+    setToolSetting?: (name: string, value: unknown) => void;
+    getToolSetting?: (name: string) => unknown;
+  };
+};
+
 test.describe("Creative workflow automation subset", () => {
   test("rename, draw, cache save/load roundtrip", async ({ page }) => {
     await page.addInitScript(() => {
@@ -38,7 +45,8 @@ test.describe("Creative workflow automation subset", () => {
     await brushButton.click();
 
     const brushSize = await page.evaluate(() => {
-      const editor = (window as any).editor;
+      const bridge = window as WorkflowSubsetWindow;
+      const editor = bridge.editor;
       if (!editor) return null;
       editor.setToolSetting?.("brushSize", 18);
       return Number(editor.getToolSetting?.("brushSize") ?? NaN);

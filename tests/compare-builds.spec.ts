@@ -1,5 +1,9 @@
 import { test } from '@playwright/test';
 
+type BuildInfoWindow = Window & {
+  WICK_ENGINE_BUILD_VERSION?: string;
+};
+
 test('compare Gulp vs Vite - check for setFullySelected error', async ({ page }) => {
   const errors: string[] = [];
   
@@ -24,8 +28,9 @@ test('compare Gulp vs Vite - check for setFullySelected error', async ({ page })
   
   console.log('\n=== BUILD INFO ===');
   const buildInfo = await page.evaluate(() => {
+    const bridge = window as BuildInfoWindow;
     return {
-      buildVersion: (window as any).WICK_ENGINE_BUILD_VERSION,
+      buildVersion: bridge.WICK_ENGINE_BUILD_VERSION,
       engineMessage: document.body.innerText.includes('Vite') ? 'Vite' : 'Unknown'
     };
   });

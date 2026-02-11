@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
 
+type SvgUploadWindow = Window & {
+  testFileInput?: HTMLInputElement;
+};
+
 test.describe('SVG Upload Comprehensive Test', () => {
   test('uploads actual SVG file and checks for isPublished error', async ({ page }) => {
     // Navigate to the editor
@@ -39,6 +43,7 @@ test.describe('SVG Upload Comprehensive Test', () => {
     
     // Set up file input
     await page.evaluate((fileData) => {
+      const bridge = window as SvgUploadWindow;
       // Create a file input element
       const fileInput = document.createElement('input');
       fileInput.type = 'file';
@@ -52,7 +57,7 @@ test.describe('SVG Upload Comprehensive Test', () => {
       fileInput.files = dataTransfer.files;
       
       // Store reference
-      (window as any).testFileInput = fileInput;
+      bridge.testFileInput = fileInput;
     }, svgFile);
     
     // Find and click the asset upload button

@@ -23,6 +23,7 @@ import classNames from "classnames";
 import "./_toolbox.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 
+import HotKeyInterface from "Editor/hotKeyMap";
 import WickInput from "Editor/Util/WickInput/WickInput";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 import ToolboxBreak from "./ToolboxBreak/ToolboxBreak";
@@ -66,6 +67,20 @@ const TOOL_TITLES: Record<ToolName, string> = {
     text: "Text",
     fillbucket: "Fill Bucket",
     eyedropper: "Eyedropper",
+};
+
+const TOOL_HOTKEY_ACTIONS: Record<ToolName, string> = {
+    cursor: "activate-cursor",
+    brush: "activate-brush",
+    pencil: "activate-pencil",
+    eraser: "activate-eraser",
+    rectangle: "activate-rectangle",
+    ellipse: "activate-ellipse",
+    line: "activate-line",
+    pathcursor: "activate-path-cursor",
+    text: "activate-text",
+    fillbucket: "activate-fillbucket",
+    eyedropper: "activate-eyedropper",
 };
 
 const TOOL_DROPDOWN_KEYS = [
@@ -201,19 +216,170 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
         );
     };
 
-    const renderToolButtons = (): JSX.Element => {
+    const getToolHotkey = (tool: ToolName): string => {
+        const actionName = TOOL_HOTKEY_ACTIONS[tool];
+        type HotKeyMapForLookup = Parameters<typeof HotKeyInterface.getHotKey>[0];
+        const rawHotkey = HotKeyInterface.getHotKey(
+            props.keyMap as unknown as HotKeyMapForLookup,
+            actionName
+        );
+        if (!rawHotkey) {
+            return "";
+        }
+
+        return HotKeyInterface.replaceKeys(rawHotkey).toUpperCase();
+    };
+
+    const getResolvedDropdownConfig = (
+        dropdownConfig: ToolDropdownConfig,
+        activeToolName: string
+    ): { active: ToolName; options: ToolName[] } | null => {
+        if (typeof dropdownConfig === "string") {
+            return null;
+        }
+
+        const active =
+            isToolName(activeToolName) && dropdownConfig.options.includes(activeToolName)
+                ? activeToolName
+                : dropdownConfig.active;
+
+        return {
+            active,
+            options: dropdownConfig.options,
+        };
+    };
+
+    const toggleDropdownSelector = (value: string): void => {
+        setDropdownSelector((previous) =>
+            previous === value ? null : value
+        );
+    };
+
+    const renderToolButtons = (isMobile = false): JSX.Element => {
+        const activeToolName = props.getActiveToolName();
         const baseProps = getToolButtonBaseProps();
+        const selectorLabelPrefix = isMobile ? "Tap" : "Click";
 
         return (
             <div className="tool-collection-container">
-                {TOOL_NAMES.map((tool) => (
-                    <ToolButton
-                        key={tool}
-                        {...baseProps}
-                        name={tool}
-                        tooltip={getToolTooltip(tool)}
-                    />
-                ))}
+                {TOOL_DROPDOWN_KEYS.map((key) => {
+                    const dropdownConfig = toolDropdowns[key];
+                    if (!dropdownConfig) {
+                        return null;
+                    }
+
+                    if (typeof dropdownConfig === "string") {
+                        const tooltip = getToolTooltip(dropdownConfig);
+                        return (
+                            <ToolButton
+                                key={key}
+                                {...baseProps}
+                                iconClassName="bump-up-no-dropdown"
+                                className={classNames("toolbox-item", {
+                                    mobile: isMobile,
+                                })}
+                                name={dropdownConfig}
+                                tooltip={tooltip}
+                            />
+                        );
+                    }
+
+                    const resolvedConfig = getResolvedDropdownConfig(
+                        dropdownConfig,
+                        activeToolName
+                    );
+                    if (!resolvedConfig) {
+                        return null;
+                    }
+
+                    const selectorId = `${isMobile ? "mobile" : "desktop"}-more-${key}-popover-button`;
+                    const selectorKey = `${isMobile ? "mobile" : "desktop"}-${key}`;
+                    const tooltip = getToolTooltip(resolvedConfig.active);
+                    return (
+                        <div key={key} id={selectorId} className="tool-dropdown-anchor">
+                            <ToolButton
+                                {...baseProps}
+                                className={classNames("toolbox-item", {
+                                    mobile: isMobile,
+                                })}
+                                action={() => {
+                                    if (activeToolName === resolvedConfig.active) {
+                                        toggleDropdownSelector(selectorKey);
+                                        return;
+                                    }
+
+                                    setDropdownSelector(null);
+                                    props.setActiveTool(resolvedConfig.active);
+                                }}
+                                secondaryAction={() => toggleDropdownSelector(selectorKey)}
+                                name={resolvedConfig.active}
+                                tooltip={tooltip}
+                                dropdown={true}
+                            />
+                            <PopupMenu
+                                mobile={isMobile}
+                                isOpen={dropdownSelector === selectorKey}
+                                toggle={() => toggleDropdownSelector(selectorKey)}
+                                target={selectorId}
+                                className={classNames(
+                                    "tool-selector-menu-popover",
+                                    { desktop: !isMobile }
+                                )}
+                            >
+                                <div className="tool-selector-popout">
+                                    <div className="tool-selector-menu-header">
+                                        {getToolTooltip(resolvedConfig.active)} Tools
+                                    </div>
+                                    <div className="tool-selector-menu-subtitle">
+                                        {selectorLabelPrefix} active icon to switch tools
+                                    </div>
+                                    <div className="tool-selector-menu-list">
+                                        {resolvedConfig.options.map((option) => {
+                                            const optionIsActive =
+                                                activeToolName === option ||
+                                                resolvedConfig.active === option;
+                                            const hotkey = getToolHotkey(option);
+
+                                            return (
+                                                <button
+                                                    key={option}
+                                                    type="button"
+                                                    className={classNames(
+                                                        "tool-selector-menu-item",
+                                                        { active: optionIsActive }
+                                                    )}
+                                                    onClick={() => {
+                                                        props.setActiveTool(option);
+                                                        toggleDropdownSelector(selectorKey);
+                                                    }}
+                                                >
+                                                    <ToolIcon
+                                                        className="tool-selector-menu-item-icon"
+                                                        name={option}
+                                                    />
+                                                    <span className="tool-selector-menu-item-label">
+                                                        {getToolTooltip(option)}
+                                                    </span>
+                                                    {hotkey && (
+                                                        <span className="tool-selector-menu-item-hotkey">
+                                                            {hotkey}
+                                                        </span>
+                                                    )}
+                                                    {optionIsActive && (
+                                                        <ToolIcon
+                                                            className="tool-selector-menu-item-check"
+                                                            name="check"
+                                                        />
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </PopupMenu>
+                        </div>
+                    );
+                })}
             </div>
         );
     };
@@ -318,7 +484,7 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
     const renderLargeToolbox = (): JSX.Element => {
         return (
             <div className={classNames("tool-box", "tool-box-large")}>
-                {renderToolButtons()}
+                {renderToolButtons(false)}
 
                 <ToolboxBreak />
 
@@ -346,7 +512,7 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
         return (
             <div className={classNames("tool-box", "tool-box-medium")}>
                 <div className="medium-toolbox-row">
-                    {renderToolButtons()}
+                    {renderToolButtons(false)}
                     <ToolboxBreak />
                     {renderColorPickers()}
                     <ToolboxBreak />
@@ -372,7 +538,7 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
         return (
             <div className={classNames("tool-box", "tool-box-medium")}>
                 <div className="medium-toolbox-row">
-                    {renderToolButtonsMobile()}
+                    {renderToolButtons(true)}
                     <ToolboxBreak className={classNames("toolbox-break", "mobile")} />
                     {renderCanvasActionsMobile()}
                 </div>
@@ -392,120 +558,6 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                     />
                 </div>
             </div>
-        );
-    };
-
-    const renderToolButtonsMobile = (): JSX.Element => {
-        const activeToolName = props.getActiveToolName();
-        const dropdownKeys = TOOL_DROPDOWN_KEYS;
-        dropdownKeys.forEach((key) => {
-            const dropdownConfig = toolDropdowns[key];
-            if (!dropdownConfig || typeof dropdownConfig === "string") {
-                return;
-            }
-
-            if (isToolName(activeToolName) && dropdownConfig.options.includes(activeToolName)) {
-                dropdownConfig.active = activeToolName;
-            }
-        });
-
-        const baseProps = getToolButtonBaseProps();
-
-        return (
-            <div className="tool-collection-container">
-                {dropdownKeys.map((key) => {
-                    const dropdownConfig = toolDropdowns[key];
-                    if (!dropdownConfig) {
-                        return null;
-                    }
-
-                    if (typeof dropdownConfig === "string") {
-                        const tooltip = getToolTooltip(dropdownConfig);
-                        return (
-                            <ToolButton
-                                key={key}
-                                {...baseProps}
-                                iconClassName="bump-up-no-dropdown"
-                                className={classNames("toolbox-item", "mobile")}
-                                name={dropdownConfig}
-                                tooltip={tooltip}
-                            />
-                        );
-                    }
-
-                    const id = `more-${key}-popover-button`;
-                    const tooltip = getToolTooltip(dropdownConfig.active);
-                    return (
-                        <div key={key} id={id} className="tool-dropdown-anchor">
-                            <ToolButton
-                                {...baseProps}
-                                className={classNames("toolbox-item", "mobile")}
-                                action={() => props.setActiveTool(dropdownConfig.active)}
-                                secondaryAction={() => toggleDropdownSelector(key)}
-                                name={dropdownConfig.active}
-                                tooltip={tooltip}
-                                dropdown={true}
-                            />
-                            <PopupMenu
-                                mobile={true}
-                                isOpen={dropdownSelector === key}
-                                toggle={() => toggleDropdownSelector(key)}
-                                target={id}
-                                className={"tool-selector-menu-popover"}
-                            >
-                                <div className="tool-selector-popout">
-                                    <div className="tool-selector-menu-header">
-                                        {getToolTooltip(dropdownConfig.active)}
-                                    </div>
-                                    <div className="tool-selector-menu-list">
-                                        {dropdownConfig.options.map((option) => {
-                                            const optionIsActive =
-                                                activeToolName === option ||
-                                                dropdownConfig.active === option;
-
-                                            return (
-                                                <button
-                                                    key={option}
-                                                    type="button"
-                                                    className={classNames(
-                                                        "tool-selector-menu-item",
-                                                        { active: optionIsActive }
-                                                    )}
-                                                    onClick={() => {
-                                                        dropdownConfig.active = option;
-                                                        props.setActiveTool(option);
-                                                        toggleDropdownSelector(key);
-                                                    }}
-                                                >
-                                                    <ToolIcon
-                                                        className="tool-selector-menu-item-icon"
-                                                        name={option}
-                                                    />
-                                                    <span className="tool-selector-menu-item-label">
-                                                        {getToolTooltip(option)}
-                                                    </span>
-                                                    {optionIsActive && (
-                                                        <ToolIcon
-                                                            className="tool-selector-menu-item-check"
-                                                            name="check"
-                                                        />
-                                                    )}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            </PopupMenu>
-                        </div>
-                    );
-                })}
-            </div>
-        );
-    };
-
-    const toggleDropdownSelector = (value: string): void => {
-        setDropdownSelector((previous) =>
-            previous === value ? null : value
         );
     };
 

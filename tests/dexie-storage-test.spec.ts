@@ -1,5 +1,29 @@
 import { test, expect } from '@playwright/test';
 
+type StorageBridge = {
+  __wickStorage?: {
+    db?: {
+      name?: string;
+      verno?: number;
+      isOpen?: () => boolean;
+      projectCache?: {
+        get: (key: string) => Promise<{ data?: string; timestamp?: number } | undefined>;
+      };
+    };
+    ProjectCache?: {
+      save: (data: string) => Promise<void>;
+      load: () => Promise<string | null>;
+    };
+  };
+  __wickDebug?: {
+    saveToIndexedDB?: (data: string) => Promise<void>;
+    loadFromIndexedDB?: (
+      key: string,
+      callback: (success: boolean) => void
+    ) => void;
+  };
+};
+
 test.describe('Dexie Storage Test', () => {
   test('verify Dexie storage is working for cache save/load', async ({ page }) => {
     // Navigate to editor
@@ -12,12 +36,13 @@ test.describe('Dexie Storage Test', () => {
     // Step 1: Check if Dexie is available
     console.log('\n=== STEP 1: CHECKING DEXIE AVAILABILITY ===');
     const dexieCheck = await page.evaluate(() => {
+      const bridge = window as Window & StorageBridge;
       return {
-        hasDexie: !!(window as any).__wickStorage && !!(window as any).__wickStorage.db,
-        hasProjectCache: !!(window as any).__wickStorage?.ProjectCache,
-        dbName: (window as any).__wickStorage?.db?.name,
-        dbVersion: (window as any).__wickStorage?.db?.verno,
-        dbIsOpen: (window as any).__wickStorage?.db?.isOpen(),
+        hasDexie: !!bridge.__wickStorage?.db,
+        hasProjectCache: !!bridge.__wickStorage?.ProjectCache,
+        dbName: bridge.__wickStorage?.db?.name,
+        dbVersion: bridge.__wickStorage?.db?.verno,
+        dbIsOpen: bridge.__wickStorage?.db?.isOpen?.(),
       };
     });
     
@@ -36,11 +61,12 @@ test.describe('Dexie Storage Test', () => {
     
     const saveResult = await page.evaluate(async (data) => {
       try {
-        if ((window as any).__wickStorage && (window as any).__wickStorage.ProjectCache) {
-          await (window as any).__wickStorage.ProjectCache.save(data);
+        const bridge = window as Window & StorageBridge;
+        if (bridge.__wickStorage?.ProjectCache) {
+          await bridge.__wickStorage.ProjectCache.save(data);
           return { success: true, method: 'dexie' };
-        } else if ((window as any).__wickDebug && (window as any).__wickDebug.saveToIndexedDB) {
-          await (window as any).__wickDebug.saveToIndexedDB(data);
+        } else if (bridge.__wickDebug?.saveToIndexedDB) {
+          await bridge.__wickDebug.saveToIndexedDB(data);
           return { success: true, method: 'indexeddb' };
         } else {
           localStorage.setItem('wick_cached_project', data);
@@ -59,9 +85,14 @@ test.describe('Dexie Storage Test', () => {
     console.log('\n=== STEP 3: VERIFYING DEXIE DATA ===');
     const dexieDataCheck = await page.evaluate(async () => {
       try {
-        if ((window as any).__wickStorage && (window as any).__wickStorage.db) {
-          const db = (window as any).__wickStorage.db;
-          const cached = await db.projectCache.get('wick_cached_project');
+        const bridge = window as Window & StorageBridge;
+        if (bridge.__wickStorage?.db) {
+          const db = bridge.__wickStorage.db;
+          const projectCache = db.projectCache;
+          if (!projectCache) {
+            return { found: false, reason: 'projectCache table not available' };
+          }
+          const cached = await projectCache.get('wick_cached_project');
           return {
             found: !!cached,
             hasData: !!cached?.data,
@@ -91,20 +122,21 @@ test.describe('Dexie Storage Test', () => {
     console.log('\n=== STEP 5: TESTING DEXIE LOAD ===');
     const loadResult = await page.evaluate(async () => {
       try {
+        const bridge = window as Window & StorageBridge;
         // Check if Dexie is available after reload
-        const hasDexie = !!(window as any).__wickStorage && !!(window as any).__wickStorage.ProjectCache;
+        const hasDexie = !!bridge.__wickStorage?.ProjectCache;
         
         if (hasDexie) {
-          const data = await (window as any).__wickStorage.ProjectCache.load();
+          const data = await bridge.__wickStorage?.ProjectCache?.load();
           return {
             success: true,
             method: 'dexie',
             hasData: !!data,
             dataSize: data?.length || 0,
           };
-        } else if ((window as any).__wickDebug && (window as any).__wickDebug.loadFromIndexedDB) {
+        } else if (bridge.__wickDebug?.loadFromIndexedDB) {
           const data = await new Promise<string | null>((resolve) => {
-            (window as any).__wickDebug.loadFromIndexedDB('wick_cached_project', (_success: boolean) => {
+            bridge.__wickDebug?.loadFromIndexedDB?.('wick_cached_project', (_success: boolean) => {
               const cached = localStorage.getItem('wick_cached_project');
               resolve(cached);
             });
@@ -138,9 +170,14 @@ test.describe('Dexie Storage Test', () => {
     // Verify the data matches - check Dexie directly
     const dataVerification = await page.evaluate(async () => {
       try {
-        if ((window as any).__wickStorage && (window as any).__wickStorage.db) {
-          const db = (window as any).__wickStorage.db;
-          const cached = await db.projectCache.get('wick_cached_project');
+        const bridge = window as Window & StorageBridge;
+        if (bridge.__wickStorage?.db) {
+          const db = bridge.__wickStorage.db;
+          const projectCache = db.projectCache;
+          if (!projectCache) {
+            return { success: false, reason: 'projectCache table not available' };
+          }
+          const cached = await projectCache.get('wick_cached_project');
           if (cached && cached.data) {
             const parsed = JSON.parse(cached.data);
             return {

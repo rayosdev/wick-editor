@@ -3,12 +3,45 @@ import classNames from "classnames";
 
 import { OutlinerObject } from "./OutlinerObject/OutlinerObject";
 import OutlinerTitle from "./OutlinerTitle/OutlinerTitle";
-import OutlinerDisplay from "./OutlinerRow/OutlinerRowTypes/OutlinerDisplay";
+import OutlinerFilterMenu from "./OutlinerFilterMenu/OutlinerFilterMenu";
 
 import "./_outliner.scss";
 
-type WickNode = Record<string, any>;
-type WickTimeline = Record<string, any>;
+type WickScriptEntry = {
+    name?: string;
+};
+
+interface WickNode {
+    [key: string]: unknown;
+    uuid: string;
+    classname: string;
+    name?: string;
+    identifier?: string | null;
+    parent?: WickNode | WickTimeline | null;
+    parentLayer?: {
+        index?: number;
+    } | null;
+    index?: number;
+    start?: number;
+    end?: number;
+    pathType?: string;
+    isSelected?: boolean;
+    hidden?: boolean;
+    locked?: boolean;
+    activeFrame?: WickNode;
+    sound?: unknown;
+    hasContentfulScripts?: boolean;
+    scripts?: WickScriptEntry[];
+    getChildren: () => WickNode[];
+}
+
+interface WickTimeline {
+    [key: string]: unknown;
+    classname?: string;
+    parent?: WickNode | WickTimeline | null;
+    playheadPosition: number;
+    getChildren: () => WickNode[];
+}
 type DisplayOptions = {
     path: boolean;
     button: boolean;
@@ -51,7 +84,7 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
 
     const getDepth = (object: WickNode): number => {
         let depth = 0;
-        let current: WickNode | undefined = object;
+        let current: WickNode | WickTimeline | undefined = object;
         while (current && current.parent) {
             current = current.parent;
             depth += 1;
@@ -71,7 +104,7 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
     const getCommonAncestorIndices = (
         object1: WickNode,
         object2: WickNode
-    ): { ancestor: WickNode; indices1: number[]; indices2: number[] } => {
+    ): { ancestor: WickNode | WickTimeline; indices1: number[]; indices2: number[] } => {
         let ob1: WickNode | undefined = object1;
         let ob2: WickNode | undefined = object2;
         let depth1 = getDepth(object1);
@@ -115,7 +148,7 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
     };
 
     const getObjectAtIndices = (
-        ancestor: WickTimeline,
+        ancestor: WickNode | WickTimeline,
         indices: number[],
         length: number
     ): WickNode | null => {
@@ -125,15 +158,19 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
             if (typeof rawIndex !== "number") {
                 return null;
             }
-            const children = object.getChildren();
+            const children: WickNode[] = object.getChildren();
             if (rawIndex < 0 || rawIndex >= children.length) {
                 return null;
             }
-            const index =
+            const index: number =
                 object.classname === "Frame"
                     ? children.length - 1 - rawIndex
                     : rawIndex;
-            object = children[index];
+            const nextObject = children[index];
+            if (!nextObject) {
+                return null;
+            }
+            object = nextObject;
         }
         return object as WickNode;
     };
@@ -314,19 +351,15 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
         <div className={classNames("docked-pane outliner", className)} aria-label="Outliner">
             <div className="outliner-title-container">
                 <OutlinerTitle />
+                <OutlinerFilterMenu
+                    display={display}
+                    onChange={(display) => {
+                        setDisplay(display);
+                    }}
+                />
             </div>
 
             <div className="outliner-body">
-                <div className="outliner-item">
-                    <OutlinerDisplay
-                        tooltip="Display"
-                        display={display}
-                        onChange={(display) => {
-                            setDisplay(display);
-                        }}
-                    />
-                </div>
-
                 <div className="outliner-item">
                     {timelineChildren.map((layer: WickNode, index: number) => (
                         <OutlinerObject

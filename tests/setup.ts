@@ -1,6 +1,22 @@
 import { vi } from "vitest";
 
-const globalAny = globalThis as any;
+type CanvasGlobal = {
+  HTMLCanvasElement: typeof MockCanvasElement;
+};
+
+type PaperGlobal = {
+  paper: {
+    Point: typeof MockPoint;
+    View: typeof MockView;
+    PaperScope: typeof MockPaperScope;
+    setup: () => MockPaperScope;
+  };
+};
+
+type AnimationFrameGlobal = {
+  requestAnimationFrame: (callback: FrameRequestCallback) => ReturnType<typeof setTimeout>;
+  cancelAnimationFrame: (id: ReturnType<typeof setTimeout>) => void;
+};
 
 class MockCanvasElement {
   width: number;
@@ -51,7 +67,8 @@ class MockCanvasElement {
   removeEventListener() {}
 }
 
-globalAny.HTMLCanvasElement = MockCanvasElement;
+const canvasGlobal = globalThis as unknown as CanvasGlobal;
+canvasGlobal.HTMLCanvasElement = MockCanvasElement;
 
 class MockPoint {
   x: number;
@@ -108,7 +125,8 @@ class MockPaperScope {
   }
 }
 
-globalAny.paper = {
+const paperGlobal = globalThis as unknown as PaperGlobal;
+paperGlobal.paper = {
   Point: MockPoint,
   View: MockView,
   PaperScope: MockPaperScope,
@@ -117,10 +135,11 @@ globalAny.paper = {
   },
 };
 
-globalAny.requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
+const animationFrameGlobal = globalThis as unknown as AnimationFrameGlobal;
+animationFrameGlobal.requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
   return setTimeout(() => callback(performance.now()), 16);
 });
 
-globalAny.cancelAnimationFrame = vi.fn((id: number) => {
-  clearTimeout(id as unknown as NodeJS.Timeout);
+animationFrameGlobal.cancelAnimationFrame = vi.fn((id: ReturnType<typeof setTimeout>) => {
+  clearTimeout(id);
 });

@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
 
+type DrawingWindow = Window & {
+  Howler?: unknown;
+  JSZip?: unknown;
+};
+
 test.describe('Drawing Functionality', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
@@ -77,12 +82,13 @@ test.describe('Drawing Functionality', () => {
 
   test('verify drawing libraries are loaded', async ({ page }) => {
     const libs = await page.evaluate(() => {
+      const bridge = window as DrawingWindow;
       return {
         paper: typeof window.paper !== 'undefined',
         Croquis: typeof window.Croquis !== 'undefined',
         potrace: typeof window.potrace !== 'undefined',
-        Howler: typeof (window as any).Howler !== 'undefined',
-        JSZip: typeof (window as any).JSZip !== 'undefined'
+        Howler: typeof bridge.Howler !== 'undefined',
+        JSZip: typeof bridge.JSZip !== 'undefined'
       };
     });
     
@@ -95,4 +101,3 @@ test.describe('Drawing Functionality', () => {
     expect(libs.JSZip, 'JSZip should be loaded').toBe(true);
   });
 });
-

@@ -69,25 +69,43 @@ import type { WickProject as WickProjectEngine } from "./types/engine.types";
 
 const { version } = pkg;
 
+type ViteImportMeta = ImportMeta & {
+  env?: {
+    DEV?: boolean;
+  };
+};
+
+type BuiltinPreviewEntry = {
+  blob: Blob;
+  src?: string;
+};
+
+type StorageBridge = {
+  db: unknown;
+  ProjectCache: unknown;
+  ProjectStorage: typeof ProjectStorage;
+  localforage: typeof localForage;
+};
+
 // Check if we're in development mode
 const isDevelopment =
-  (import.meta as any).env?.DEV ||
+  (import.meta as ViteImportMeta).env?.DEV ||
   (window.location && window.location.hostname === "localhost");
 
 class Editor extends EditorCore {
   // Instance properties with types
   declare project: WickProjectEngine | null;
-  paper: any = null;
+  paper: unknown = null;
   editorVersion: string = version + "";
   error: Error | null = null;
   _lastAutosave: number = 0;
   _autosaveDebounceTimeoutID?: number;
   _showWaitOverlayTimeoutID?: number;
 
-  fontInfoInterface: any;
-  hotKeyInterface: any;
-  actionMapInterface: any;
-  scriptInfoInterface: any;
+  fontInfoInterface: FontInfoInterface;
+  hotKeyInterface: HotKeyInterface;
+  actionMapInterface: ActionMapInterface;
+  scriptInfoInterface: ScriptInfoInterface;
 
   openProjectFileFromClient!: () => void;
   openAssetFileFromClient!: () => void;
@@ -99,10 +117,10 @@ class Editor extends EditorCore {
   WINDOW_RESIZE_THROTTLE_AMOUNT_MS: number = 300;
   resizeProps: ResizeProps;
 
-  canvasComponent: any = null;
-  timelineComponent: any = null;
+  canvasComponent: unknown = null;
+  timelineComponent: unknown = null;
   lastUsedTool: string = "cursor";
-  builtinPreviews: Record<string, any> = {};
+  builtinPreviews: Record<string, BuiltinPreviewEntry> = {};
 
   customHotKeysKey: string = "wickEditorcustomHotKeys";
   colorPickerTypeKey: string = "wickEditorColorPickerType";
@@ -310,7 +328,7 @@ class Editor extends EditorCore {
 
       // Expose to window for index.html cache functions
       if (typeof window !== 'undefined') {
-        (window as any).__wickStorage = {
+        (window as Window & { __wickStorage?: StorageBridge }).__wickStorage = {
           db,
           ProjectCache,
           ProjectStorage,

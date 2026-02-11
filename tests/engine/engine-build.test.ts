@@ -27,6 +27,14 @@ describe("Engine Build Output", () => {
     expect(stats.size).toBeGreaterThan(100_000);
   });
 
+  it("wickplayer.js is smaller than wickengine.js", () => {
+    const playerFile = path.join(distPath, "wickplayer.js");
+    const editorFile = path.join(distPath, "wickengine.js");
+    const playerSize = fs.statSync(playerFile).size;
+    const editorSize = fs.statSync(editorFile).size;
+    expect(playerSize).toBeLessThan(editorSize);
+  });
+
   it("wickengine.js contains IIFE wrapper", () => {
     const file = path.join(distPath, "wickengine.js");
     const content = fs.readFileSync(file, "utf8");

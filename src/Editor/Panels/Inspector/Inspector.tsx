@@ -82,12 +82,12 @@ interface InspectorProps {
 }
 
 const Inspector: React.FC<InspectorProps> = (props) => {
-    const getSelectionAttribute = (attribute: string): any => {
+    const getSelectionAttribute = <T = unknown>(attribute: string): T => {
         if (attribute === "fillColorOpacity") {
-            return getSelectionFillColorOpacity();
+            return getSelectionFillColorOpacity() as T;
         }
 
-        return props.getAllSelectionAttributes()[attribute];
+        return props.getAllSelectionAttributes()[attribute] as T;
     };
 
     const getSelectionFillColorOpacity = (): number => {
@@ -176,8 +176,8 @@ const Inspector: React.FC<InspectorProps> = (props) => {
     };
 
     const renderSelectionColor = (): JSX.Element => {
-        const fillColor = getSelectionAttribute("fillColor");
-        const strokeColor = getSelectionAttribute("strokeColor");
+        const fillColor = getSelectionAttribute<{ toCSS?: () => string } | undefined>("fillColor");
+        const strokeColor = getSelectionAttribute<{ toCSS?: () => string } | undefined>("strokeColor");
 
         return (
             <div className="inspector-item">
@@ -301,7 +301,10 @@ const Inspector: React.FC<InspectorProps> = (props) => {
             { label: "black", value: 900 },
         ];
 
-        const weight = Math.min(Math.max(getSelectionAttribute("fontWeight"), 100), 900);
+        const weight = Math.min(
+            Math.max(getSelectionAttribute<number>("fontWeight"), 100),
+            900
+        );
 
         return (
             <InspectorSelector
@@ -566,11 +569,12 @@ const Inspector: React.FC<InspectorProps> = (props) => {
     };
 
     const renderSoundContent = (): JSX.Element => {
+        const hasSound = Boolean(getSelectionAttribute("sound"));
         return (
             <div className="inspector-item">
                 {renderSelectionSoundAsset()}
-                {getSelectionAttribute("sound") && renderSelectionSoundVolume()}
-                {getSelectionAttribute("sound") && renderSelectionSoundStart()}
+                {hasSound && renderSelectionSoundVolume()}
+                {hasSound && renderSelectionSoundStart()}
             </div>
         );
     };
@@ -588,7 +592,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
                         setSelectionAttribute("animationType", val.value);
                     }}
                 />
-                {getSelectionAttribute("singleFrameNumber") && (
+                {Boolean(getSelectionAttribute("singleFrameNumber")) && (
                     <InspectorNumericInput
                         tooltip="Frame"
                         val={getSelectionAttribute("singleFrameNumber")}
@@ -598,11 +602,11 @@ const Inspector: React.FC<InspectorProps> = (props) => {
                 {getSelectionAttribute("animationType") !== "single" && (
                     <InspectorCheckbox
                         tooltip="Synced"
-                        checked={getSelectionAttribute("isSynced")}
+                        checked={Boolean(getSelectionAttribute("isSynced"))}
                         onChange={() =>
                             setSelectionAttribute(
                                 "isSynced",
-                                !getSelectionAttribute("isSynced")
+                                !Boolean(getSelectionAttribute("isSynced"))
                             )
                         }
                     />
@@ -768,11 +772,12 @@ const Inspector: React.FC<InspectorProps> = (props) => {
     };
 
     const renderMultiPath = (): JSX.Element => {
+        const hasFontFamily = Boolean(getSelectionAttribute("fontFamily"));
         return (
             <div className="inspector-content">
                 {renderSelectionTransformProperties()}
                 {renderSelectionColor()}
-                {getSelectionAttribute("fontFamily") && renderFontContent()}
+                {hasFontFamily && renderFontContent()}
             </div>
         );
     };

@@ -75,7 +75,10 @@ test.describe('Global Variables Test', () => {
         'window.editor?.editor'
       ];
       
-      const results: any = {};
+      const results: Record<
+        string,
+        { exists?: boolean; type?: string; hasProject?: boolean; error?: string }
+      > = {};
       paths.forEach(path => {
         try {
           const value = eval(path);

@@ -64,10 +64,15 @@ type TimelineLayerLike = {
     activate?: () => void;
 };
 
+type TimelineFrameSizeMode = "small" | "normal" | "large";
+
+type TimelineFillGapsMode = "auto_extend" | "blank_frames";
+
 type TimelineActiveLike = {
     layers: TimelineLayerLike[];
     activeLayerIndex: number;
     playheadPosition: number;
+    fillGapsMethod?: TimelineFillGapsMode;
 };
 
 type TimelineSelectionLike = {
@@ -84,6 +89,7 @@ type TimelineGuiLike = {
     _canvas?: {
         getBoundingClientRect?: () => DOMRect;
     };
+    checkForPlayheadAutoscroll?: () => void;
     scrollX?: number;
     scrollY?: number;
 };
@@ -158,6 +164,9 @@ type TimelineContextTarget = {
 };
 
 const Timeline: React.FC<TimelineProps> = (props) => {
+    const DEFAULT_FRAME_RATE = 12;
+    const MIN_FRAME_RATE = 1;
+    const MAX_FRAME_RATE = 60;
     const LONG_PRESS_MS = 450;
     const LONG_PRESS_CANCEL_DISTANCE_PX = 12;
     const CONTEXT_MENU_WIDTH_PX = 220;
@@ -188,6 +197,32 @@ const Timeline: React.FC<TimelineProps> = (props) => {
         frameRate > 0
             ? `Frame ${playheadPosition} | ${frameRate.toFixed(1)} fps`
             : `Frame ${playheadPosition}`;
+    const [frameInputValue, setFrameInputValue] = useState(String(playheadPosition));
+    const [fpsInputValue, setFpsInputValue] = useState(
+        (frameRate > 0 ? frameRate : DEFAULT_FRAME_RATE).toFixed(1)
+    );
+
+    const getCurrentFrameSizeMode = (): TimelineFrameSizeMode => {
+        const guiElement = window?.Wick?.GUIElement;
+        if (!guiElement) {
+            return "normal";
+        }
+
+        const currentWidth = Number(guiElement.GRID_DEFAULT_CELL_WIDTH);
+        if (currentWidth === Number(guiElement.GRID_SMALL_CELL_WIDTH)) {
+            return "small";
+        }
+        if (currentWidth === Number(guiElement.GRID_LARGE_CELL_WIDTH)) {
+            return "large";
+        }
+        return "normal";
+    };
+
+    const frameSizeMode = getCurrentFrameSizeMode();
+    const fillGapsMode: TimelineFillGapsMode =
+        props.project?.activeTimeline?.fillGapsMethod === "auto_extend"
+            ? "auto_extend"
+            : "blank_frames";
     const initializeIcons = (): void => {
         const Icons = window?.Wick?.GUIElement?.Icons;
 
@@ -281,6 +316,15 @@ const Timeline: React.FC<TimelineProps> = (props) => {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        setFrameInputValue(String(Math.max(1, Math.round(playheadPosition))));
+    }, [playheadPosition]);
+
+    useEffect(() => {
+        const normalizedFps = frameRate > 0 ? frameRate : DEFAULT_FRAME_RATE;
+        setFpsInputValue(normalizedFps.toFixed(1));
+    }, [frameRate]);
 
     const { connectDropTarget, isOver } = props;
 
@@ -494,6 +538,118 @@ const Timeline: React.FC<TimelineProps> = (props) => {
     const runMenuAction = (action: () => void): void => {
         action();
         closeContextMenu();
+    };
+
+    const setPlayheadPosition = (nextPosition: number): void => {
+        const activeTimeline = props.project?.activeTimeline;
+        if (!activeTimeline) {
+            return;
+        }
+
+        const normalizedPosition = Math.max(1, Math.round(nextPosition));
+        if (activeTimeline.playheadPosition === normalizedPosition) {
+            return;
+        }
+
+        activeTimeline.playheadPosition = normalizedPosition;
+        props.project?.guiElement?.checkForPlayheadAutoscroll?.();
+        props.project?.view?.render?.();
+        props.project?.guiElement?.draw?.();
+        setPlayheadRenderTick((tick) => tick + 1);
+    };
+
+    const commitFrameInput = (): void => {
+        const parsedFrame = Number.parseInt(frameInputValue, 10);
+        if (!Number.isFinite(parsedFrame) || parsedFrame < 1) {
+            setFrameInputValue(String(Math.max(1, Math.round(playheadPosition))));
+            return;
+        }
+
+        const normalizedFrame = Math.max(1, Math.round(parsedFrame));
+        setFrameInputValue(String(normalizedFrame));
+        setPlayheadPosition(normalizedFrame);
+    };
+
+    const setTimelineFrameSizeMode = (mode: TimelineFrameSizeMode): void => {
+        const guiElement = window?.Wick?.GUIElement;
+        if (!guiElement) {
+            return;
+        }
+
+        if (mode === "small") {
+            guiElement.GRID_DEFAULT_CELL_WIDTH = guiElement.GRID_SMALL_CELL_WIDTH;
+            guiElement.GRID_DEFAULT_CELL_HEIGHT = guiElement.GRID_SMALL_CELL_HEIGHT;
+        } else if (mode === "large") {
+            guiElement.GRID_DEFAULT_CELL_WIDTH = guiElement.GRID_LARGE_CELL_WIDTH;
+            guiElement.GRID_DEFAULT_CELL_HEIGHT = guiElement.GRID_LARGE_CELL_HEIGHT;
+        } else {
+            guiElement.GRID_DEFAULT_CELL_WIDTH = guiElement.GRID_NORMAL_CELL_WIDTH;
+            guiElement.GRID_DEFAULT_CELL_HEIGHT = guiElement.GRID_NORMAL_CELL_HEIGHT;
+        }
+
+        props.project?.view?.render?.();
+        props.project?.guiElement?.draw?.();
+        setPlayheadRenderTick((tick) => tick + 1);
+    };
+
+    const setTimelineGapFillMode = (mode: TimelineFillGapsMode): void => {
+        const activeTimeline = props.project?.activeTimeline;
+        if (!activeTimeline || activeTimeline.fillGapsMethod === mode) {
+            return;
+        }
+
+        activeTimeline.fillGapsMethod = mode;
+        props.projectDidChange({
+            actionName:
+                mode === "auto_extend"
+                    ? "Set Timeline Gap Fill Mode (Extend Frames)"
+                    : "Set Timeline Gap Fill Mode (Blank Frames)",
+        });
+    };
+
+    const commitFpsInput = (): void => {
+        const parsedFps = Number.parseFloat(fpsInputValue);
+        if (!Number.isFinite(parsedFps)) {
+            const fallbackFps = frameRate > 0 ? frameRate : DEFAULT_FRAME_RATE;
+            setFpsInputValue(fallbackFps.toFixed(1));
+            return;
+        }
+
+        const normalizedFps = Math.min(
+            MAX_FRAME_RATE,
+            Math.max(MIN_FRAME_RATE, Math.round(parsedFps * 10) / 10)
+        );
+        setFpsInputValue(normalizedFps.toFixed(1));
+
+        if (!props.project || Number(props.project.framerate ?? 0) === normalizedFps) {
+            return;
+        }
+
+        props.project.framerate = normalizedFps;
+        props.projectDidChange({ actionName: "Set Project Framerate" });
+    };
+
+    const nudgeFps = (delta: number): void => {
+        const parsedInputFps = Number.parseFloat(fpsInputValue);
+        const baseFps =
+            Number.isFinite(parsedInputFps) && parsedInputFps > 0
+                ? parsedInputFps
+                : Number.isFinite(frameRate) && frameRate > 0
+                    ? frameRate
+                    : DEFAULT_FRAME_RATE;
+        const nextFps = baseFps + delta;
+        const normalizedFps = Math.min(
+            MAX_FRAME_RATE,
+            Math.max(MIN_FRAME_RATE, Math.round(nextFps * 10) / 10)
+        );
+        setFpsInputValue(normalizedFps.toFixed(1));
+
+        if (!props.project || Number(props.project.framerate ?? 0) === normalizedFps) {
+            return;
+        }
+
+        props.project.framerate = normalizedFps;
+        props.projectDidChange({ actionName: "Set Project Framerate" });
     };
 
     const stepPlayheadBackwards = (): void => {
@@ -823,6 +979,149 @@ const Timeline: React.FC<TimelineProps> = (props) => {
                     onTouchCancel={handleTimelineTouchCancel}
                     aria-label="Animation timeline grid"
                 />
+
+                <div className="timeline-flash-footer" role="toolbar" aria-label="Timeline Quick Controls">
+                    <div className="timeline-flash-footer-group timeline-flash-footer-field">
+                        <span className="timeline-flash-footer-label">Frame</span>
+                        <input
+                            className="timeline-flash-footer-input"
+                            type="number"
+                            min={1}
+                            step={1}
+                            value={frameInputValue}
+                            onChange={(event) => setFrameInputValue(event.target.value)}
+                            onBlur={commitFrameInput}
+                            onKeyDown={(event) => {
+                                if (event.key === "Enter") {
+                                    commitFrameInput();
+                                }
+                            }}
+                            aria-label="Current Frame Number"
+                        />
+                        <button
+                            type="button"
+                            className="timeline-flash-footer-button"
+                            onClick={commitFrameInput}
+                        >
+                            Go
+                        </button>
+                    </div>
+
+                    <div className="timeline-flash-footer-group timeline-flash-footer-field">
+                        <span className="timeline-flash-footer-label">FPS</span>
+                        <button
+                            type="button"
+                            className="timeline-flash-footer-button"
+                            onClick={() => nudgeFps(-1)}
+                            aria-label="Decrease Framerate"
+                        >
+                            -
+                        </button>
+                        <input
+                            className="timeline-flash-footer-input timeline-flash-footer-input-fps"
+                            type="number"
+                            min={MIN_FRAME_RATE}
+                            max={MAX_FRAME_RATE}
+                            step={0.1}
+                            value={fpsInputValue}
+                            onChange={(event) => setFpsInputValue(event.target.value)}
+                            onBlur={commitFpsInput}
+                            onKeyDown={(event) => {
+                                if (event.key === "Enter") {
+                                    commitFpsInput();
+                                }
+                            }}
+                            aria-label="Project Framerate"
+                        />
+                        <button
+                            type="button"
+                            className="timeline-flash-footer-button"
+                            onClick={() => nudgeFps(1)}
+                            aria-label="Increase Framerate"
+                        >
+                            +
+                        </button>
+                    </div>
+
+                    <div className="timeline-flash-footer-group">
+                        <span className="timeline-flash-footer-label timeline-flash-footer-icon-label">
+                            <img src={iconFrameSizeMenu} alt="" className="timeline-flash-footer-icon" />
+                            Frames
+                        </span>
+                        <button
+                            type="button"
+                            className={`timeline-flash-footer-choice ${frameSizeMode === "small" ? "active" : ""}`}
+                            onClick={() => setTimelineFrameSizeMode("small")}
+                            aria-pressed={frameSizeMode === "small"}
+                        >
+                            <img src={iconSmallFrames} alt="" className="timeline-flash-footer-choice-icon" />
+                            S
+                        </button>
+                        <button
+                            type="button"
+                            className={`timeline-flash-footer-choice ${frameSizeMode === "normal" ? "active" : ""}`}
+                            onClick={() => setTimelineFrameSizeMode("normal")}
+                            aria-pressed={frameSizeMode === "normal"}
+                        >
+                            <img src={iconNormalFrames} alt="" className="timeline-flash-footer-choice-icon" />
+                            M
+                        </button>
+                        <button
+                            type="button"
+                            className={`timeline-flash-footer-choice ${frameSizeMode === "large" ? "active" : ""}`}
+                            onClick={() => setTimelineFrameSizeMode("large")}
+                            aria-pressed={frameSizeMode === "large"}
+                        >
+                            <img src={iconLargeFrames} alt="" className="timeline-flash-footer-choice-icon" />
+                            L
+                        </button>
+                    </div>
+
+                    <div className="timeline-flash-footer-group">
+                        <span className="timeline-flash-footer-label timeline-flash-footer-icon-label">
+                            <img
+                                src={
+                                    fillGapsMode === "auto_extend"
+                                        ? iconGapFillMenuExtendFrames
+                                        : iconGapFillMenuBlankFrames
+                                }
+                                alt=""
+                                className="timeline-flash-footer-icon"
+                            />
+                            Gaps
+                        </span>
+                        <button
+                            type="button"
+                            className={`timeline-flash-footer-choice ${fillGapsMode === "auto_extend" ? "active" : ""}`}
+                            onClick={() => setTimelineGapFillMode("auto_extend")}
+                            aria-pressed={fillGapsMode === "auto_extend"}
+                        >
+                            <img
+                                src={iconGapFillExtendFrames}
+                                alt=""
+                                className="timeline-flash-footer-choice-icon"
+                            />
+                            Extend
+                        </button>
+                        <button
+                            type="button"
+                            className={`timeline-flash-footer-choice ${fillGapsMode === "blank_frames" ? "active" : ""}`}
+                            onClick={() => setTimelineGapFillMode("blank_frames")}
+                            aria-pressed={fillGapsMode === "blank_frames"}
+                        >
+                            <img
+                                src={iconGapFillBlankFrames}
+                                alt=""
+                                className="timeline-flash-footer-choice-icon"
+                            />
+                            Blank
+                        </button>
+                    </div>
+
+                    <div className="timeline-flash-footer-hint">
+                        Right-click or long-press any frame for contextual actions
+                    </div>
+                </div>
 
                 {contextMenuPosition && (
                     <div

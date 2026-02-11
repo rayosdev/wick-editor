@@ -125,6 +125,145 @@
   line-height: 1;
 }
 
+.timeline-flash-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-top: 1px solid $editor-primary-outline;
+  background-color: $editor-primary;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+.timeline-flash-footer::-webkit-scrollbar {
+  height: 8px;
+}
+
+.timeline-flash-footer::-webkit-scrollbar-thumb {
+  background-color: $editor-modal-gray-secondary;
+  border-radius: 4px;
+}
+
+.timeline-flash-footer-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.timeline-flash-footer-group:last-of-type {
+  border-right: none;
+}
+
+.timeline-flash-footer-field {
+  gap: 4px;
+}
+
+.timeline-flash-footer-label {
+  color: $editor-secondary-text;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.timeline-flash-footer-icon-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.timeline-flash-footer-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.timeline-flash-footer-input {
+  width: 62px;
+  height: 28px;
+  border: 1px solid $editor-primary-outline;
+  border-radius: 4px;
+  background-color: $editor-modal-gray;
+  color: $editor-primary-text;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 6px;
+}
+
+.timeline-flash-footer-input-fps {
+  width: 68px;
+}
+
+.timeline-flash-footer-button {
+  min-width: 32px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  background-color: $editor-modal-gray;
+  color: $editor-primary-text;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 0 8px;
+}
+
+body.hasHover .timeline-flash-footer-button:hover {
+  background-color: $editor-tertiary;
+}
+
+.timeline-flash-footer-button:active {
+  background-color: $editor-modal-gray-secondary;
+}
+
+.timeline-flash-footer-choice {
+  min-width: 34px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  background-color: $editor-modal-gray;
+  color: $editor-primary-text;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 8px;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.timeline-flash-footer-choice-icon {
+  width: 13px;
+  height: 13px;
+}
+
+body.hasHover .timeline-flash-footer-choice:hover {
+  background-color: $editor-tertiary;
+}
+
+.timeline-flash-footer-choice:active {
+  background-color: $editor-modal-gray-secondary;
+}
+
+.timeline-flash-footer-choice.active {
+  background-color: $editor-tertiary;
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.timeline-flash-footer-hint {
+  margin-left: auto;
+  color: $editor-secondary-text;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
 .timeline-context-menu {
   position: fixed;
   z-index: 2100;
@@ -241,6 +380,31 @@ body.hasHover .timeline-context-menu-item:hover:not(:disabled) {
     width: 40px;
     height: 40px;
     min-width: 40px;
+  }
+
+  .timeline-flash-footer {
+    gap: 6px;
+    padding: 8px 10px;
+  }
+
+  .timeline-flash-footer-group {
+    min-height: 42px;
+  }
+
+  .timeline-flash-footer-input {
+    height: 34px;
+    font-size: 13px;
+  }
+
+  .timeline-flash-footer-button,
+  .timeline-flash-footer-choice {
+    height: 34px;
+    min-width: 36px;
+    font-size: 12px;
+  }
+
+  .timeline-flash-footer-hint {
+    font-size: 11px;
   }
 
   .timeline-flash-scene-name {
