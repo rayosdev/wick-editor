@@ -1,0 +1,20 @@
+[build]
+  # The command Netlify should run to build the project
+  command = "npm run build"
+  
+  # The directory that contains the deploy-ready assets
+  publish = "build"
+
+[build.environment]
+  # Ensure we use at least Node 22 as specified in package.json
+  NODE_VERSION = "22"
+  
+  # Prevent unwanted Electron-related downloads/installs if any survived
+  ELECTRON_SKIP_BINARY_DOWNLOAD = "1"
+
+[[redirects]]
+  # Basic redirect for Single Page Application (SPA) routing
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
