@@ -35,3 +35,6 @@ playwright-report/*
 .playwright-mcp/
 
 /_report/*
+
+# Local Netlify folder
+.netlify
