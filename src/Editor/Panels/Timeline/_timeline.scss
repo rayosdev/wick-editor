@@ -42,7 +42,6 @@
 .timeline-flash-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
   padding: 6px 10px;
   border-bottom: 1px solid $editor-primary-outline;
@@ -50,6 +49,26 @@
   color: $editor-primary-text;
   font-family: "Nunito Sans", sans-serif;
   font-size: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+.timeline-flash-header::-webkit-scrollbar {
+  height: 8px;
+}
+
+.timeline-flash-header::-webkit-scrollbar-thumb {
+  background-color: $editor-modal-gray-secondary;
+  border-radius: 4px;
+}
+
+.timeline-flash-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .timeline-flash-breadcrumb {
@@ -57,6 +76,7 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
+  flex-shrink: 0;
 }
 
 .timeline-flash-back-button {
@@ -108,9 +128,9 @@
 }
 
 .timeline-flash-action-button {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 4px;
 }
@@ -370,6 +390,7 @@ body.hasHover .timeline-context-menu-item:hover:not(:disabled) {
   align-items: center;
   gap: 10px;
   min-width: 0;
+  flex-shrink: 0;
 }
 
 .timeline-renderer-toggle {

@@ -56,6 +56,8 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
         className
       )}
       transition={{ timeout: 150 }}
+      trigger="legacy"
+      rootClose
     >
       {children}
     </Popover>

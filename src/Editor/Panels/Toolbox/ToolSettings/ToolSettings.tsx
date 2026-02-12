@@ -157,7 +157,6 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                     className="tool-settings-menu-popover"
                 >
                     <div className="brush-modes-widget">
-                        <div className="tool-selector-menu-header">Brush Modes</div>
                         <div className="brush-modes-menu-list">
                             {brushModes.map((mode) => {
                                 const active =
@@ -183,12 +182,6 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                                         <span className="brush-modes-menu-item-label">
                                             {mode.label}
                                         </span>
-                                        {active && (
-                                            <ToolIcon
-                                                className="brush-modes-menu-item-check"
-                                                name="check"
-                                            />
-                                        )}
                                     </button>
                                 );
                             })}
@@ -606,12 +599,6 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                     className="tool-settings-menu-popover tool-settings-presets-menu-popover"
                 >
                     <div className="tool-settings-presets-widget">
-                        <div className="tool-selector-menu-header">
-                            {presetMenuData.title}
-                        </div>
-                        <div className="tool-selector-menu-subtitle">
-                            {presetMenuData.subtitle}
-                        </div>
                         <div className="tool-settings-presets-list">
                             {presetMenuData.items.map((item) => (
                                 <button
@@ -633,12 +620,6 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                                     <span className="tool-settings-presets-item-label">
                                         {item.label}
                                     </span>
-                                    {item.active && (
-                                        <ToolIcon
-                                            className="tool-settings-presets-item-check"
-                                            name="check"
-                                        />
-                                    )}
                                 </button>
                             ))}
                         </div>

@@ -94,7 +94,7 @@ const TimelineClassic: React.FC<TimelineRendererProps> = (props) => {
     const getCurrentFrameSizeMode = (): TimelineFrameSizeMode => {
         const guiElement = window?.Wick?.GUIElement;
         if (!guiElement) {
-            return "normal";
+            return "small";
         }
 
         const currentWidth = Number(guiElement.GRID_DEFAULT_CELL_WIDTH);
@@ -104,7 +104,7 @@ const TimelineClassic: React.FC<TimelineRendererProps> = (props) => {
         if (currentWidth === Number(guiElement.GRID_LARGE_CELL_WIDTH)) {
             return "large";
         }
-        return "normal";
+        return "small";
     };
 
     const frameSizeMode = getCurrentFrameSizeMode();

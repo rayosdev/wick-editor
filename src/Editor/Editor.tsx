@@ -101,6 +101,7 @@ class Editor extends EditorCore {
   _lastAutosave: number = 0;
   _autosaveDebounceTimeoutID?: number;
   _showWaitOverlayTimeoutID?: number;
+  _timelinePreviewSoftRenderRaf?: number;
 
   fontInfoInterface: FontInfoInterface;
   hotKeyInterface: HotKeyInterface;
@@ -219,6 +220,7 @@ class Editor extends EditorCore {
 
     // Last Autosave
     this._lastAutosave = 0;
+    this._timelinePreviewSoftRenderRaf = undefined;
 
     // Create interfaces.
     this.fontInfoInterface = new FontInfoInterface(this);
@@ -448,6 +450,11 @@ class Editor extends EditorCore {
       clearTimeout(this._autosaveDebounceTimeoutID);
       this._autosaveDebounceTimeoutID = undefined;
     }
+
+    if (this._timelinePreviewSoftRenderRaf !== undefined) {
+      window.cancelAnimationFrame(this._timelinePreviewSoftRenderRaf);
+      this._timelinePreviewSoftRenderRaf = undefined;
+    }
   };
 
   componentDidUpdate = (prevProps, prevState) => {
@@ -478,15 +485,38 @@ class Editor extends EditorCore {
         onAfterTick: () => {
           //this.project.view.render();
           this.project.guiElement.draw();
+          if (this.state.timelineRendererMode === "dom") {
+            this.scheduleTimelinePreviewSoftRender();
+          }
         },
         onBeforeTick: () => { },
       });
     }
 
     if (!this.state.previewPlaying && prevState.previewPlaying) {
+      if (this._timelinePreviewSoftRenderRaf !== undefined) {
+        window.cancelAnimationFrame(this._timelinePreviewSoftRenderRaf);
+        this._timelinePreviewSoftRenderRaf = undefined;
+      }
       this.project.stop();
       this.projectDidChange({ skipHistory: true, actionName: "Stop Project" });
     }
+  };
+
+  scheduleTimelinePreviewSoftRender = (): void => {
+    if (this._timelinePreviewSoftRenderRaf !== undefined) {
+      return;
+    }
+
+    this._timelinePreviewSoftRenderRaf = window.requestAnimationFrame(() => {
+      this._timelinePreviewSoftRenderRaf = undefined;
+
+      if (!this.state.previewPlaying || this.state.timelineRendererMode !== "dom") {
+        return;
+      }
+
+      this.notifyTimelineSoftRender();
+    });
   };
 
   // Detects if the device has hover capability. Adds "hasHover" to the body to avoid 'Sticky-hover' on touch devices.

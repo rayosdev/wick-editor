@@ -87,7 +87,7 @@ const CONTEXT_MENU_MARGIN_PX = 8;
 const getFrameSizeMode = (): TimelineFrameSizeMode => {
   const guiElement = window?.Wick?.GUIElement;
   if (!guiElement) {
-    return "normal";
+    return "small";
   }
 
   const currentWidth = Number(guiElement.GRID_DEFAULT_CELL_WIDTH);
@@ -98,7 +98,7 @@ const getFrameSizeMode = (): TimelineFrameSizeMode => {
     return "large";
   }
 
-  return "normal";
+  return "small";
 };
 
 const setFrameSizeMode = (mode: TimelineFrameSizeMode): void => {
@@ -310,9 +310,35 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     }
   };
 
+  const isTransientFocusRenderError = (error: unknown): boolean => {
+    if (!(error instanceof TypeError)) {
+      return false;
+    }
+
+    const message = String(error.message ?? "");
+    return (
+      message.includes("Cannot read properties of null") &&
+      (message.includes("isRoot") || message.includes("timeline"))
+    );
+  };
+
   const softRender = (): void => {
-    project?.view?.render?.();
-    project?.guiElement?.draw?.();
+    try {
+      project?.view?.render?.();
+    } catch (error) {
+      if (!isTransientFocusRenderError(error)) {
+        throw error;
+      }
+    }
+
+    try {
+      project?.guiElement?.draw?.();
+    } catch (error) {
+      if (!isTransientFocusRenderError(error)) {
+        throw error;
+      }
+    }
+
     requestRender();
   };
 
@@ -342,7 +368,14 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     }
 
     activeTimeline.playheadPosition = normalizedPlayhead;
-    project?.guiElement?.checkForPlayheadAutoscroll?.();
+    const focus = project?.focus as { timeline?: unknown } | null | undefined;
+    if (focus && typeof focus === "object" && "timeline" in focus && focus.timeline) {
+      try {
+        project?.guiElement?.checkForPlayheadAutoscroll?.();
+      } catch {
+        // Ignore autoscroll if focus changed during a scrub gesture.
+      }
+    }
     softRender();
   };
 
@@ -1612,78 +1645,77 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               </button>
             </div>
           </div>
-        </div>
-
-        <div className="timeline-flash-actions" role="toolbar" aria-label="Timeline Actions">
-          <ActionButton
-            id="timeline-step-backward"
-            text="<"
-            color="tool"
-            tooltip="Previous Frame"
-            tooltipPlace="top"
-            className="timeline-flash-action-button timeline-flash-text-action"
-            action={() => {
-              props.movePlayheadBackwards();
-              requestRender();
-            }}
-          />
-          <ActionButton
-            id="timeline-step-forward"
-            text=">"
-            color="tool"
-            tooltip="Next Frame"
-            tooltipPlace="top"
-            className="timeline-flash-action-button timeline-flash-text-action"
-            action={() => {
-              props.movePlayheadForwards();
-              requestRender();
-            }}
-          />
-          <ActionButton
-            id="timeline-insert-keyframe"
-            icon="split"
-            color="tool"
-            tooltip="Insert Keyframe"
-            tooltipPlace="top"
-            className="timeline-flash-action-button"
-            action={props.cutFrame}
-          />
-          <ActionButton
-            id="timeline-insert-blank-keyframe"
-            icon="create"
-            color="tool"
-            tooltip="Insert Blank Keyframe"
-            tooltipPlace="top"
-            className="timeline-flash-action-button"
-            action={props.insertBlankFrame}
-          />
-          <ActionButton
-            id="timeline-add-tween-keyframe"
-            icon="layerTween"
-            color="tool"
-            tooltip="Add Tween Keyframe"
-            tooltipPlace="top"
-            className="timeline-flash-action-button"
-            action={props.addTweenKeyframe}
-          />
-          <ActionButton
-            id="timeline-create-tween"
-            icon="tween"
-            color="tool"
-            tooltip="Create Tween"
-            tooltipPlace="top"
-            className="timeline-flash-action-button"
-            action={props.createTween}
-          />
-          <ActionButton
-            id="timeline-delete-selection"
-            icon="delete"
-            color="tool"
-            tooltip="Delete Selected Frames/Objects"
-            tooltipPlace="top"
-            className="timeline-flash-action-button"
-            action={props.deleteSelectedObjects}
-          />
+          <div className="timeline-flash-header-actions" role="toolbar" aria-label="Timeline Actions">
+            <ActionButton
+              id="timeline-step-backward"
+              text="<"
+              color="tool"
+              tooltip="Previous Frame"
+              tooltipPlace="bottom"
+              className="timeline-flash-action-button timeline-flash-text-action"
+              action={() => {
+                props.movePlayheadBackwards();
+                requestRender();
+              }}
+            />
+            <ActionButton
+              id="timeline-step-forward"
+              text=">"
+              color="tool"
+              tooltip="Next Frame"
+              tooltipPlace="bottom"
+              className="timeline-flash-action-button timeline-flash-text-action"
+              action={() => {
+                props.movePlayheadForwards();
+                requestRender();
+              }}
+            />
+            <ActionButton
+              id="timeline-insert-keyframe"
+              icon="split"
+              color="tool"
+              tooltip="Insert Keyframe"
+              tooltipPlace="bottom"
+              className="timeline-flash-action-button"
+              action={props.cutFrame}
+            />
+            <ActionButton
+              id="timeline-insert-blank-keyframe"
+              icon="create"
+              color="tool"
+              tooltip="Insert Blank Keyframe"
+              tooltipPlace="bottom"
+              className="timeline-flash-action-button"
+              action={props.insertBlankFrame}
+            />
+            <ActionButton
+              id="timeline-add-tween-keyframe"
+              icon="layerTween"
+              color="tool"
+              tooltip="Add Tween Keyframe"
+              tooltipPlace="bottom"
+              className="timeline-flash-action-button"
+              action={props.addTweenKeyframe}
+            />
+            <ActionButton
+              id="timeline-create-tween"
+              icon="tween"
+              color="tool"
+              tooltip="Create Tween"
+              tooltipPlace="bottom"
+              className="timeline-flash-action-button"
+              action={props.createTween}
+            />
+            <ActionButton
+              id="timeline-delete-selection"
+              icon="delete"
+              color="tool"
+              tooltip="Delete Selected Frames/Objects"
+              tooltipPlace="bottom"
+              className="timeline-flash-action-button"
+              action={props.deleteSelectedObjects}
+            />
+          </div>
         </div>
 
         <div className="timeline-dom-workspace">
@@ -1866,9 +1898,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                             : layerIndex * cellHeight;
 
                         return (
-                          <button
+                          <div
                             key={frame.uuid ?? `${layerIndex}-${frameStart}-${frameLength}`}
-                            type="button"
                             className={`timeline-dom-frame ${selected ? "selected" : ""} ${
                               frame.contentful ? "contentful" : "blank"
                             } ${isDraggedFrame ? "dragging" : ""} ${
@@ -1877,6 +1908,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                                 : ""
                             }`}
                             data-frame-state={frameVisualState}
+                            role="button"
+                            tabIndex={0}
+                            aria-pressed={selected}
                             style={{
                               left: `${previewLeft}px`,
                               top: `${previewTop}px`,
@@ -1885,7 +1919,17 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                             }}
                             onPointerDown={(event) => {
                               event.stopPropagation();
-                              handleGridPointerDown(event as unknown as React.PointerEvent<HTMLDivElement>);
+                              handleGridPointerDown(event);
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.key !== "Enter" && event.key !== " ") {
+                                return;
+                              }
+                              event.preventDefault();
+                              selectFrame(frame, {
+                                append: event.shiftKey,
+                                toggle: event.shiftKey,
+                              });
                             }}
                           >
                             <span className="timeline-dom-frame-label">{frame.identifier ?? ""}</span>
@@ -1903,7 +1947,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                                   />
                                 );
                               })}
-                          </button>
+                          </div>
                         );
                       })}
 
@@ -1923,7 +1967,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
                 <div
                   className="timeline-dom-playhead"
-                  style={{ left: `${(playheadPosition - 1) * cellWidth}px` }}
+                  style={{ left: `${(playheadPosition - 1) * cellWidth + cellWidth / 2 - 1}px` }}
                 />
 
                 {selectionBox && (

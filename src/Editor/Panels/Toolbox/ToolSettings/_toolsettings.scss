@@ -35,6 +35,7 @@ $setting-height: 70px;
   flex-direction: column;
   gap: 6px;
   padding: 6px;
+  background-color: $editor-primary;
 }
 
 .tool-settings-presets-list {
@@ -93,6 +94,7 @@ body.hasHover .tool-settings-presets-item:hover {
   flex-direction: column;
   gap: 6px;
   padding: 6px;
+  background-color: $editor-primary;
 }
 
 .brush-modes-menu-list {

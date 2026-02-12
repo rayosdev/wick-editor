@@ -57,7 +57,7 @@ export default defineConfig({
               filePath = path.join(
                 process.cwd(),
                 "public",
-                cleanUrl.replace(/^\//, "")
+                cleanUrl.replace(/^\//, ""),
               );
             } else {
               return next();
@@ -112,7 +112,7 @@ export default defineConfig({
   },
   publicDir: "public",
   server: {
-    host: '0.0.0.0', // Expose to local network
+    host: "0.0.0.0", // Expose to local network
     port: 3002,
     fs: {
       allow: ["."],

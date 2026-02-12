@@ -49,6 +49,10 @@ type EditorBridge = Window & {
   editor?: {
     project?: ProjectModel;
     notifyTimelineSoftRender?: () => void;
+    state?: {
+      previewPlaying?: boolean;
+    };
+    togglePreviewPlaying?: () => void;
   };
   Wick?: {
     Layer: new (args?: { name?: string }) => TimelineLayerModel;
@@ -80,6 +84,15 @@ const bootEditor = async (page: Page): Promise<void> => {
   await page.locator("#animation-timeline-container").waitFor({
     state: "visible",
     timeout: 30000,
+  });
+  await page.waitForFunction(() => {
+    const preloader = document.getElementById("preloader");
+    if (!preloader) {
+      return true;
+    }
+
+    const style = window.getComputedStyle(preloader);
+    return style.display === "none" || style.visibility === "hidden" || style.opacity === "0";
   });
 };
 
@@ -228,6 +241,84 @@ test.describe("Timeline DOM editing", () => {
     await expect(page.locator('[data-timeline-renderer-mode="dom"]')).toBeVisible();
 
     const prepared = await prepareDomTimeline(page);
+
+    const playheadBeforePreview = await readPlayhead(page);
+    await page.evaluate(() => {
+      const bridge = window as unknown as EditorBridge;
+      if (!bridge.editor?.togglePreviewPlaying) {
+        return;
+      }
+
+      if (!bridge.editor.state?.previewPlaying) {
+        bridge.editor.togglePreviewPlaying();
+      }
+    });
+
+    await page.waitForFunction(
+      (startPlayhead) => {
+        const bridge = window as unknown as EditorBridge;
+        const timeline = bridge.editor?.project?.activeTimeline;
+        return Number(timeline?.playheadPosition ?? startPlayhead) !== Number(startPlayhead);
+      },
+      playheadBeforePreview,
+      { timeout: 10000 },
+    );
+
+    const playheadDuringPreview = await readPlayhead(page);
+    expect(playheadDuringPreview).not.toBe(playheadBeforePreview);
+
+    await page.evaluate(() => {
+      const bridge = window as unknown as EditorBridge;
+      if (!bridge.editor?.togglePreviewPlaying) {
+        return;
+      }
+
+      if (bridge.editor.state?.previewPlaying) {
+        bridge.editor.togglePreviewPlaying();
+      }
+    });
+
+    await page.waitForFunction(() => {
+      const bridge = window as unknown as EditorBridge;
+      return !bridge.editor?.state?.previewPlaying;
+    });
+
+    await page.evaluate(() => {
+      const bridge = window as unknown as EditorBridge;
+      const project = bridge.editor?.project;
+      if (!project?.view?.render) {
+        return;
+      }
+
+      const originalRender = project.view.render.bind(project.view);
+      let shouldThrowTransient = true;
+      project.view.render = () => {
+        if (shouldThrowTransient) {
+          shouldThrowTransient = false;
+          throw new TypeError("Cannot read properties of null (reading 'isRoot')");
+        }
+        originalRender();
+      };
+    });
+
+    const numberLine = page.locator(".timeline-dom-numberline");
+    const numberLineBox = await numberLine.boundingBox();
+    expect(numberLineBox).not.toBeNull();
+    if (!numberLineBox) {
+      throw new Error("Numberline bbox missing");
+    }
+
+    await page.mouse.move(numberLineBox.x + prepared.cellWidth * 1.5, numberLineBox.y + numberLineBox.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(
+      numberLineBox.x + prepared.cellWidth * 7.5,
+      numberLineBox.y + numberLineBox.height / 2,
+      { steps: 8 },
+    );
+    await page.mouse.up();
+
+    await expect(page.locator('[data-timeline-renderer-mode="dom"]')).toBeVisible();
+    await expect(page.locator("text=DOM timeline had an error and was switched to Classic.")).toHaveCount(0);
 
     const firstFrame = page.locator(".timeline-dom-frame").first();
     await expect(firstFrame).toHaveAttribute(

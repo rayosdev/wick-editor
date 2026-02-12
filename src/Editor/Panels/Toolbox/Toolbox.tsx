@@ -327,12 +327,6 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                                 )}
                             >
                                 <div className="tool-selector-popout">
-                                    <div className="tool-selector-menu-header">
-                                        {getToolTooltip(resolvedConfig.active)} Tools
-                                    </div>
-                                    <div className="tool-selector-menu-subtitle">
-                                        {selectorLabelPrefix} active icon to switch tools
-                                    </div>
                                     <div className="tool-selector-menu-list">
                                         {resolvedConfig.options.map((option) => {
                                             const optionIsActive =
@@ -364,12 +358,6 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                                                         <span className="tool-selector-menu-item-hotkey">
                                                             {hotkey}
                                                         </span>
-                                                    )}
-                                                    {optionIsActive && (
-                                                        <ToolIcon
-                                                            className="tool-selector-menu-item-check"
-                                                            name="check"
-                                                        />
                                                     )}
                                                 </button>
                                             );

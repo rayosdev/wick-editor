@@ -44,7 +44,10 @@ $filter-height: 40px;
 
 .asset-library-title-text {
   color: #FFFFFF; //$editor-primary-property-text;
-  font-size: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
   display: inline-flex;
   align-items: center;
   width: 200px;
