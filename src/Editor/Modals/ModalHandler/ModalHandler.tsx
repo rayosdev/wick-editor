@@ -60,11 +60,11 @@ const FALLBACK_WARNING_INFO: GeneralWarningProps["info"] = {
   description: "",
   acceptText: "",
   acceptIcon: "",
-  acceptAction: () => {},
+  acceptAction: () => { },
   cancelText: "",
   cancelIcon: "",
-  cancelAction: () => {},
-  finalAction: () => {},
+  cancelAction: () => { },
+  finalAction: () => { },
 };
 
 interface ModalHandlerProps {
@@ -140,28 +140,28 @@ const ModalHandler: React.FC<ModalHandlerProps> = (props) => {
   };
   const resolvedKeyMapGroups: NonNullable<SettingsModalProps["keyMapGroups"]> =
     props.keyMapGroups &&
-    typeof props.keyMapGroups === "object" &&
-    !Array.isArray(props.keyMapGroups)
+      typeof props.keyMapGroups === "object" &&
+      !Array.isArray(props.keyMapGroups)
       ? (props.keyMapGroups as NonNullable<SettingsModalProps["keyMapGroups"]>)
       : {};
   const resolvedBuiltinPreviews: BuiltinLibraryProps["builtinPreviews"] =
     props.builtinPreviews instanceof Map
       ? Array.from(props.builtinPreviews.entries()).reduce<
-          BuiltinLibraryProps["builtinPreviews"]
-        >((acc, [key, preview]) => {
-          if (
-            preview &&
-            typeof preview === "object" &&
-            "blob" in preview &&
-            (preview as { blob?: unknown }).blob instanceof Blob
-          ) {
-            acc[key] = preview as BuiltinLibraryProps["builtinPreviews"][string];
-          }
-          return acc;
-        }, {})
+        BuiltinLibraryProps["builtinPreviews"]
+      >((acc, [key, preview]) => {
+        if (
+          preview &&
+          typeof preview === "object" &&
+          "blob" in preview &&
+          (preview as { blob?: unknown }).blob instanceof Blob
+        ) {
+          acc[key] = preview as BuiltinLibraryProps["builtinPreviews"][string];
+        }
+        return acc;
+      }, {})
       : props.builtinPreviews &&
-          typeof props.builtinPreviews === "object" &&
-          !Array.isArray(props.builtinPreviews)
+        typeof props.builtinPreviews === "object" &&
+        !Array.isArray(props.builtinPreviews)
         ? (props.builtinPreviews as BuiltinLibraryProps["builtinPreviews"])
         : {};
 

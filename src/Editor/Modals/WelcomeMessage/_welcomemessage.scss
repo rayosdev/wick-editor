@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-@use 'Editor/brand' as *;
+@use "Editor/brand" as *;
 
 $welcome-modal-padding: 28px;
 
@@ -146,7 +146,7 @@ $welcome-modal-padding: 28px;
   width: 80%;
   height: 380px;
   max-width: 400px;
-  padding: 0px; 
+  padding: 0px;
   background-color: $editor-modal-dark !important;
 }
 
@@ -162,8 +162,8 @@ $welcome-modal-padding: 28px;
 
 .welcome-modal-mobile-content {
   padding: 20px;
-  padding-top: 10px; 
-  padding-bottom: 0px; 
+  padding-top: 10px;
+  padding-bottom: 0px;
 }
 
 .welcome-modal-title {
@@ -194,11 +194,11 @@ $welcome-modal-padding: 28px;
 
 .updates-list {
   margin-bottom: 0px;
-  color: white; 
+  color: white;
 }
 
 .updates-list.small-modal li {
-  font-size: 12px !important; 
+  font-size: 12px !important;
 }
 
 #welcome-modal-mobile-accept {
