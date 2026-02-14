@@ -1,6 +1,6 @@
 [build]
-  # The command Netlify should run to build the project
-  command = "npm run build"
+  # Reinstall with a recent npm and include optional deps so Rollup native binary is installed on Linux
+  command = "npm i -g npm@11 && npm install --include=optional && npm run build"
   
   # The directory that contains the deploy-ready assets
   publish = "build"
@@ -8,6 +8,9 @@
 [build.environment]
   # Ensure we use at least Node 22 as specified in package.json
   NODE_VERSION = "22"
+
+  # Ensure optional dependencies are included during dependency install
+  NPM_FLAGS = "--include=optional"
   
   # Prevent unwanted Electron-related downloads/installs if any survived
   ELECTRON_SKIP_BINARY_DOWNLOAD = "1"
