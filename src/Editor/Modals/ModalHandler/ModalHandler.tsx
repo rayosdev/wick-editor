@@ -117,6 +117,7 @@ interface ModalHandlerProps {
   exportProjectAsImageSequence: () => void;
   exportProjectAsAudioTrack: () => void;
   exportProjectAsImageSVG: () => void;
+  setSkipWelcomeMessage: (skip: boolean) => void;
 }
 
 const ModalHandler: React.FC<ModalHandlerProps> = (props) => {
@@ -186,6 +187,11 @@ const ModalHandler: React.FC<ModalHandlerProps> = (props) => {
       <WelcomeMessage
         isMobile={isMobile}
         toggle={props.closeActiveModal}
+        onAccept={(dontShowAgain) => {
+          if (dontShowAgain) {
+            props.setSkipWelcomeMessage(true);
+          }
+        }}
         open={props.activeModalName === 'WelcomeMessage'}
         project={props.project}
         editorVersion={props.editorVersion}

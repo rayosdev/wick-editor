@@ -67,6 +67,7 @@ type EditorLike = {
     openModal: (name: ModalName, options?: Record<string, unknown>) => void;
     closeActiveModal: () => void;
     queueModal: (name: ModalName) => void;
+    setSkipWelcomeMessage: (skip: boolean) => void;
     openWarningModal: (info: WarningModalInfo) => void;
     createClipFromSelection: (name: string) => void;
     createButtonFromSelection: (name: string) => void;
@@ -223,6 +224,7 @@ function EditorWrapper({ editor, children }: EditorWrapperProps) {
                     openModal={editor.openModal as (name: string) => void}
                     closeActiveModal={editor.closeActiveModal}
                     queueModal={editor.queueModal as (name: string) => void}
+                    setSkipWelcomeMessage={editor.setSkipWelcomeMessage}
                     project={editor.project}
                     createClipFromSelection={editor.createClipFromSelection}
                     createButtonFromSelection={editor.createButtonFromSelection}

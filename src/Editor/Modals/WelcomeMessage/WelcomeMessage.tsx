@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { type ComponentProps } from "react";
+import React, { type ComponentProps, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Modal from "react-modal";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
@@ -38,14 +38,17 @@ interface WelcomeModalProps {
   editorVersion: string;
   isMobile?: boolean;
   project: WickProject;
+  onAccept?: (dontShowAgain: boolean) => void;
 }
 
 const WelcomeModal: React.FC<WelcomeModalProps> = ({
   open,
   toggle,
   editorVersion,
-  isMobile
+  isMobile,
+  onAccept,
 }) => {
+  const [dontShowAgain, setDontShowAgain] = useState(false);
   type ModalProps = ComponentProps<typeof Modal>;
   const forumPost =
     "https://forum.wickeditor.com/t/help-needed-wick-editor-version-1-18-new-fill-bucket-outliner-tool-mobile-improvements/3314";
@@ -143,12 +146,23 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
           </div>
           {renderUpdates("small-modal")}
           {renderPatreonSupporters()}
+          <label className="welcome-modal-dont-show-again mobile">
+            <input
+              type="checkbox"
+              checked={dontShowAgain}
+              onChange={(event) => setDontShowAgain(event.target.checked)}
+            />
+            <span>Don&apos;t show again</span>
+          </label>
         </div>
         <div id="welcome-modal-mobile-accept">
           <ActionButton
             className="welcome-modal-button"
             color="green"
-            action={toggle}
+            action={() => {
+              onAccept?.(dontShowAgain);
+              toggle();
+            }}
             text="Try it"
           />
         </div>
@@ -203,11 +217,22 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
               </a>
             </div>
             <div id="welcome-modal-footer">
+              <label className="welcome-modal-dont-show-again">
+                <input
+                  type="checkbox"
+                  checked={dontShowAgain}
+                  onChange={(event) => setDontShowAgain(event.target.checked)}
+                />
+                <span>Don&apos;t show again</span>
+              </label>
               <div id="welcome-modal-accept">
                 <ActionButton
                   className="welcome-modal-button"
                   color="green"
-                  action={toggle}
+                  action={() => {
+                    onAccept?.(dontShowAgain);
+                    toggle();
+                  }}
                   text="Try it"
                 />
               </div>

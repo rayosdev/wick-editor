@@ -791,6 +791,14 @@ class Editor extends EditorCore {
     }
   };
 
+  setSkipWelcomeMessage = (skip) => {
+    if (skip) {
+      window.localStorage.setItem("skipWelcomeMessage", "true");
+    } else {
+      window.localStorage.removeItem("skipWelcomeMessage");
+    }
+  };
+
   /**
    * Closes the active modal, if there is one. Opens the next modal in the
    * if necessary.
