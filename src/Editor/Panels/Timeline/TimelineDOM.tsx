@@ -2595,6 +2595,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         <div className="timeline-dom-workspace">
           <div className="timeline-dom-layers-panel">
             <div className="timeline-dom-layers-header">Layers</div>
+            <div className="timeline-dom-layers-subheader" />
             <div
               className="timeline-dom-layers-scroll"
               ref={layersScrollRef}

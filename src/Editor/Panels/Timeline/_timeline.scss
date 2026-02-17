@@ -529,6 +529,14 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   background-color: $editor-primary;
 }
 
+.timeline-dom-layers-subheader {
+  height: 34px;
+  flex: 0 0 34px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* Matches numberline */
+  background-color: $editor-primary;
+  z-index: 3;
+}
+
 .timeline-dom-layers-scroll {
   flex: 1 1 auto;
   overflow: auto;
@@ -1111,6 +1119,7 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   }
 
   .timeline-dom-layers-header,
+  .timeline-dom-layers-subheader,
   .timeline-dom-marker-row,
   .timeline-dom-numberline {
     height: 30px;
@@ -1226,8 +1235,10 @@ body.hasHover .timeline-renderer-toggle-button:hover {
     height: 36px;
   }
 
-  .timeline-dom-numberline {
+  .timeline-dom-numberline,
+  .timeline-dom-layers-subheader {
     height: 40px;
+    flex: 0 0 40px;
   }
 
   .timeline-dom-marker-row {
