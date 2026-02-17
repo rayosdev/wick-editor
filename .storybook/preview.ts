@@ -1,5 +1,7 @@
 import type { Preview } from "@storybook/react-vite";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "../src/styles/tailwind.css";
+import "../src/Editor/styles/tokens.css";
 import "../src/Editor/styles/default_styles.css";
 import "../src/Editor/styles/default_theme.css";
 

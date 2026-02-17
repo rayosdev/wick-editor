@@ -18,7 +18,7 @@
  */
 
 import React, { ReactNode, ChangeEvent, forwardRef } from "react";
-import "./_wickinput.scss";
+import "./wickinput.legacy.css";
 
 import Select from "react-select";
 import "react-dropdown/style.css";
@@ -43,6 +43,11 @@ export interface SelectOption {
 }
 
 type WickInputDynamicValue = ReturnType<typeof JSON.parse>;
+
+const INPUT_BASE_CLASSES =
+  "wick-input h-full w-full rounded-[5px] border-0 bg-[#4F4F4F] py-[2px] pl-1 pr-[2px] text-white";
+const INPUT_STATE_CLASSES =
+  "[&.invalid]:!border-l-[3px] [&.invalid]:!border-l-[#F86868] [&.wick-input-updating]:!border-[3px] [&.wick-input-updating]:!border-[#FFC835] [&.read-only]:bg-gray-500";
 
 interface WickInputProps {
   type?:
@@ -81,7 +86,7 @@ interface WickInputProps {
   secondaryAction?: () => void;
   onClick?: (e?: React.SyntheticEvent) => void;
   onTouch?: (e?: React.SyntheticEvent) => void;
-  [key: string]: WickInputDynamicValue; // For spread props
+  [key: string]: WickInputDynamicValue;
 }
 
 /**
@@ -93,18 +98,12 @@ interface WickInputProps {
  */
 const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
   const renderTooltip = (tooltipID: string): JSX.Element => {
-    // Detect if on mobile to disable tooltips.
-
     return (
       <ReactTooltip
         disable={isMobile}
         id={tooltipID}
         type="info"
-        place={
-          props.tooltipPlace === undefined
-            ? "bottom"
-            : props.tooltipPlace
-        }
+        place={props.tooltipPlace === undefined ? "bottom" : props.tooltipPlace}
         effect="solid"
         aria-haspopup="true"
         className="wick-tooltip"
@@ -127,20 +126,10 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
       return validNumber;
     };
 
-    // Used to clean up the number prior to display and updates.
-
-    /**
-     * Takes in a string and converts that string into a displayable value
-     * and converts that value to a number, with proper padding and styling. Value may not be valid,
-     * in which case the same value will be returned.
-     * @param val - String to "Clean Up"
-     * @returns Returns cleaned up number if valid string representation is passed in, string otherwise.
-     */
     const cleanUp = (val: string): string => {
       if (!isValid(val)) return val;
 
       let numVal = parseFloat(val);
-      // Constrain between min and max
       if (min !== undefined) {
         numVal = Math.max(numVal, min);
       }
@@ -157,7 +146,8 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
         {...rest}
         value={props.value || ""}
         className={classNames(
-          "wick-input",
+          INPUT_BASE_CLASSES,
+          INPUT_STATE_CLASSES,
           "numeric",
           { "read-only": props.readOnly },
           props.className
@@ -173,7 +163,8 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
       <WickTextInput
         {...props}
         className={classNames(
-          "wick-input",
+          INPUT_BASE_CLASSES,
+          INPUT_STATE_CLASSES,
           { "read-only": props.readOnly },
           props.className
         )}
@@ -183,14 +174,17 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
   };
 
   const renderSlider = (): JSX.Element => {
-    // Spit out the value of a text box back to the onChange function.
     const wrappedOnChange = (val: ChangeEvent<HTMLInputElement>): void => {
       props.onChange?.(parseFloat(val.target.value));
     };
+
     return (
       <input
         {...props}
-        className={classNames("wick-slider", props.className)}
+        className={classNames(
+          "wick-slider mt-auto flex h-full w-full items-center rounded-[5px]",
+          props.className
+        )}
         type="range"
         onChange={props.onChange ? wrappedOnChange : undefined}
       />
@@ -201,16 +195,16 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
     const wrappedOnChange = (color: PickerColorChange): void => {
       let newColor: string | PickerColorChange = color;
 
-      // TODO: Check if we can just use HEX here.
       if (color.rgb) {
         const rgb = color.rgb;
         const str = `rgba(${rgb.r},${rgb.g},${rgb.b},${rgb.a})`;
         newColor = str;
       }
 
-      props.updateLastColors && props.updateLastColors(
-        typeof newColor === "string" ? newColor : String(newColor)
-      );
+      props.updateLastColors &&
+        props.updateLastColors(
+          typeof newColor === "string" ? newColor : String(newColor)
+        );
       props.onChange && props.onChange(newColor);
     };
 
@@ -248,13 +242,13 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
         onChange={props.onChange}
         defaultValue={value}
         options={props.options}
-        className={classNames("wick-input-select", props.className)}
+        className={classNames("wick-input-select h-full w-full", props.className)}
         classNamePrefix={"wick-input-select"}
         menuPortalTarget={document.body}
         menuPosition={"fixed"}
         styles={{
           option: (provided, state) => {
-            let style = {
+            const style = {
               ...provided,
               color: "black",
               fontSize: "16px",
@@ -262,6 +256,7 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
               paddingTop: "0px",
               whiteSpace: "nowrap",
             };
+
             if (props.className === "font-family") {
               style.fontFamily = state.label;
             }
@@ -278,15 +273,18 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
 
   const renderCheckbox = (): JSX.Element => {
     return (
-      <div className="wick-checkbox-container">
+      <div className="wick-checkbox-container flex h-full w-full items-center text-center">
         {props.label && (
-          <label htmlFor={props.label} className="wick-checkbox-label">
+          <label
+            htmlFor={props.label}
+            className="wick-checkbox-label mr-1 text-white"
+          >
             {props.label}
           </label>
         )}
         <input
           id={props.label}
-          className="wick-checkbox"
+          className="wick-checkbox h-5 min-h-5 min-w-5 cursor-pointer"
           {...props}
           type="checkbox"
         />
@@ -329,11 +327,15 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
   };
 
   const renderButton = (): JSX.Element => {
+    const buttonClassName = classNames(props.className, {
+      "bg-[#4CAF50] text-white": !props.className,
+    });
+
     return (
       <WickButton
         onClick={props.onClick ? () => props.onClick?.() : undefined}
         secondaryAction={props.secondaryAction}
-        className={props.className}
+        className={buttonClassName}
         buttonProps={props.buttonProps}
       >
         {props.children}
@@ -358,9 +360,9 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
       return renderRadio();
     } else if (props.type === "button") {
       return renderButton();
-    } else {
-      return renderButton(); // default to a button.
     }
+
+    return renderButton();
   };
 
   const tooltipID =
@@ -375,7 +377,7 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
         data-for={tooltipID}
         id={tooltipID}
         className={classNames(
-          "wick-input-container",
+          "wick-input-container flex h-full w-full",
           props.containerclassname
         )}
       >
@@ -383,11 +385,11 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
         {renderContent()}
       </div>
     );
-  } else {
-    return renderContent();
   }
+
+  return renderContent();
 });
 
-WickInput.displayName = 'WickInput';
+WickInput.displayName = "WickInput";
 
 export default WickInput;

@@ -4,7 +4,6 @@ import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 
 import "./_timeline.scss";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 import iconLock from "resources/timeline-icons/locked.png";
 import iconUnlock from "resources/timeline-icons/unlocked.png";

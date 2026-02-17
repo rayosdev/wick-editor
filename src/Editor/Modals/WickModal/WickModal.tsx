@@ -22,8 +22,6 @@ import Modal from "react-modal";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
-import "./_wickmodal.scss";
-
 import classNames from "classnames";
 
 interface WickModalProps {
@@ -61,7 +59,7 @@ const WickModal: React.FC<WickModalProps> = ({
 
   const renderIcon = (): JSX.Element => {
     return (
-      <div id="modal-icon-container">
+      <div id="modal-icon-container" className="h-[60px] w-[60px]">
         <ToolIcon name={icon} />
       </div>
     );
@@ -80,14 +78,17 @@ const WickModal: React.FC<WickModalProps> = ({
         overlayClassName
       )}
     >
-      <div id="modal-close-icon-container">
+      <div
+        id="modal-close-icon-container"
+        className="absolute right-[15px] top-[15px] h-5 w-5 cursor-pointer select-none border-none bg-[#383434]"
+      >
         <ActionButton
           color="tool"
           icon="cancel-white"
           action={toggle}
         />
       </div>
-      <div className="modal-generic-container">
+      <div className="modal-generic-container flex h-full w-full flex-col items-center">
         {icon && renderIcon()}
         {children}
       </div>

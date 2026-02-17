@@ -21,8 +21,6 @@ import React from 'react';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
 
-import './_generalwarning.scss';
-
 interface WarningInfo {
   title: string;
   description: string;
@@ -63,15 +61,29 @@ const GeneralWarning: React.FC<GeneralWarningProps> = ({ open, toggle, info }) =
       open={open}
       toggle={toggle}
       icon="warningdelete"
-      className="general-warning-modal-body"
+      className="general-warning-modal-body h-[250px] min-w-[240px] w-[240px] p-5"
       overlayClassName="general-warning-modal-overlay">
-      <div id="general-warning-modal-interior-content">
-        <div id="general-warning-modal-title">{info.title}</div>
-        <div id="general-warning-modal-message">
+      <div
+        id="general-warning-modal-interior-content"
+        className="flex h-full w-full flex-col items-center justify-center"
+      >
+        <div
+          id="general-warning-modal-title"
+          className="mt-5 text-center text-lg font-bold text-[#E6E6E6]"
+        >
+          {info.title}
+        </div>
+        <div
+          id="general-warning-modal-message"
+          className="w-full text-center text-sm text-[#E6E6E6]"
+        >
           {info.description}
         </div>
-        <div id="general-warning-modal-footer">
-          <div id="general-warning-modal-cancel">
+        <div
+          id="general-warning-modal-footer"
+          className="mt-[25px] flex h-10 w-full flex-row items-center justify-center"
+        >
+          <div id="general-warning-modal-cancel" className="h-full w-[90px]">
             <ActionButton
               className="general-warning-modal-button"
               color='gray'
@@ -81,7 +93,7 @@ const GeneralWarning: React.FC<GeneralWarningProps> = ({ open, toggle, info }) =
               iconClassName="cancel-icon"
             />
           </div>
-          <div id="general-warning-modal-accept">
+          <div id="general-warning-modal-accept" className="ml-[18px] h-full w-[90px]">
             <ActionButton
               className="general-warning-modal-button"
               color='green'

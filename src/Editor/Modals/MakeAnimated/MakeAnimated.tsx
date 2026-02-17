@@ -23,8 +23,6 @@ import WickModal from 'Editor/Modals/WickModal/WickModal';
 import WickInput from 'Editor/Util/WickInput/WickInput';
 import ObjectInfo from '../Util/ObjectInfo/ObjectInfo';
 
-import './_makeanimated.scss';
-
 interface MakeAnimatedProps {
   open: boolean;
   toggle: () => void;
@@ -60,11 +58,19 @@ const MakeAnimated: React.FC<MakeAnimatedProps> = ({
     <WickModal
       open={open}
       toggle={toggle}
-      className="make-animated-modal-body"
+      className="make-animated-modal-body h-[330px] w-[240px] min-w-[240px] p-5"
       overlayClassName="make-animated-modal-overlay">
-      <div id="make-animated-modal-interior-content">
-        <div id="make-animated-modal-title">Make Animated</div>
-        <div id="make-animated-modal-name-input">
+      <div
+        id="make-animated-modal-interior-content"
+        className="flex h-full w-full flex-col items-center justify-center"
+      >
+        <div
+          id="make-animated-modal-title"
+          className="w-full text-left text-[18px] font-bold text-editor-modal-text"
+        >
+          Make Animated
+        </div>
+        <div id="make-animated-modal-name-input" className="mt-[10px]">
           <WickInput
             type="text"
             value={name}
@@ -88,8 +94,11 @@ const MakeAnimated: React.FC<MakeAnimatedProps> = ({
             }
           ]} />
       </div>
-      <div id="make-animated-modal-footer">
-        <div id="make-animated-modal-accept">
+      <div
+        id="make-animated-modal-footer"
+        className="mt-[15px] flex h-[28px] w-full flex-row items-center justify-center"
+      >
+        <div id="make-animated-modal-accept" className="h-full w-full">
           <ActionButton
             className="make-animated-modal-button"
             color='gray-green'
@@ -98,7 +107,10 @@ const MakeAnimated: React.FC<MakeAnimatedProps> = ({
           />
         </div>
       </div>
-      <div id="make-animated-asset-checkbox-container">
+      <div
+        id="make-animated-asset-checkbox-container"
+        className="mt-[10px] flex w-full flex-row items-center justify-start"
+      >
         {/* <WickInput
           type="checkbox"
           containerclassname="make-animated-asset-checkbox-input-container"

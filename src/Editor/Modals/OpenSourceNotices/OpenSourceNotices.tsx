@@ -18,10 +18,7 @@
  */
 
 import React from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
 import WickModal from "Editor/Modals/WickModal/WickModal";
-
-import "./_opensourcenotices.scss";
 
 import classNames from "classnames";
 
@@ -37,12 +34,12 @@ const OpenSourceNotices: React.FC<OpenSourceNoticesProps> = ({ open, toggle, isM
       open={open}
       toggle={toggle}
       className={classNames(
-        "open-source-notices-modal-container",
-        isMobile && "mobile"
+        "open-source-notices-modal-container h-[400px] w-[600px]",
+        isMobile && "mobile w-[80%] max-w-[400px]"
       )}
       overlayClassName="open-source-notices-modal-overlay"
     >
-      <div className="open-source-notices-body">
+      <div className="open-source-notices-body mt-[25px] w-full overflow-x-hidden overflow-y-scroll text-white">
         <h1> Wick Editor Open Source Notices </h1>
         <p>
           The Wick Editor is an open source project that utilizes the shared

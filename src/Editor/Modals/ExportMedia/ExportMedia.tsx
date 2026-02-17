@@ -21,8 +21,6 @@ import React from 'react';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
 import { Progress } from 'reactstrap';
 
-import './_exportmedia.scss';
-
 interface WickProject {
   name: string;
 }
@@ -64,18 +62,33 @@ const ExportMedia: React.FC<ExportMediaProps> = ({
     <WickModal
       open={open}
       toggle={toggle}
-      className="media-export-modal-body"
+      className="media-export-modal-body h-[160px] w-[300px] min-w-[240px] p-5"
       overlayClassName="media-export-modal-overlay">
-      <div id="media-export-modal-title">Exporting {renderType}</div>
-      <div className="media-export-modal-content">
-        <div id="media-export-modal-subtitle">Creating "{renderName}"</div>
+      <div
+        id="media-export-modal-title"
+        className="w-full text-left text-[18px] font-bold text-editor-modal-text"
+      >
+        Exporting {renderType}
+      </div>
+      <div className="media-export-modal-content h-full w-full pt-[15px]">
+        <div
+          id="media-export-modal-subtitle"
+          className="pb-1 text-[16px] text-editor-modal-text"
+        >
+          Creating "{renderName}"
+        </div>
         <Progress
           striped
           animated={!renderDone}
           color={renderDone ? 'success' : 'warning'}
           value={renderProgress}
         />
-        <div id="media-export-modal-status-message">{renderStatusMessage}</div>
+        <div
+          id="media-export-modal-status-message"
+          className="text-[14px] text-editor-modal-text"
+        >
+          {renderStatusMessage}
+        </div>
       </div>
     </WickModal>
   );

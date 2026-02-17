@@ -20,8 +20,6 @@
 import React from "react";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 
-import "./_objectinfo.scss";
-
 import classNames from "classnames";
 
 interface ObjectInfoRow {
@@ -44,20 +42,26 @@ const ObjectInfo: React.FC<ObjectInfoProps> = ({ className, title, rows }) => {
     const text = rowInfo.text;
     const icon = rowInfo.icon;
     return (
-      <div key={i} className="object-info-row">
-        <div className="object-info-row-icon">
+      <div
+        key={i}
+        className="object-info-row mt-[3px] flex text-[14px] text-white"
+      >
+        <div className="object-info-row-icon relative left-0 top-[2px] h-[15px] w-[15px]">
           <ToolIcon name={icon} />
         </div>
-        <div className="object-info-row-text">{text}</div>
+        <div className="object-info-row-text ml-1 text-white">{text}</div>
       </div>
     );
   };
 
   return (
     <div
-      className={classNames("object-info-container", className)}
+      className={classNames(
+        "object-info-container mt-[10px] h-[140px] w-full rounded-[3px] bg-[#525252] px-5 pb-5 pt-[10px]",
+        className
+      )}
     >
-      <div className="object-info-title">{title}</div>
+      <div className="object-info-title text-[16px] text-white">{title}</div>
       {rows.map(renderRow)}
     </div>
   );

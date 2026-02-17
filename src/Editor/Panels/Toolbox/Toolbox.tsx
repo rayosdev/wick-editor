@@ -21,7 +21,6 @@ import { useState } from "react";
 import classNames from "classnames";
 
 import "./_toolbox.scss";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 import HotKeyInterface from "Editor/hotKeyMap";
 import WickInput from "Editor/Util/WickInput/WickInput";

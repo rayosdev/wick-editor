@@ -18,12 +18,9 @@
  */
 
 import React, { type ComponentProps, useState } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
 import Modal from "react-modal";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import type { WickProject } from "Editor/types";
-
-import "./_welcomemessage.scss";
 
 // import nightImage from 'resources/interface-images/blue_night.svg';
 import nightImageShort from "resources/interface-images/blue_night_short.svg";
@@ -95,7 +92,12 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
   // Render updates as a list.
   const renderUpdates = (className?: string): JSX.Element => {
     return (
-      <ul className={classNames("updates-list", className)}>
+      <ul
+        className={classNames(
+          "updates-list mb-0 text-white",
+          className
+        )}
+      >
         {updates.map((update, i) => {
           return <li key={`update-${i}`}>{update}</li>;
         })}
@@ -108,14 +110,14 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
     return (
       <div className={classNames("supporter-list-container", className)}>
         <a
-          className="welcome-modal-highlight"
+          className="welcome-modal-highlight text-wick-green"
           target="_blank"
           rel="noopener noreferrer"
           href="https://www.patreon.com/WickEditor"
         >
           Become a Patreon Supporter!
         </a>
-        <div className="supporter-list">
+        <div className="supporter-list h-[35%] max-h-[75px] overflow-y-scroll text-[12px] text-white">
           {patreonSupporters.join(", ")}
         </div>
       </div>
@@ -124,19 +126,24 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
 
   const renderMobileModal = (modalProps: ModalProps): JSX.Element => {
     return (
-      <Modal {...modalProps} className="modal-body welcome-modal-mobile-body">
-        <div className="welcome-modal-mobile-image-container">
+      <Modal
+        {...modalProps}
+        className="modal-body welcome-modal-mobile-body h-[380px] w-[80%] max-w-[400px] !bg-editor-primary p-0"
+      >
+        <div className="welcome-modal-mobile-image-container max-h-[30%] w-full overflow-hidden">
           <img
-            className="welcome-modal-mobile-image"
+            className="welcome-modal-mobile-image w-full"
             alt="Night sky with mountains, clouds, a moon and stars"
             src={nightImageShort}
           />
         </div>
-        <div className="welcome-modal-mobile-content">
-          <div className="welcome-modal-title small-modal">The Wick Editor</div>
-          <div className="welcome-modal-version small-modal">
+        <div className="welcome-modal-mobile-content px-5 pb-0 pt-[10px]">
+          <div className="welcome-modal-title small-modal whitespace-nowrap font-nunito text-[22px] font-bold text-white">
+            The Wick Editor
+          </div>
+          <div className="welcome-modal-version small-modal text-[16px] font-semibold text-editor-modal-text">
             <a
-              className="welcome-modal-highlight"
+              className="welcome-modal-highlight text-wick-green"
               target="_blank"
               rel="noopener noreferrer"
               href={forumPost}
@@ -144,9 +151,9 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
               Version {editorVersion}
             </a>
           </div>
-          {renderUpdates("small-modal")}
+          {renderUpdates("small-modal [&_li]:text-[12px]")}
           {renderPatreonSupporters()}
-          <label className="welcome-modal-dont-show-again mobile">
+          <label className="welcome-modal-dont-show-again mobile mt-[10px] inline-flex items-center gap-[6px] text-[12px] text-editor-modal-text [&_input]:m-0">
             <input
               type="checkbox"
               checked={dontShowAgain}
@@ -155,9 +162,9 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
             <span>Don&apos;t show again</span>
           </label>
         </div>
-        <div id="welcome-modal-mobile-accept">
+        <div id="welcome-modal-mobile-accept" className="absolute bottom-5 right-5 w-[65px]">
           <ActionButton
-            className="welcome-modal-button"
+            className="welcome-modal-button h-[28px] w-full"
             color="green"
             action={() => {
               onAccept?.(dontShowAgain);
@@ -172,25 +179,41 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
 
   const renderDesktopModal = (modalProps: ModalProps): JSX.Element => {
     return (
-      <Modal {...modalProps} className="modal-body welcome-modal-body">
-        <div id="welcome-modal-interior-content">
+      <Modal
+        {...modalProps}
+        className="modal-body welcome-modal-body h-[420px] max-h-[420px] w-[670px] max-w-[670px] p-0"
+      >
+        <div
+          id="welcome-modal-interior-content"
+          className="flex h-full w-full flex-row"
+        >
           <div
             id="welcome-image-container"
-            className="welcome-modal-main-container"
+            className="welcome-modal-main-container h-full w-1/2 max-w-[320px]"
           >
             <img
               id="welcome-image"
+              className="h-full"
               alt="Night sky with mountains, clouds, a moon and stars"
               src={coolField}
             />
           </div>
-          <div id="welcome-message-container" className="modal-main-container">
-            <div id="welcome-modal-title" className="welcome-modal-item">
+          <div
+            id="welcome-message-container"
+            className="modal-main-container relative w-[350px] min-w-[350px] bg-editor-primary px-7 pb-7 pt-[30px]"
+          >
+            <div
+              id="welcome-modal-title"
+              className="welcome-modal-item whitespace-nowrap text-[22px] font-bold text-white"
+            >
               Welcome To The Wick Editor!
             </div>
-            <div id="welcome-modal-version" className="welcome-modal-item">
+            <div
+              id="welcome-modal-version"
+              className="welcome-modal-item text-[16px] font-semibold text-editor-modal-text"
+            >
               <a
-                className="welcome-modal-highlight"
+                className="welcome-modal-highlight text-wick-green"
                 target="_blank"
                 rel="noopener noreferrer"
                 href={forumPost}
@@ -198,17 +221,26 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
                 Version {editorVersion}
               </a>
             </div>
-            <div id="welcome-modal-subtitle" className="welcome-modal-item">
+            <div
+              id="welcome-modal-subtitle"
+              className="welcome-modal-item mt-5 text-[20px] font-bold text-white"
+            >
               Wick Editor {editorVersion} includes:
             </div>
-            <div id="welcome-modal-message" className="welcome-modal-item">
+            <div
+              id="welcome-modal-message"
+              className="welcome-modal-item text-[14px] text-editor-modal-text"
+            >
               {renderUpdates()}
-              {renderPatreonSupporters("desktop-modal")}
+              {renderPatreonSupporters("desktop-modal mt-5")}
             </div>
-            <div id="welcome-modal-forum-link" className="welcome-modal-item">
+            <div
+              id="welcome-modal-forum-link"
+              className="welcome-modal-item absolute bottom-[68px] left-7 text-[14px] text-editor-modal-text"
+            >
               Please report all bugs on our{" "}
               <a
-                className="welcome-modal-highlight"
+                className="welcome-modal-highlight text-wick-green"
                 target="_blank"
                 rel="noopener noreferrer"
                 href="https://forum.wickeditor.com"
@@ -216,8 +248,11 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
                 forum!
               </a>
             </div>
-            <div id="welcome-modal-footer">
-              <label className="welcome-modal-dont-show-again">
+            <div
+              id="welcome-modal-footer"
+              className="absolute bottom-7 flex h-[28px] w-[calc(100%_-_56px)] flex-row items-center"
+            >
+              <label className="welcome-modal-dont-show-again mr-2 inline-flex items-center gap-[6px] text-[13px] text-editor-modal-text [&_input]:m-0">
                 <input
                   type="checkbox"
                   checked={dontShowAgain}
@@ -225,9 +260,9 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
                 />
                 <span>Don&apos;t show again</span>
               </label>
-              <div id="welcome-modal-accept">
+              <div id="welcome-modal-accept" className="ml-auto h-full w-[65px]">
                 <ActionButton
-                  className="welcome-modal-button"
+                  className="welcome-modal-button h-full w-full"
                   color="green"
                   action={() => {
                     onAccept?.(dontShowAgain);

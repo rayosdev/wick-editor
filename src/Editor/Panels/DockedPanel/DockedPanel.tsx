@@ -19,7 +19,6 @@
 
 import { PureComponent, ReactNode } from 'react';
 import './_dockedpanel.scss';
-import 'bootstrap/dist/css/bootstrap.min.css';
 
 interface DockedPanelProps {
   showOverlay?: boolean;

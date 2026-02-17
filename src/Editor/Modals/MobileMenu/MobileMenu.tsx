@@ -21,8 +21,6 @@ import React from 'react';
 import Modal from 'react-modal';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 
-import './_mobilemenu.scss';
-
 interface MobileMenuItem {
   text: string;
   icon: string;
@@ -66,13 +64,29 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   return (
     <Modal
       {...modalProps}
-      className="mobile-menu-mobile-body">
-      <div className="mobile-menu-options-container">
-        {items.map(({ text, icon, action }) =>
-          <ActionButton key={text} className="mobile-menu-option" buttonClassName="no-bg mobile-menu-button" iconClassName="mobile-menu-icon" action={action} text={text} icon={icon} />)}
+      className="mobile-menu-mobile-body h-full">
+      <div className="mobile-menu-options-container my-2 flex h-full flex-col">
+        {items.map(({ text, icon, action }) => (
+          <ActionButton
+            key={text}
+            className="mobile-menu-option max-h-[20%]"
+            buttonClassName="mobile-menu-button !bg-transparent flex justify-start pl-4"
+            iconClassName="mobile-menu-icon h-[60px] w-[60px] fill-white"
+            textClassName="mobile-menu-option-text relative left-[10%] h-[60%] w-[70%] text-left font-['Nunito'] text-[40px] text-white"
+            action={action}
+            text={text}
+            icon={icon}
+          />
+        ))}
       </div>
-      <div className="mobile-menu-close">
-        <ActionButton icon="cancel-white" iconClassName="mobile-menu-close-icon" buttonClassName="no-bg" action={toggle} color="gray" />
+      <div className="mobile-menu-close absolute right-[15px] top-[15px] min-h-[30px] min-w-[30px]">
+        <ActionButton
+          icon="cancel-white"
+          iconClassName="mobile-menu-close-icon w-[30px]"
+          buttonClassName="!bg-transparent"
+          action={toggle}
+          color="gray"
+        />
       </div>
     </Modal>
   );

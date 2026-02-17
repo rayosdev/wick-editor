@@ -21,8 +21,6 @@ import React from 'react';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
 
-import './_autosavewarning.scss';
-
 interface AutosaveWarningProps {
   open: boolean;
   toggle: () => void;
@@ -57,12 +55,23 @@ const AutosaveWarning: React.FC<AutosaveWarningProps> = ({
       open={open}
       toggle={toggle}
       icon="autosave"
-      className="autosave-modal-body"
+      className="autosave-modal-body h-[200px] min-w-[240px] w-[240px] p-5"
       overlayClassName="autosave-modal-overlay">
-      <div id="autosave-modal-interior-content">
-        <div id="autosave-modal-title">Load Autosave?</div>
-        <div id="autosave-modal-footer">
-          <div id="autosave-modal-cancel">
+      <div
+        id="autosave-modal-interior-content"
+        className="flex h-[120px] w-full flex-col items-center justify-center"
+      >
+        <div
+          id="autosave-modal-title"
+          className="mt-0 text-center text-lg font-bold text-[#E6E6E6]"
+        >
+          Load Autosave?
+        </div>
+        <div
+          id="autosave-modal-footer"
+          className="mt-[15px] flex h-10 w-full flex-row items-center justify-center"
+        >
+          <div id="autosave-modal-cancel" className="h-full w-[90px]">
             <ActionButton
               className="autosave-modal-button"
               color='red'
@@ -72,7 +81,7 @@ const AutosaveWarning: React.FC<AutosaveWarningProps> = ({
               iconClassName="autosave-icon"
             />
           </div>
-          <div id="autosave-modal-accept">
+          <div id="autosave-modal-accept" className="ml-[18px] h-full w-[90px]">
             <ActionButton
               className="autosave-modal-button"
               color='green'

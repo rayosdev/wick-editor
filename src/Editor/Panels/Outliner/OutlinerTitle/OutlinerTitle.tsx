@@ -19,7 +19,6 @@
 
 import React from 'react';
 import './_outlinertitle.scss';
-import 'bootstrap/dist/css/bootstrap.min.css';
 
 const OutlinerTitle: React.FC = () => {
   return (

@@ -20,6 +20,7 @@
 import { createRoot } from "react-dom/client";
 import JSZip from "jszip";
 import "./index.css";
+import "./styles/tailwind.css";
 import Editor from "./Editor/Editor";
 import * as serviceWorker from "./serviceWorker";
 import initializeDefaultFileHandlers from "./files/filehandler";

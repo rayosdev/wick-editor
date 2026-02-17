@@ -19,6 +19,7 @@
 
 import React, { Fragment, ReactNode } from 'react';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
+import classNames from 'classnames';
 
 import flashy from '../../../resources/support-us-icons/flashy.png';
 import patreonLogoWhite from '../../../resources/support-us-icons/patreon-logo-white.svg';
@@ -28,9 +29,6 @@ import facebookIcon from '../../../resources/support-us-icons/facebook.svg';
 import instagramIcon from '../../../resources/support-us-icons/instagram.svg';
 import twitterIcon from '../../../resources/support-us-icons/twitter.svg';
 import whiteHeart from '../../../resources/support-us-icons/white-heart.svg';
-
-
-import './_supportus.scss';
 
 interface SupportUsProps {
   open: boolean;
@@ -62,12 +60,25 @@ const SupportUs: React.FC<SupportUsProps> = ({ open, toggle, isMobile }) => {
       <WickModal
         open={open}
         toggle={toggle}
-        className="support-modal-body-mobile"
+        className="support-modal-body-mobile h-auto w-[300px] min-w-[240px] p-5 font-nunito text-white transition-[height,width] duration-500 ease-in-out"
         overlayClassName="support-modal-overlay">
-        <div id="support-modal-interior-content">
-          <div id="support-modal-title-mobile">
-            <img id="support-modal-title-img-mobile" src={whiteHeart} alt="white heart icon" style={{ width: "24px", height: "auto", marginRight: "10px", display: "inline-block" }}></img>
-            <p id="support-modal-title-text">Support Us!</p>
+        <div
+          id="support-modal-interior-content"
+          className="flex h-full w-full flex-col"
+        >
+          <div
+            id="support-modal-title-mobile"
+            className="mb-2 flex w-full flex-row items-center text-left font-bold text-editor-modal-text"
+          >
+            <img
+              id="support-modal-title-img-mobile"
+              src={whiteHeart}
+              alt="white heart icon"
+              className="mr-[10px] inline-block h-auto w-6"
+            />
+            <p id="support-modal-title-text" className="mb-0 text-[24px]">
+              Support Us!
+            </p>
           </div>
           {contentDisplay}
         </div>
@@ -81,17 +92,35 @@ const SupportUs: React.FC<SupportUsProps> = ({ open, toggle, isMobile }) => {
       <WickModal
         open={open}
         toggle={toggle}
-        className="support-modal-body"
+        className="support-modal-body h-auto w-[568px] min-w-[240px] p-5 font-nunito text-white transition-[height,width] duration-500 ease-in-out"
         overlayClassName="support-modal-overlay">
-        <div id="support-modal-interior-content">
-          <div id="support-modal-title">
-            <img id="support-modal-title-img" alt="Wick Editor ghost flashy" src={flashy}></img>
-            <p id="support-modal-title-text">Wick Editor is supported by you!</p>
+        <div
+          id="support-modal-interior-content"
+          className="flex h-full w-full flex-col"
+        >
+          <div
+            id="support-modal-title"
+            className="mb-4 flex w-full flex-row items-center text-left font-bold text-editor-modal-text"
+          >
+            <img
+              id="support-modal-title-img"
+              alt="Wick Editor ghost flashy"
+              src={flashy}
+              className="mr-[10px] h-auto w-[42px]"
+            />
+            <p id="support-modal-title-text" className="mb-0 text-[24px]">
+              Wick Editor is supported by you!
+            </p>
           </div>
 
-          <p id="support-modal-benefit-text">Get Merch, get featured, and help Wick Editor Grow!</p>
+          <p
+            id="support-modal-benefit-text"
+            className="inline-block text-[18px]"
+          >
+            Get Merch, get featured, and help Wick Editor Grow!
+          </p>
 
-          <div className="support-modal-row">
+          <div className="support-modal-row flex w-full flex-row flex-wrap">
             {contentDisplay}
           </div>
 
@@ -102,48 +131,135 @@ const SupportUs: React.FC<SupportUsProps> = ({ open, toggle, isMobile }) => {
   };
 
   const contentDisplay: ReactNode[] = [<Fragment key="support-us-fragment-1">
-    <div key="support-us-patreon-cont" className={isMobile ? "support-modal-col" : "support-modal-col left-col"}>
-      <div className="support-modal-col-title">
-        <img src={patreonLogoWhite} alt="white patreon logo" className="support-modal-col-title-img"></img>
-        <p className="support-modal-col-title-text">Patreon</p>
+    <div
+      key="support-us-patreon-cont"
+      className={classNames(
+        "support-modal-col flex basis-full flex-1 flex-col rounded-[5px] bg-[#525252] pb-1",
+        isMobile ? "" : "left-col mr-2 mb-4"
+      )}
+    >
+      <div className="support-modal-col-title mt-2 ml-[5%] flex flex-row items-center">
+        <img
+          src={patreonLogoWhite}
+          alt="white patreon logo"
+          className="support-modal-col-title-img h-auto w-5"
+        />
+        <p className="support-modal-col-title-text ml-[5px] mb-0 text-[16px] font-bold">
+          Patreon
+        </p>
       </div>
-      <p className="support-modal-col-text">for individuals and creators</p>
-      <div className="support-modal-progress-bar"><div className="support-modal-patreon-progress" style={{ width: `${progressData.patreonProgress / progressData.patreonGoal * 100}%` }}></div></div>
-      <p className="support-modal-col-text">{`Goal: $${progressData.patreonProgress} / $${progressData.patreonGoal} per month`}</p>
-      <button className="support-modal-button patreon-button" onClick={() => { window.open("https://www.patreon.com/WickEditor", "_blank") }}>
-        <img src={patreonLogoWhite} alt="white patreon logo" className="support-modal-button-img"></img>
-        <p className="support-modal-button-text">Become a Patron</p>
+      <p className="support-modal-col-text mr-2 ml-[5%] my-2">
+        for individuals and creators
+      </p>
+      <div className="support-modal-progress-bar mx-auto w-[90%] rounded-[10px] bg-white">
+        <div
+          className="support-modal-patreon-progress h-[10px] rounded-l-[10px] bg-[#E85B46]"
+          style={{ width: `${progressData.patreonProgress / progressData.patreonGoal * 100}%` }}
+        />
+      </div>
+      <p className="support-modal-col-text mr-2 ml-[5%] my-2">
+        {`Goal: $${progressData.patreonProgress} / $${progressData.patreonGoal} per month`}
+      </p>
+      <button
+        className="support-modal-button patreon-button mx-auto mb-[0.8em] block w-[80%] rounded-[30px] border-none bg-[#E85B46] p-[5px] text-[18px] font-bold text-white"
+        onClick={() => { window.open("https://www.patreon.com/WickEditor", "_blank") }}
+      >
+        <img
+          src={patreonLogoWhite}
+          alt="white patreon logo"
+          className="support-modal-button-img inline-block h-auto w-[18px]"
+        />
+        <p className="support-modal-button-text mb-0 ml-[5px] inline-block">
+          Become a Patron
+        </p>
       </button>
     </div>
 
-    <div key="support-us-github-cont" className={isMobile ? "support-modal-col" : "support-modal-col right-col"}>
-      <div className="support-modal-col-title">
-        <img src={githubLogoWhite} alt="white github log" className="support-modal-col-title-img"></img>
-        <p className="support-modal-col-title-text">GitHub Sponsors</p>
+    <div
+      key="support-us-github-cont"
+      className={classNames(
+        "support-modal-col flex basis-full flex-1 flex-col rounded-[5px] bg-[#525252] pb-1 mb-4",
+        isMobile ? "" : "right-col ml-2"
+      )}
+    >
+      <div className="support-modal-col-title mt-2 ml-[5%] flex flex-row items-center">
+        <img
+          src={githubLogoWhite}
+          alt="white github log"
+          className="support-modal-col-title-img h-auto w-5"
+        />
+        <p className="support-modal-col-title-text ml-[5px] mb-0 text-[16px] font-bold">
+          GitHub Sponsors
+        </p>
       </div>
-      <p className="support-modal-col-text">for businesses and developers</p>
-      <div className="support-modal-progress-bar"><div className="support-modal-github-progress" style={{ width: `${progressData.githubProgress / progressData.githubGoal * 100}%` }}></div></div>
-      <p className="support-modal-col-text">{`Goal: ${progressData.githubProgress} of ${progressData.githubGoal} sponsors found`}</p>
-      <button className="support-modal-button github-button" onClick={() => { window.open("https://github.com/sponsors/Wicklets", "_blank") }}>
-        <img src={githubHeart} alt="pink heart" className="support-modal-button-img"></img>
-        <p className="support-modal-button-text">Sponsor</p>
+      <p className="support-modal-col-text mr-2 ml-[5%] my-2">
+        for businesses and developers
+      </p>
+      <div className="support-modal-progress-bar mx-auto w-[90%] rounded-[10px] bg-white">
+        <div
+          className="support-modal-github-progress h-[10px] rounded-l-[10px] bg-[#EC6CB9]"
+          style={{ width: `${progressData.githubProgress / progressData.githubGoal * 100}%` }}
+        />
+      </div>
+      <p className="support-modal-col-text mr-2 ml-[5%] my-2">
+        {`Goal: ${progressData.githubProgress} of ${progressData.githubGoal} sponsors found`}
+      </p>
+      <button
+        className="support-modal-button github-button mx-auto mb-[0.8em] block w-[60%] rounded-[30px] border-none bg-white p-[5px] text-[18px] font-bold text-black"
+        onClick={() => { window.open("https://github.com/sponsors/Wicklets", "_blank") }}
+      >
+        <img
+          src={githubHeart}
+          alt="pink heart"
+          className="support-modal-button-img inline-block h-auto w-[18px]"
+        />
+        <p className="support-modal-button-text mb-0 ml-[5px] inline-block">
+          Sponsor
+        </p>
       </button>
     </div>
   </Fragment>];
 
   const footerDisplay: ReactNode[] = [
     <Fragment key="support-us-fragment-2">
-      <p id="support-modal-follow-text">Follow us and share your work with <p id="support-modal-hashtag">#MadeWithWickEditor</p>!</p>
+      <p id="support-modal-follow-text" className="mb-0 text-[18px]">
+        Follow us and share your work with{' '}
+        <span id="support-modal-hashtag" className="inline-block text-wick-green">
+          #MadeWithWickEditor
+        </span>
+        !
+      </p>
 
-      <div id="support-modal-social-icons">
-        <button className="support-modal-social-icon" onClick={() => { window.open("https://www.facebook.com/wickeditor/", "_blank") }}>
-          <img className="support-modal-social-img" src={facebookIcon} alt="facebook logo"></img>
+      <div id="support-modal-social-icons" className="mx-auto h-auto">
+        <button
+          className="support-modal-social-icon inline-block border-none bg-transparent"
+          onClick={() => { window.open("https://www.facebook.com/wickeditor/", "_blank") }}
+        >
+          <img
+            className="support-modal-social-img inline-block h-auto w-10"
+            src={facebookIcon}
+            alt="facebook logo"
+          />
         </button>
-        <button className="support-modal-social-icon" onClick={() => { window.open("https://www.instagram.com/wickeditor/", "_blank") }}>
-          <img className="support-modal-social-img" src={instagramIcon} alt="instagram logo"></img>
+        <button
+          className="support-modal-social-icon inline-block border-none bg-transparent"
+          onClick={() => { window.open("https://www.instagram.com/wickeditor/", "_blank") }}
+        >
+          <img
+            className="support-modal-social-img inline-block h-auto w-10"
+            src={instagramIcon}
+            alt="instagram logo"
+          />
         </button>
-        <button className="support-modal-social-icon" onClick={() => { window.open("https://twitter.com/wickeditor", "_blank") }}>
-          <img className="support-modal-social-img" src={twitterIcon} alt="twitter logo"></img>
+        <button
+          className="support-modal-social-icon inline-block border-none bg-transparent"
+          onClick={() => { window.open("https://twitter.com/wickeditor", "_blank") }}
+        >
+          <img
+            className="support-modal-social-img inline-block h-auto w-10"
+            src={twitterIcon}
+            alt="twitter logo"
+          />
         </button>
       </div>
     </Fragment>];

@@ -21,7 +21,6 @@ import React, { type ComponentProps, type InputHTMLAttributes } from "react";
 
 import "./_inspector.scss";
 import "./_inspectorselector.scss";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 import type { Script as ScriptType, ScriptWindowScriptInfoInterface } from "Editor/types";
 

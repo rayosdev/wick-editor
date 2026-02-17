@@ -2,8 +2,6 @@ import { useState } from "react";
 
 import WickModal from "../WickModal/WickModal";
 import ActionButton from "../../Util/ActionButton/ActionButton";
-
-import "./_savedprojects.scss";
 import SavedProjectItem from "./SavedProjectItem/SavedProjectItem";
 import classNames from "classnames";
 
@@ -88,13 +86,13 @@ export default function SavedProjects(props: SavedProjectsProps): JSX.Element {
       open={props.open}
       toggle={props.toggle}
       className={classNames(
-        "saved-projects-modal-container",
+        "saved-projects-modal-container h-full w-full max-h-[350px] max-w-[250px]",
         props.isMobile && "mobile"
       )}
       overlayClassName="settings-modal-overlay"
     >
-      <h3 className="saved-projects-modal-title">Saved Projects</h3>
-      <div className="saved-projects-modal-body">
+      <h3 className="saved-projects-modal-title text-2xl text-white">Saved Projects</h3>
+      <div className="saved-projects-modal-body mb-auto flex w-full flex-col items-start overflow-scroll text-center text-white">
         {projects.map((project) => (
           <SavedProjectItem
             key={project.name}
@@ -106,16 +104,16 @@ export default function SavedProjects(props: SavedProjectsProps): JSX.Element {
 
         {projects.length === 0 && "No Saved Files"}
       </div>
-      <div className="saved-projects-modal-footer">
+      <div className="saved-projects-modal-footer mt-2 flex w-3/4 justify-between">
         <ActionButton
-          className="saved-projects-modal-button"
+          className="saved-projects-modal-button h-[35px] w-[75px] text-[20px]"
           disabled={selectedProject === null}
           color={selectedProject ? "red" : "gray"}
           action={attemptDeleteFile}
           text="Delete"
         />
         <ActionButton
-          className="saved-projects-modal-button"
+          className="saved-projects-modal-button h-[35px] w-[75px] text-[20px]"
           disabled={selectedProject === null}
           color={selectedProject ? "green" : "gray"}
           action={attemptOpenFile}

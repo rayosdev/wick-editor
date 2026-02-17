@@ -1,0 +1,35 @@
+:root {
+  --wick-border-radius-primary: 2px;
+  --wick-border-radius-secondary: 4px;
+  --wick-input-roundness: 5px;
+
+  --wick-editor-primary: #303030;
+  --wick-editor-secondary: #3b3b3b;
+  --wick-editor-tertiary: #4a4a4a;
+  --wick-editor-text-primary: #ffffff;
+  --wick-editor-text-secondary: #bdbdbd;
+  --wick-editor-modal-gray: #383434;
+  --wick-editor-modal-text-gray: #e6e6e6;
+
+  --wick-green: #1ee29a;
+  --wick-green-light: #29f1a3;
+  --wick-green-dark: #01c094;
+
+  --wick-red: #f86868;
+  --wick-red-light: #ff8c8c;
+  --wick-red-dark: #e61e07;
+
+  --wick-yellow: #ffc835;
+  --wick-yellow-light: #ffe243;
+  --wick-yellow-dark: #e9aa02;
+
+  --wick-box-shadow: 2px 2px 8px var(--wick-editor-primary);
+}
+
+.theme-default {
+  --wick-editor-primary: var(--wick-primary, #303030);
+  --wick-editor-secondary: var(--wick-secondary, #3b3b3b);
+  --wick-editor-tertiary: var(--wick-tertiary, #4a4a4a);
+  --wick-editor-text-primary: var(--wick-text-primary, #ffffff);
+  --wick-editor-text-secondary: var(--wick-text-secondary, #bdbdbd);
+}

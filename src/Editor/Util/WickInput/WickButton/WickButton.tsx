@@ -50,7 +50,10 @@ export default function WickButton(props: WickButtonProps): JSX.Element {
       {...props.buttonProps}
       onTouchStart={isMobile ? handleClick : undefined}
       onClick={isMobile ? undefined : handleClick}
-      className={classNames("wick-button ", props.className)}
+      className={classNames(
+        "wick-button flex h-full w-full cursor-pointer items-center justify-center rounded-[2px] border-0 p-[2px] text-center no-underline",
+        props.className
+      )}
     >
       {props.children}
     </button>

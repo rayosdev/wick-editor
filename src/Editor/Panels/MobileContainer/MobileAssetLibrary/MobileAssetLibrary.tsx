@@ -18,7 +18,6 @@
  */
 
 import { useState } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
 
 import Asset from './Asset/Asset';
 import type {

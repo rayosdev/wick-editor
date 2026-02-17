@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
 import WickInput from 'Editor/Util/WickInput/WickInput';
 
-import './_simpleprojectsettings.scss';
 import ActionButton from '../../Util/ActionButton/ActionButton';
 
 interface WickProject {
@@ -62,35 +61,35 @@ export default function SimpleProjectSettings(props: SimpleProjectSettingsProps)
     <WickModal
       open={props.open}
       toggle={props.toggle}
-      className="simple-settings-modal-container"
+      className="simple-settings-modal-container w-[240px] p-4 pb-8"
       overlayClassName="settings-modal-overlay">
-      <h2 className="simple-settings-modal-title">Project Settings</h2>
-      <div className="simple-settings-modal-body">
-        <div className="simple-settings-form-row">
-          <label htmlFor="name" className="simple-settings-input-label">Name</label>
+      <h2 className="simple-settings-modal-title mt-4 text-2xl text-white">Project Settings</h2>
+      <div className="simple-settings-modal-body flex flex-col">
+        <div className="simple-settings-form-row mb-2 w-full">
+          <label htmlFor="name" className="simple-settings-input-label mb-0 flex items-baseline text-white">Name</label>
           <WickInput
-            className="simple-settings-input"
+            className="simple-settings-input h-8 w-full rounded"
             name="name"
             type="text"
             value={newProjectName}
             onChange={setNewProjectName} />
         </div>
 
-        <div className="simple-settings-form-row">
-          <label htmlFor="name" className="simple-settings-input-label">Framerate (FPS)</label>
+        <div className="simple-settings-form-row mb-2 w-full">
+          <label htmlFor="name" className="simple-settings-input-label mb-0 flex items-baseline text-white">Framerate (FPS)</label>
           <WickInput
-            className="simple-settings-input"
+            className="simple-settings-input h-8 w-full rounded"
             name="framerate"
             type="numeric"
             value={newProjectFrameRate}
             onChange={setNewProjectFrameRate} />
         </div>
 
-        <div className="simple-settings-dual-form-row">
-          <div className="simple-settings-dual-input">
-            <label htmlFor="width" className="simple-settings-input-label">Width</label>
+        <div className="simple-settings-dual-form-row flex justify-between">
+          <div className="simple-settings-dual-input w-[45%]">
+            <label htmlFor="width" className="simple-settings-input-label mb-0 flex items-baseline text-white">Width</label>
             <WickInput
-              className="simple-settings-input"
+              className="simple-settings-input h-8 w-full rounded"
               name="width"
               type="numeric"
               value={newWidth}
@@ -98,10 +97,10 @@ export default function SimpleProjectSettings(props: SimpleProjectSettingsProps)
               max={5000}
               onChange={setNewWidth} />
           </div>
-          <div className="simple-settings-dual-input">
-            <label htmlFor="height" className="simple-settings-input-label">Height</label>
+          <div className="simple-settings-dual-input w-[45%]">
+            <label htmlFor="height" className="simple-settings-input-label mb-0 flex items-baseline text-white">Height</label>
             <WickInput
-              className="simple-settings-input"
+              className="simple-settings-input h-8 w-full rounded"
               name="height"
               type="numeric"
               value={newHeight}
@@ -113,14 +112,14 @@ export default function SimpleProjectSettings(props: SimpleProjectSettingsProps)
         </div>
 
       </div>
-      <div className="simple-settings-modal-footer">
+      <div className="simple-settings-modal-footer mt-4 flex h-[35px] w-full justify-center">
         <ActionButton
-          className="simple-settings-action-button"
+          className="simple-settings-action-button mx-2 w-[40%]"
           text="Cancel"
           color="gray"
           action={resetProjectDetails} />
         <ActionButton
-          className="simple-settings-action-button"
+          className="simple-settings-action-button mx-2 w-[40%]"
           text="Apply"
           color="green"
           action={updateProjectSettings} />

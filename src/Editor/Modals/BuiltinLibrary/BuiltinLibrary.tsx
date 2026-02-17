@@ -18,7 +18,6 @@
  */
 
 import React from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
 import WickModal from "Editor/Modals/WickModal/WickModal";
 import TabbedInterface from "Editor/Util/TabbedInterface/TabbedInterface";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
@@ -28,8 +27,6 @@ import type { WickProject } from "Editor/types";
 import wickobjects from "./wickobjects";
 import sounds from "./sounds";
 import type { BuiltinAsset } from "./libraryTypes";
-
-import "./_builtinlibrary.scss";
 
 interface BuiltinPreview {
   blob: Blob;
@@ -112,27 +109,29 @@ const BuiltinLibrary: React.FC<BuiltinLibraryProps> = ({
 
   const renderBuiltinAsset = (asset: BuiltinAsset): JSX.Element => {
     return (
-      <div key={asset.file} className="builtin-library-asset">
-        <div className="builtin-library-asset-name">{asset.name}</div>
+      <div key={asset.file} className="builtin-library-asset mb-[10px] mr-[3%] h-[170px] w-[30%]">
+        <div className="builtin-library-asset-name h-[30px] w-full overflow-hidden text-white">
+          {asset.name}
+        </div>
 
-        <div className="builtin-library-asset-icon-container">
+        <div className="builtin-library-asset-icon-container flex h-[100px] w-full items-center justify-center overflow-hidden rounded-[5px] border-none bg-editor-primary text-center">
           <img
             alt="Builtin Asset Icon"
             src={ROOT_ASSET_PATH + asset.icon}
-            className="builtin-library-asset-icon"
+            className="builtin-library-asset-icon block h-full w-auto"
           />
         </div>
 
         {isAssetInLibrary(asset.file.split("/").pop() || "") ? (
           <ActionButton
-            className="add-as-asset-button"
+            className="add-as-asset-button mt-[3%] h-[28px] w-full pr-[6%]"
             action={() => { }}
             text="Already Added"
             color="gray"
           />
         ) : (
           <ActionButton
-            className="add-as-asset-button"
+            className="add-as-asset-button mt-[3%] h-[28px] w-full pr-[6%]"
             action={() => {
               createWickAsset(asset);
             }}
@@ -152,10 +151,12 @@ const BuiltinLibrary: React.FC<BuiltinLibraryProps> = ({
     }
 
     return (
-      <div key={asset.file} className="builtin-library-asset">
-        <div className="builtin-library-asset-name">{asset.name}</div>
+      <div key={asset.file} className="builtin-library-asset mb-[10px] mr-[3%] h-[170px] w-[30%]">
+        <div className="builtin-library-asset-name h-[30px] w-full overflow-hidden text-white">
+          {asset.name}
+        </div>
 
-        <div className="audio-preview">
+        <div className="audio-preview h-[50px] w-full">
           <AudioPlayer
             key={asset.file}
             src={src}
@@ -165,14 +166,14 @@ const BuiltinLibrary: React.FC<BuiltinLibraryProps> = ({
 
         {isAssetInLibrary(asset.file.split("/").pop() || "") ? (
           <ActionButton
-            className="add-as-asset-button"
+            className="add-as-asset-button mt-[3%] h-[28px] w-full pr-[6%]"
             action={() => { }}
             text="Already Added"
             color="gray"
           />
         ) : (
           <ActionButton
-            className="add-as-asset-button"
+            className="add-as-asset-button mt-[3%] h-[28px] w-full pr-[6%]"
             action={() => {
               createWickAsset(asset);
             }}
@@ -190,15 +191,15 @@ const BuiltinLibrary: React.FC<BuiltinLibraryProps> = ({
       className="modal-body welcome-modal-body"
       overlayClassName="modal-overlay welcome-modal-overlay"
     >
-      <div className="builtin-library">
-        <div className="builtin-library-modal-title">
+      <div className="builtin-library h-full w-full p-5">
+        <div className="builtin-library-modal-title h-[30px] w-full text-left text-[18px] font-bold text-editor-modal-text">
           Builtin Library (Beta)
         </div>
         <TabbedInterface tabNames={["Clips", "Sounds"]}>
-          <div className="builtin-library-asset-grid">
+          <div className="builtin-library-asset-grid mt-[5px] flex h-[calc(100%_-_60px)] w-full flex-wrap overflow-y-scroll">
             {wickobjects.assets.map(renderBuiltinAsset)}
           </div>
-          <div className="builtin-library-asset-grid">
+          <div className="builtin-library-asset-grid mt-[5px] flex h-[calc(100%_-_60px)] w-full flex-wrap overflow-y-scroll">
             {sounds.assets.map(renderSoundAsset)}
           </div>
         </TabbedInterface>

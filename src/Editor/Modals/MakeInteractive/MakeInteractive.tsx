@@ -23,8 +23,6 @@ import WickModal from 'Editor/Modals/WickModal/WickModal';
 import WickInput from 'Editor/Util/WickInput/WickInput';
 import ObjectInfo from '../Util/ObjectInfo/ObjectInfo';
 
-import './_makeinteractive.scss';
-
 interface MakeInteractiveProps {
   open: boolean;
   toggle: () => void;
@@ -70,20 +68,32 @@ const MakeInteractive: React.FC<MakeInteractiveProps> = ({
     <WickModal
       open={open}
       toggle={toggle}
-      className="make-interactive-modal-body"
+      className="make-interactive-modal-body h-[320px] w-[450px] min-w-[240px] p-5"
       overlayClassName="make-interactive-modal-overlay">
-      <div id="make-interactive-modal-interior-content">
-        <div id="make-interactive-modal-title">Make Interactive</div>
-        <div id="make-interactive-modal-name-input">
+      <div
+        id="make-interactive-modal-interior-content"
+        className="flex h-full w-full flex-col items-center justify-center"
+      >
+        <div
+          id="make-interactive-modal-title"
+          className="w-full text-left text-[18px] font-bold text-editor-modal-text"
+        >
+          Make Interactive
+        </div>
+        <div
+          id="make-interactive-modal-name-input"
+          className="mt-[10px] w-full"
+        >
           <WickInput
             type="text"
             value={name}
             onChange={updateClipName}
             placeholder={placeholderName} />
         </div>
-        <div className="make-interactive-object-info-container">
+        <div className="make-interactive-object-info-container flex flex-row">
           <ObjectInfo
             title="CLIP"
+            className="mr-3"
             rows={[
               {
                 text: "Can add any code",
@@ -116,21 +126,27 @@ const MakeInteractive: React.FC<MakeInteractiveProps> = ({
             ]} />
         </div>
       </div>
-      <div id="make-interactive-modal-footer">
+      <div
+        id="make-interactive-modal-footer"
+        className="mt-[10px] flex h-[28px] w-full flex-row items-center"
+      >
         <ActionButton
-          className="make-interactive-modal-button"
+          className="make-interactive-modal-button h-full basis-0 grow"
           color='gray-green'
           action={() => { createAndToggle("Clip") }}
           text="Convert to Clip"
         />
         <ActionButton
-          className="make-interactive-modal-button"
+          className="make-interactive-modal-button ml-3 h-full basis-0 grow"
           color='gray-green'
           action={() => { createAndToggle("Button") }}
           text="Convert to Button"
         />
       </div>
-      <div id="make-interactive-asset-checkbox-container">
+      <div
+        id="make-interactive-asset-checkbox-container"
+        className="mt-[10px] flex w-full flex-row items-center justify-start"
+      >
         {/* <WickInput
             type="checkbox"
             containerclassname="make-interactive-asset-checkbox-input-container"

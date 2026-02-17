@@ -21,7 +21,6 @@ import { Fragment, type ComponentProps } from "react";
 
 import "./_mobileinspector.scss";
 import "../../Inspector/_inspectorselector.scss";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 import type {
     Script,

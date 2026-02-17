@@ -18,11 +18,9 @@
  */
 
 import React from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 
-import './_editorinfo.scss';
 import ToolIcon from '../../Util/ToolIcon/ToolIcon';
 
 interface EditorInfoProps {
@@ -41,14 +39,14 @@ const WelcomeModal: React.FC<EditorInfoProps> = ({ open, toggle, editorVersion, 
         <WickModal
             open={open}
             toggle={toggle}
-            className="editor-info-modal-container"
+            className="editor-info-modal-container h-[325px] w-[250px]"
             overlayClassName="editor-info-modal-overlay">
-            <div className="editor-info-modal-body">
-                <div className="editor-info-icon">
+            <div className="editor-info-modal-body flex h-full w-full flex-col items-center">
+                <div className="editor-info-icon mx-auto mb-2 h-[100px] w-[100px]">
                     <ToolIcon name="mascot" />
                 </div>
-                <div className="editor-info-name">Wick Editor</div>
-                <div className="editor-info-version">Version {editorVersion}</div>
+                <div className="editor-info-name text-center text-2xl text-white">Wick Editor</div>
+                <div className="editor-info-version text-center text-white">Version {editorVersion}</div>
                 <a className="editor-info-link" href="https://www.wickeditor.com/#/terms-and-conditions" target="_blank" rel="noopener noreferrer">Terms and Conditions</a>
                 <br />
                 <a className="editor-info-link" href="https://www.wickeditor.com/#/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
@@ -57,7 +55,7 @@ const WelcomeModal: React.FC<EditorInfoProps> = ({ open, toggle, editorVersion, 
                 <br />
                 <a className="editor-info-link" href="https://forum.wickeditor.com" target="_blank" rel="noopener noreferrer">Community Forum</a>
                 <br />
-                <div className="editor-info-open-source-notices">
+                <div className="editor-info-open-source-notices mt-2 h-[32px] w-full max-w-[200px]">
                     <ActionButton
                         color="gray"
                         text="Open Source Notices"

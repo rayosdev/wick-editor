@@ -19,7 +19,6 @@
 
 import React from 'react';
 import './_inspectortitle.scss';
-import 'bootstrap/dist/css/bootstrap.min.css';
 
 interface InspectorTitleProps {
   title?: string;
