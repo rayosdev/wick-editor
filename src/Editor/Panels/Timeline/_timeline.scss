@@ -20,6 +20,9 @@
 @use "sass:math";
 @use "Editor/brand" as *;
 
+$timeline-grid-lines: $editor-primary-outline;
+$timeline-grid-bg: $editor-secondary;
+
 .timeline {
   background-color: $flame-dark;
 }
@@ -1273,4 +1276,90 @@ body.hasHover .timeline-renderer-toggle-button:hover {
     gap: 6px;
     padding: 0 8px;
   }
+}
+
+
+// Unified Timeline Layout
+// -----------------------------------------------------------------------------
+
+.timeline-unified-workspace {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  background-color: $editor-secondary;
+}
+
+.timeline-unified-header {
+  display: flex;
+  flex-direction: row;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: $editor-secondary;
+  min-width: fit-content;
+  border-bottom: 1px solid $timeline-grid-lines;
+}
+
+.timeline-unified-corner {
+  width: 210px;
+  flex: 0 0 210px;
+  position: sticky;
+  left: 0;
+  z-index: 25;
+  background-color: $editor-secondary;
+  border-right: 1px solid $timeline-grid-lines;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-unified-ruler {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.timeline-unified-body {
+  position: relative;
+  min-width: min-content;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-unified-overlays {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* left is set inline dynamically */
+  right: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.timeline-unified-row {
+  display: flex;
+  flex-direction: row;
+  height: 32px; /* fallback */
+  min-width: fit-content;
+}
+
+.timeline-unified-layer-controls {
+  width: 210px;
+  flex: 0 0 210px;
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background-color: $editor-secondary;
+  border-right: 1px solid $timeline-grid-lines;
+  display: flex;
+  align-items: center;
+}
+
+.timeline-unified-track {
+  flex: 1;
+  position: relative;
+  background-color: $timeline-grid-bg;
 }

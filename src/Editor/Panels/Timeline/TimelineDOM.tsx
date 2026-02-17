@@ -114,6 +114,7 @@ const VIRTUALIZATION_LAYER_THRESHOLD = 80;
 const VIRTUALIZATION_FRAME_THRESHOLD = 260;
 const VIRTUALIZATION_LAYER_OVERSCAN = 4;
 const VIRTUALIZATION_FRAME_OVERSCAN = 10;
+const LAYER_PANEL_WIDTH_PX = 210;
 
 const getFrameSizeMode = (): TimelineFrameSizeMode => {
   const guiElement = window?.Wick?.GUIElement;
@@ -267,8 +268,7 @@ const clampContextMenuPosition = (
 };
 
 const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
-  const gridScrollRef = useRef<HTMLDivElement>(null);
-  const layersScrollRef = useRef<HTMLDivElement>(null);
+  const workspaceRef = useRef<HTMLDivElement>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const interactionRef = useRef<InteractionState | null>(null);
   const selectionBoxRef = useRef<SelectionBox | null>(null);
@@ -278,7 +278,6 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   const longPressTimerRef = useRef<number | null>(null);
   const longPressStartRef = useRef<{ x: number; y: number } | null>(null);
   const longPressTriggeredRef = useRef(false);
-  const viewportSyncRafRef = useRef<number | null>(null);
   const [renderTick, setRenderTick] = useState(0);
   const [frameInputValue, setFrameInputValue] = useState("1");
   const [fpsInputValue, setFpsInputValue] = useState(DEFAULT_FRAME_RATE.toFixed(1));
@@ -294,7 +293,6 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   );
   const [layerReorderPreview, setLayerReorderPreview] = useState<number | null>(null);
   const [dragCollisionMode, setDragCollisionMode] = useState<"overwrite" | "push" | null>(null);
-  const [isTouchInteracting, setIsTouchInteracting] = useState(false);
   const [pressFeedback, setPressFeedback] = useState<{ x: number; y: number } | null>(null);
   const [gridViewportHeight, setGridViewportHeight] = useState(0);
   const [gridViewport, setGridViewport] = useState({
@@ -663,14 +661,14 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     clientX: number,
     clientY: number,
   ): { layerIndex: number; playheadPosition: number; col: number; row: number } | null => {
-    const gridElem = gridScrollRef.current;
-    if (!gridElem) {
+    const workspace = workspaceRef.current;
+    if (!workspace) {
       return null;
     }
 
-    const rect = gridElem.getBoundingClientRect();
-    const localX = clientX - rect.left + gridElem.scrollLeft;
-    const localY = clientY - rect.top + gridElem.scrollTop;
+    const rect = workspace.getBoundingClientRect();
+    const localX = (clientX - rect.left) + workspace.scrollLeft - LAYER_PANEL_WIDTH_PX;
+    const localY = (clientY - rect.top) + workspace.scrollTop - 68;
 
     const col = Math.floor(localX / cellWidth);
     const row = Math.floor(localY / cellHeight);
@@ -812,7 +810,6 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     setDragPreview(null);
     setLayerReorderPreview(null);
     setDragCollisionMode(null);
-    setIsTouchInteracting(false);
     setPressFeedback(null);
     setSelectionBox(null);
     selectionBoxRef.current = null;
@@ -1291,72 +1288,24 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   }, []);
 
   useEffect(() => {
-    const gridElem = gridScrollRef.current;
-    const layersElem = layersScrollRef.current;
-
-    if (!gridElem || !layersElem) {
-      return;
-    }
-
-    const updateViewportState = () => {
-      setGridViewportHeight((current) => {
-        const next = Math.max(0, Math.floor(gridElem.clientHeight));
-        return current === next ? current : next;
-      });
-      setGridViewport((current) => {
+    // Initial viewport sync
+    if (workspaceRef.current) {
+       setGridViewportHeight(Math.max(0, Math.floor(workspaceRef.current.clientHeight)));
+       setGridViewport((current) => {
         const next = {
-          width: Math.max(0, Math.floor(gridElem.clientWidth)),
-          height: Math.max(0, Math.floor(gridElem.clientHeight)),
-          scrollTop: Math.max(0, Math.floor(gridElem.scrollTop)),
-          scrollLeft: Math.max(0, Math.floor(gridElem.scrollLeft)),
+          width: Math.max(0, Math.floor(workspaceRef.current!.clientWidth)),
+          height: Math.max(0, Math.floor(workspaceRef.current!.clientHeight)),
+          scrollTop: Math.max(0, Math.floor(workspaceRef.current!.scrollTop)),
+          scrollLeft: Math.max(0, Math.floor(workspaceRef.current!.scrollLeft)),
         };
-
         return current.width === next.width &&
           current.height === next.height &&
           current.scrollTop === next.scrollTop &&
           current.scrollLeft === next.scrollLeft
           ? current
           : next;
-      });
-    };
-
-    const scheduleViewportSync = () => {
-      if (viewportSyncRafRef.current !== null) {
-        return;
-      }
-
-      viewportSyncRafRef.current = window.requestAnimationFrame(() => {
-        viewportSyncRafRef.current = null;
-        updateViewportState();
-      });
-    };
-
-    const syncFromGrid = () => {
-      layersElem.scrollTop = gridElem.scrollTop;
-      scheduleViewportSync();
-    };
-
-    updateViewportState();
-    gridElem.addEventListener("scroll", syncFromGrid, { passive: true });
-    const resizeObserver =
-      typeof ResizeObserver !== "undefined"
-        ? new ResizeObserver(() => {
-          scheduleViewportSync();
-        })
-        : null;
-
-    resizeObserver?.observe(gridElem);
-    window.addEventListener("resize", scheduleViewportSync);
-
-    return () => {
-      if (viewportSyncRafRef.current !== null) {
-        window.cancelAnimationFrame(viewportSyncRafRef.current);
-        viewportSyncRafRef.current = null;
-      }
-      resizeObserver?.disconnect();
-      window.removeEventListener("resize", scheduleViewportSync);
-      gridElem.removeEventListener("scroll", syncFromGrid);
-    };
+       });
+    }
   }, []);
 
   useEffect(() => {
@@ -1836,7 +1785,6 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
   const startInteraction = (nextInteraction: InteractionState): void => {
     interactionRef.current = nextInteraction;
-    setIsTouchInteracting(nextInteraction.pointerType === "touch");
   };
 
   const handleNumberLinePointerDown = (
@@ -1956,11 +1904,11 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       const frameEnd = Number(frame.end ?? frameStart);
       const frameLeftPx = (frameStart - 1) * cellWidth;
       const frameRightPx = frameEnd * cellWidth;
-      const gridElem = gridScrollRef.current;
+      const gridElem = workspaceRef.current;
       const gridRect = gridElem?.getBoundingClientRect();
       const pointerLocalX =
         gridElem && gridRect
-          ? event.clientX - gridRect.left + gridElem.scrollLeft
+          ? event.clientX - gridRect.left + gridElem.scrollLeft - 210
           : location.col * cellWidth + cellWidth / 2;
       const pointerXInFrame = pointerLocalX - frameLeftPx;
 
@@ -2098,7 +2046,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   };
 
   const handleLayerPointerDown = (
-    event: React.PointerEvent<HTMLButtonElement>,
+    event: React.PointerEvent<HTMLElement>,
     layer: TimelineLayerLike,
     layerIndex: number,
   ): void => {
@@ -2592,290 +2540,305 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
           </div>
         </div>
 
-        <div className="timeline-dom-workspace">
-          <div className="timeline-dom-layers-panel">
-            <div className="timeline-dom-layers-header">Layers</div>
-            <div className="timeline-dom-layers-subheader" />
-            <div
-              className="timeline-dom-layers-scroll"
-              ref={layersScrollRef}
-              style={{
-                ["--timeline-cell-height" as string]: `${cellHeight}px`,
-              }}
-            >
-              {layerTopSpacerHeight > 0 && (
-                <div style={{ height: `${layerTopSpacerHeight}px` }} aria-hidden />
-              )}
-
-              {renderedLayers.map((layer, renderedLayerIndex) => {
-                const layerIndex = visibleLayerStart + renderedLayerIndex;
-                const isActive = layerIndex === activeTimeline?.activeLayerIndex;
-                const isLayerSelected = Boolean(project?.selection?.isObjectSelected?.(layer));
-
-                return (
-                  <div
-                    key={layer.uuid ?? `layer-${layerIndex}`}
-                    className={`timeline-dom-layer-row ${isActive ? "active" : ""} ${isLayerSelected ? "selected" : ""
-                      }`}
-                    style={{ height: `${cellHeight}px` }}
-                  >
-                    <button
-                      type="button"
-                      className="timeline-dom-layer-main"
-                      onPointerDown={(event) => handleLayerPointerDown(event, layer, layerIndex)}
-                      onDoubleClick={() =>
-                        setLayerRename({ layer, value: String(layer.name ?? `Layer ${layerIndex + 1}`) })
-                      }
-                    >
-                      {layerRename?.layer === layer ? (
-                        <input
-                          className="timeline-dom-layer-name-input"
-                          autoFocus
-                          value={layerRename.value}
-                          onChange={(event) =>
-                            setLayerRename((current) =>
-                              current
-                                ? {
-                                  ...current,
-                                  value: event.target.value,
-                                }
-                                : current,
-                            )
-                          }
-                          onBlur={commitLayerRename}
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter") {
-                              commitLayerRename();
-                            }
-                            if (event.key === "Escape") {
-                              setLayerRename(null);
-                            }
-                          }}
-                        />
-                      ) : (
-                        <span className="timeline-dom-layer-name">
-                          {String(layer.name ?? `Layer ${layerIndex + 1}`)}
-                        </span>
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      className="timeline-dom-layer-icon-button"
-                      onClick={() => {
-                        layer.hidden = !layer.hidden;
-                        layer.activate?.();
-                        commitProjectChange("Toggle Layer Hidden");
-                      }}
-                      aria-label={layer.hidden ? "Show Layer" : "Hide Layer"}
-                    >
-                      <img src={layer.hidden ? iconHidden : iconShown} alt="" />
-                    </button>
-                    <button
-                      type="button"
-                      className="timeline-dom-layer-icon-button"
-                      onClick={() => {
-                        layer.locked = !layer.locked;
-                        layer.activate?.();
-                        commitProjectChange("Toggle Layer Locked");
-                      }}
-                      aria-label={layer.locked ? "Unlock Layer" : "Lock Layer"}
-                    >
-                      <img src={layer.locked ? iconLock : iconUnlock} alt="" />
-                    </button>
-                    <button
-                      type="button"
-                      className="timeline-dom-layer-delete-button"
-                      onClick={() => handleLayerDelete(layer)}
-                      aria-label="Delete Layer"
-                    >
-                      <img src={iconDelete} alt="" />
-                    </button>
-                  </div>
-                );
-              })}
-              {layerBottomSpacerHeight > 0 && (
-                <div style={{ height: `${layerBottomSpacerHeight}px` }} aria-hidden />
-              )}
-
-              <button
-                type="button"
-                className="timeline-dom-layer-add"
-                style={{ height: `${cellHeight}px` }}
-                onClick={handleAddLayer}
-              >
-                + Layer
-              </button>
-
-              {layerFillerHeight > 0 && (
+        <div
+          ref={workspaceRef}
+          className="timeline-unified-workspace"
+          onScroll={() => {
+            if (workspaceRef.current) {
+              setGridViewportHeight(Math.max(0, Math.floor(workspaceRef.current.clientHeight)));
+              setGridViewport((current) => {
+                const next = {
+                  width: Math.max(0, Math.floor(workspaceRef.current!.clientWidth)),
+                  height: Math.max(0, Math.floor(workspaceRef.current!.clientHeight)),
+                  scrollTop: Math.max(0, Math.floor(workspaceRef.current!.scrollTop)),
+                  scrollLeft: Math.max(0, Math.floor(workspaceRef.current!.scrollLeft)),
+                };
+                return current.width === next.width &&
+                  current.height === next.height &&
+                  current.scrollTop === next.scrollTop &&
+                  current.scrollLeft === next.scrollLeft
+                  ? current
+                  : next;
+              });
+            }
+          }}
+          onContextMenu={handleGridContextMenu}
+          onPointerDown={handleGridPointerDown}
+        >
+          <div className="timeline-unified-header">
+            <div className="timeline-unified-corner">
+              <div className="timeline-dom-layers-header">Layers</div>
+              <div className="timeline-dom-layers-subheader" />
+            </div>
+            <div className="timeline-unified-ruler">
+              <div className="timeline-dom-marker-row">
                 <div
-                  className="timeline-dom-layer-filler"
-                  style={{ height: `${layerFillerHeight}px` }}
+                  className="timeline-dom-work-area-track"
+                  style={{
+                    width: `${timelineLength * cellWidth}px`,
+                    minWidth: `${timelineLength * cellWidth}px`,
+                  }}
+                >
+                  <div
+                    className="timeline-dom-work-area-span"
+                    style={{
+                      left: `${(workArea.start - 1) * cellWidth}px`,
+                      width: `${Math.max(cellWidth, (workArea.end - workArea.start + 1) * cellWidth)}px`,
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="timeline-dom-work-area-handle timeline-dom-work-area-handle-start"
+                    style={{ left: `${(workArea.start - 1) * cellWidth}px` }}
+                    aria-label="Adjust work area start"
+                    onPointerDown={(event) => handleWorkAreaHandlePointerDown(event, "work-area-start")}
+                  />
+                  <button
+                    type="button"
+                    className="timeline-dom-work-area-handle timeline-dom-work-area-handle-end"
+                    style={{ left: `${workArea.end * cellWidth}px` }}
+                    aria-label="Adjust work area end"
+                    onPointerDown={(event) => handleWorkAreaHandlePointerDown(event, "work-area-end")}
+                  />
+                  {markers.map((marker) => (
+                    <button
+                      key={marker.id}
+                      type="button"
+                      className="timeline-dom-marker"
+                      style={{
+                        left: `${(marker.frame - 1) * cellWidth + Math.floor(cellWidth / 2)}px`,
+                        borderColor: marker.color,
+                        color: marker.color,
+                      }}
+                      title={`${marker.label} (${marker.frame})`}
+                      onPointerDown={(event) => handleMarkerPointerDown(event, marker)}
+                      onDoubleClick={(event) => {
+                        event.preventDefault();
+                        handleEditMarker(marker.id);
+                      }}
+                    >
+                      <span className="timeline-dom-marker-label">{marker.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="timeline-dom-marker-actions">
+                  <button
+                    type="button"
+                    className="timeline-flash-footer-button"
+                    onClick={handleAddMarker}
+                    aria-label="Add marker at playhead"
+                  >
+                    + Marker
+                  </button>
+                  <button
+                    type="button"
+                    className="timeline-flash-footer-button"
+                    onClick={() => jumpToMarker("previous")}
+                    aria-label="Jump to previous marker"
+                  >
+                    Prev Marker
+                  </button>
+                  <button
+                    type="button"
+                    className="timeline-flash-footer-button"
+                    onClick={() => jumpToMarker("next")}
+                    aria-label="Jump to next marker"
+                  >
+                    Next Marker
+                  </button>
+                  <button
+                    type="button"
+                    className={`timeline-flash-footer-choice ${loopWorkArea ? "active" : ""}`}
+                    onClick={() => setLoopWorkArea((current) => !current)}
+                    aria-pressed={loopWorkArea}
+                  >
+                    Loop Work Area
+                  </button>
+                </div>
+              </div>
+              <div className="timeline-dom-numberline" onPointerDown={handleNumberLinePointerDown}>
+                {Array.from({ length: timelineLength }, (_, index) => {
+                  const frameNumber = index + 1;
+                  const isPlayhead = frameNumber === playheadPosition;
+                  const highlight = index === 0 || index % 5 === 4;
+                  const isMajorTick = index === 0 || index % 10 === 9;
+                  return (
+                    <button
+                      key={`frame-number-${frameNumber}`}
+                      type="button"
+                      className={`timeline-dom-numberline-cell ${highlight ? "highlight" : ""} ${isMajorTick ? "major" : ""
+                        } ${isPlayhead ? "playhead" : ""
+                        }`}
+                      style={{ width: `${cellWidth}px` }}
+                      onClick={() => setPlayhead(frameNumber)}
+                    >
+                      {frameSizeMode !== "small" || highlight ? frameNumber : ""}
+                    </button>
+                  );
+                })}
+                <div
+                  className="timeline-dom-playhead-cap"
+                  style={{ left: `${(playheadPosition - 1) * cellWidth + Math.floor(cellWidth / 2)}px` }}
                   aria-hidden
                 />
-              )}
+              </div>
             </div>
           </div>
 
-          <div className="timeline-dom-grid-panel">
-            <div className="timeline-dom-marker-row">
+          <div className="timeline-unified-body">
+            <div className="timeline-unified-overlays" style={{ left: `${LAYER_PANEL_WIDTH_PX}px` }}>
               <div
-                className="timeline-dom-work-area-track"
-                style={{
-                  width: `${timelineLength * cellWidth}px`,
-                  minWidth: `${timelineLength * cellWidth}px`,
-                }}
-              >
+                className="timeline-dom-playhead"
+                style={{ left: `${(playheadPosition - 1) * cellWidth + cellWidth / 2 - 1}px` }}
+              />
+
+              {selectionBox && (
                 <div
-                  className="timeline-dom-work-area-span"
+                  className="timeline-dom-selection-box"
                   style={{
-                    left: `${(workArea.start - 1) * cellWidth}px`,
-                    width: `${Math.max(cellWidth, (workArea.end - workArea.start + 1) * cellWidth)}px`,
+                    left: `${Math.min(selectionBox.startCol, selectionBox.endCol) * cellWidth}px`,
+                    top: `${Math.min(selectionBox.startRow, selectionBox.endRow) * cellHeight}px`,
+                    width: `${(Math.abs(selectionBox.endCol - selectionBox.startCol) + 1) * cellWidth
+                      }px`,
+                    height: `${(Math.abs(selectionBox.endRow - selectionBox.startRow) + 1) * cellHeight
+                      }px`,
                   }}
                 />
-                <button
-                  type="button"
-                  className="timeline-dom-work-area-handle timeline-dom-work-area-handle-start"
-                  style={{ left: `${(workArea.start - 1) * cellWidth}px` }}
-                  aria-label="Adjust work area start"
-                  onPointerDown={(event) => handleWorkAreaHandlePointerDown(event, "work-area-start")}
-                />
-                <button
-                  type="button"
-                  className="timeline-dom-work-area-handle timeline-dom-work-area-handle-end"
-                  style={{ left: `${workArea.end * cellWidth}px` }}
-                  aria-label="Adjust work area end"
-                  onPointerDown={(event) => handleWorkAreaHandlePointerDown(event, "work-area-end")}
-                />
-                {markers.map((marker) => (
-                  <button
-                    key={marker.id}
-                    type="button"
-                    className="timeline-dom-marker"
-                    style={{
-                      left: `${(marker.frame - 1) * cellWidth + Math.floor(cellWidth / 2)}px`,
-                      borderColor: marker.color,
-                      color: marker.color,
-                    }}
-                    title={`${marker.label} (${marker.frame})`}
-                    onPointerDown={(event) => handleMarkerPointerDown(event, marker)}
-                    onDoubleClick={(event) => {
-                      event.preventDefault();
-                      handleEditMarker(marker.id);
-                    }}
-                  >
-                    <span className="timeline-dom-marker-label">{marker.label}</span>
-                  </button>
-                ))}
-              </div>
-              <div className="timeline-dom-marker-actions">
-                <button
-                  type="button"
-                  className="timeline-flash-footer-button"
-                  onClick={handleAddMarker}
-                  aria-label="Add marker at playhead"
-                >
-                  + Marker
-                </button>
-                <button
-                  type="button"
-                  className="timeline-flash-footer-button"
-                  onClick={() => jumpToMarker("previous")}
-                  aria-label="Jump to previous marker"
-                >
-                  Prev Marker
-                </button>
-                <button
-                  type="button"
-                  className="timeline-flash-footer-button"
-                  onClick={() => jumpToMarker("next")}
-                  aria-label="Jump to next marker"
-                >
-                  Next Marker
-                </button>
-                <button
-                  type="button"
-                  className={`timeline-flash-footer-choice ${loopWorkArea ? "active" : ""}`}
-                  onClick={() => setLoopWorkArea((current) => !current)}
-                  aria-pressed={loopWorkArea}
-                >
-                  Loop Work Area
-                </button>
-              </div>
-            </div>
-            <div className="timeline-dom-numberline" onPointerDown={handleNumberLinePointerDown}>
-              {Array.from({ length: timelineLength }, (_, index) => {
-                const frameNumber = index + 1;
-                const isPlayhead = frameNumber === playheadPosition;
-                const highlight = index === 0 || index % 5 === 4;
-                const isMajorTick = index === 0 || index % 10 === 9;
-                return (
-                  <button
-                    key={`frame-number-${frameNumber}`}
-                    type="button"
-                    className={`timeline-dom-numberline-cell ${highlight ? "highlight" : ""} ${isMajorTick ? "major" : ""
-                      } ${isPlayhead ? "playhead" : ""
-                      }`}
-                    style={{ width: `${cellWidth}px` }}
-                    onClick={() => setPlayhead(frameNumber)}
-                  >
-                    {frameSizeMode !== "small" || highlight ? frameNumber : ""}
-                  </button>
-                );
-              })}
-              <div
-                className="timeline-dom-playhead-cap"
-                style={{ left: `${(playheadPosition - 1) * cellWidth + Math.floor(cellWidth / 2)}px` }}
-                aria-hidden
-              />
-            </div>
+              )}
 
-            <div
-              id="animation-timeline"
-              ref={gridScrollRef}
-              className={`timeline-dom-grid-scroll ${isTouchInteracting ? "touch-interacting" : ""}`}
-              onContextMenu={handleGridContextMenu}
-              onPointerDown={handleGridPointerDown}
-              aria-label="Animation timeline grid"
-            >
-              <div
-                className="timeline-dom-grid-canvas"
-                style={{
-                  width: `${timelineLength * cellWidth}px`,
-                  height: `${Math.max(
-                    Math.max(1, layers.length) * cellHeight,
-                    gridViewportHeight,
-                  )}px`,
-                  ["--timeline-cell-width" as string]: `${cellWidth}px`,
-                  ["--timeline-cell-height" as string]: `${cellHeight}px`,
-                }}
-              >
+              {layerReorderPreview !== null && (
                 <div
+                  className="timeline-dom-layer-reorder-line"
+                  style={{ top: `${layerReorderPreview * cellHeight}px` }}
+                />
+              )}
+
+               <div
                   className="timeline-dom-work-area-overlay"
                   style={{
                     left: `${(workArea.start - 1) * cellWidth}px`,
                     width: `${Math.max(cellWidth, (workArea.end - workArea.start + 1) * cellWidth)}px`,
                   }}
                 />
-                {renderedLayers.map((layer, renderedLayerIndex) => {
-                  const layerIndex = visibleLayerStart + renderedLayerIndex;
-                  const previewRow =
-                    interactionRef.current?.mode === "frame-move" ||
-                    interactionRef.current?.mode === "frame-resize-left" ||
-                    interactionRef.current?.mode === "frame-resize-right";
-                  const renderedFrames = shouldVirtualizeFrames
-                    ? layer.frames.filter((frame) =>
-                      frameInRange(frame, visibleFrameStart, visibleFrameEnd),
-                    )
-                    : layer.frames;
+            </div>
 
-                  return (
+            {layerTopSpacerHeight > 0 && (
+              <div style={{ height: `${layerTopSpacerHeight}px` }} aria-hidden />
+            )}
+
+            {renderedLayers.map((layer, renderedLayerIndex) => {
+              const layerIndex = visibleLayerStart + renderedLayerIndex;
+              const isActive = layerIndex === activeTimeline?.activeLayerIndex;
+              const isLayerSelected = Boolean(project?.selection?.isObjectSelected?.(layer));
+              
+              const previewRow =
+                interactionRef.current?.mode === "frame-move" ||
+                interactionRef.current?.mode === "frame-resize-left" ||
+                interactionRef.current?.mode === "frame-resize-right";
+              const renderedFrames = shouldVirtualizeFrames
+                ? layer.frames.filter((frame) =>
+                  frameInRange(frame, visibleFrameStart, visibleFrameEnd),
+                )
+                : layer.frames;
+
+              return (
+                <div
+                  key={`unified-row-${layer.uuid ?? layerIndex}`}
+                  className="timeline-unified-row"
+                  style={{ height: `${cellHeight}px` }}
+                >
+                  <div className="timeline-unified-layer-controls">
                     <div
-                      key={`grid-row-${layer.uuid ?? layerIndex}`}
-                      className={`timeline-dom-grid-row ${layerIndex === activeTimeline?.activeLayerIndex ? "active" : ""
+                      className={`timeline-dom-layer-row ${isActive ? "active" : ""} ${isLayerSelected ? "selected" : ""
                         }`}
+                      style={{ height: `${cellHeight}px`, width: '100%' }}
+                    >
+                      <div
+                        className="timeline-dom-layer-main"
+                        onPointerDown={(event) => handleLayerPointerDown(event, layer, layerIndex)}
+                        onDoubleClick={() =>
+                          setLayerRename({ layer, value: String(layer.name ?? `Layer ${layerIndex + 1}`) })
+                        }
+                        role={layerRename?.layer === layer ? undefined : "button"}
+                        tabIndex={0}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {layerRename?.layer === layer ? (
+                          <input
+                            className="timeline-dom-layer-name-input"
+                            autoFocus
+                            value={layerRename.value}
+                            aria-label="Rename Layer"
+                            title="Rename Layer"
+                            placeholder="Layer Name"
+                            onChange={(event) =>
+                              setLayerRename((current) =>
+                                current
+                                  ? {
+                                    ...current,
+                                    value: event.target.value,
+                                  }
+                                  : current,
+                              )
+                            }
+                            onBlur={commitLayerRename}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter") {
+                                commitLayerRename();
+                              }
+                              if (event.key === "Escape") {
+                                setLayerRename(null);
+                              }
+                            }}
+                          />
+                        ) : (
+                          <span className="timeline-dom-layer-name">
+                            {String(layer.name ?? `Layer ${layerIndex + 1}`)}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        className="timeline-dom-layer-icon-button"
+                        onClick={() => {
+                          layer.hidden = !layer.hidden;
+                          layer.activate?.();
+                          commitProjectChange("Toggle Layer Hidden");
+                        }}
+                        aria-label={layer.hidden ? "Show Layer" : "Hide Layer"}
+                      >
+                        <img src={layer.hidden ? iconHidden : iconShown} alt="" />
+                      </button>
+                      <button
+                        type="button"
+                        className="timeline-dom-layer-icon-button"
+                        onClick={() => {
+                          layer.locked = !layer.locked;
+                          layer.activate?.();
+                          commitProjectChange("Toggle Layer Locked");
+                        }}
+                        aria-label={layer.locked ? "Unlock Layer" : "Lock Layer"}
+                      >
+                        <img src={layer.locked ? iconLock : iconUnlock} alt="" />
+                      </button>
+                      <button
+                        type="button"
+                        className="timeline-dom-layer-delete-button"
+                        onClick={() => handleLayerDelete(layer)}
+                        aria-label="Delete Layer"
+                      >
+                        <img src={iconDelete} alt="" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="timeline-unified-track">
+                    <div
+                      className={`timeline-dom-grid-row ${isActive ? "active" : ""}`}
                       style={{
                         height: `${cellHeight}px`,
-                        top: `${layerIndex * cellHeight}px`,
+                        position: 'relative', // Ensure relative for frames
+                        width: '100%'
                       }}
                     >
                       {renderedFrames.map((frame) => {
@@ -2885,10 +2848,19 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                         const selected = isFrameSelected(frame);
                         const left = (frameStart - 1) * cellWidth;
                         const width = Math.max(cellWidth, frameLength * cellWidth - 1);
+                        //const isDraggedFrame = // REMOVE THIS
+                        //  Boolean(
+                        //    interactionRef.current?.frames.some((selectedFrame) => selectedFrame === frame),
+                        //  ) && Boolean(previewRow && dragPreview);
+                        
+                        // FIX: Re-declare isDraggedFrame in local scope if needed or just use logic inline
+                        // To be safe and clean, let's just make sure it parses correctly.
+                        // I will assume the original logic is correct.
                         const isDraggedFrame =
                           Boolean(
                             interactionRef.current?.frames.some((selectedFrame) => selectedFrame === frame),
                           ) && Boolean(previewRow && dragPreview);
+
 
                         const previewLeft =
                           isDraggedFrame && dragPreview
@@ -2908,9 +2880,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                                 : ""
                               }`}
                             data-frame-state={frameVisualState}
-                            role="button"
+                            data-role="gridcell"
                             tabIndex={0}
-                            aria-pressed={selected}
+                            aria-selected={selected}
                             style={{
                               left: `${previewLeft}px`,
                               top: `${previewTop}px`,
@@ -2948,6 +2920,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                                     type="button"
                                     className="timeline-dom-tween"
                                     data-tween-state="tween-span"
+                                    aria-label="Tween"
                                     style={{ left: `${tweenOffset * cellWidth + cellWidth / 2 - 7}px` }}
                                     onPointerDown={(event) => handleTweenPointerDown(event, tween)}
                                   />
@@ -2968,42 +2941,43 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                           />
                         )}
                     </div>
-                  );
-                })}
-
-                <div
-                  className="timeline-dom-playhead"
-                  style={{ left: `${(playheadPosition - 1) * cellWidth + cellWidth / 2 - 1}px` }}
-                />
-
-                {selectionBox && (
-                  <div
-                    className="timeline-dom-selection-box"
-                    style={{
-                      left: `${Math.min(selectionBox.startCol, selectionBox.endCol) * cellWidth}px`,
-                      top: `${Math.min(selectionBox.startRow, selectionBox.endRow) * cellHeight}px`,
-                      width: `${(Math.abs(selectionBox.endCol - selectionBox.startCol) + 1) * cellWidth
-                        }px`,
-                      height: `${(Math.abs(selectionBox.endRow - selectionBox.startRow) + 1) * cellHeight
-                        }px`,
-                    }}
-                  />
-                )}
-
-                {layerReorderPreview !== null && (
-                  <div
-                    className="timeline-dom-layer-reorder-line"
-                    style={{ top: `${layerReorderPreview * cellHeight}px` }}
-                  />
-                )}
-
-                {dragCollisionMode && (
-                  <div className={`timeline-dom-drop-mode ${dragCollisionMode}`}>
-                    {dragCollisionMode === "push" ? "Push on drop" : "Overwrite on drop"}
                   </div>
+                </div>
+              );
+            })}
+
+            {layerBottomSpacerHeight > 0 && (
+                <div style={{ height: `${layerBottomSpacerHeight}px` }} aria-hidden />
+            )}
+
+            <div className="timeline-unified-row">
+              <div className="timeline-unified-layer-controls">
+                <button
+                  type="button"
+                  className="timeline-dom-layer-add"
+                  style={{ height: `${cellHeight}px` }}
+                  onClick={handleAddLayer}
+                >
+                  + Layer
+                </button>
+                 {layerFillerHeight > 0 && (
+                  <div
+                    className="timeline-dom-layer-filler"
+                    style={{ height: `${layerFillerHeight}px` }}
+                    aria-hidden
+                  />
                 )}
               </div>
+              <div className="timeline-unified-track" />
             </div>
+            
+             {dragCollisionMode && (
+                  <div className={`timeline-dom-drop-mode ${dragCollisionMode}`}
+                       style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 100 }}
+                  >
+                    {dragCollisionMode === "push" ? "Push on drop" : "Overwrite on drop"}
+                  </div>
+             )}
           </div>
         </div>
 
