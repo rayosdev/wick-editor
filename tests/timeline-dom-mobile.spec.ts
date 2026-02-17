@@ -337,7 +337,7 @@ test.describe("Timeline DOM mobile", () => {
     expect(playheadAfter).toBe(playheadBefore + 1);
 
     const toggleBox = await page.locator(".timeline-renderer-toggle").boundingBox();
-    const shortcutBox = await page.locator(".timeline-shortcut-toggle").boundingBox();
+    const shortcutBox = await page.locator(".timeline-shortcut-toggle").first().boundingBox();
     const gridBox = await page.locator("#animation-timeline.timeline-dom-grid-scroll").boundingBox();
     const footerBox = await page.locator(".timeline-flash-footer").boundingBox();
     const frameHitBox = await page.locator(".timeline-dom-frame").first().boundingBox();

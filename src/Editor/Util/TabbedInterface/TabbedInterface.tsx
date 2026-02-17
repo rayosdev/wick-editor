@@ -19,8 +19,6 @@
 
 import React, { useState, ReactNode } from "react";
 
-import "./_tabbedinterface.scss";
-
 import classNames from "classnames";
 
 interface TabbedInterfaceProps {
@@ -64,14 +62,19 @@ const TabbedInterface: React.FC<TabbedInterfaceProps> = ({
    */
   const renderTabs = (): JSX.Element => {
     return (
-      <div role="tablist" className="tabbed-interface-main-tab-container">
+      <div
+        role="tablist"
+        className="tabbed-interface-main-tab-container flex h-[30px] min-h-[30px] w-full flex-row items-end justify-start overflow-auto"
+      >
         {tabNames.map((tab, i) => (
           <button
             key={`tab-${tab}-${i}`}
             className={classNames(
-              "tabbed-interface-main-tab",
+              "tabbed-interface-main-tab ml-[15px] cursor-pointer appearance-none border-0 bg-editor-modal-gray text-[16px] first:ml-0",
               tabClassName,
-              { selected: selectedTab === tab }
+              selectedTab === tab
+                ? "selected text-white shadow-[inset_0_-2px_0_0_#1EE29A] transition-[box-shadow,color] duration-[400ms]"
+                : "text-[#CFCFCF] shadow-[inset_0_-2px_0_0_#484747]"
             )}
             onClick={() => {
               selectTab(tab);
@@ -85,11 +88,11 @@ const TabbedInterface: React.FC<TabbedInterfaceProps> = ({
   };
 
   return (
-    <div className={classNames("tabbed-interface", className)}>
+    <div className={classNames("tabbed-interface h-full w-full", className)}>
       {renderTabs()}
       <div
         className={classNames(
-          "tabbed-interface-body",
+          "tabbed-interface-body h-[calc(100%_-_30px)] w-full",
           bodyClassName
         )}
       >

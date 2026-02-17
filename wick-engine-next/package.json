@@ -1,0 +1,19 @@
+{
+  "name": "wick-engine-next",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Compatibility-first Wick Engine rewrite scaffold with a modern kernel and bridge architecture.",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "check": "npm run typecheck && npm run test"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^5.4.8",
+    "vitest": "^3.2.4"
+  }
+}

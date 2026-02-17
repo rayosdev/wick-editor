@@ -18,7 +18,7 @@
  */
 
 @use "sass:math";
-@use 'Editor/brand' as *;
+@use "Editor/brand" as *;
 
 .timeline {
   background-color: $flame-dark;
@@ -29,14 +29,17 @@
   display: flex;
   flex-direction: column;
   background-color: $editor-secondary;
+  overflow: hidden;
 }
 
 .timeline-flash-shell {
   min-height: 0;
+  width: 100%;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   background-color: $editor-secondary;
+  overflow: hidden;
 }
 
 .timeline-flash-header {
@@ -146,6 +149,7 @@
 }
 
 .timeline-flash-footer {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -499,6 +503,7 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   flex: 0 0 210px;
   width: 210px;
   min-width: 190px;
+  min-height: 0;
   border-right: 1px solid $editor-primary-outline;
   background-color: $editor-primary;
   display: flex;
@@ -528,6 +533,18 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
+}
+
+.timeline-dom-layer-filler {
+  width: 100%;
+  pointer-events: none;
+  background-image: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.06) 1px,
+    transparent 1px
+  );
+  background-size: 100% var(--timeline-cell-height, 42px);
+  /* background-position: 0 -1px; Remove this, to top starts at bottom */
 }
 
 .timeline-dom-layer-row {
@@ -618,6 +635,7 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 .timeline-dom-grid-panel {
   flex: 1 1 auto;
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background-color: $editor-primary;
@@ -628,7 +646,11 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   border-bottom: 1px solid $editor-primary-outline;
   display: flex;
   align-items: stretch;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.02)
+  );
   overflow: hidden;
 }
 
@@ -771,16 +793,8 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   position: relative;
   min-height: 100%;
   background-image:
-    linear-gradient(
-      to right,
-      rgba(255, 255, 255, 0.06) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0.06) 1px,
-      transparent 1px
-    );
+    linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
   background-size: var(--timeline-cell-width) var(--timeline-cell-height);
 }
 
@@ -813,7 +827,9 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   padding: 0 8px;
   overflow: visible;
   text-align: left;
-  transition: background-color 0.12s ease, border-color 0.12s ease;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease;
 }
 
 .timeline-dom-frame::before {
@@ -889,7 +905,9 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 }
 
 .timeline-dom-frame.selected {
-  box-shadow: inset 0 0 0 1px #fff, 0 0 0 1px rgba(255, 255, 255, 0.25);
+  box-shadow:
+    inset 0 0 0 1px #fff,
+    0 0 0 1px rgba(255, 255, 255, 0.25);
 }
 
 .timeline-dom-frame.dragging {
@@ -1063,6 +1081,59 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 
 .timeline-flash-footer-shortcuts {
   color: rgba(174, 216, 248, 0.95);
+}
+
+@media (max-height: 820px) {
+  .timeline-flash-header {
+    padding: 4px 8px;
+    gap: 8px;
+  }
+
+  .timeline-flash-action-button {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+  }
+
+  .timeline-shortcut-toggle-button {
+    min-width: 52px;
+    height: 24px;
+    font-size: 10px;
+    padding: 0 8px;
+  }
+
+  .timeline-renderer-toggle-button {
+    min-width: 60px;
+    height: 24px;
+    font-size: 10px;
+    padding: 0 8px;
+  }
+
+  .timeline-dom-layers-header,
+  .timeline-dom-marker-row,
+  .timeline-dom-numberline {
+    height: 30px;
+  }
+
+  .timeline-flash-footer {
+    padding: 4px 8px;
+    gap: 6px;
+  }
+
+  .timeline-flash-footer-group {
+    padding: 1px 3px;
+  }
+
+  .timeline-flash-footer-input,
+  .timeline-flash-footer-button,
+  .timeline-flash-footer-choice {
+    height: 24px;
+    font-size: 11px;
+  }
+
+  .timeline-flash-footer-hint {
+    display: none;
+  }
 }
 
 @media (max-width: 800px) {

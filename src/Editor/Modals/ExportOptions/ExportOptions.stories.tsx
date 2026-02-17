@@ -15,6 +15,21 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  args: {
+    open: true,
+    toggle: () => undefined,
+    projectName: "My Project",
+    exportProjectAsGif: () => undefined,
+    exportProjectAsVideo: () => undefined,
+    exportProjectAsStandaloneZip: () => undefined,
+    exportProjectAsStandaloneHTML: () => undefined,
+    exportProjectAsImageSequence: () => undefined,
+    exportProjectAsAudioTrack: () => undefined,
+    exportProjectAsImageSVG: () => undefined,
+    queueModal: () => undefined,
+    project: {},
+    isMobile: false,
+  },
   render: (args) => (
     <DynamicComponentStory
       componentName="ExportOptions"

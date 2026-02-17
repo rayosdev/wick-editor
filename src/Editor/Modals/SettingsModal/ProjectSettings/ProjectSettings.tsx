@@ -322,7 +322,7 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
 
   const renderPresetBoxes = (): JSX.Element => {
     return (
-      <div className="preset-boxes">
+      <div className="preset-boxes flex h-full w-full flex-row">
         {presets.map((presetItem, i) => {
           return (
             <ActionButton

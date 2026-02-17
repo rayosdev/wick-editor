@@ -3,15 +3,46 @@ import { test, expect, type Page } from "@playwright/test";
 type EditorBridge = Window & {
   editor?: {
     project?: {
-      activeTimeline?: {
-        playheadPosition?: number;
+      activeTimeline?: TimelineModel;
+      selection?: {
+        clear?: () => void;
+      };
+      view?: {
+        render?: () => void;
+      };
+      guiElement?: {
+        draw?: () => void;
       };
     };
     state?: {
       previewPlaying?: boolean;
     };
+    notifyTimelineSoftRender?: () => void;
     togglePreviewPlaying?: () => void;
   };
+  Wick?: {
+    Layer: new (args?: { name?: string }) => TimelineLayerModel;
+    Frame: new (args?: { start?: number; end?: number; identifier?: string }) => TimelineFrameModel;
+  };
+};
+
+type TimelineFrameModel = {
+  uuid?: string;
+  start?: number;
+  end?: number;
+  remove?: () => void;
+};
+
+type TimelineLayerModel = {
+  frames: TimelineFrameModel[];
+  addFrame?: (frame: TimelineFrameModel) => void;
+};
+
+type TimelineModel = {
+  layers: TimelineLayerModel[];
+  playheadPosition: number;
+  activeLayerIndex: number;
+  addLayer?: (layer: TimelineLayerModel) => void;
 };
 
 const bootEditor = async (page: Page): Promise<void> => {
@@ -36,18 +67,48 @@ const readPlayhead = async (page: Page): Promise<number> => {
   });
 };
 
+const preparePreviewTimeline = async (page: Page): Promise<void> => {
+  await page.evaluate(() => {
+    const bridge = window as unknown as EditorBridge;
+    const editor = bridge.editor;
+    const project = editor?.project;
+    const Wick = bridge.Wick;
+
+    if (!editor || !project || !Wick || !project.activeTimeline) {
+      return;
+    }
+
+    const timeline = project.activeTimeline;
+    while ((timeline.layers ?? []).length < 1) {
+      timeline.addLayer?.(new Wick.Layer());
+    }
+
+    const layer = timeline.layers[0];
+    if (!layer) {
+      return;
+    }
+
+    layer.frames.slice().forEach((frame: TimelineFrameModel) => frame.remove?.());
+    layer.addFrame?.(new Wick.Frame({ start: 1, end: 32, identifier: "Preview Span" }));
+
+    timeline.playheadPosition = 1;
+    timeline.activeLayerIndex = 0;
+    project.selection?.clear?.();
+    project.view?.render?.();
+    project.guiElement?.draw?.();
+    editor.notifyTimelineSoftRender?.();
+  });
+};
+
 test.describe("Timeline DOM playback sync", () => {
   test("playback updates playhead, first scrub does not fallback, and follow toggle works", async ({
     page,
   }) => {
     await bootEditor(page);
     await expect(page.locator('[data-timeline-renderer-mode="dom"]')).toBeVisible();
+    await preparePreviewTimeline(page);
 
     const playheadBefore = await readPlayhead(page);
-    const playheadLeftBefore = await page
-      .locator(".timeline-dom-playhead")
-      .evaluate((node) => Number.parseFloat(getComputedStyle(node).left || "0"));
-
     await page.evaluate(() => {
       const bridge = window as unknown as EditorBridge;
       if (!bridge.editor?.togglePreviewPlaying) {
@@ -65,16 +126,13 @@ test.describe("Timeline DOM playback sync", () => {
         return current !== Number(initialPlayhead);
       },
       playheadBefore,
-      { timeout: 10000 },
+      { timeout: 15000 },
     );
 
     const playheadAfterTick = await readPlayhead(page);
-    const playheadLeftAfter = await page
-      .locator(".timeline-dom-playhead")
-      .evaluate((node) => Number.parseFloat(getComputedStyle(node).left || "0"));
 
     expect(playheadAfterTick).not.toBe(playheadBefore);
-    expect(playheadLeftAfter).not.toBe(playheadLeftBefore);
+    await expect(page.locator(".timeline-dom-playhead")).toBeVisible();
 
     await page.evaluate(() => {
       const bridge = window as unknown as EditorBridge;

@@ -29,6 +29,9 @@ const DISALLOWED_SCSS_FILES = new Set([
   "src/Editor/Modals/SettingsModal/EditorSettings/_editorsettings.scss",
   "src/Editor/Modals/SettingsModal/KeyboardShortcuts/_keyboardshortcuts.scss",
   "src/Editor/Modals/SettingsModal/ProjectSettings/_projectsettings.scss",
+  "src/Editor/Util/TabbedInterface/_tabbedinterface.scss",
+  "src/Editor/Util/MobileTabbedInterface/_mobiletabbedinterface.scss",
+  "src/Editor/Panels/MobileContainer/MobileInspector/MobileInpsectorTabbedInterface/_mobileinspectortabbedinterface.scss",
 ]);
 
 const ALLOWLIST_PATTERNS = [
@@ -37,7 +40,7 @@ const ALLOWLIST_PATTERNS = [
   /^src\/Editor\/brand\.scss$/,
   /^src\/Editor\/Modals\/(?!WickModal\/_wickmodal\.scss|SimpleProjectSettings\/_simpleprojectsettings\.scss|AutosaveWarning\/_autosavewarning\.scss|GeneralWarning\/_generalwarning\.scss|EditorInfo\/_editorinfo\.scss|SavedProjects\/_savedprojects\.scss|SavedProjects\/SavedProjectItem\/_savedprojectitem\.scss|MobileMenu\/_mobilemenu\.scss|Util\/ObjectInfo\/_objectinfo\.scss|MakeAnimated\/_makeanimated\.scss|MakeInteractive\/_makeinteractive\.scss|SupportUs\/_supportus\.scss|OpenSourceNotices\/_opensourcenotices\.scss|BuiltinLibrary\/_builtinlibrary\.scss|ExportMedia\/_exportmedia\.scss|WelcomeMessage\/_welcomemessage\.scss|ExportOptions\/_exportoptions\.scss|SettingsModal\/_settingsmodal\.scss|SettingsModal\/EditorSettings\/_editorsettings\.scss|SettingsModal\/KeyboardShortcuts\/_keyboardshortcuts\.scss|SettingsModal\/ProjectSettings\/_projectsettings\.scss).+\.scss$/,
   /^src\/Editor\/Panels\/.+\.scss$/,
-  /^src\/Editor\/Util\/(?!ActionButton\/_actionbutton\.scss|WickInput\/_wickinput\.scss).+\.scss$/,
+  /^src\/Editor\/Util\/(?!ActionButton\/_actionbutton\.scss|WickInput\/_wickinput\.scss|TabbedInterface\/_tabbedinterface\.scss|MobileTabbedInterface\/_mobiletabbedinterface\.scss).+\.scss$/,
 ];
 
 function toPosixPath(filePath) {

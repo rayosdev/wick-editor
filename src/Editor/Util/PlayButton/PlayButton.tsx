@@ -18,7 +18,6 @@
  */
 
 import React from 'react';
-import './_playbutton.scss'
 
 import iconPlay from 'resources/action-icons/play.png';
 import iconPause from 'resources/action-icons/pause.png';
@@ -46,7 +45,7 @@ const PlayButton: React.FC<PlayButtonProps> = ({
       id={id}
       data-for={id}
       type="image"
-      className={`play-icon ${className || ''}`}
+      className={`play-icon h-full w-full cursor-pointer ${className || ''}`}
       alt="playing button"
       src={playing ? iconPause : iconPlay}
       onClick={action}

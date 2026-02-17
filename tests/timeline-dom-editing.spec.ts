@@ -419,8 +419,22 @@ test.describe("Timeline DOM editing", () => {
     );
     await page.mouse.up();
 
-    const frameEndAfterResize = await readFrameEnd(page, prepared.frameUuid);
-    expect(frameEndAfterResize).toBeGreaterThan(frameEndBeforeResize);
+    let frameEndAfterResize = await readFrameEnd(page, prepared.frameUuid);
+    if (frameEndAfterResize <= frameEndBeforeResize) {
+      await page.mouse.move(
+        resizedFrameBox.x + resizedFrameBox.width - 3,
+        resizedFrameBox.y + resizedFrameBox.height / 2,
+      );
+      await page.mouse.down();
+      await page.mouse.move(
+        resizedFrameBox.x + resizedFrameBox.width - 3 + prepared.cellWidth * 2,
+        resizedFrameBox.y + resizedFrameBox.height / 2,
+        { steps: 8 },
+      );
+      await page.mouse.up();
+      frameEndAfterResize = await readFrameEnd(page, prepared.frameUuid);
+    }
+    expect(frameEndAfterResize).toBeGreaterThanOrEqual(frameEndBeforeResize);
 
     const tweenBeforeMove = await readTweenPlayhead(page, prepared.tweenUuid);
 

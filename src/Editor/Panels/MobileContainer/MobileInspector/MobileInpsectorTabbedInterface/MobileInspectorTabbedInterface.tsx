@@ -19,8 +19,6 @@
 
 import { useState, ReactNode } from "react";
 
-import "./_mobileinspectortabbedinterface.scss";
-
 import classNames from "classnames";
 
 interface TabConfig {
@@ -48,16 +46,19 @@ export default function MobileInspectorTabbedInterface(props: MobileInspectorTab
     return (
       <div
         role="tablist"
-        className="mobile-inspector-tabbed-interface-main-tab-container"
+        className="mobile-inspector-tabbed-interface-main-tab-container flex min-h-10 w-full flex-row items-end justify-start bg-[#191919] pt-[5px]"
       >
         {props.tabs.map((tab, i) => (
           <button
             key={`tab-${tab.label}-${i}`}
             className={classNames(
-              "mobile-inspector-tabbed-interface-main-tab",
+              "mobile-inspector-tabbed-interface-main-tab mr-[5px] h-full min-h-10 w-[15%] cursor-pointer rounded-t-[5px] border-0 border-b-[3px] border-b-[#484747] bg-[#262626] first:ml-0",
               "mobile-inspector-" + tab.label + "-tab",
               props.tabClassName,
-              { selected: tab.label === selectedTab }
+              {
+                "selected border-b-wick-green bg-[#303030] transition-[background-color,border-color] duration-[400ms]":
+                  tab.label === selectedTab,
+              }
             )}
             onClick={() => {
               setSelectedTab(tab.label);
@@ -65,7 +66,7 @@ export default function MobileInspectorTabbedInterface(props: MobileInspectorTab
           >
             <img
               className={classNames(
-                "mobile-inspector-tabbed-interface-icon",
+                "mobile-inspector-tabbed-interface-icon m-auto",
                 "mobile-inspector-" + tab.label + "-tab-icon"
               )}
               src={selectedTab === tab.label ? tab.iconActive : tab.icon}
@@ -81,14 +82,14 @@ export default function MobileInspectorTabbedInterface(props: MobileInspectorTab
   return (
     <div
       className={classNames(
-        "mobile-inspector-tabbed-interface",
+        "mobile-inspector-tabbed-interface h-full w-full bg-[#191919]",
         props.className
       )}
     >
       {renderTabs()}
       <div
         className={classNames(
-          "mobile-inspector-tabbed-interface-body",
+          "mobile-inspector-tabbed-interface-body h-[calc(100%_-_40px)] w-full bg-[#303030]",
           props.bodyClassName
         )}
       >

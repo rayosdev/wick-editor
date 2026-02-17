@@ -282,7 +282,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
     return (
       <div
         className={classNames(
-          "export-info-item flex w-1/2 flex-col",
+          "export-info-item min-w-0 basis-0 flex-1 flex-col",
           props.isMobile && "mobile mb-[5px] w-full"
         )}
       >
@@ -312,7 +312,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
     return (
       <div
         className={classNames(
-          "export-info-item flex w-1/2 flex-col",
+          "export-info-item min-w-0 basis-0 flex-1 flex-col",
           props.isMobile && "mobile mb-[5px] w-full"
         )}
       >
@@ -353,8 +353,8 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
       <div>
         <div
           className={classNames(
-            "export-info-container flex w-full flex-row",
-            props.isMobile ? "mobile flex-col" : "[&>div:last-child]:ml-3"
+            "export-info-container flex w-full",
+            props.isMobile ? "mobile flex-col" : "flex-row gap-3"
           )}
         >
           {renderGifObject()}
@@ -368,8 +368,8 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
   // Renders the body of the "Interactive" tab.
   const renderInteractiveInfo = (): JSX.Element => {
     return (
-      <div className="export-info-container flex w-full flex-row [&>div:last-child]:ml-3">
-        <div className="export-info-item flex w-1/2 flex-col">
+      <div className="export-info-container flex w-full flex-row gap-3">
+        <div className="export-info-item min-w-0 basis-0 flex-1 flex-col">
           <ObjectInfo
             className="export-object-info h-[120px]"
             title="ZIP Archive"
@@ -389,7 +389,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
             />
           </div>
         </div>
-        <div className="export-info-item flex w-1/2 flex-col">
+        <div className="export-info-item min-w-0 basis-0 flex-1 flex-col">
           <ObjectInfo
             className="export-object-info h-[120px]"
             title="HTML"
@@ -419,13 +419,13 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
       <div>
         <div
           className={classNames(
-            "export-info-container flex w-full flex-row",
-            props.isMobile ? "mobile flex-col" : "[&>div:last-child]:ml-3"
+            "export-info-container flex w-full",
+            props.isMobile ? "mobile flex-col" : "flex-row gap-3"
           )}
         >
           <div
             className={classNames(
-              "export-info-item flex w-1/2 flex-col",
+              "export-info-item min-w-0 basis-0 flex-1 flex-col",
               props.isMobile && "mobile mb-[5px] w-full"
             )}
           >
@@ -459,7 +459,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
           </div>
           <div
             className={classNames(
-              "export-info-item flex w-1/2 flex-col",
+              "export-info-item min-w-0 basis-0 flex-1 flex-col",
               props.isMobile && "mobile mb-[5px] w-full"
             )}
           >

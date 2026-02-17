@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
@@ -104,6 +110,10 @@ const DEFAULT_MARKER_COLORS = [
   "#F08282",
   "#B79EFF",
 ];
+const VIRTUALIZATION_LAYER_THRESHOLD = 80;
+const VIRTUALIZATION_FRAME_THRESHOLD = 260;
+const VIRTUALIZATION_LAYER_OVERSCAN = 4;
+const VIRTUALIZATION_FRAME_OVERSCAN = 10;
 
 const getFrameSizeMode = (): TimelineFrameSizeMode => {
   const guiElement = window?.Wick?.GUIElement;
@@ -268,6 +278,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   const longPressTimerRef = useRef<number | null>(null);
   const longPressStartRef = useRef<{ x: number; y: number } | null>(null);
   const longPressTriggeredRef = useRef(false);
+  const viewportSyncRafRef = useRef<number | null>(null);
   const [renderTick, setRenderTick] = useState(0);
   const [frameInputValue, setFrameInputValue] = useState("1");
   const [fpsInputValue, setFpsInputValue] = useState(DEFAULT_FRAME_RATE.toFixed(1));
@@ -285,6 +296,13 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   const [dragCollisionMode, setDragCollisionMode] = useState<"overwrite" | "push" | null>(null);
   const [isTouchInteracting, setIsTouchInteracting] = useState(false);
   const [pressFeedback, setPressFeedback] = useState<{ x: number; y: number } | null>(null);
+  const [gridViewportHeight, setGridViewportHeight] = useState(0);
+  const [gridViewport, setGridViewport] = useState({
+    width: 0,
+    height: 0,
+    scrollTop: 0,
+    scrollLeft: 0,
+  });
   const [soundHoverCell, setSoundHoverCell] =
     useState<{ layerIndex: number; playheadPosition: number } | null>(null);
   const [markers, setMarkers] = useState<TimelineMarker[]>([]);
@@ -309,6 +327,63 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   const timelineLength = useMemo(() => {
     return Math.max(getTimelineLength(layers) + 24, 48);
   }, [layers, renderTick, frameSizeMode]);
+  const maxLayerIndex = Math.max(0, layers.length - 1);
+  const viewportWidth =
+    gridViewport.width > 0
+      ? gridViewport.width
+      : Math.max(cellWidth, timelineLength * cellWidth);
+  const viewportHeight =
+    gridViewport.height > 0
+      ? gridViewport.height
+      : Math.max(cellHeight, gridViewportHeight);
+  const shouldVirtualizeLayerRows = layers.length >= VIRTUALIZATION_LAYER_THRESHOLD;
+  const shouldVirtualizeFrames = timelineLength >= VIRTUALIZATION_FRAME_THRESHOLD;
+  const visibleLayerStart =
+    layers.length === 0
+      ? 0
+      : shouldVirtualizeLayerRows
+        ? clampNumber(
+            Math.floor(gridViewport.scrollTop / cellHeight) - VIRTUALIZATION_LAYER_OVERSCAN,
+            0,
+            maxLayerIndex,
+          )
+        : 0;
+  const visibleLayerEnd =
+    layers.length === 0
+      ? -1
+      : shouldVirtualizeLayerRows
+        ? clampNumber(
+            Math.ceil((gridViewport.scrollTop + viewportHeight) / cellHeight) +
+              VIRTUALIZATION_LAYER_OVERSCAN,
+            0,
+            maxLayerIndex,
+          )
+        : maxLayerIndex;
+  const visibleFrameStart = shouldVirtualizeFrames
+    ? Math.max(
+        1,
+        Math.floor(gridViewport.scrollLeft / cellWidth) + 1 - VIRTUALIZATION_FRAME_OVERSCAN,
+      )
+    : 1;
+  const visibleFrameEnd = shouldVirtualizeFrames
+    ? Math.min(
+        timelineLength,
+        Math.ceil((gridViewport.scrollLeft + viewportWidth) / cellWidth) +
+          VIRTUALIZATION_FRAME_OVERSCAN,
+      )
+    : timelineLength;
+  const renderedLayers =
+    visibleLayerEnd >= visibleLayerStart
+      ? layers.slice(visibleLayerStart, visibleLayerEnd + 1)
+      : [];
+  const layerTopSpacerHeight = shouldVirtualizeLayerRows ? visibleLayerStart * cellHeight : 0;
+  const layerBottomSpacerHeight =
+    shouldVirtualizeLayerRows && visibleLayerEnd >= visibleLayerStart
+      ? Math.max(0, layers.length - visibleLayerEnd - 1) * cellHeight
+      : 0;
+
+  const currentLayersHeight = layerTopSpacerHeight + renderedLayers.length * cellHeight + layerBottomSpacerHeight + cellHeight;
+  const layerFillerHeight = Math.max(0, gridViewportHeight - currentLayersHeight);
 
   const focus = project?.focus;
   const isNestedTimeline = Boolean(focus && !focus.isRoot);
@@ -1223,13 +1298,63 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       return;
     }
 
-    const syncFromGrid = () => {
-      layersElem.scrollTop = gridElem.scrollTop;
+    const updateViewportState = () => {
+      setGridViewportHeight((current) => {
+        const next = Math.max(0, Math.floor(gridElem.clientHeight));
+        return current === next ? current : next;
+      });
+      setGridViewport((current) => {
+        const next = {
+          width: Math.max(0, Math.floor(gridElem.clientWidth)),
+          height: Math.max(0, Math.floor(gridElem.clientHeight)),
+          scrollTop: Math.max(0, Math.floor(gridElem.scrollTop)),
+          scrollLeft: Math.max(0, Math.floor(gridElem.scrollLeft)),
+        };
+
+        return current.width === next.width &&
+            current.height === next.height &&
+            current.scrollTop === next.scrollTop &&
+            current.scrollLeft === next.scrollLeft
+          ? current
+          : next;
+      });
     };
 
+    const scheduleViewportSync = () => {
+      if (viewportSyncRafRef.current !== null) {
+        return;
+      }
+
+      viewportSyncRafRef.current = window.requestAnimationFrame(() => {
+        viewportSyncRafRef.current = null;
+        updateViewportState();
+      });
+    };
+
+    const syncFromGrid = () => {
+      layersElem.scrollTop = gridElem.scrollTop;
+      scheduleViewportSync();
+    };
+
+    updateViewportState();
     gridElem.addEventListener("scroll", syncFromGrid, { passive: true });
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+          scheduleViewportSync();
+        })
+        : null;
+
+    resizeObserver?.observe(gridElem);
+    window.addEventListener("resize", scheduleViewportSync);
 
     return () => {
+      if (viewportSyncRafRef.current !== null) {
+        window.cancelAnimationFrame(viewportSyncRafRef.current);
+        viewportSyncRafRef.current = null;
+      }
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", scheduleViewportSync);
       gridElem.removeEventListener("scroll", syncFromGrid);
     };
   }, []);
@@ -1493,6 +1618,25 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
     if (marker) {
       setPlayhead(marker.frame, { respectSnap: false });
+    }
+  };
+
+  const handleMarkerNavigationHotkeys = (event: ReactKeyboardEvent<HTMLElement>): void => {
+    const target = event.target as HTMLElement | null;
+    const tagName = target?.tagName?.toLowerCase();
+    if (tagName === "input" || tagName === "textarea" || target?.isContentEditable) {
+      return;
+    }
+
+    if (event.key === "]" || (event.altKey && event.key === "ArrowRight")) {
+      event.preventDefault();
+      jumpToMarker("next");
+      return;
+    }
+
+    if (event.key === "[" || (event.altKey && event.key === "ArrowLeft")) {
+      event.preventDefault();
+      jumpToMarker("previous");
     }
   };
 
@@ -1812,13 +1956,17 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       const frameEnd = Number(frame.end ?? frameStart);
       const frameLeftPx = (frameStart - 1) * cellWidth;
       const frameRightPx = frameEnd * cellWidth;
-      const localLocation = resolveGridLocation(event.clientX, event.clientY);
-      const localCol = localLocation?.col ?? location.col;
-      const pointerXInFrame = localCol * cellWidth + cellWidth / 2 - frameLeftPx;
+      const gridElem = gridScrollRef.current;
+      const gridRect = gridElem?.getBoundingClientRect();
+      const pointerLocalX =
+        gridElem && gridRect
+          ? event.clientX - gridRect.left + gridElem.scrollLeft
+          : location.col * cellWidth + cellWidth / 2;
+      const pointerXInFrame = pointerLocalX - frameLeftPx;
 
       const handleWidth = Math.max(14, Math.floor(cellWidth * 0.36));
       const nearLeft = pointerXInFrame <= handleWidth;
-      const nearRight = frameRightPx - frameLeftPx - pointerXInFrame <= handleWidth;
+      const nearRight = frameRightPx - pointerLocalX <= handleWidth;
 
       if (event.shiftKey) {
         selectFrameRangeFromAnchor(frame, location.layerIndex);
@@ -2225,6 +2373,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       data-timeline-density-mode={props.timelineDensityMode}
       data-timeline-snap-mode={props.timelineSnapMode}
       data-timeline-follow-mode={props.timelinePlaybackFollowMode}
+      onKeyDownCapture={handleMarkerNavigationHotkeys}
     >
       {props.isOver && <div className="drag-drop-overlay" />}
       <div className={`timeline-flash-shell timeline-dom-shell timeline-density-${props.timelineDensityMode}`}>
@@ -2453,8 +2602,19 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         <div className="timeline-dom-workspace">
           <div className="timeline-dom-layers-panel">
             <div className="timeline-dom-layers-header">Layers</div>
-            <div className="timeline-dom-layers-scroll" ref={layersScrollRef}>
-              {layers.map((layer, layerIndex) => {
+            <div
+              className="timeline-dom-layers-scroll"
+              ref={layersScrollRef}
+              style={{
+                ["--timeline-cell-height" as string]: `${cellHeight}px`,
+              }}
+            >
+              {layerTopSpacerHeight > 0 && (
+                <div style={{ height: `${layerTopSpacerHeight}px` }} aria-hidden />
+              )}
+
+              {renderedLayers.map((layer, renderedLayerIndex) => {
+                const layerIndex = visibleLayerStart + renderedLayerIndex;
                 const isActive = layerIndex === activeTimeline?.activeLayerIndex;
                 const isLayerSelected = Boolean(project?.selection?.isObjectSelected?.(layer));
 
@@ -2540,6 +2700,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                   </div>
                 );
               })}
+              {layerBottomSpacerHeight > 0 && (
+                <div style={{ height: `${layerBottomSpacerHeight}px` }} aria-hidden />
+              )}
 
               <button
                 type="button"
@@ -2549,6 +2712,14 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               >
                 + Layer
               </button>
+
+              {layerFillerHeight > 0 && (
+                <div
+                  className="timeline-dom-layer-filler"
+                  style={{ height: `${layerFillerHeight}px` }}
+                  aria-hidden
+                />
+              )}
             </div>
           </div>
 
@@ -2679,7 +2850,10 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 className="timeline-dom-grid-canvas"
                 style={{
                   width: `${timelineLength * cellWidth}px`,
-                  height: `${Math.max(1, layers.length) * cellHeight}px`,
+                  height: `${Math.max(
+                    Math.max(1, layers.length) * cellHeight,
+                    gridViewportHeight,
+                  )}px`,
                   ["--timeline-cell-width" as string]: `${cellWidth}px`,
                   ["--timeline-cell-height" as string]: `${cellHeight}px`,
                 }}
@@ -2691,11 +2865,17 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     width: `${Math.max(cellWidth, (workArea.end - workArea.start + 1) * cellWidth)}px`,
                   }}
                 />
-                {layers.map((layer, layerIndex) => {
+                {renderedLayers.map((layer, renderedLayerIndex) => {
+                  const layerIndex = visibleLayerStart + renderedLayerIndex;
                   const previewRow =
                     interactionRef.current?.mode === "frame-move" ||
                     interactionRef.current?.mode === "frame-resize-left" ||
                     interactionRef.current?.mode === "frame-resize-right";
+                  const renderedFrames = shouldVirtualizeFrames
+                    ? layer.frames.filter((frame) =>
+                        frameInRange(frame, visibleFrameStart, visibleFrameEnd),
+                      )
+                    : layer.frames;
 
                   return (
                     <div
@@ -2708,7 +2888,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                         top: `${layerIndex * cellHeight}px`,
                       }}
                     >
-                      {layer.frames.map((frame) => {
+                      {renderedFrames.map((frame) => {
                         const frameStart = Number(frame.start ?? 1);
                         const frameLength = normalizeFrameLength(frame);
                         const frameVisualState = getFrameVisualState(frame);
@@ -2726,8 +2906,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                             : left;
                         const previewTop =
                           isDraggedFrame && dragPreview
-                            ? layerIndex * cellHeight + dragPreview.moveRows * cellHeight
-                            : layerIndex * cellHeight;
+                            ? dragPreview.moveRows * cellHeight
+                            : 0;
 
                         return (
                           <div

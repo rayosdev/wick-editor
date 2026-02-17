@@ -19,8 +19,6 @@
 
 import React, { useState, ReactNode } from "react";
 
-import "./_mobiletabbedinterface.scss";
-
 import classNames from "classnames";
 
 interface MobileTab {
@@ -73,16 +71,23 @@ const MobileTabbedInterface: React.FC<MobileTabbedInterfaceProps> = ({
     return (
       <div
         role="tablist"
-        className="mobile-tabbed-interface-main-tab-container"
+        className="mobile-tabbed-interface-main-tab-container flex min-h-[42px] w-full flex-row items-end justify-between bg-[#666666]"
       >
         {tabs.map((tab, i) => (
           <button
             key={`tab-${tab.label}-${i}`}
             className={classNames(
-              "mobile-tabbed-interface-main-tab",
+              "mobile-tabbed-interface-main-tab h-full min-h-[34px] w-[22%] cursor-pointer rounded-t-[5px] border-0 bg-[#191919]",
               `mobile-${tab.label}-tab`,
               tabClassName,
-              { selected: selectedTab === tab.label }
+              {
+                "selected min-h-[42px] border-t-4 border-wick-green transition-[border-color,min-height] duration-[400ms]":
+                  selectedTab === tab.label,
+                "border-t-[#FA8A87]": selectedTab === tab.label && tab.label === "timeline",
+                "border-t-[#4FF7DE]": selectedTab === tab.label && tab.label === "inspector",
+                "border-t-[#FA73FA]": selectedTab === tab.label && tab.label === "code",
+                "border-t-[#BAFA98]": selectedTab === tab.label && tab.label === "asset",
+              }
             )}
             onClick={() => {
               selectTab(tab.label);
@@ -90,7 +95,7 @@ const MobileTabbedInterface: React.FC<MobileTabbedInterfaceProps> = ({
           >
             <img
               className={classNames(
-                "mobile-tabbed-interface-icon",
+                "mobile-tabbed-interface-icon m-auto",
                 `mobile-${tab.label}-tab-icon`
               )}
               src={
@@ -106,12 +111,12 @@ const MobileTabbedInterface: React.FC<MobileTabbedInterfaceProps> = ({
 
   return (
     <div
-      className={classNames("mobile-tabbed-interface", className)}
+      className={classNames("mobile-tabbed-interface h-full w-full bg-transparent", className)}
     >
       {renderTabs()}
       <div
         className={classNames(
-          "mobile-tabbed-interface-body",
+          "mobile-tabbed-interface-body h-[calc(100%_-_42px)] w-full bg-[#191919]",
           bodyClassName
         )}
       >
