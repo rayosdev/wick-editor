@@ -1290,8 +1290,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   useEffect(() => {
     // Initial viewport sync
     if (workspaceRef.current) {
-       setGridViewportHeight(Math.max(0, Math.floor(workspaceRef.current.clientHeight)));
-       setGridViewport((current) => {
+      setGridViewportHeight(Math.max(0, Math.floor(workspaceRef.current.clientHeight)));
+      setGridViewport((current) => {
         const next = {
           width: Math.max(0, Math.floor(workspaceRef.current!.clientWidth)),
           height: Math.max(0, Math.floor(workspaceRef.current!.clientHeight)),
@@ -1304,7 +1304,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
           current.scrollLeft === next.scrollLeft
           ? current
           : next;
-       });
+      });
     }
   }, []);
 
@@ -2713,13 +2713,13 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 />
               )}
 
-               <div
-                  className="timeline-dom-work-area-overlay"
-                  style={{
-                    left: `${(workArea.start - 1) * cellWidth}px`,
-                    width: `${Math.max(cellWidth, (workArea.end - workArea.start + 1) * cellWidth)}px`,
-                  }}
-                />
+              <div
+                className="timeline-dom-work-area-overlay"
+                style={{
+                  left: `${(workArea.start - 1) * cellWidth}px`,
+                  width: `${Math.max(cellWidth, (workArea.end - workArea.start + 1) * cellWidth)}px`,
+                }}
+              />
             </div>
 
             {layerTopSpacerHeight > 0 && (
@@ -2730,7 +2730,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               const layerIndex = visibleLayerStart + renderedLayerIndex;
               const isActive = layerIndex === activeTimeline?.activeLayerIndex;
               const isLayerSelected = Boolean(project?.selection?.isObjectSelected?.(layer));
-              
+
               const previewRow =
                 interactionRef.current?.mode === "frame-move" ||
                 interactionRef.current?.mode === "frame-resize-left" ||
@@ -2852,7 +2852,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                         //  Boolean(
                         //    interactionRef.current?.frames.some((selectedFrame) => selectedFrame === frame),
                         //  ) && Boolean(previewRow && dragPreview);
-                        
+
                         // FIX: Re-declare isDraggedFrame in local scope if needed or just use logic inline
                         // To be safe and clean, let's just make sure it parses correctly.
                         // I will assume the original logic is correct.
@@ -2947,7 +2947,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             })}
 
             {layerBottomSpacerHeight > 0 && (
-                <div style={{ height: `${layerBottomSpacerHeight}px` }} aria-hidden />
+              <div style={{ height: `${layerBottomSpacerHeight}px` }} aria-hidden />
             )}
 
             <div className="timeline-unified-row">
@@ -2960,7 +2960,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 >
                   + Layer
                 </button>
-                 {layerFillerHeight > 0 && (
+                {layerFillerHeight > 0 && (
                   <div
                     className="timeline-dom-layer-filler"
                     style={{ height: `${layerFillerHeight}px` }}
@@ -2970,14 +2970,14 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               </div>
               <div className="timeline-unified-track" />
             </div>
-            
-             {dragCollisionMode && (
-                  <div className={`timeline-dom-drop-mode ${dragCollisionMode}`}
-                       style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 100 }}
-                  >
-                    {dragCollisionMode === "push" ? "Push on drop" : "Overwrite on drop"}
-                  </div>
-             )}
+
+            {dragCollisionMode && (
+              <div className={`timeline-dom-drop-mode ${dragCollisionMode}`}
+                style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 100 }}
+              >
+                {dragCollisionMode === "push" ? "Push on drop" : "Overwrite on drop"}
+              </div>
+            )}
           </div>
         </div>
 
