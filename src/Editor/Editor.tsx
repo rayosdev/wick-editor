@@ -587,7 +587,7 @@ class Editor extends EditorCore {
         !this.project ||
         !this.state.previewPlaying ||
         this.state.timelineRendererMode !== "dom" ||
-        this.project.playing !== true
+        this.project.playing === false
       ) {
         return;
       }

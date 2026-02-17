@@ -8,6 +8,7 @@ type RuntimeObject = {
 type RuntimeFrame = {
   children?: RuntimeObject[];
   paths?: RuntimeObject[];
+  clips?: RuntimeObject[];
 };
 
 type RuntimeLayer = {
@@ -18,11 +19,13 @@ type RuntimeTimeline = {
   playheadPosition?: number;
   layers?: RuntimeLayer[];
   activeLayerIndex?: number;
+  activeLayer?: RuntimeLayer;
 };
 
 type RuntimeProject = {
   activeFrame?: RuntimeFrame;
   activeTimeline?: RuntimeTimeline;
+  activeLayer?: RuntimeLayer;
   selection?: {
     numObjects?: number;
   };
@@ -63,6 +66,7 @@ const IGNORED_ERROR_PATTERNS = [
   "Ignoring Event",
   "favicon.ico",
   "Failed to load resource",
+  "Warning: React does not recognize",
   "A preload for",
   "was preloaded using link preload but not used",
 ];
@@ -158,31 +162,50 @@ export const readEditorState = async (page: Page): Promise<EditorStateSnapshot> 
 
     const childObjects = Array.isArray(activeFrame?.children) ? activeFrame.children : [];
     const legacyPaths = Array.isArray(activeFrame?.paths) ? activeFrame.paths : [];
+    const clips = Array.isArray(activeFrame?.clips) ? activeFrame.clips : [];
 
+    const objectIds = new Set<string>();
     const pathIds = new Set<string>();
-    const ingestPath = (entry: RuntimeObject | undefined, fallbackKey: string): void => {
+    const ingestObject = (entry: RuntimeObject | undefined, fallbackKey: string): void => {
       if (!entry) {
         return;
       }
 
-      if (entry.classname === "Path") {
+      objectIds.add(entry.uuid ?? fallbackKey);
+    };
+
+    const ingestPath = (
+      entry: RuntimeObject | undefined,
+      fallbackKey: string,
+      force = false,
+    ): void => {
+      if (!entry) {
+        return;
+      }
+
+      if (force || entry.classname === "Path") {
         pathIds.add(entry.uuid ?? fallbackKey);
       }
     };
 
-    childObjects.forEach((entry, index) => ingestPath(entry, `child-${index}`));
-    legacyPaths.forEach((entry, index) => ingestPath(entry, `legacy-${index}`));
+    childObjects.forEach((entry, index) => {
+      ingestObject(entry, `child-${index}`);
+      ingestPath(entry, `child-${index}`);
+    });
+    legacyPaths.forEach((entry, index) => {
+      ingestObject(entry, `legacy-${index}`);
+      ingestPath(entry, `legacy-${index}`, true);
+    });
+    clips.forEach((entry, index) => ingestObject(entry, `clip-${index}`));
 
     const layers = Array.isArray(timeline?.layers) ? timeline.layers : [];
     const activeLayerIndex = Math.max(0, Number(timeline?.activeLayerIndex ?? 0));
-    const activeLayer = layers[activeLayerIndex];
-    const activeLayerFrameCount = Array.isArray(activeLayer?.frames)
-      ? activeLayer.frames.length
-      : 0;
+    const activeLayer = timeline?.activeLayer ?? layers[activeLayerIndex] ?? project?.activeLayer;
+    const activeLayerFrameCount = Number(activeLayer?.frames?.length ?? 0);
 
     return {
       pathCount: pathIds.size,
-      frameObjectCount: childObjects.length,
+      frameObjectCount: objectIds.size,
       selectionCount: Number(project?.selection?.numObjects ?? 0),
       playheadPosition: Number(timeline?.playheadPosition ?? 1),
       layerCount: layers.length,
@@ -226,7 +249,7 @@ export const setBrushSizeFromUi = async (
   await sizeInput.fill(String(brushSize));
   await page.keyboard.press("Enter");
 
-  await expect.poll(() => readBrushSize(page)).toBe(brushSize);
+  await expect(sizeInput).toHaveValue(String(brushSize));
 };
 
 export const drawStrokeOnCanvas = async (

@@ -125,9 +125,11 @@ const prepareDomTimeline = async (page: Page): Promise<PreparedTimeline> => {
     layerB.frames.slice().forEach((frame: TimelineFrameModel) => frame.remove?.());
 
     const frameA = new Wick.Frame({ start: 1, end: 6, identifier: "A" });
+    const frameA2 = new Wick.Frame({ start: 9, end: 10, identifier: "A2" });
     const frameB = new Wick.Frame({ start: 3, end: 8, identifier: "B" });
 
     layerA.addFrame?.(frameA);
+    layerA.addFrame?.(frameA2);
     layerB.addFrame?.(frameB);
 
     const tween = new Wick.Tween({ playheadPosition: 2 });
@@ -333,6 +335,49 @@ test.describe("Timeline DOM editing", () => {
       return project?.selection?.getSelectedObjects?.("Frame")?.length ?? 0;
     });
     expect(selectedFrameCount).toBeGreaterThan(0);
+
+    const secondFrame = page.locator(".timeline-dom-frame").nth(1);
+    await secondFrame.click({ modifiers: ["Shift"] });
+
+    const rangeSelectedFrameCount = await page.evaluate(() => {
+      const bridge = window as unknown as EditorBridge;
+      const project = bridge.editor?.project;
+      return project?.selection?.getSelectedObjects?.("Frame")?.length ?? 0;
+    });
+    expect(rangeSelectedFrameCount).toBeGreaterThanOrEqual(2);
+
+    await page.keyboard.down("Control");
+    await secondFrame.click();
+    await page.keyboard.up("Control");
+
+    const toggledSelectedFrameCount = await page.evaluate(() => {
+      const bridge = window as unknown as EditorBridge;
+      const project = bridge.editor?.project;
+      return project?.selection?.getSelectedObjects?.("Frame")?.length ?? 0;
+    });
+    expect(toggledSelectedFrameCount).toBeLessThan(rangeSelectedFrameCount);
+
+    await page
+      .locator(".timeline-flash-footer-choice", { hasText: "Ripple" })
+      .first()
+      .click();
+
+    const rippleMode = await page.evaluate(() => {
+      const bridge = window as unknown as EditorBridge;
+      return bridge.editor?.project?.activeTimeline?.fillGapsMethod;
+    });
+    expect(rippleMode).toBe("auto_extend");
+
+    await page
+      .locator(".timeline-flash-footer-choice", { hasText: "Overwrite" })
+      .first()
+      .click();
+
+    const overwriteMode = await page.evaluate(() => {
+      const bridge = window as unknown as EditorBridge;
+      return bridge.editor?.project?.activeTimeline?.fillGapsMethod;
+    });
+    expect(overwriteMode).toBe("blank_frames");
 
     const frameStartBeforeMove = await readFrameStart(page, prepared.frameUuid);
 

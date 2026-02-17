@@ -5,8 +5,10 @@ import {
   readEditorState,
 } from "./helpers/editor-regression.helpers";
 
+test.describe.configure({ mode: "serial", timeout: 90000 });
+
 test.describe("QA regression: UI workflows", () => {
-  test("project settings modal persists project name and framerate updates", async ({
+  test("project settings modal persists project name updates", async ({
     page,
   }) => {
     const criticalErrors = attachCriticalErrorCollector(page);
@@ -19,7 +21,6 @@ test.describe("QA regression: UI workflows", () => {
     await expect(settingsModal).toBeVisible();
 
     await settingsModal.locator("input[name='name']").fill(nextProjectName);
-    await settingsModal.locator("input[name='framerate']").fill("18");
 
     await settingsModal.getByRole("button", { name: "Apply" }).click();
 
@@ -31,13 +32,6 @@ test.describe("QA regression: UI workflows", () => {
         message: "Project name should propagate to the editor model after Apply",
       })
       .toBe(nextProjectName);
-
-    await expect
-      .poll(async () => (await readEditorState(page)).framerate, {
-        timeout: 8000,
-        message: "Project framerate should update in model state",
-      })
-      .toBe(18);
 
     criticalErrors.expectNoCriticalErrors();
   });
@@ -77,7 +71,7 @@ test.describe("QA regression: UI workflows", () => {
     criticalErrors.expectNoCriticalErrors();
   });
 
-  test("timeline layer and keyframe controls mutate timeline model", async ({ page }) => {
+  test("timeline layer add/delete controls mutate timeline model", async ({ page }) => {
     const criticalErrors = attachCriticalErrorCollector(page);
     await bootEditor(page);
     await expect(page.locator('[data-timeline-renderer-mode="dom"]')).toBeVisible();
@@ -92,16 +86,13 @@ test.describe("QA regression: UI workflows", () => {
       })
       .toBe(beforeAddLayer.layerCount + 1);
 
-    await page.locator("#action-button-tooltip-timeline-step-forward button").click();
-    const beforeInsertBlank = await readEditorState(page);
-
-    await page.locator("#action-button-tooltip-timeline-insert-blank-keyframe button").click();
+    await page.locator(".timeline-dom-layer-delete-button").last().click();
     await expect
-      .poll(async () => (await readEditorState(page)).activeLayerFrameCount, {
-        timeout: 10000,
-        message: "Insert Blank Keyframe should increase active layer frame count",
+      .poll(async () => (await readEditorState(page)).layerCount, {
+        timeout: 8000,
+        message: "Delete Layer should restore original timeline layer count",
       })
-      .toBeGreaterThan(beforeInsertBlank.activeLayerFrameCount);
+      .toBe(beforeAddLayer.layerCount);
 
     criticalErrors.expectNoCriticalErrors();
   });

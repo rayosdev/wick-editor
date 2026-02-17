@@ -30,11 +30,17 @@ test.describe("Timeline renderer switch", () => {
     await expect(page.locator('[data-timeline-renderer-mode="dom"]')).toBeVisible();
     await expect(page.locator("#animation-timeline-container")).toBeVisible();
     await expect(
+      page.locator(".timeline-shortcut-toggle-button", { hasText: "Follow" }).first(),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      page.locator(".timeline-shortcut-toggle-button", { hasText: "Frames" }).first(),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(
       page.locator(".timeline-shortcut-toggle-button", { hasText: "Wick" }),
     ).toHaveAttribute("aria-pressed", "true");
   });
 
-  test("switches renderer mode and preset, then persists across reload", async ({ page }) => {
+  test("switches renderer mode, shortcut preset, and timeline prefs then persists", async ({ page }) => {
     await bootEditor(page);
 
     await expect(page.locator('[data-timeline-renderer-mode="dom"]')).toBeVisible();
@@ -62,10 +68,32 @@ test.describe("Timeline renderer switch", () => {
       .click();
     await expect(page.locator('[data-timeline-renderer-mode="dom"]')).toBeVisible();
 
+    await page
+      .locator(".timeline-shortcut-toggle-button", { hasText: "Free" })
+      .first()
+      .click();
+    await page
+      .locator(".timeline-shortcut-toggle-button", { hasText: "Markers" })
+      .first()
+      .click();
+    await page
+      .locator(".timeline-shortcut-toggle-button", { hasText: "Standard" })
+      .first()
+      .click();
+
     await reloadAndWaitForTimeline(page);
     await expect(page.locator('[data-timeline-renderer-mode="dom"]')).toBeVisible();
     await expect(
       page.locator(".timeline-shortcut-toggle-button", { hasText: "Flash" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      page.locator(".timeline-shortcut-toggle-button", { hasText: "Free" }).first(),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      page.locator(".timeline-shortcut-toggle-button", { hasText: "Markers" }).first(),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      page.locator(".timeline-shortcut-toggle-button", { hasText: "Standard" }).first(),
     ).toHaveAttribute("aria-pressed", "true");
   });
 });

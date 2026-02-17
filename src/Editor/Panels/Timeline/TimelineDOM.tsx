@@ -515,12 +515,18 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       return normalizedInput;
     }
 
+    const firstMarkerFrameValue = markers[0]?.frame;
+    if (typeof firstMarkerFrameValue !== "number" || !Number.isFinite(firstMarkerFrameValue)) {
+      return normalizedInput;
+    }
+    const firstMarkerFrame = firstMarkerFrameValue;
+
     return markers.reduce((closest, marker) => {
       if (Math.abs(marker.frame - normalizedInput) < Math.abs(closest - normalizedInput)) {
         return marker.frame;
       }
       return closest;
-    }, markers[0].frame);
+    }, firstMarkerFrame);
   };
 
   const reportRendererError = (error: unknown): void => {
@@ -1253,6 +1259,19 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   }, [project]);
 
   useEffect(() => {
+    setWorkArea((current) => {
+      const next = normalizeWorkArea(current);
+      if (next.end < timelineLength) {
+        return {
+          ...next,
+          end: timelineLength,
+        };
+      }
+      return next;
+    });
+  }, [timelineLength]);
+
+  useEffect(() => {
     requestRender();
   }, [props.timelineSoftRenderTick]);
 
@@ -1324,7 +1343,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
     const normalizedFrame = Math.max(1, Math.round(parsedFrame));
     setFrameInputValue(String(normalizedFrame));
-    setPlayhead(normalizedFrame);
+    setPlayhead(normalizedFrame, { respectSnap: false });
   };
 
   const commitFpsInput = (): void => {
@@ -1390,21 +1409,10 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     setGapFillMode(mode === "ripple" ? "auto_extend" : "blank_frames");
   };
 
-  const updateWorkArea = (
-    updater: (current: TimelineWorkArea) => TimelineWorkArea,
-    options: { commit?: boolean; actionName?: string } = {},
-  ): void => {
-    setWorkArea((current) => {
-      const next = normalizeWorkArea(updater(current));
-      if (options.commit) {
-        persistTimelineUiState(markers, next, options.actionName);
-      }
-      return next;
-    });
-  };
-
   const handleAddMarker = (): void => {
-    const markerColor = DEFAULT_MARKER_COLORS[markers.length % DEFAULT_MARKER_COLORS.length];
+    const markerColor =
+      DEFAULT_MARKER_COLORS[markers.length % DEFAULT_MARKER_COLORS.length] ??
+      "#66B6FF";
     const nextMarker: TimelineMarker = {
       id: `marker-${Date.now()}-${Math.random().toString(16).slice(2)}`,
       frame: Math.max(1, Math.round(playheadPosition)),
@@ -1474,13 +1482,18 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     }
 
     const sortedMarkers = normalizeMarkerList(markers);
+    if (sortedMarkers.length === 0) {
+      return;
+    }
     const fallback = direction === "next" ? sortedMarkers[0] : sortedMarkers[sortedMarkers.length - 1];
     const marker =
       direction === "next"
         ? sortedMarkers.find((entry) => entry.frame > playheadPosition) ?? fallback
         : [...sortedMarkers].reverse().find((entry) => entry.frame < playheadPosition) ?? fallback;
 
-    setPlayhead(marker.frame, { respectSnap: false });
+    if (marker) {
+      setPlayhead(marker.frame, { respectSnap: false });
+    }
   };
 
   const commitFrameJump = (): void => {

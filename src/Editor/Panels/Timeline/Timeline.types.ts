@@ -118,6 +118,7 @@ export type TimelineProject = {
     isRoot?: boolean;
     identifier?: string | null;
   };
+  playing?: boolean;
   framerate?: number;
   view?: {
     render?: () => void;

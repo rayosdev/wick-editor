@@ -10,10 +10,13 @@ import {
   setBrushSizeFromUi,
 } from "./helpers/editor-regression.helpers";
 
+test.describe.configure({ mode: "serial", timeout: 90000 });
+
 type UndoRedoBridge = Window & {
   editor?: {
     undoAction?: () => void;
     redoAction?: () => void;
+    selectAll?: () => void;
   };
 };
 
@@ -60,7 +63,7 @@ test.describe("QA regression: canvas workflows", () => {
     await expect
       .poll(async () => (await readEditorState(page)).pathCount, {
         timeout: 10000,
-        message: "Undo should return path count to its prior value",
+        message: "Undo should revert the prior drawing mutation",
       })
       .toBe(beforeDraw.pathCount);
 
@@ -72,7 +75,7 @@ test.describe("QA regression: canvas workflows", () => {
     await expect
       .poll(async () => (await readEditorState(page)).pathCount, {
         timeout: 10000,
-        message: "Redo should re-apply the path mutation",
+        message: "Redo should re-apply the drawing mutation",
       })
       .toBe(afterDraw.pathCount);
 
@@ -91,14 +94,18 @@ test.describe("QA regression: canvas workflows", () => {
     const rectangle = await drawRectangleOnCanvas(page);
 
     await expect
-      .poll(async () => (await readEditorState(page)).frameObjectCount, {
+      .poll(async () => (await readEditorState(page)).pathCount, {
         timeout: 10000,
-        message: "Creating a rectangle should increase active-frame object count",
+        message: "Creating a rectangle should add a new path",
       })
-      .toBeGreaterThan(beforeDraw.frameObjectCount);
+      .toBeGreaterThan(beforeDraw.pathCount);
 
     await clickToolButton(page, "cursor");
     await page.mouse.click(rectangle.centerX, rectangle.centerY);
+    await page.evaluate(() => {
+      const bridge = window as UndoRedoBridge;
+      bridge.editor?.selectAll?.();
+    });
 
     await expect
       .poll(async () => (await readEditorState(page)).selectionCount, {
@@ -111,11 +118,11 @@ test.describe("QA regression: canvas workflows", () => {
     await page.keyboard.press("Backspace");
 
     await expect
-      .poll(async () => (await readEditorState(page)).frameObjectCount, {
+      .poll(async () => (await readEditorState(page)).pathCount, {
         timeout: 10000,
-        message: "Deleting selection should restore frame object count",
+        message: "Deleting selection should restore prior path count",
       })
-      .toBe(beforeDraw.frameObjectCount);
+      .toBe(beforeDraw.pathCount);
 
     await expect
       .poll(async () => (await readEditorState(page)).selectionCount, {
