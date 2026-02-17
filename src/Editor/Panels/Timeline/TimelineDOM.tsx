@@ -343,34 +343,34 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       ? 0
       : shouldVirtualizeLayerRows
         ? clampNumber(
-            Math.floor(gridViewport.scrollTop / cellHeight) - VIRTUALIZATION_LAYER_OVERSCAN,
-            0,
-            maxLayerIndex,
-          )
+          Math.floor(gridViewport.scrollTop / cellHeight) - VIRTUALIZATION_LAYER_OVERSCAN,
+          0,
+          maxLayerIndex,
+        )
         : 0;
   const visibleLayerEnd =
     layers.length === 0
       ? -1
       : shouldVirtualizeLayerRows
         ? clampNumber(
-            Math.ceil((gridViewport.scrollTop + viewportHeight) / cellHeight) +
-              VIRTUALIZATION_LAYER_OVERSCAN,
-            0,
-            maxLayerIndex,
-          )
+          Math.ceil((gridViewport.scrollTop + viewportHeight) / cellHeight) +
+          VIRTUALIZATION_LAYER_OVERSCAN,
+          0,
+          maxLayerIndex,
+        )
         : maxLayerIndex;
   const visibleFrameStart = shouldVirtualizeFrames
     ? Math.max(
-        1,
-        Math.floor(gridViewport.scrollLeft / cellWidth) + 1 - VIRTUALIZATION_FRAME_OVERSCAN,
-      )
+      1,
+      Math.floor(gridViewport.scrollLeft / cellWidth) + 1 - VIRTUALIZATION_FRAME_OVERSCAN,
+    )
     : 1;
   const visibleFrameEnd = shouldVirtualizeFrames
     ? Math.min(
-        timelineLength,
-        Math.ceil((gridViewport.scrollLeft + viewportWidth) / cellWidth) +
-          VIRTUALIZATION_FRAME_OVERSCAN,
-      )
+      timelineLength,
+      Math.ceil((gridViewport.scrollLeft + viewportWidth) / cellWidth) +
+      VIRTUALIZATION_FRAME_OVERSCAN,
+    )
     : timelineLength;
   const renderedLayers =
     visibleLayerEnd >= visibleLayerStart
@@ -1109,13 +1109,13 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         const next =
           interaction.mode === "work-area-start"
             ? {
-                start: clampNumber(location.playheadPosition, 1, Math.max(1, current.end - 1)),
-                end: current.end,
-              }
+              start: clampNumber(location.playheadPosition, 1, Math.max(1, current.end - 1)),
+              end: current.end,
+            }
             : {
-                start: current.start,
-                end: Math.max(current.start + 1, location.playheadPosition),
-              };
+              start: current.start,
+              end: Math.max(current.start + 1, location.playheadPosition),
+            };
 
         if (next.start !== current.start || next.end !== current.end) {
           workAreaDirtyRef.current = true;
@@ -1312,9 +1312,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         };
 
         return current.width === next.width &&
-            current.height === next.height &&
-            current.scrollTop === next.scrollTop &&
-            current.scrollLeft === next.scrollLeft
+          current.height === next.height &&
+          current.scrollTop === next.scrollTop &&
+          current.scrollLeft === next.scrollLeft
           ? current
           : next;
       });
@@ -1575,9 +1575,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     const nextMarkers = markers.map((entry) =>
       entry.id === markerId
         ? {
-            ...entry,
-            label: normalizedLabel,
-          }
+          ...entry,
+          label: normalizedLabel,
+        }
         : entry,
     );
 
@@ -1589,9 +1589,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     const nextMarkers = markers.map((marker) =>
       marker.id === markerId
         ? {
-            ...marker,
-            frame: Math.max(1, Math.round(frame)),
-          }
+          ...marker,
+          frame: Math.max(1, Math.round(frame)),
+        }
         : marker,
     );
 
@@ -2416,9 +2416,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             <div className="timeline-shortcut-toggle" role="group" aria-label="Playhead follow mode">
               <button
                 type="button"
-                className={`timeline-shortcut-toggle-button ${
-                  props.timelinePlaybackFollowMode === "follow-playhead" ? "active" : ""
-                }`}
+                className={`timeline-shortcut-toggle-button ${props.timelinePlaybackFollowMode === "follow-playhead" ? "active" : ""
+                  }`}
                 aria-pressed={props.timelinePlaybackFollowMode === "follow-playhead"}
                 onClick={() => handlePlaybackFollowModeSwitch("follow-playhead")}
               >
@@ -2426,9 +2425,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               </button>
               <button
                 type="button"
-                className={`timeline-shortcut-toggle-button ${
-                  props.timelinePlaybackFollowMode === "off" ? "active" : ""
-                }`}
+                className={`timeline-shortcut-toggle-button ${props.timelinePlaybackFollowMode === "off" ? "active" : ""
+                  }`}
                 aria-pressed={props.timelinePlaybackFollowMode === "off"}
                 onClick={() => handlePlaybackFollowModeSwitch("off")}
               >
@@ -2438,9 +2436,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline snap mode">
               <button
                 type="button"
-                className={`timeline-shortcut-toggle-button ${
-                  props.timelineSnapMode === "none" ? "active" : ""
-                }`}
+                className={`timeline-shortcut-toggle-button ${props.timelineSnapMode === "none" ? "active" : ""
+                  }`}
                 aria-pressed={props.timelineSnapMode === "none"}
                 onClick={() => handleSnapModeSwitch("none")}
               >
@@ -2448,9 +2445,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               </button>
               <button
                 type="button"
-                className={`timeline-shortcut-toggle-button ${
-                  props.timelineSnapMode === "frames" ? "active" : ""
-                }`}
+                className={`timeline-shortcut-toggle-button ${props.timelineSnapMode === "frames" ? "active" : ""
+                  }`}
                 aria-pressed={props.timelineSnapMode === "frames"}
                 onClick={() => handleSnapModeSwitch("frames")}
               >
@@ -2458,9 +2454,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               </button>
               <button
                 type="button"
-                className={`timeline-shortcut-toggle-button ${
-                  props.timelineSnapMode === "markers" ? "active" : ""
-                }`}
+                className={`timeline-shortcut-toggle-button ${props.timelineSnapMode === "markers" ? "active" : ""
+                  }`}
                 aria-pressed={props.timelineSnapMode === "markers"}
                 onClick={() => handleSnapModeSwitch("markers")}
               >
@@ -2470,9 +2465,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline density mode">
               <button
                 type="button"
-                className={`timeline-shortcut-toggle-button ${
-                  props.timelineDensityMode === "compact" ? "active" : ""
-                }`}
+                className={`timeline-shortcut-toggle-button ${props.timelineDensityMode === "compact" ? "active" : ""
+                  }`}
                 aria-pressed={props.timelineDensityMode === "compact"}
                 onClick={() => handleDensityModeSwitch("compact")}
               >
@@ -2480,9 +2474,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               </button>
               <button
                 type="button"
-                className={`timeline-shortcut-toggle-button ${
-                  props.timelineDensityMode === "standard" ? "active" : ""
-                }`}
+                className={`timeline-shortcut-toggle-button ${props.timelineDensityMode === "standard" ? "active" : ""
+                  }`}
                 aria-pressed={props.timelineDensityMode === "standard"}
                 onClick={() => handleDensityModeSwitch("standard")}
               >
@@ -2621,9 +2614,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 return (
                   <div
                     key={layer.uuid ?? `layer-${layerIndex}`}
-                    className={`timeline-dom-layer-row ${isActive ? "active" : ""} ${
-                      isLayerSelected ? "selected" : ""
-                    }`}
+                    className={`timeline-dom-layer-row ${isActive ? "active" : ""} ${isLayerSelected ? "selected" : ""
+                      }`}
                     style={{ height: `${cellHeight}px` }}
                   >
                     <button
@@ -2643,9 +2635,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                             setLayerRename((current) =>
                               current
                                 ? {
-                                    ...current,
-                                    value: event.target.value,
-                                  }
+                                  ...current,
+                                  value: event.target.value,
+                                }
                                 : current,
                             )
                           }
@@ -2819,11 +2811,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                   <button
                     key={`frame-number-${frameNumber}`}
                     type="button"
-                    className={`timeline-dom-numberline-cell ${highlight ? "highlight" : ""} ${
-                      isMajorTick ? "major" : ""
-                    } ${
-                      isPlayhead ? "playhead" : ""
-                    }`}
+                    className={`timeline-dom-numberline-cell ${highlight ? "highlight" : ""} ${isMajorTick ? "major" : ""
+                      } ${isPlayhead ? "playhead" : ""
+                      }`}
                     style={{ width: `${cellWidth}px` }}
                     onClick={() => setPlayhead(frameNumber)}
                   >
@@ -2873,16 +2863,15 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     interactionRef.current?.mode === "frame-resize-right";
                   const renderedFrames = shouldVirtualizeFrames
                     ? layer.frames.filter((frame) =>
-                        frameInRange(frame, visibleFrameStart, visibleFrameEnd),
-                      )
+                      frameInRange(frame, visibleFrameStart, visibleFrameEnd),
+                    )
                     : layer.frames;
 
                   return (
                     <div
                       key={`grid-row-${layer.uuid ?? layerIndex}`}
-                      className={`timeline-dom-grid-row ${
-                        layerIndex === activeTimeline?.activeLayerIndex ? "active" : ""
-                      }`}
+                      className={`timeline-dom-grid-row ${layerIndex === activeTimeline?.activeLayerIndex ? "active" : ""
+                        }`}
                       style={{
                         height: `${cellHeight}px`,
                         top: `${layerIndex * cellHeight}px`,
@@ -2912,13 +2901,11 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                         return (
                           <div
                             key={frame.uuid ?? `${layerIndex}-${frameStart}-${frameLength}`}
-                            className={`timeline-dom-frame ${selected ? "selected" : ""} ${
-                              frame.contentful ? "contentful" : "blank"
-                            } ${isDraggedFrame ? "dragging" : ""} ${
-                              isDraggedFrame && dragCollisionMode
+                            className={`timeline-dom-frame ${selected ? "selected" : ""} ${frame.contentful ? "contentful" : "blank"
+                              } ${isDraggedFrame ? "dragging" : ""} ${isDraggedFrame && dragCollisionMode
                                 ? `drag-collision-${dragCollisionMode}`
                                 : ""
-                            }`}
+                              }`}
                             data-frame-state={frameVisualState}
                             role="button"
                             tabIndex={0}
@@ -2994,12 +2981,10 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     style={{
                       left: `${Math.min(selectionBox.startCol, selectionBox.endCol) * cellWidth}px`,
                       top: `${Math.min(selectionBox.startRow, selectionBox.endRow) * cellHeight}px`,
-                      width: `${
-                        (Math.abs(selectionBox.endCol - selectionBox.startCol) + 1) * cellWidth
-                      }px`,
-                      height: `${
-                        (Math.abs(selectionBox.endRow - selectionBox.startRow) + 1) * cellHeight
-                      }px`,
+                      width: `${(Math.abs(selectionBox.endCol - selectionBox.startCol) + 1) * cellWidth
+                        }px`,
+                      height: `${(Math.abs(selectionBox.endRow - selectionBox.startRow) + 1) * cellHeight
+                        }px`,
                     }}
                   />
                 )}

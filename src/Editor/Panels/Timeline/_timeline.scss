@@ -29,7 +29,8 @@
   display: flex;
   flex-direction: column;
   background-color: $editor-secondary;
-  overflow: hidden;
+  /* overflow: hidden; Removed to fix potential clipping issues (e.g. popovers) */
+  min-height: 0;
 }
 
 .timeline-flash-shell {
@@ -39,7 +40,7 @@
   display: flex;
   flex-direction: column;
   background-color: $editor-secondary;
-  overflow: hidden;
+  /* overflow: hidden; Removed to fix potential clipping issues */
 }
 
 .timeline-flash-header {
