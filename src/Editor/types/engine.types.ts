@@ -11,6 +11,33 @@ export interface SerializedWickObject {
   [key: string]: unknown;
 }
 
+export interface WickTimelineMarkerMetadata {
+  id: string;
+  frame: number;
+  label: string;
+  color: string;
+}
+
+export interface WickTimelineWorkAreaMetadata {
+  start: number;
+  end: number;
+}
+
+export interface WickTimelineUiMetadata {
+  markers?: WickTimelineMarkerMetadata[];
+  workArea?: WickTimelineWorkAreaMetadata;
+}
+
+export interface WickEditorUiMetadata {
+  timelineUi?: WickTimelineUiMetadata;
+  [key: string]: unknown;
+}
+
+export interface SerializedProjectMetadata {
+  editorUi?: WickEditorUiMetadata;
+  [key: string]: unknown;
+}
+
 export interface SerializedProject extends SerializedWickObject {
   classname: "Project";
   name: string;
@@ -22,7 +49,7 @@ export interface SerializedProject extends SerializedWickObject {
   onionSkinSeekForwards: number;
   onionSkinSeekBackwards: number;
   focus: string;
-  metadata?: unknown;
+  metadata?: SerializedProjectMetadata | unknown;
 }
 
 export interface WickColor {
@@ -334,6 +361,7 @@ export interface WickProject extends WickBase {
   onionSkinEnabled: boolean;
   onionSkinSeekBackwards: number;
   onionSkinSeekForwards: number;
+  metadata?: SerializedProjectMetadata;
   showClipBorders: boolean;
   selection: WickSelection;
   history: WickHistory;

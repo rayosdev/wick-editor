@@ -10,6 +10,10 @@ import type {
 
 export type TimelineRendererMode = "dom" | "classic";
 export type TimelineShortcutPreset = "wick" | "flash";
+export type TimelinePlaybackFollowMode = "off" | "follow-playhead";
+export type TimelineSnapMode = "none" | "frames" | "markers";
+export type TimelineDensityMode = "compact" | "standard";
+export type TimelineInsertMode = "overwrite" | "ripple";
 
 export type TimelineFrameSizeMode = "small" | "normal" | "large";
 
@@ -21,6 +25,18 @@ export type TimelineFrameVisualState =
   | "span-content"
   | "span-blank"
   | "tween-span";
+
+export type TimelineMarker = {
+  id: string;
+  frame: number;
+  label: string;
+  color: string;
+};
+
+export type TimelineWorkArea = {
+  start: number;
+  end: number;
+};
 
 export type TimelineTweenLike = {
   uuid?: string;
@@ -134,6 +150,12 @@ export interface TimelineOwnProps {
   onTimelineRendererModeChange: (mode: TimelineRendererMode) => void;
   timelineShortcutPreset: TimelineShortcutPreset;
   onTimelineShortcutPresetChange: (preset: TimelineShortcutPreset) => void;
+  timelinePlaybackFollowMode: TimelinePlaybackFollowMode;
+  onTimelinePlaybackFollowModeChange: (mode: TimelinePlaybackFollowMode) => void;
+  timelineSnapMode: TimelineSnapMode;
+  onTimelineSnapModeChange: (mode: TimelineSnapMode) => void;
+  timelineDensityMode: TimelineDensityMode;
+  onTimelineDensityModeChange: (mode: TimelineDensityMode) => void;
   timelineSoftRenderTick: number;
   toast?: (message: string, type?: ToastType, options?: ToastOptions) => void;
 }

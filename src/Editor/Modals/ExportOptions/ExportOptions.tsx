@@ -24,8 +24,6 @@ import WickInput from "Editor/Util/WickInput/WickInput";
 import ObjectInfo from "../Util/ObjectInfo/ObjectInfo";
 import TabbedInterface from "Editor/Util/TabbedInterface/TabbedInterface";
 
-import "./_exportoptions.scss";
-
 import classNames from "classnames";
 
 interface ExportArgs {
@@ -186,8 +184,8 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
     });
 
     return (
-      <div className="export-modal-advanced-options">
-        <div className="export-modal-advanced-checkbox-container">
+      <div className="export-modal-advanced-options flex flex-col">
+        <div className="export-modal-advanced-checkbox-container mt-2 ml-auto flex">
           <WickInput
             type="checkbox"
             checked={useAdvanced}
@@ -205,7 +203,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
                   <td>
                     <label
                       htmlFor="advanced-resolution-dropdown"
-                      className="export-modal-advanced-option-title"
+                      className="export-modal-advanced-option-title mb-0 text-[18px] text-white"
                     >
                       Export Resolution
                     </label>
@@ -219,7 +217,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
                   <td>
                     <label
                       htmlFor="export-width"
-                      className="export-modal-resolution-label"
+                      className="export-modal-resolution-label mb-[2px] text-left text-editor-modal-text"
                     >
                       Width (px)
                     </label>
@@ -227,7 +225,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
                   <td>
                     <label
                       htmlFor="export-height"
-                      className="export-modal-resolution-label"
+                      className="export-modal-resolution-label mb-[2px] text-left text-editor-modal-text"
                     >
                       Height (px)
                     </label>
@@ -235,12 +233,13 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
                 </tr>
 
                 <tr>
-                  <td>
+                  <td className="border-l-0 pl-1 text-white">
                     <WickInput
                       id="advanced-resolution-dropdown"
                       inputProps={{ id: "resolution" }}
                       type="select"
                       value={exportResolution}
+                      className="mr-2 w-[100px]"
                       options={options}
                       onChange={(val: unknown) => {
                         const selection = val as { value?: string } | null | undefined;
@@ -250,7 +249,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
                       }}
                     />
                   </td>
-                  <td>
+                  <td className="border-l-0 pl-1 text-white">
                     <WickInput
                       id="export-width"
                       type="numeric"
@@ -260,7 +259,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
                       }}
                     />
                   </td>
-                  <td>
+                  <td className="border-l-0 pl-1 text-white">
                     <WickInput
                       id="export-height"
                       type="numeric"
@@ -283,12 +282,12 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
     return (
       <div
         className={classNames(
-          "export-info-item",
-          props.isMobile && "mobile"
+          "export-info-item flex w-1/2 flex-col",
+          props.isMobile && "mobile mb-[5px] w-full"
         )}
       >
         <ObjectInfo
-          className="export-object-info"
+          className="export-object-info h-[120px]"
           title="Animated GIF"
           rows={[
             { text: "Creates a .gif file", icon: "check" },
@@ -296,7 +295,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
             { text: "Not Interactive", icon: "cancel" },
           ]}
         />
-        <div className="export-modal-button-container">
+        <div className="export-modal-button-container mt-[10px] h-[28px] w-full">
           <ActionButton
             color="gray-green"
             action={() => {
@@ -313,12 +312,12 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
     return (
       <div
         className={classNames(
-          "export-info-item",
-          props.isMobile && "mobile"
+          "export-info-item flex w-1/2 flex-col",
+          props.isMobile && "mobile mb-[5px] w-full"
         )}
       >
         <ObjectInfo
-          className="export-object-info"
+          className="export-object-info h-[120px]"
           title="Video (Beta)"
           rows={[
             { text: "Creates an .mp4 file", icon: "check" },
@@ -326,7 +325,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
             { text: "Not Interactive", icon: "cancel" },
           ]}
         />
-        <div className="export-modal-button-container">
+        <div className="export-modal-button-container mt-[10px] h-[28px] w-full">
           <ActionButton
             color="gray-green"
             action={() => {
@@ -354,8 +353,8 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
       <div>
         <div
           className={classNames(
-            "export-info-container",
-            props.isMobile && "mobile"
+            "export-info-container flex w-full flex-row",
+            props.isMobile ? "mobile flex-col" : "[&>div:last-child]:ml-3"
           )}
         >
           {renderGifObject()}
@@ -369,10 +368,10 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
   // Renders the body of the "Interactive" tab.
   const renderInteractiveInfo = (): JSX.Element => {
     return (
-      <div className="export-info-container">
-        <div className="export-info-item">
+      <div className="export-info-container flex w-full flex-row [&>div:last-child]:ml-3">
+        <div className="export-info-item flex w-1/2 flex-col">
           <ObjectInfo
-            className="export-object-info"
+            className="export-object-info h-[120px]"
             title="ZIP Archive"
             rows={[
               { text: "Fully Interactive", icon: "check" },
@@ -380,7 +379,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
               { text: "Exports a .zip file", icon: "check" },
             ]}
           ></ObjectInfo>
-          <div className="export-modal-button-container">
+          <div className="export-modal-button-container mt-[10px] h-[28px] w-full">
             <ActionButton
               color="gray-green"
               action={() => {
@@ -390,9 +389,9 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
             />
           </div>
         </div>
-        <div className="export-info-item">
+        <div className="export-info-item flex w-1/2 flex-col">
           <ObjectInfo
-            className="export-object-info"
+            className="export-object-info h-[120px]"
             title="HTML"
             rows={[
               { text: "1-Click open", icon: "check" },
@@ -400,7 +399,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
               { text: "Exports a .html file", icon: "check" },
             ]}
           ></ObjectInfo>
-          <div className="export-modal-button-container">
+          <div className="export-modal-button-container mt-[10px] h-[28px] w-full">
             <ActionButton
               color="gray-green"
               action={() => {
@@ -420,18 +419,18 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
       <div>
         <div
           className={classNames(
-            "export-info-container",
-            props.isMobile && "mobile"
+            "export-info-container flex w-full flex-row",
+            props.isMobile ? "mobile flex-col" : "[&>div:last-child]:ml-3"
           )}
         >
           <div
             className={classNames(
-              "export-info-item",
-              props.isMobile && "mobile"
+              "export-info-item flex w-1/2 flex-col",
+              props.isMobile && "mobile mb-[5px] w-full"
             )}
           >
             <ObjectInfo
-              className="export-object-info"
+              className="export-object-info h-[120px]"
               title="Image Sequence"
               rows={[
                 {
@@ -448,7 +447,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
                 },
               ]}
             />
-            <div className="export-modal-button-container">
+            <div className="export-modal-button-container mt-[10px] h-[28px] w-full">
               <ActionButton
                 color="gray-green"
                 action={() => {
@@ -460,12 +459,12 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
           </div>
           <div
             className={classNames(
-              "export-info-item",
-              props.isMobile && "mobile"
+              "export-info-item flex w-1/2 flex-col",
+              props.isMobile && "mobile mb-[5px] w-full"
             )}
           >
             <ObjectInfo
-              className="export-object-info"
+              className="export-object-info h-[120px]"
               title="Image SVG"
               rows={[
                 {
@@ -482,7 +481,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
                 },
               ]}
             />
-            <div className="export-modal-button-container">
+            <div className="export-modal-button-container mt-[10px] h-[28px] w-full">
               <ActionButton
                 color="gray-green"
                 action={() => {
@@ -500,10 +499,10 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
 
   const renderAudioInfo = (): JSX.Element => {
     return (
-      <div className="export-info-container">
-        <div className="wide-export-info-item">
+      <div className="export-info-container flex w-full flex-row">
+        <div className="wide-export-info-item !ml-0 flex w-full flex-col">
           <ObjectInfo
-            className="export-object-info"
+            className="export-object-info h-[120px]"
             title="Audio"
             rows={[
               {
@@ -516,7 +515,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
               },
             ]}
           />
-          <div className="export-modal-button-container">
+          <div className="export-modal-button-container mt-[10px] h-[28px] w-full">
             <ActionButton
               color="gray-green"
               action={() => {
@@ -540,12 +539,22 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
       <WickModal
         open={props.open}
         toggle={props.toggle}
-        className={classNames("export-modal-body")}
+        className={classNames(
+          "export-modal-body w-[450px] min-w-[240px] p-5 transition-[height,width] duration-500 ease-in-out"
+        )}
         overlayClassName="export-modal-overlay"
       >
-        <div id="export-modal-interior-content">
-          <div id="export-modal-title">Export</div>
-          <div id="export-modal-name-input">
+        <div
+          id="export-modal-interior-content"
+          className="flex h-full w-full flex-col items-center justify-center"
+        >
+          <div
+            id="export-modal-title"
+            className="w-full text-left text-[18px] font-bold text-editor-modal-text"
+          >
+            Export
+          </div>
+          <div id="export-modal-name-input" className="mt-[10px] w-full">
             <WickInput
               type="text"
               value={name}
@@ -577,20 +586,28 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
         open={props.open}
         toggle={props.toggle}
         className={classNames(
-          "export-modal-body",
+          "export-modal-body w-[450px] min-w-[240px] p-5 transition-[height,width] duration-500 ease-in-out",
           {
             "advanced-options":
               useAdvanced &&
               (subTab === "Animation" ||
                 subTab === "Images"),
           },
-          "mobile"
+          "mobile w-[90%] max-w-[400px]"
         )}
         overlayClassName={classNames("export-modal-overlay", "mobile")}
       >
-        <div id="export-modal-interior-content">
-          <div id="export-modal-title">Export</div>
-          <div id="export-modal-name-input">
+        <div
+          id="export-modal-interior-content"
+          className="flex h-full w-full flex-col items-center justify-center"
+        >
+          <div
+            id="export-modal-title"
+            className="w-full text-left text-[18px] font-bold text-editor-modal-text"
+          >
+            Export
+          </div>
+          <div id="export-modal-name-input" className="mt-[10px] w-full">
             <WickInput
               type="text"
               value={name}

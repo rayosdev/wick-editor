@@ -127,6 +127,9 @@ class Editor extends EditorCore {
   colorPickerTypeKey: string = "wickEditorColorPickerType";
   timelineRendererModeKey: string = "wickEditorTimelineRendererMode";
   timelineShortcutPresetKey: string = "wickEditorTimelineShortcutPreset";
+  timelinePlaybackFollowModeKey: string = "wickEditorTimelinePlaybackFollowMode";
+  timelineSnapModeKey: string = "wickEditorTimelineSnapMode";
+  timelineDensityModeKey: string = "wickEditorTimelineDensityMode";
 
   // TypeScript requires we define state type
   state: EditorState;
@@ -142,6 +145,11 @@ class Editor extends EditorCore {
     this.editorVersion = version + "";
 
     // GUI state
+    const defaultTimelineDensityMode =
+      typeof window !== "undefined" && window.matchMedia("(max-width: 800px)").matches
+        ? "standard"
+        : "compact";
+
     this.state = {
       project: null,
       previewPlaying: false,
@@ -163,6 +171,9 @@ class Editor extends EditorCore {
       timelineSize: 175,
       timelineRendererMode: "dom",
       timelineShortcutPreset: "wick",
+      timelinePlaybackFollowMode: "follow-playhead",
+      timelineSnapMode: "frames",
+      timelineDensityMode: defaultTimelineDensityMode,
       timelineSoftRenderTick: 0,
       assetLibrarySize: 150,
       consoleLogs: [],
@@ -349,6 +360,9 @@ class Editor extends EditorCore {
     this.colorPickerTypeKey = "wickEditorColorPickerType";
     this.timelineRendererModeKey = "wickEditorTimelineRendererMode";
     this.timelineShortcutPresetKey = "wickEditorTimelineShortcutPreset";
+    this.timelinePlaybackFollowModeKey = "wickEditorTimelinePlaybackFollowMode";
+    this.timelineSnapModeKey = "wickEditorTimelineSnapMode";
+    this.timelineDensityModeKey = "wickEditorTimelineDensityMode";
 
     // Set up custom hotkeys if they exist.
     localForage.getItem(this.customHotKeysKey).then((customHotKeys) => {
@@ -399,6 +413,64 @@ class Editor extends EditorCore {
         this.hotKeyInterface.setTimelineShortcutPreset(normalizedPreset);
         this.setState({
           timelineShortcutPreset: normalizedPreset,
+        });
+      });
+
+    localForage
+      .getItem(this.timelinePlaybackFollowModeKey)
+      .then((timelinePlaybackFollowMode) => {
+        const normalizedMode =
+          timelinePlaybackFollowMode === "off" ||
+          timelinePlaybackFollowMode === "follow-playhead"
+            ? timelinePlaybackFollowMode
+            : "follow-playhead";
+
+        if (timelinePlaybackFollowMode !== normalizedMode) {
+          localForage.setItem(this.timelinePlaybackFollowModeKey, normalizedMode);
+        }
+
+        this.setState({
+          timelinePlaybackFollowMode: normalizedMode,
+        });
+      });
+
+    localForage
+      .getItem(this.timelineSnapModeKey)
+      .then((timelineSnapMode) => {
+        const normalizedMode =
+          timelineSnapMode === "none" ||
+          timelineSnapMode === "markers" ||
+          timelineSnapMode === "frames"
+            ? timelineSnapMode
+            : "frames";
+
+        if (timelineSnapMode !== normalizedMode) {
+          localForage.setItem(this.timelineSnapModeKey, normalizedMode);
+        }
+
+        this.setState({
+          timelineSnapMode: normalizedMode,
+        });
+      });
+
+    localForage
+      .getItem(this.timelineDensityModeKey)
+      .then((timelineDensityMode) => {
+        const defaultMode =
+          typeof window !== "undefined" && window.matchMedia("(max-width: 800px)").matches
+            ? "standard"
+            : "compact";
+        const normalizedMode =
+          timelineDensityMode === "standard" || timelineDensityMode === "compact"
+            ? timelineDensityMode
+            : defaultMode;
+
+        if (timelineDensityMode !== normalizedMode) {
+          localForage.setItem(this.timelineDensityModeKey, normalizedMode);
+        }
+
+        this.setState({
+          timelineDensityMode: normalizedMode,
         });
       });
 
@@ -511,7 +583,12 @@ class Editor extends EditorCore {
     this._timelinePreviewSoftRenderRaf = window.requestAnimationFrame(() => {
       this._timelinePreviewSoftRenderRaf = undefined;
 
-      if (!this.state.previewPlaying || this.state.timelineRendererMode !== "dom") {
+      if (
+        !this.project ||
+        !this.state.previewPlaying ||
+        this.state.timelineRendererMode !== "dom" ||
+        this.project.playing !== true
+      ) {
         return;
       }
 
@@ -605,6 +682,31 @@ class Editor extends EditorCore {
     this.hotKeyInterface.setTimelineShortcutPreset(normalizedPreset);
     this.setState({
       timelineShortcutPreset: normalizedPreset,
+    });
+  };
+
+  setTimelinePlaybackFollowMode = (mode) => {
+    const normalizedMode = mode === "off" ? "off" : "follow-playhead";
+    localForage.setItem(this.timelinePlaybackFollowModeKey, normalizedMode);
+    this.setState({
+      timelinePlaybackFollowMode: normalizedMode,
+    });
+  };
+
+  setTimelineSnapMode = (mode) => {
+    const normalizedMode =
+      mode === "none" || mode === "markers" ? mode : "frames";
+    localForage.setItem(this.timelineSnapModeKey, normalizedMode);
+    this.setState({
+      timelineSnapMode: normalizedMode,
+    });
+  };
+
+  setTimelineDensityMode = (mode) => {
+    const normalizedMode = mode === "standard" ? "standard" : "compact";
+    localForage.setItem(this.timelineDensityModeKey, normalizedMode);
+    this.setState({
+      timelineDensityMode: normalizedMode,
     });
   };
 
@@ -1484,6 +1586,14 @@ class Editor extends EditorCore {
                               onTimelineRendererModeChange={this.setTimelineRendererMode}
                               timelineShortcutPreset={this.state.timelineShortcutPreset}
                               onTimelineShortcutPresetChange={this.setTimelineShortcutPreset}
+                              timelinePlaybackFollowMode={this.state.timelinePlaybackFollowMode}
+                              onTimelinePlaybackFollowModeChange={
+                                this.setTimelinePlaybackFollowMode
+                              }
+                              timelineSnapMode={this.state.timelineSnapMode}
+                              onTimelineSnapModeChange={this.setTimelineSnapMode}
+                              timelineDensityMode={this.state.timelineDensityMode}
+                              onTimelineDensityModeChange={this.setTimelineDensityMode}
                               timelineSoftRenderTick={this.state.timelineSoftRenderTick}
                               getToolSetting={this.getToolSetting}
                               setToolSetting={this.setToolSetting}
@@ -1553,6 +1663,14 @@ class Editor extends EditorCore {
                               onTimelineRendererModeChange={this.setTimelineRendererMode}
                               timelineShortcutPreset={this.state.timelineShortcutPreset}
                               onTimelineShortcutPresetChange={this.setTimelineShortcutPreset}
+                              timelinePlaybackFollowMode={this.state.timelinePlaybackFollowMode}
+                              onTimelinePlaybackFollowModeChange={
+                                this.setTimelinePlaybackFollowMode
+                              }
+                              timelineSnapMode={this.state.timelineSnapMode}
+                              onTimelineSnapModeChange={this.setTimelineSnapMode}
+                              timelineDensityMode={this.state.timelineDensityMode}
+                              onTimelineDensityModeChange={this.setTimelineDensityMode}
                               timelineSoftRenderTick={this.state.timelineSoftRenderTick}
                               toast={this.toast}
                             />

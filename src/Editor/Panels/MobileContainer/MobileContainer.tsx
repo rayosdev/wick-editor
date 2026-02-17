@@ -72,6 +72,12 @@ interface MobileContainerProps {
     onTimelineRendererModeChange: TimelineProps["onTimelineRendererModeChange"];
     timelineShortcutPreset: TimelineProps["timelineShortcutPreset"];
     onTimelineShortcutPresetChange: TimelineProps["onTimelineShortcutPresetChange"];
+    timelinePlaybackFollowMode: TimelineProps["timelinePlaybackFollowMode"];
+    onTimelinePlaybackFollowModeChange: TimelineProps["onTimelinePlaybackFollowModeChange"];
+    timelineSnapMode: TimelineProps["timelineSnapMode"];
+    onTimelineSnapModeChange: TimelineProps["onTimelineSnapModeChange"];
+    timelineDensityMode: TimelineProps["timelineDensityMode"];
+    onTimelineDensityModeChange: TimelineProps["onTimelineDensityModeChange"];
     timelineSoftRenderTick: TimelineProps["timelineSoftRenderTick"];
     getToolSetting: (name: string) => string | number | boolean;
     setToolSetting: (name: string, value: string | number | boolean) => void;
@@ -132,6 +138,12 @@ const MobileContainer: React.FC<MobileContainerProps> = (props) => {
                     onTimelineRendererModeChange={props.onTimelineRendererModeChange}
                     timelineShortcutPreset={props.timelineShortcutPreset}
                     onTimelineShortcutPresetChange={props.onTimelineShortcutPresetChange}
+                    timelinePlaybackFollowMode={props.timelinePlaybackFollowMode}
+                    onTimelinePlaybackFollowModeChange={props.onTimelinePlaybackFollowModeChange}
+                    timelineSnapMode={props.timelineSnapMode}
+                    onTimelineSnapModeChange={props.onTimelineSnapModeChange}
+                    timelineDensityMode={props.timelineDensityMode}
+                    onTimelineDensityModeChange={props.onTimelineDensityModeChange}
                     timelineSoftRenderTick={props.timelineSoftRenderTick}
                     toast={props.toast}
                 />

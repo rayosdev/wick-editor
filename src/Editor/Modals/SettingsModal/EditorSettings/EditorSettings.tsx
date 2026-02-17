@@ -19,7 +19,6 @@
 
 import React from 'react';
 
-import './_editorsettings.scss';
 import WickInput, { SelectOption } from 'Editor/Util/WickInput/WickInput';
 import type { ColorPickerType, ToolSettingRestrictions } from 'Editor/types';
 
@@ -55,9 +54,14 @@ const EditorSettings: React.FC<EditorSettingsProps> = (props) => {
   }
 
   return (
-    <div className="editor-settings-modal-body">
-      <div className="editor-settings-group">
-        <label htmlFor="onion-skin-style" className="editor-settings-group-title">Onion Skinning</label>
+    <div className="editor-settings-modal-body h-full w-full">
+      <div className="editor-settings-group mt-2 flex h-[60px] w-full flex-col text-white">
+        <label
+          htmlFor="onion-skin-style"
+          className="editor-settings-group-title text-[20px] text-editor-modal-text"
+        >
+          Onion Skinning
+        </label>
         Style:
         <WickInput
           type="select"
@@ -72,11 +76,15 @@ const EditorSettings: React.FC<EditorSettingsProps> = (props) => {
         />
         {
           props.getToolSetting('onionSkinStyle') !== 'standard' &&
-          <div className="editor-settings-row">
+          <div className="editor-settings-row mt-[15px] h-10 text-white">
             Outline Colors:
-            <div className="editor-settings-color-containers-row">
-              <div className="editor-settings-color-container">
-                <img className="forward-backward-icon" alt="B:" src={iconBackwards} />
+            <div className="editor-settings-color-containers-row flex h-[30px] flex-1 justify-between">
+              <div className="editor-settings-color-container mb-1 ml-1 flex h-full w-1/2 flex-row items-center text-editor-modal-text">
+                <img
+                  className="forward-backward-icon mr-1 h-full"
+                  alt="B:"
+                  src={iconBackwards}
+                />
 
                 <WickInput
                   type="color"
@@ -91,8 +99,12 @@ const EditorSettings: React.FC<EditorSettingsProps> = (props) => {
                   lastColorsUsed={props.lastColorsUsed} />
               </div>
 
-              <div className="editor-settings-color-container">
-                <img className="forward-backward-icon" alt="F:" src={iconForwards} />
+              <div className="editor-settings-color-container mb-1 ml-1 flex h-full w-1/2 flex-row items-center text-editor-modal-text">
+                <img
+                  className="forward-backward-icon mr-1 h-full"
+                  alt="F:"
+                  src={iconForwards}
+                />
 
                 <WickInput
                   type="color"

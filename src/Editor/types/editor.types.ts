@@ -445,6 +445,9 @@ export interface EditorState {
   timelineSize: number;
   timelineRendererMode: "dom" | "classic";
   timelineShortcutPreset: "wick" | "flash";
+  timelinePlaybackFollowMode: "off" | "follow-playhead";
+  timelineSnapMode: "none" | "frames" | "markers";
+  timelineDensityMode: "compact" | "standard";
   timelineSoftRenderTick: number;
   assetLibrarySize: number;
   consoleLogs: ConsoleLogEntry[];

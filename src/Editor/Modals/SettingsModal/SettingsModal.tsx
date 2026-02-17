@@ -32,8 +32,6 @@ import ProjectSettings from "./ProjectSettings/ProjectSettings";
 import EditorSettings from "./EditorSettings/EditorSettings";
 import KeyboardShortcuts from "./KeyboardShortcuts/KeyboardShortcuts";
 
-import "./_settingsmodal.scss";
-
 import classNames from "classnames";
 
 // Hotkey groups structure from editor.hotKeyInterface.createHandlerGroups()
@@ -75,11 +73,13 @@ const SettingsModal: React.FC<SettingsModalProps> = (props) => {
       <WickModal
         open={props.open}
         toggle={props.toggle}
-        className="settings-modal-container"
+        className="settings-modal-container h-[375px] w-[500px]"
         overlayClassName="settings-modal-overlay"
       >
-        <div className="settings-modal-title">Settings</div>
-        <div className="settings-modal-body">
+        <div className="settings-modal-title min-h-8 h-8 w-full text-left text-[18px] font-bold text-editor-modal-text">
+          Settings
+        </div>
+        <div className="settings-modal-body h-[313px] w-full">
           <TabbedInterface tabNames={["Project", "Shortcuts", "Editor"]}>
             <ProjectSettings
               project={props.project}
@@ -121,13 +121,15 @@ const SettingsModal: React.FC<SettingsModalProps> = (props) => {
         open={props.open}
         toggle={props.toggle}
         className={classNames(
-          "settings-modal-container",
-          props.isMobile && "mobile"
+          "settings-modal-container h-[375px] w-[500px]",
+          props.isMobile && "mobile h-[500px] w-[80%] max-w-[400px]"
         )}
         overlayClassName="settings-modal-overlay"
       >
-        <div className="settings-modal-title">Settings</div>
-        <div className="settings-modal-body">
+        <div className="settings-modal-title min-h-8 h-8 w-full text-left text-[18px] font-bold text-editor-modal-text">
+          Settings
+        </div>
+        <div className="settings-modal-body h-[313px] w-full">
           <TabbedInterface tabNames={["Project", "Editor"]}>
             <ProjectSettings
               isMobile={true}

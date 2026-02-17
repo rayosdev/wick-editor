@@ -23,13 +23,18 @@ import type {
   TimelineContextMenuItem,
   TimelineContextMenuPosition,
   TimelineContextTarget,
+  TimelineDensityMode,
   TimelineFrameVisualState,
   TimelineFillGapsMode,
   TimelineFrameLike,
   TimelineFrameSizeMode,
+  TimelineInsertMode,
   TimelineLayerLike,
+  TimelineMarker,
   TimelineRendererProps,
+  TimelineSnapMode,
   TimelineTweenLike,
+  TimelineWorkArea,
 } from "./Timeline.types";
 
 type InteractionMode =
@@ -39,7 +44,9 @@ type InteractionMode =
   | "frame-resize-left"
   | "frame-resize-right"
   | "tween-move"
-  | "layer-reorder";
+  | "layer-reorder"
+  | "work-area-start"
+  | "work-area-end";
 
 type InteractionState = {
   mode: InteractionMode;
@@ -58,6 +65,7 @@ type InteractionState = {
   frames: TimelineFrameLike[];
   tweens: TimelineTweenLike[];
   layer: TimelineLayerLike | null;
+  workArea: TimelineWorkArea | null;
 };
 
 type SelectionBox = {
@@ -79,9 +87,23 @@ const MAX_FRAME_RATE = 60;
 const LONG_PRESS_MS = 450;
 const LONG_PRESS_CANCEL_DISTANCE_PX = 12;
 const TOUCH_AXIS_LOCK_THRESHOLD_PX = 14;
+const FRAME_MOVE_INTENT_THRESHOLD_PX = 8;
+const FRAME_VERTICAL_INTENT_THRESHOLD_PX = 10;
+const LAYER_REORDER_INTENT_THRESHOLD_PX = 10;
 const CONTEXT_MENU_WIDTH_PX = 220;
 const CONTEXT_MENU_HEIGHT_PX = 320;
 const CONTEXT_MENU_MARGIN_PX = 8;
+const DENSITY_SCALE: Record<TimelineDensityMode, number> = {
+  compact: 0.86,
+  standard: 1,
+};
+const DEFAULT_MARKER_COLORS = [
+  "#66B6FF",
+  "#FFB347",
+  "#7CE38B",
+  "#F08282",
+  "#B79EFF",
+];
 
 const getFrameSizeMode = (): TimelineFrameSizeMode => {
   const guiElement = window?.Wick?.GUIElement;
@@ -240,7 +262,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const interactionRef = useRef<InteractionState | null>(null);
   const selectionBoxRef = useRef<SelectionBox | null>(null);
+  const selectionAnchorRef = useRef<{ layerIndex: number; playheadPosition: number } | null>(null);
   const layerReorderPreviewRef = useRef<number | null>(null);
+  const workAreaDirtyRef = useRef(false);
   const longPressTimerRef = useRef<number | null>(null);
   const longPressStartRef = useRef<{ x: number; y: number } | null>(null);
   const longPressTriggeredRef = useRef(false);
@@ -263,6 +287,14 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   const [pressFeedback, setPressFeedback] = useState<{ x: number; y: number } | null>(null);
   const [soundHoverCell, setSoundHoverCell] =
     useState<{ layerIndex: number; playheadPosition: number } | null>(null);
+  const [markers, setMarkers] = useState<TimelineMarker[]>([]);
+  const [workArea, setWorkArea] = useState<TimelineWorkArea>({
+    start: 1,
+    end: 120,
+  });
+  const [loopWorkArea, setLoopWorkArea] = useState(false);
+  const [jumpFrameValue, setJumpFrameValue] = useState("");
+  const [jumpLayerValue, setJumpLayerValue] = useState("");
 
   const project = props.project;
   const activeTimeline = project?.activeTimeline;
@@ -270,7 +302,10 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   const playheadPosition = Number(activeTimeline?.playheadPosition ?? 1);
   const frameRate = Number(project?.framerate ?? 0);
   const frameSizeMode = getFrameSizeMode();
-  const { cellWidth, cellHeight } = getGridMetrics();
+  const baseGridMetrics = getGridMetrics();
+  const densityScale = DENSITY_SCALE[props.timelineDensityMode] ?? 1;
+  const cellWidth = Math.max(20, Math.round(baseGridMetrics.cellWidth * densityScale));
+  const cellHeight = Math.max(26, Math.round(baseGridMetrics.cellHeight * densityScale));
   const timelineLength = useMemo(() => {
     return Math.max(getTimelineLength(layers) + 24, 48);
   }, [layers, renderTick, frameSizeMode]);
@@ -286,6 +321,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
   const fillGapsMode: TimelineFillGapsMode =
     activeTimeline?.fillGapsMethod === "auto_extend" ? "auto_extend" : "blank_frames";
+  const insertMode: TimelineInsertMode = fillGapsMode === "auto_extend" ? "ripple" : "overwrite";
 
   const timelineMeta =
     frameRate > 0
@@ -294,6 +330,111 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
   const requestRender = (): void => {
     setRenderTick((tick) => tick + 1);
+  };
+
+  const normalizeMarkerList = (input: TimelineMarker[] | null | undefined): TimelineMarker[] => {
+    if (!Array.isArray(input)) {
+      return [];
+    }
+
+    return input
+      .map((marker, index) => {
+        if (!marker || typeof marker !== "object") {
+          return null;
+        }
+
+        const frame = Math.max(1, Math.round(Number(marker.frame ?? 1)));
+        const id =
+          typeof marker.id === "string" && marker.id.trim().length > 0
+            ? marker.id
+            : `marker-${Date.now()}-${index}`;
+        const label =
+          typeof marker.label === "string" && marker.label.trim().length > 0
+            ? marker.label.trim()
+            : `M${index + 1}`;
+        const color =
+          typeof marker.color === "string" && marker.color.trim().length > 0
+            ? marker.color
+            : DEFAULT_MARKER_COLORS[index % DEFAULT_MARKER_COLORS.length];
+
+        return {
+          id,
+          frame,
+          label,
+          color,
+        };
+      })
+      .filter((marker): marker is TimelineMarker => Boolean(marker))
+      .sort((a, b) => a.frame - b.frame);
+  };
+
+  const normalizeWorkArea = (input: TimelineWorkArea | null | undefined): TimelineWorkArea => {
+    const start = Math.max(1, Math.round(Number(input?.start ?? 1)));
+    const end = Math.max(start, Math.round(Number(input?.end ?? Math.max(120, timelineLength))));
+    return { start, end };
+  };
+
+  const readTimelineUiState = (): { markers: TimelineMarker[]; workArea: TimelineWorkArea } => {
+    const metadata = (
+      project as {
+        metadata?: {
+          editorUi?: {
+            timelineUi?: {
+              markers?: TimelineMarker[];
+              workArea?: TimelineWorkArea;
+            };
+          };
+        };
+      } | null
+    )?.metadata;
+
+    const timelineUi = metadata?.editorUi?.timelineUi;
+    return {
+      markers: normalizeMarkerList(timelineUi?.markers),
+      workArea: normalizeWorkArea(timelineUi?.workArea),
+    };
+  };
+
+  const persistTimelineUiState = (
+    nextMarkers: TimelineMarker[],
+    nextWorkArea: TimelineWorkArea,
+    actionName?: string,
+  ): void => {
+    if (!project) {
+      return;
+    }
+
+    const currentProject = project as {
+      metadata?: {
+        editorUi?: {
+          timelineUi?: {
+            markers?: TimelineMarker[];
+            workArea?: TimelineWorkArea;
+          };
+        };
+        [key: string]: unknown;
+      };
+    };
+    const metadata = currentProject.metadata && typeof currentProject.metadata === "object"
+      ? currentProject.metadata
+      : {};
+    const editorUi =
+      metadata.editorUi && typeof metadata.editorUi === "object" ? metadata.editorUi : {};
+
+    currentProject.metadata = {
+      ...metadata,
+      editorUi: {
+        ...editorUi,
+        timelineUi: {
+          markers: normalizeMarkerList(nextMarkers),
+          workArea: normalizeWorkArea(nextWorkArea),
+        },
+      },
+    };
+
+    if (actionName) {
+      commitProjectChange(actionName);
+    }
   };
 
   const safeSetPointerCapture = (target: EventTarget | null, pointerId: number): void => {
@@ -310,14 +451,15 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   };
 
   const isTransientFocusRenderError = (error: unknown): boolean => {
-    if (!(error instanceof TypeError)) {
-      return false;
-    }
-
-    const message = String(error.message ?? "");
+    const message =
+      error && typeof error === "object" && "message" in error
+        ? String((error as { message?: unknown }).message ?? "")
+        : String(error ?? "");
     return (
       message.includes("Cannot read properties of null") &&
-      (message.includes("isRoot") || message.includes("timeline"))
+      (message.includes("isRoot") ||
+        message.includes("timeline") ||
+        message.includes("activeTimeline"))
     );
   };
 
@@ -346,7 +488,47 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     requestRender();
   };
 
+  const maybeAutoScrollPlayhead = (): void => {
+    if (props.timelinePlaybackFollowMode !== "follow-playhead") {
+      return;
+    }
+
+    try {
+      project?.guiElement?.checkForPlayheadAutoscroll?.();
+    } catch (error) {
+      if (!isTransientFocusRenderError(error)) {
+        throw error;
+      }
+    }
+  };
+
+  const resolveSnappedPlayhead = (
+    inputPlayhead: number,
+    snapMode: TimelineSnapMode,
+  ): number => {
+    const normalizedInput = Math.max(1, Math.round(inputPlayhead));
+    if (snapMode !== "markers") {
+      return normalizedInput;
+    }
+
+    if (markers.length === 0) {
+      return normalizedInput;
+    }
+
+    return markers.reduce((closest, marker) => {
+      if (Math.abs(marker.frame - normalizedInput) < Math.abs(closest - normalizedInput)) {
+        return marker.frame;
+      }
+      return closest;
+    }, markers[0].frame);
+  };
+
   const reportRendererError = (error: unknown): void => {
+    if (isTransientFocusRenderError(error)) {
+      console.warn("TimelineDOM transient interaction race ignored", error);
+      requestRender();
+      return;
+    }
     console.error("TimelineDOM interaction error", error);
     props.onRendererError?.(error);
   };
@@ -356,25 +538,43 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     setContextMenuTarget(null);
   };
 
-  const setPlayhead = (nextPlayhead: number): void => {
+  const setPlayhead = (
+    nextPlayhead: number,
+    options: {
+      respectSnap?: boolean;
+      autoScroll?: boolean;
+    } = {},
+  ): void => {
     if (!activeTimeline) {
       return;
     }
 
-    const normalizedPlayhead = Math.max(1, Math.round(nextPlayhead));
+    const snapMode = options.respectSnap === false ? "none" : props.timelineSnapMode;
+    const normalizedPlayhead = resolveSnappedPlayhead(nextPlayhead, snapMode);
+    setFrameInputValue(String(normalizedPlayhead));
+
     if (activeTimeline.playheadPosition === normalizedPlayhead) {
+      if (options.autoScroll !== false) {
+        try {
+          maybeAutoScrollPlayhead();
+        } catch (error) {
+          reportRendererError(error);
+        }
+      }
+      requestRender();
       return;
     }
 
     activeTimeline.playheadPosition = normalizedPlayhead;
-    const focus = project?.focus as { timeline?: unknown } | null | undefined;
-    if (focus && typeof focus === "object" && "timeline" in focus && focus.timeline) {
+
+    if (options.autoScroll !== false) {
       try {
-        project?.guiElement?.checkForPlayheadAutoscroll?.();
-      } catch {
-        // Ignore autoscroll if focus changed during a scrub gesture.
+        maybeAutoScrollPlayhead();
+      } catch (error) {
+        reportRendererError(error);
       }
     }
+
     softRender();
   };
 
@@ -453,7 +653,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
   const selectFrame = (
     frame: TimelineFrameLike,
-    options: { append?: boolean; toggle?: boolean } = {},
+    options: { append?: boolean; toggle?: boolean; setAnchor?: boolean } = {},
   ): void => {
     const selection = project?.selection;
     if (!selection) {
@@ -471,7 +671,50 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     }
 
     frame.parentLayer?.activate?.();
+    if (options.setAnchor !== false) {
+      const anchorLayer = frame.parentLayer as TimelineLayerLike | undefined;
+      selectionAnchorRef.current = {
+        layerIndex: anchorLayer ? getLayerIndex(layers, anchorLayer) : Number(activeTimeline?.activeLayerIndex ?? 0),
+        playheadPosition: Math.max(1, Number(frame.start ?? playheadPosition)),
+      };
+    }
     setPlayhead(Number(frame.start ?? playheadPosition));
+    requestRender();
+  };
+
+  const selectFrameRangeFromAnchor = (
+    frame: TimelineFrameLike,
+    layerIndex: number,
+  ): void => {
+    const selection = project?.selection;
+    if (!selection) {
+      return;
+    }
+
+    const anchor = selectionAnchorRef.current;
+    if (!anchor) {
+      selectFrame(frame);
+      return;
+    }
+
+    const targetLayer = layers[layerIndex] ?? frame.parentLayer;
+    if (!targetLayer) {
+      selectFrame(frame);
+      return;
+    }
+
+    const targetPlayhead = Math.max(1, Number(frame.start ?? playheadPosition));
+    const rangeStart = Math.min(anchor.playheadPosition, targetPlayhead);
+    const rangeEnd = Math.max(anchor.playheadPosition, targetPlayhead);
+
+    selection.clear();
+    targetLayer.frames.forEach((candidate) => {
+      if (frameInRange(candidate, rangeStart, rangeEnd)) {
+        selection.select(candidate);
+      }
+    });
+    targetLayer.activate?.();
+    setPlayhead(targetPlayhead);
     requestRender();
   };
 
@@ -484,6 +727,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
   const resetInteraction = (): void => {
     interactionRef.current = null;
+    workAreaDirtyRef.current = false;
     setDragPreview(null);
     setLayerReorderPreview(null);
     setDragCollisionMode(null);
@@ -676,7 +920,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       return null;
     }
 
-    return fillGapsMode === "auto_extend" ? "push" : "overwrite";
+    return insertMode === "ripple" ? "push" : "overwrite";
   };
 
   const finalizeLayerReorder = (interaction: InteractionState): void => {
@@ -738,6 +982,22 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       }
     }
 
+    if (interaction.mode === "layer-reorder") {
+      moveCols = 0;
+      if (Math.abs(dy) < LAYER_REORDER_INTENT_THRESHOLD_PX) {
+        moveRows = 0;
+      }
+    }
+
+    if (interaction.mode === "frame-move") {
+      if (Math.abs(dx) < FRAME_MOVE_INTENT_THRESHOLD_PX) {
+        moveCols = 0;
+        moveRows = 0;
+      } else if (Math.abs(dy) < FRAME_VERTICAL_INTENT_THRESHOLD_PX) {
+        moveRows = 0;
+      }
+    }
+
     if (interaction.mode === "frame-resize-right" || interaction.mode === "frame-resize-left") {
       moveRows = 0;
       const minMove = interaction.frames.reduce((min, frame) => {
@@ -757,6 +1017,33 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     interaction.moveCols = moveCols;
     interaction.moveRows = moveRows;
     interaction.rawMoveRows = rawMoveRows;
+
+    if (interaction.mode === "work-area-start" || interaction.mode === "work-area-end") {
+      const location = resolveGridLocation(clientX, clientY);
+      if (!location) {
+        return;
+      }
+
+      setWorkArea((current) => {
+        const next =
+          interaction.mode === "work-area-start"
+            ? {
+                start: clampNumber(location.playheadPosition, 1, Math.max(1, current.end - 1)),
+                end: current.end,
+              }
+            : {
+                start: current.start,
+                end: Math.max(current.start + 1, location.playheadPosition),
+              };
+
+        if (next.start !== current.start || next.end !== current.end) {
+          workAreaDirtyRef.current = true;
+        }
+
+        return normalizeWorkArea(next);
+      });
+      return;
+    }
 
     if (interaction.mode === "select-box") {
       const location = resolveGridLocation(clientX, clientY);
@@ -834,6 +1121,11 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         finalizeSelectionBox(selectionBoxRef.current);
       } else if (interaction.mode === "layer-reorder") {
         finalizeLayerReorder(interaction);
+      } else if (
+        (interaction.mode === "work-area-start" || interaction.mode === "work-area-end") &&
+        workAreaDirtyRef.current
+      ) {
+        persistTimelineUiState(markers, workArea, "Update Timeline Work Area");
       }
     } catch (error) {
       reportRendererError(error);
@@ -954,8 +1246,39 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   }, [frameRate]);
 
   useEffect(() => {
+    const timelineUiState = readTimelineUiState();
+    setMarkers(timelineUiState.markers);
+    setWorkArea(normalizeWorkArea(timelineUiState.workArea));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project]);
+
+  useEffect(() => {
     requestRender();
   }, [props.timelineSoftRenderTick]);
+
+  useEffect(() => {
+    if (props.timelinePlaybackFollowMode !== "follow-playhead") {
+      return;
+    }
+
+    try {
+      maybeAutoScrollPlayhead();
+    } catch (error) {
+      reportRendererError(error);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.timelinePlaybackFollowMode, playheadPosition, props.timelineSoftRenderTick]);
+
+  useEffect(() => {
+    if (!project?.playing || !loopWorkArea) {
+      return;
+    }
+
+    if (playheadPosition > workArea.end || playheadPosition < workArea.start) {
+      setPlayhead(workArea.start, { respectSnap: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loopWorkArea, project?.playing, playheadPosition, workArea.start, workArea.end]);
 
   useEffect(() => {
     const handleSoundHover = (event: Event) => {
@@ -1061,6 +1384,130 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         ? "Set Timeline Gap Fill Mode (Extend Frames)"
         : "Set Timeline Gap Fill Mode (Blank Frames)",
     );
+  };
+
+  const setInsertMode = (mode: TimelineInsertMode): void => {
+    setGapFillMode(mode === "ripple" ? "auto_extend" : "blank_frames");
+  };
+
+  const updateWorkArea = (
+    updater: (current: TimelineWorkArea) => TimelineWorkArea,
+    options: { commit?: boolean; actionName?: string } = {},
+  ): void => {
+    setWorkArea((current) => {
+      const next = normalizeWorkArea(updater(current));
+      if (options.commit) {
+        persistTimelineUiState(markers, next, options.actionName);
+      }
+      return next;
+    });
+  };
+
+  const handleAddMarker = (): void => {
+    const markerColor = DEFAULT_MARKER_COLORS[markers.length % DEFAULT_MARKER_COLORS.length];
+    const nextMarker: TimelineMarker = {
+      id: `marker-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      frame: Math.max(1, Math.round(playheadPosition)),
+      label: `M${markers.length + 1}`,
+      color: markerColor,
+    };
+
+    const nextMarkers = normalizeMarkerList(markers.concat(nextMarker));
+    setMarkers(nextMarkers);
+    persistTimelineUiState(nextMarkers, workArea, "Add Timeline Marker");
+  };
+
+  const handleDeleteMarker = (markerId: string): void => {
+    const nextMarkers = markers.filter((marker) => marker.id !== markerId);
+    setMarkers(nextMarkers);
+    persistTimelineUiState(nextMarkers, workArea, "Delete Timeline Marker");
+  };
+
+  const handleEditMarker = (markerId: string): void => {
+    const marker = markers.find((entry) => entry.id === markerId);
+    if (!marker) {
+      return;
+    }
+
+    const nextLabel = window.prompt("Marker label", marker.label);
+    if (nextLabel === null) {
+      return;
+    }
+
+    const normalizedLabel = nextLabel.trim();
+    if (normalizedLabel.length === 0) {
+      return;
+    }
+
+    const nextMarkers = markers.map((entry) =>
+      entry.id === markerId
+        ? {
+            ...entry,
+            label: normalizedLabel,
+          }
+        : entry,
+    );
+
+    setMarkers(nextMarkers);
+    persistTimelineUiState(nextMarkers, workArea, "Rename Timeline Marker");
+  };
+
+  const moveMarkerToFrame = (markerId: string, frame: number, commit: boolean): void => {
+    const nextMarkers = markers.map((marker) =>
+      marker.id === markerId
+        ? {
+            ...marker,
+            frame: Math.max(1, Math.round(frame)),
+          }
+        : marker,
+    );
+
+    setMarkers(normalizeMarkerList(nextMarkers));
+    if (commit) {
+      persistTimelineUiState(nextMarkers, workArea, "Move Timeline Marker");
+    }
+  };
+
+  const jumpToMarker = (direction: "next" | "previous"): void => {
+    if (markers.length === 0) {
+      return;
+    }
+
+    const sortedMarkers = normalizeMarkerList(markers);
+    const fallback = direction === "next" ? sortedMarkers[0] : sortedMarkers[sortedMarkers.length - 1];
+    const marker =
+      direction === "next"
+        ? sortedMarkers.find((entry) => entry.frame > playheadPosition) ?? fallback
+        : [...sortedMarkers].reverse().find((entry) => entry.frame < playheadPosition) ?? fallback;
+
+    setPlayhead(marker.frame, { respectSnap: false });
+  };
+
+  const commitFrameJump = (): void => {
+    const parsed = Number.parseInt(jumpFrameValue, 10);
+    if (!Number.isFinite(parsed)) {
+      return;
+    }
+
+    setPlayhead(parsed, { respectSnap: false });
+  };
+
+  const commitLayerJump = (): void => {
+    const needle = jumpLayerValue.trim().toLowerCase();
+    if (needle.length === 0 || !activeTimeline) {
+      return;
+    }
+
+    const nextLayerIndex = layers.findIndex((layer) => {
+      return String(layer.name ?? "").toLowerCase().includes(needle);
+    });
+    if (nextLayerIndex < 0) {
+      return;
+    }
+
+    activeTimeline.activeLayerIndex = nextLayerIndex;
+    layers[nextLayerIndex]?.activate?.();
+    softRender();
   };
 
   const applyContextTarget = (
@@ -1268,6 +1715,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         frames: [],
         tweens: [],
         layer: null,
+        workArea: null,
       });
     } catch (error) {
       reportRendererError(error);
@@ -1342,6 +1790,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
           frames: [],
           tweens: [],
           layer: null,
+          workArea: null,
         });
         return;
       }
@@ -1359,15 +1808,17 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       const nearRight = frameRightPx - frameLeftPx - pointerXInFrame <= handleWidth;
 
       if (event.shiftKey) {
-        const selection = project?.selection;
-        if (selection?.isObjectSelected?.(frame)) {
-          selection.deselect?.(frame);
-        } else {
-          selection?.select(frame);
-        }
-        frame.parentLayer?.activate?.();
-        setPlayhead(frameStart);
-        requestRender();
+        selectFrameRangeFromAnchor(frame, location.layerIndex);
+        return;
+      }
+
+      const isToggleSelection = event.metaKey || event.ctrlKey;
+      if (isToggleSelection) {
+        selectFrame(frame, {
+          append: true,
+          toggle: true,
+          setAnchor: true,
+        });
         return;
       }
 
@@ -1377,6 +1828,12 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
       if (!isFrameSelected(frame)) {
         selectFrame(frame);
+      } else {
+        selectionAnchorRef.current = {
+          layerIndex: location.layerIndex,
+          playheadPosition: frameStart,
+        };
+        setPlayhead(frameStart);
       }
 
       const mode: InteractionMode = nearLeft
@@ -1409,6 +1866,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         frames: resizeFrames,
         tweens: [],
         layer: null,
+        workArea: null,
       });
     } catch (error) {
       reportRendererError(error);
@@ -1427,13 +1885,31 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       safeSetPointerCapture(event.currentTarget, event.pointerId);
 
       const selectedTweens = getSelectedTweens();
-      if (!selectedTweens.includes(tween)) {
-        if (!event.shiftKey) {
-          project?.selection?.clear();
+      const isToggleSelection = event.metaKey || event.ctrlKey;
+      if (isToggleSelection) {
+        if (selectedTweens.includes(tween)) {
+          project?.selection?.deselect?.(tween);
+        } else {
+          project?.selection?.select(tween);
+          tween.parentLayer?.activate?.();
         }
-        project?.selection?.select(tween);
-        tween.parentLayer?.activate?.();
         requestRender();
+        return;
+      }
+
+      if (!event.shiftKey) {
+        project?.selection?.clear();
+      }
+
+      if (!selectedTweens.includes(tween)) {
+        project?.selection?.select(tween);
+      }
+      tween.parentLayer?.activate?.();
+      requestRender();
+
+      const activeTweens = getSelectedTweens();
+      if (activeTweens.length === 0) {
+        return;
       }
 
       startInteraction({
@@ -1451,8 +1927,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         moveRows: 0,
         rawMoveRows: 0,
         frames: [],
-        tweens: selectedTweens.length > 0 ? selectedTweens : [tween],
+        tweens: activeTweens,
         layer: null,
+        workArea: null,
       });
     } catch (error) {
       reportRendererError(error);
@@ -1492,6 +1969,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         frames: [],
         tweens: [],
         layer,
+        workArea: null,
       });
     } catch (error) {
       reportRendererError(error);
@@ -1548,6 +2026,147 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     props.onTimelineShortcutPresetChange(preset);
   };
 
+  const handlePlaybackFollowModeSwitch = (mode: "off" | "follow-playhead"): void => {
+    props.onTimelinePlaybackFollowModeChange(mode);
+  };
+
+  const handleSnapModeSwitch = (mode: TimelineSnapMode): void => {
+    props.onTimelineSnapModeChange(mode);
+  };
+
+  const handleDensityModeSwitch = (mode: TimelineDensityMode): void => {
+    props.onTimelineDensityModeChange(mode);
+  };
+
+  const handleWorkAreaHandlePointerDown = (
+    event: React.PointerEvent<HTMLButtonElement>,
+    mode: "work-area-start" | "work-area-end",
+  ): void => {
+    try {
+      event.stopPropagation();
+      if (event.button !== 0) {
+        return;
+      }
+      safeSetPointerCapture(event.currentTarget, event.pointerId);
+      startInteraction({
+        mode,
+        pointerId: event.pointerId,
+        pointerType: event.pointerType,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startCol: 0,
+        startRow: 0,
+        startLayerIndex: 0,
+        startPlayhead: mode === "work-area-start" ? workArea.start : workArea.end,
+        axisLock: "x",
+        moveCols: 0,
+        moveRows: 0,
+        rawMoveRows: 0,
+        frames: [],
+        tweens: [],
+        layer: null,
+        workArea,
+      });
+    } catch (error) {
+      reportRendererError(error);
+    }
+  };
+
+  const handleMarkerPointerDown = (
+    event: React.PointerEvent<HTMLButtonElement>,
+    marker: TimelineMarker,
+  ): void => {
+    try {
+      if (event.button !== 0) {
+        return;
+      }
+
+      const isToggleRemoval = event.metaKey || event.ctrlKey;
+      if (isToggleRemoval) {
+        event.preventDefault();
+        handleDeleteMarker(marker.id);
+        return;
+      }
+
+      safeSetPointerCapture(event.currentTarget, event.pointerId);
+      setPlayhead(marker.frame, { respectSnap: false });
+
+      if (event.detail >= 2) {
+        handleEditMarker(marker.id);
+        return;
+      }
+
+      startInteraction({
+        mode: "playhead",
+        pointerId: event.pointerId,
+        pointerType: event.pointerType,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startCol: marker.frame - 1,
+        startRow: 0,
+        startLayerIndex: 0,
+        startPlayhead: marker.frame,
+        axisLock: "x",
+        moveCols: 0,
+        moveRows: 0,
+        rawMoveRows: 0,
+        frames: [],
+        tweens: [],
+        layer: null,
+        workArea: null,
+      });
+
+      if (event.pointerType === "touch") {
+        clearLongPressTimer();
+        longPressTriggeredRef.current = false;
+        longPressStartRef.current = { x: event.clientX, y: event.clientY };
+        setPressFeedback({ x: event.clientX, y: event.clientY });
+        longPressTimerRef.current = window.setTimeout(() => {
+          longPressTimerRef.current = null;
+          longPressTriggeredRef.current = true;
+          setPressFeedback(null);
+          handleEditMarker(marker.id);
+        }, LONG_PRESS_MS);
+      }
+
+      const startFrame = marker.frame;
+      const markerId = marker.id;
+      const moveMarker = (pointerEvent: PointerEvent) => {
+        const location = resolveGridLocation(pointerEvent.clientX, pointerEvent.clientY);
+        if (!location) {
+          return;
+        }
+        moveMarkerToFrame(markerId, location.playheadPosition, false);
+      };
+
+      const commitMarker = (pointerEvent: PointerEvent) => {
+        window.removeEventListener("pointermove", moveMarker, true);
+        window.removeEventListener("pointerup", commitMarker, true);
+        window.removeEventListener("pointercancel", cancelMarker, true);
+        clearLongPressTimer();
+        const location = resolveGridLocation(pointerEvent.clientX, pointerEvent.clientY);
+        if (!location) {
+          moveMarkerToFrame(markerId, startFrame, false);
+          return;
+        }
+        moveMarkerToFrame(markerId, location.playheadPosition, true);
+      };
+
+      const cancelMarker = () => {
+        window.removeEventListener("pointermove", moveMarker, true);
+        window.removeEventListener("pointerup", commitMarker, true);
+        window.removeEventListener("pointercancel", cancelMarker, true);
+        clearLongPressTimer();
+      };
+
+      window.addEventListener("pointermove", moveMarker, true);
+      window.addEventListener("pointerup", commitMarker, true);
+      window.addEventListener("pointercancel", cancelMarker, true);
+    } catch (error) {
+      reportRendererError(error);
+    }
+  };
+
   useEffect(() => {
     if (!contextMenuPosition) {
       return;
@@ -1586,9 +2205,16 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   }, [contextMenuPosition]);
 
   return (
-    <div id="animation-timeline-container" aria-label="Timeline" data-timeline-renderer-mode="dom">
+    <div
+      id="animation-timeline-container"
+      aria-label="Timeline"
+      data-timeline-renderer-mode="dom"
+      data-timeline-density-mode={props.timelineDensityMode}
+      data-timeline-snap-mode={props.timelineSnapMode}
+      data-timeline-follow-mode={props.timelinePlaybackFollowMode}
+    >
       {props.isOver && <div className="drag-drop-overlay" />}
-      <div className="timeline-flash-shell timeline-dom-shell">
+      <div className={`timeline-flash-shell timeline-dom-shell timeline-density-${props.timelineDensityMode}`}>
         <div className="timeline-flash-header">
           <div className="timeline-flash-breadcrumb">
             {isNestedTimeline && (
@@ -1625,6 +2251,82 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 Flash
               </button>
             </div>
+            <div className="timeline-shortcut-toggle" role="group" aria-label="Playhead follow mode">
+              <button
+                type="button"
+                className={`timeline-shortcut-toggle-button ${
+                  props.timelinePlaybackFollowMode === "follow-playhead" ? "active" : ""
+                }`}
+                aria-pressed={props.timelinePlaybackFollowMode === "follow-playhead"}
+                onClick={() => handlePlaybackFollowModeSwitch("follow-playhead")}
+              >
+                Follow
+              </button>
+              <button
+                type="button"
+                className={`timeline-shortcut-toggle-button ${
+                  props.timelinePlaybackFollowMode === "off" ? "active" : ""
+                }`}
+                aria-pressed={props.timelinePlaybackFollowMode === "off"}
+                onClick={() => handlePlaybackFollowModeSwitch("off")}
+              >
+                Free
+              </button>
+            </div>
+            <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline snap mode">
+              <button
+                type="button"
+                className={`timeline-shortcut-toggle-button ${
+                  props.timelineSnapMode === "none" ? "active" : ""
+                }`}
+                aria-pressed={props.timelineSnapMode === "none"}
+                onClick={() => handleSnapModeSwitch("none")}
+              >
+                No Snap
+              </button>
+              <button
+                type="button"
+                className={`timeline-shortcut-toggle-button ${
+                  props.timelineSnapMode === "frames" ? "active" : ""
+                }`}
+                aria-pressed={props.timelineSnapMode === "frames"}
+                onClick={() => handleSnapModeSwitch("frames")}
+              >
+                Frames
+              </button>
+              <button
+                type="button"
+                className={`timeline-shortcut-toggle-button ${
+                  props.timelineSnapMode === "markers" ? "active" : ""
+                }`}
+                aria-pressed={props.timelineSnapMode === "markers"}
+                onClick={() => handleSnapModeSwitch("markers")}
+              >
+                Markers
+              </button>
+            </div>
+            <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline density mode">
+              <button
+                type="button"
+                className={`timeline-shortcut-toggle-button ${
+                  props.timelineDensityMode === "compact" ? "active" : ""
+                }`}
+                aria-pressed={props.timelineDensityMode === "compact"}
+                onClick={() => handleDensityModeSwitch("compact")}
+              >
+                Compact
+              </button>
+              <button
+                type="button"
+                className={`timeline-shortcut-toggle-button ${
+                  props.timelineDensityMode === "standard" ? "active" : ""
+                }`}
+                aria-pressed={props.timelineDensityMode === "standard"}
+                onClick={() => handleDensityModeSwitch("standard")}
+              >
+                Standard
+              </button>
+            </div>
             <div className="timeline-renderer-toggle" role="group" aria-label="Timeline renderer">
               <button
                 type="button"
@@ -1641,6 +2343,24 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 onClick={() => handleModeSwitch("classic")}
               >
                 Classic
+              </button>
+            </div>
+            <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline insert mode">
+              <button
+                type="button"
+                className={`timeline-shortcut-toggle-button ${insertMode === "overwrite" ? "active" : ""}`}
+                aria-pressed={insertMode === "overwrite"}
+                onClick={() => setInsertMode("overwrite")}
+              >
+                Overwrite
+              </button>
+              <button
+                type="button"
+                className={`timeline-shortcut-toggle-button ${insertMode === "ripple" ? "active" : ""}`}
+                aria-pressed={insertMode === "ripple"}
+                onClick={() => setInsertMode("ripple")}
+              >
+                Ripple
               </button>
             </div>
           </div>
@@ -1820,16 +2540,104 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
           </div>
 
           <div className="timeline-dom-grid-panel">
+            <div className="timeline-dom-marker-row">
+              <div
+                className="timeline-dom-work-area-track"
+                style={{
+                  width: `${timelineLength * cellWidth}px`,
+                  minWidth: `${timelineLength * cellWidth}px`,
+                }}
+              >
+                <div
+                  className="timeline-dom-work-area-span"
+                  style={{
+                    left: `${(workArea.start - 1) * cellWidth}px`,
+                    width: `${Math.max(cellWidth, (workArea.end - workArea.start + 1) * cellWidth)}px`,
+                  }}
+                />
+                <button
+                  type="button"
+                  className="timeline-dom-work-area-handle timeline-dom-work-area-handle-start"
+                  style={{ left: `${(workArea.start - 1) * cellWidth}px` }}
+                  aria-label="Adjust work area start"
+                  onPointerDown={(event) => handleWorkAreaHandlePointerDown(event, "work-area-start")}
+                />
+                <button
+                  type="button"
+                  className="timeline-dom-work-area-handle timeline-dom-work-area-handle-end"
+                  style={{ left: `${workArea.end * cellWidth}px` }}
+                  aria-label="Adjust work area end"
+                  onPointerDown={(event) => handleWorkAreaHandlePointerDown(event, "work-area-end")}
+                />
+                {markers.map((marker) => (
+                  <button
+                    key={marker.id}
+                    type="button"
+                    className="timeline-dom-marker"
+                    style={{
+                      left: `${(marker.frame - 1) * cellWidth + Math.floor(cellWidth / 2)}px`,
+                      borderColor: marker.color,
+                      color: marker.color,
+                    }}
+                    title={`${marker.label} (${marker.frame})`}
+                    onPointerDown={(event) => handleMarkerPointerDown(event, marker)}
+                    onDoubleClick={(event) => {
+                      event.preventDefault();
+                      handleEditMarker(marker.id);
+                    }}
+                  >
+                    <span className="timeline-dom-marker-label">{marker.label}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="timeline-dom-marker-actions">
+                <button
+                  type="button"
+                  className="timeline-flash-footer-button"
+                  onClick={handleAddMarker}
+                  aria-label="Add marker at playhead"
+                >
+                  + Marker
+                </button>
+                <button
+                  type="button"
+                  className="timeline-flash-footer-button"
+                  onClick={() => jumpToMarker("previous")}
+                  aria-label="Jump to previous marker"
+                >
+                  Prev Marker
+                </button>
+                <button
+                  type="button"
+                  className="timeline-flash-footer-button"
+                  onClick={() => jumpToMarker("next")}
+                  aria-label="Jump to next marker"
+                >
+                  Next Marker
+                </button>
+                <button
+                  type="button"
+                  className={`timeline-flash-footer-choice ${loopWorkArea ? "active" : ""}`}
+                  onClick={() => setLoopWorkArea((current) => !current)}
+                  aria-pressed={loopWorkArea}
+                >
+                  Loop Work Area
+                </button>
+              </div>
+            </div>
             <div className="timeline-dom-numberline" onPointerDown={handleNumberLinePointerDown}>
               {Array.from({ length: timelineLength }, (_, index) => {
                 const frameNumber = index + 1;
                 const isPlayhead = frameNumber === playheadPosition;
                 const highlight = index === 0 || index % 5 === 4;
+                const isMajorTick = index === 0 || index % 10 === 9;
                 return (
                   <button
                     key={`frame-number-${frameNumber}`}
                     type="button"
                     className={`timeline-dom-numberline-cell ${highlight ? "highlight" : ""} ${
+                      isMajorTick ? "major" : ""
+                    } ${
                       isPlayhead ? "playhead" : ""
                     }`}
                     style={{ width: `${cellWidth}px` }}
@@ -1839,6 +2647,11 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                   </button>
                 );
               })}
+              <div
+                className="timeline-dom-playhead-cap"
+                style={{ left: `${(playheadPosition - 1) * cellWidth + Math.floor(cellWidth / 2)}px` }}
+                aria-hidden
+              />
             </div>
 
             <div
@@ -1858,6 +2671,13 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                   ["--timeline-cell-height" as string]: `${cellHeight}px`,
                 }}
               >
+                <div
+                  className="timeline-dom-work-area-overlay"
+                  style={{
+                    left: `${(workArea.start - 1) * cellWidth}px`,
+                    width: `${Math.max(cellWidth, (workArea.end - workArea.start + 1) * cellWidth)}px`,
+                  }}
+                />
                 {layers.map((layer, layerIndex) => {
                   const previewRow =
                     interactionRef.current?.mode === "frame-move" ||
@@ -1925,9 +2745,15 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                                 return;
                               }
                               event.preventDefault();
+                              if (event.shiftKey) {
+                                selectFrameRangeFromAnchor(frame, layerIndex);
+                                return;
+                              }
+
+                              const toggle = event.metaKey || event.ctrlKey;
                               selectFrame(frame, {
-                                append: event.shiftKey,
-                                toggle: event.shiftKey,
+                                append: toggle,
+                                toggle,
                               });
                             }}
                           >
@@ -2105,37 +2931,78 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             <span className="timeline-flash-footer-label timeline-flash-footer-icon-label">
               <img
                 src={
-                  fillGapsMode === "auto_extend"
+                  insertMode === "ripple"
                     ? iconGapFillMenuExtendFrames
                     : iconGapFillMenuBlankFrames
                 }
                 alt=""
                 className="timeline-flash-footer-icon"
               />
-              Gaps
+              Insert
             </span>
             <button
               type="button"
-              className={`timeline-flash-footer-choice ${fillGapsMode === "auto_extend" ? "active" : ""}`}
-              onClick={() => setGapFillMode("auto_extend")}
-              aria-pressed={fillGapsMode === "auto_extend"}
+              className={`timeline-flash-footer-choice ${insertMode === "overwrite" ? "active" : ""}`}
+              onClick={() => setInsertMode("overwrite")}
+              aria-pressed={insertMode === "overwrite"}
             >
-              <img src={iconGapFillExtendFrames} alt="" className="timeline-flash-footer-choice-icon" />
-              Extend
+              <img src={iconGapFillBlankFrames} alt="" className="timeline-flash-footer-choice-icon" />
+              Overwrite
             </button>
             <button
               type="button"
-              className={`timeline-flash-footer-choice ${fillGapsMode === "blank_frames" ? "active" : ""}`}
-              onClick={() => setGapFillMode("blank_frames")}
-              aria-pressed={fillGapsMode === "blank_frames"}
+              className={`timeline-flash-footer-choice ${insertMode === "ripple" ? "active" : ""}`}
+              onClick={() => setInsertMode("ripple")}
+              aria-pressed={insertMode === "ripple"}
             >
-              <img src={iconGapFillBlankFrames} alt="" className="timeline-flash-footer-choice-icon" />
-              Blank
+              <img src={iconGapFillExtendFrames} alt="" className="timeline-flash-footer-choice-icon" />
+              Ripple
             </button>
           </div>
 
+          <div className="timeline-flash-footer-group timeline-flash-footer-field">
+            <span className="timeline-flash-footer-label">Jump</span>
+            <input
+              className="timeline-flash-footer-input timeline-flash-footer-input-jump"
+              type="number"
+              min={1}
+              step={1}
+              value={jumpFrameValue}
+              onChange={(event) => setJumpFrameValue(event.target.value)}
+              onBlur={commitFrameJump}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  commitFrameJump();
+                }
+              }}
+              placeholder="Frame"
+              aria-label="Jump to frame"
+            />
+            <input
+              className="timeline-flash-footer-input timeline-flash-footer-input-jump"
+              type="text"
+              value={jumpLayerValue}
+              onChange={(event) => setJumpLayerValue(event.target.value)}
+              onBlur={commitLayerJump}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  commitLayerJump();
+                }
+              }}
+              placeholder="Layer name"
+              aria-label="Jump to layer"
+            />
+          </div>
+
+          <div className="timeline-flash-footer-group">
+            <span className="timeline-flash-footer-label">Work Area</span>
+            <span className="timeline-flash-footer-readout">
+              {workArea.start}-{workArea.end}
+            </span>
+          </div>
+
           <div className="timeline-flash-footer-hint">
-            Right-click or long-press any frame for contextual actions
+            Right-click or long-press any frame for contextual actions. Ctrl/Cmd-click removes marker.
           </div>
           <div className="timeline-flash-footer-hint timeline-flash-footer-shortcuts">
             {props.timelineShortcutPreset === "flash"

@@ -22,8 +22,6 @@ import { recordKeyCombination } from "react-hotkeys";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import HotKeyInterface from "Editor/hotKeyMap";
 
-import "./_keyboardshortcuts.scss";
-
 import classNames from "classnames";
 import type { HotKeyMap, HotKeySequence } from "Editor/types/hotkeys";
 import type { CustomHotKeys } from "Editor/types";
@@ -131,15 +129,17 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
     return (
       <button
         aria-labelledby={labelledby + " shortcut key"}
-        className="keyboard-shortcut-key"
+        className="keyboard-shortcut-key m-px border-none bg-transparent"
       >
         {sequenceItems.map((key: string, i: number) => {
           return (
             <span
               key={"keyboard-commands-" + key + i}
-              className="keyboard-shortcuts-key-icon-container"
+              className="keyboard-shortcuts-key-icon-container text-editor-modal-text"
             >
-              <kbd>{key}</kbd>
+              <kbd className="whitespace-nowrap rounded-[3px] border border-[#b4b4b4] bg-[#eee] px-1 py-[2px] text-[0.85em] font-bold leading-none text-[#333] shadow-[0_1px_1px_rgba(0,0,0,.2),0_2px_0_0_rgba(255,255,255,.7)_inset]">
+                {key}
+              </kbd>
               {sequenceItems.length > i + 1 && " + "}
             </span>
           );
@@ -170,9 +170,12 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
     let { name } = headerInfo;
 
     return (
-      <tr className="keyboard-shortcuts-modal-row" key={name}>
+      <tr
+        className="keyboard-shortcuts-modal-row table w-full border-b border-black text-left"
+        key={name}
+      >
         <td
-          className="hotkey-action-column hotkey-header-column"
+          className="hotkey-action-column hotkey-header-column w-full border-l-0 bg-editor-primary py-0 pl-2 text-left align-middle text-[20px] font-bold text-editor-modal-text has-hover:cursor-pointer has-hover:bg-editor-secondary has-hover:text-wick-green"
           tabIndex={0}
           onKeyPress={(e) => {
             if (e.which === 13) {
@@ -210,15 +213,27 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
     };
 
     return (
-      <tr className="keyboard-shortcuts-modal-row" key={name}>
-        <td id={name} className="hotkey-action-column">
+      <tr
+        className="keyboard-shortcuts-modal-row table w-full border-b border-black text-left"
+        key={name}
+      >
+        <td
+          id={name}
+          className="hotkey-action-column w-[45%] border-l border-black pl-6 text-editor-modal-text"
+        >
           {name}
         </td>
         <td
           className={classNames(
-            "hotkey-column",
+            "hotkey-column w-[27.5%] border-l border-black has-hover:cursor-pointer has-hover:bg-editor-secondary",
             { edited: action0.edited && !action0.editing },
-            { editing: action0.editing }
+            { editing: action0.editing },
+            {
+              "bg-[#F6E78A] text-black": action0.editing,
+            },
+            {
+              "bg-[#EC6CB9] text-black": action0.edited && !action0.editing,
+            }
           )}
           onClick={() => beginEdit(actionName, 0)}
         >
@@ -231,9 +246,15 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
         </td>
         <td
           className={classNames(
-            "hotkey-column",
+            "hotkey-column w-[27.5%] border-l border-black has-hover:cursor-pointer has-hover:bg-editor-secondary",
             { edited: action1.edited && !action1.editing },
-            { editing: action1.editing }
+            { editing: action1.editing },
+            {
+              "bg-[#F6E78A] text-black": action1.editing,
+            },
+            {
+              "bg-[#EC6CB9] text-black": action1.edited && !action1.editing,
+            }
           )}
           onClick={() => beginEdit(actionName, 1)}
         >
@@ -409,16 +430,16 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
   let keyMap = props.keyMap || {};
   let groupedRows = getGroupedRows();
   return (
-    <div id="keyboard-shortcuts-body">
-      <table className="tableSection">
-        <thead>
-          <tr>
-            <th className="hotkey-action-column">Action</th>
-            <th className="hotkey-column header">Hotkey 1</th>
-            <th className="hotkey-column header">Hotkey 2</th>
+    <div id="keyboard-shortcuts-body" className="h-[85%] w-full overflow-hidden">
+      <table className="tableSection table w-full [display:table]">
+        <thead className="float-left w-full text-editor-text-secondary">
+          <tr className="table w-full text-left">
+            <th className="hotkey-action-column w-[45%] pl-6">Action</th>
+            <th className="hotkey-column header w-[27.5%] text-white">Hotkey 1</th>
+            <th className="hotkey-column header w-[27.5%] text-white">Hotkey 2</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="float-left h-[220px] w-full overflow-auto border-b border-r border-black">
           {groupedRows.map((action) => {
             if (action.type === "header") {
               return createHeader(action);
@@ -441,13 +462,17 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
         </tbody>
       </table>
       {/* Footer */}
-      <div id="keyboard-shortcuts-modal-footer">
+      <div
+        id="keyboard-shortcuts-modal-footer"
+        className="absolute bottom-[18px] right-[18px] mt-1 flex flex-row justify-end"
+      >
         <div
-          className="keyboard-shortcuts-footer-button-container"
+          className="keyboard-shortcuts-footer-button-container ml-0 w-20"
           id="keyboard-shortcuts-modal-reset"
         >
           <ActionButton
-            className="keyboard-shortcuts-modal-button"
+            className="keyboard-shortcuts-modal-button h-7"
+            textClassName="keyboard-shortcuts-modal-button-text h-6"
             id="keyboard-shorcuts-reset-button"
             color="flame"
             action={resetHotkeys}
@@ -457,11 +482,12 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
           />
         </div>
         <div
-          className="keyboard-shortcuts-footer-button-container"
+          className="keyboard-shortcuts-footer-button-container ml-2 w-20"
           id="keyboard-shortcuts-modal-cancel"
         >
           <ActionButton
-            className="keyboard-shortcuts-modal-button"
+            className="keyboard-shortcuts-modal-button h-7"
+            textClassName="keyboard-shortcuts-modal-button-text h-6"
             id="keyboard-shorcuts-cancel-button"
             color="gray"
             action={resetAndToggle}
@@ -469,11 +495,12 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
           />
         </div>
         <div
-          className="keyboard-shortcuts-footer-button-container"
+          className="keyboard-shortcuts-footer-button-container ml-2 w-20"
           id="keyboard-shortcuts-modal-accept"
         >
           <ActionButton
-            className="keyboard-shortcuts-modal-button"
+            className="keyboard-shortcuts-modal-button h-7"
+            textClassName="keyboard-shortcuts-modal-button-text h-6"
             id="keyboard-shorcuts-apply-button"
             color="green"
             action={applyNewKeys}

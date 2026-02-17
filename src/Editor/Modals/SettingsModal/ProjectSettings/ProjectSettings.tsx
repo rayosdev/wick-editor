@@ -26,8 +26,6 @@ import type {
   WickProject,
 } from "Editor/types";
 
-import "./_projectsettings.scss";
-
 import classNames from "classnames";
 
 interface ProjectSettingsProps {
@@ -195,17 +193,17 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
     return (
       <div
         className={classNames(
-          "project-setting-element",
-          props.isMobile && "mobile"
+          "project-setting-element mt-[15px] mr-[5%] w-[47.5%]",
+          props.isMobile && "mobile mr-0 w-full"
         )}
       >
         <label
           htmlFor="project name"
-          className="project-settings-property-label"
+          className="project-settings-property-label mb-0 text-editor-modal-text"
         >
           Name
         </label>
-        <div className="project-settings-property-container">
+        <div className="project-settings-property-container flex h-[30px] flex-row">
           <WickInput
             id="project name"
             type="text"
@@ -222,17 +220,17 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
     return (
       <div
         className={classNames(
-          "project-setting-element",
-          props.isMobile && "mobile"
+          "project-setting-element mt-[15px] mr-[5%] w-[47.5%]",
+          props.isMobile && "mobile mr-0 w-full"
         )}
       >
         <label
           htmlFor="project framerate"
-          className="project-settings-property-label"
+          className="project-settings-property-label mb-0 text-editor-modal-text"
         >
           Framerate (FPS)
         </label>
-        <div className="project-settings-property-container">
+        <div className="project-settings-property-container flex h-[30px] flex-row">
           <WickInput
             id="project framerate"
             type="numeric"
@@ -247,11 +245,11 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
 
   const renderSizeObjectMobile = (): JSX.Element => {
     return (
-      <div className={classNames("project-setting-element", "mobile")}>
-        <div className="project-settings-property-container project-settings-size-input-container mobile">
+      <div className={classNames("project-setting-element mt-[15px] mr-0 w-full", "mobile")}>
+        <div className="project-settings-property-container project-settings-size-input-container mobile mb-1 flex h-[30px] flex-row">
           <label
             htmlFor="projectWidth"
-            className="project-settings-property-label mobile-size"
+            className="project-settings-property-label mobile-size mb-0 w-[140px] overflow-hidden whitespace-nowrap text-editor-modal-text"
           >
             Width (px)
           </label>
@@ -261,13 +259,13 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
             min={projectMinWidth}
             value={width}
             onChange={changeProjectWidth}
-            className="project-settings-size-input"
+            className="project-settings-size-input w-1/2"
           />
         </div>
-        <div className="project-settings-property-container project-settings-size-input-container mobile">
+        <div className="project-settings-property-container project-settings-size-input-container mobile mb-1 flex h-[30px] flex-row">
           <label
             htmlFor="projectHeight"
-            className="project-settings-property-label mobile-size"
+            className="project-settings-property-label mobile-size mb-0 w-[140px] overflow-hidden whitespace-nowrap text-editor-modal-text"
           >
             Height (px)
           </label>
@@ -277,7 +275,7 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
             min={projectMinHeight}
             value={height}
             onChange={changeProjectHeight}
-            className="project-settings-size-input"
+            className="project-settings-size-input w-1/2"
           />
         </div>
       </div>
@@ -288,17 +286,17 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
     return (
       <div
         className={classNames(
-          "project-setting-element",
-          props.isMobile && "mobile"
+          "project-setting-element mt-[15px] mr-[5%] w-[47.5%]",
+          props.isMobile && "mobile mr-0 w-full"
         )}
       >
         <label
           htmlFor="project-background-color-picker"
-          className="project-settings-property-label"
+          className="project-settings-property-label mb-0 text-editor-modal-text"
         >
           Background Color
         </label>
-        <div className="project-settings-property-container">
+        <div className="project-settings-property-container flex h-[30px] flex-row">
           <WickInput
             type="color"
             id="project-background-color-picker"
@@ -330,11 +328,17 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
             <ActionButton
               buttonProps={{ "aria-labelledby": "resolution-presets" }}
               key={"preset" + i}
-              className="project-settings-modal-preset"
+              className={classNames(
+                "project-settings-modal-preset mr-[1.25%] h-full w-[24%] rounded-[2px] text-center text-[20px]",
+                i === presets.length - 1 && "mr-0",
+                preset === presetItem.name
+                  ? "bg-wick-green text-black has-hover:bg-wick-green-light"
+                  : "bg-[#4F4F4F] text-editor-modal-text has-hover:bg-wick-green-light has-hover:text-black"
+              )}
               text={presetItem.name}
               textClassName={classNames(
-                "project-settings-modal-preset-text",
-                preset === presetItem.name && "selected"
+                "project-settings-modal-preset-text text-white",
+                preset === presetItem.name && "selected text-black"
               )}
               color={preset === presetItem.name ? "green" : "tool"}
               action={() => selectPreset(presetItem)}
@@ -347,14 +351,14 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
 
   const renderPresets = (): JSX.Element => {
     return (
-      <div className="project-setting-element project-settings-presets-container">
+      <div className="project-setting-element project-settings-presets-container mt-[15px] mr-0 h-[50px] w-full">
         <label
           id="resolution-presets"
-          className="project-settings-property-label"
+          className="project-settings-property-label mb-0 text-editor-modal-text"
         >
           Presets
         </label>
-        <div className="project-settings-presets-body-container">
+        <div className="project-settings-presets-body-container flex flex-row">
           {renderPresetBoxes()}
         </div>
       </div>
@@ -373,9 +377,9 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
       }
     }
     return (
-      <div className="project-setting-element project-settings-presets-container">
-        <div className="project-settings-property-label">Presets</div>
-        <div className="project-settings-presets-body-container">
+      <div className="project-setting-element project-settings-presets-container mt-[15px] mr-0 h-[50px] w-full">
+        <div className="project-settings-property-label mb-0 text-editor-modal-text">Presets</div>
+        <div className="project-settings-presets-body-container flex flex-row">
           <WickInput
             type="select"
             value={preset}
@@ -396,15 +400,15 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
     return (
       <div
         className={classNames(
-          "project-setting-element",
-          props.isMobile && "mobile"
+          "project-setting-element mt-[15px] mr-[5%] w-[47.5%]",
+          props.isMobile && "mobile mr-0 w-full"
         )}
       >
-        <div className="project-settings-property-container project-settings-size-input-container">
+        <div className="project-settings-property-container project-settings-size-input-container flex h-[30px] flex-row">
           <span>
             <label
               htmlFor="project width"
-              className="project-settings-property-label"
+              className="project-settings-property-label mb-0 text-editor-modal-text"
             >
               Width (px)
             </label>
@@ -418,12 +422,12 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
             />
           </span>
           <span>
-            <div className="project-settings-split">x</div>
+            <div className="project-settings-split px-[5px] pt-[150%] text-editor-modal-text">x</div>
           </span>
           <span>
             <label
               htmlFor="project height"
-              className="project-settings-property-label"
+              className="project-settings-property-label mb-0 text-editor-modal-text"
             >
               Height (px)
             </label>
@@ -443,34 +447,37 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
 
   const renderDesktop = (): JSX.Element => {
     return (
-      <div id="project-settings-interior-content">
+      <div id="project-settings-interior-content" className="h-full w-full">
         {/* Body */}
-        <div id="project-settings-modal-body">
-          <div className="project-settings-modal-row">
+        <div id="project-settings-modal-body" className="project-settings-modal-body flex flex-col">
+          <div className="project-settings-modal-row flex flex-row">
             {renderNameObject()}
             {renderBackgroundColorObject()}
           </div>
-          <div className="project-settings-modal-row">
+          <div className="project-settings-modal-row flex flex-row">
             {renderSizeObject()}
             {renderFramerateObject()}
           </div>
-          <div className="project-settings-modal-row">
+          <div className="project-settings-modal-row flex flex-row">
             {renderPresets()}
           </div>
         </div>
         {/* Footer */}
-        <div id="project-settings-modal-footer">
-          <div className="project-settings-modal-cancel">
+        <div
+          id="project-settings-modal-footer"
+          className="absolute bottom-[18px] right-[18px] mt-[25px] flex h-7 w-[calc(100%_-_40px)] flex-row items-center justify-end"
+        >
+          <div className="project-settings-modal-cancel ml-auto h-full w-20">
             <ActionButton
-              className="project-settings-modal-button"
+              className="project-settings-modal-button h-full"
               color="gray"
               action={resetAndToggle}
               text="Cancel"
             />
           </div>
-          <div className="project-settings-modal-accept">
+          <div className="project-settings-modal-accept ml-2 h-full w-20">
             <ActionButton
-              className="project-settings-modal-button"
+              className="project-settings-modal-button h-full"
               color="green"
               action={acceptProjectSettings}
               text="Apply"
@@ -483,38 +490,41 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
 
   const renderMobile = (): JSX.Element => {
     return (
-      <div id="project-settings-interior-content">
+      <div id="project-settings-interior-content" className="h-full w-full">
         {/* Body */}
-        <div id="project-settings-modal-body">
-          <div className="project-settings-modal-row">
+        <div id="project-settings-modal-body" className="project-settings-modal-body flex flex-col">
+          <div className="project-settings-modal-row flex flex-row">
             {renderNameObject()}
           </div>
-          <div className="project-settings-modal-row">
+          <div className="project-settings-modal-row flex flex-row">
             {renderBackgroundColorObject()}
           </div>
-          <div className="project-settings-modal-row">
+          <div className="project-settings-modal-row flex flex-row">
             {renderFramerateObject()}
           </div>
-          <div className="project-settings-modal-row">
+          <div className="project-settings-modal-row flex flex-row">
             {renderPresetsMobile()}
           </div>
-          <div className="project-settings-modal-row">
+          <div className="project-settings-modal-row flex flex-row">
             {renderSizeObjectMobile()}
           </div>
         </div>
         {/* Footer */}
-        <div id="project-settings-modal-footer">
-          <div className="project-settings-modal-cancel mobile">
+        <div
+          id="project-settings-modal-footer"
+          className="absolute bottom-[18px] right-[18px] mt-[25px] flex h-7 w-[calc(100%_-_40px)] flex-row items-center justify-end"
+        >
+          <div className="project-settings-modal-cancel mobile h-full w-[calc(50%_-_8px)]">
             <ActionButton
-              className="project-settings-modal-button"
+              className="project-settings-modal-button h-full"
               color="gray"
               action={resetAndToggle}
               text="Cancel"
             />
           </div>
-          <div className="project-settings-modal-accept mobile">
+          <div className="project-settings-modal-accept mobile ml-2 h-full w-[calc(50%_-_8px)]">
             <ActionButton
-              className="project-settings-modal-button"
+              className="project-settings-modal-button h-full"
               color="green"
               action={acceptProjectSettings}
               text="Apply"
