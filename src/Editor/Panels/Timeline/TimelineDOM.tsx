@@ -311,6 +311,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   });
   const [loopWorkArea, setLoopWorkArea] = useState(false);
   const [showHeaderOptions, setShowHeaderOptions] = useState(false);
+  const [gridContrastMode, setGridContrastMode] = useState<"soft" | "strong">("soft");
   const [jumpFrameValue, setJumpFrameValue] = useState("");
   const [jumpLayerValue, setJumpLayerValue] = useState("");
 
@@ -1381,11 +1382,27 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
     const trackStartX = LAYER_PANEL_WIDTH_PX;
     const trackEndX = trackStartX + unifiedGridWidth;
-    const gridColor = "rgba(255, 255, 255, 0.06)";
-    const majorGridColor = "rgba(255, 255, 255, 0.12)";
+    const isStrongGrid = gridContrastMode === "strong";
+    const gridColor = isStrongGrid ? "rgba(255, 255, 255, 0.09)" : "rgba(255, 255, 255, 0.06)";
+    const mediumGridColor = isStrongGrid ? "rgba(255, 255, 255, 0.16)" : "rgba(255, 255, 255, 0.10)";
+    const majorGridColor = isStrongGrid ? "rgba(255, 255, 255, 0.24)" : "rgba(255, 255, 255, 0.16)";
 
-    ctx.fillStyle = "rgba(0, 0, 0, 0.03)";
+    ctx.fillStyle = isStrongGrid ? "rgba(0, 0, 0, 0.06)" : "rgba(0, 0, 0, 0.04)";
     ctx.fillRect(trackStartX, 0, unifiedGridWidth, cssHeight);
+
+    for (let decadeStart = 0; decadeStart < timelineLength; decadeStart += 10) {
+      if (Math.floor(decadeStart / 10) % 2 === 1) {
+        ctx.fillStyle = isStrongGrid ? "rgba(255, 255, 255, 0.03)" : "rgba(255, 255, 255, 0.015)";
+        ctx.fillRect(trackStartX + decadeStart * cellWidth, 0, cellWidth * 10, cssHeight);
+      }
+    }
+
+    for (let row = 0; row < totalUnifiedRows; row += 1) {
+      if (row % 2 === 1) {
+        ctx.fillStyle = isStrongGrid ? "rgba(255, 255, 255, 0.04)" : "rgba(255, 255, 255, 0.02)";
+        ctx.fillRect(trackStartX, row * cellHeight, unifiedGridWidth, cellHeight);
+      }
+    }
 
     ctx.beginPath();
     for (let row = 0; row <= totalUnifiedRows; row += 1) {
@@ -1402,7 +1419,11 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, cssHeight);
-      ctx.strokeStyle = col % 5 === 0 ? majorGridColor : gridColor;
+      ctx.strokeStyle = col % 10 === 0
+        ? majorGridColor
+        : col % 5 === 0
+          ? mediumGridColor
+          : gridColor;
       ctx.lineWidth = 1;
       ctx.stroke();
     }
@@ -1412,6 +1433,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     timelineLength,
     totalUnifiedRows,
     unifiedBodyMinWidth,
+    gridContrastMode,
     unifiedGridHeight,
     unifiedGridWidth,
     viewportHeight,
@@ -2395,6 +2417,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       data-timeline-density-mode={props.timelineDensityMode}
       data-timeline-snap-mode={props.timelineSnapMode}
       data-timeline-follow-mode={props.timelinePlaybackFollowMode}
+      data-timeline-grid-contrast={gridContrastMode}
       onKeyDownCapture={handleMarkerNavigationHotkeys}
     >
       {props.isOver && <div className="drag-drop-overlay" />}
@@ -2554,6 +2577,24 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                   onClick={() => setInsertMode("ripple")}
                 >
                   Ripple
+                </button>
+              </div>
+              <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline grid contrast">
+                <button
+                  type="button"
+                  className={`timeline-shortcut-toggle-button ${gridContrastMode === "soft" ? "active" : ""}`}
+                  aria-pressed={gridContrastMode === "soft"}
+                  onClick={() => setGridContrastMode("soft")}
+                >
+                  Soft Grid
+                </button>
+                <button
+                  type="button"
+                  className={`timeline-shortcut-toggle-button ${gridContrastMode === "strong" ? "active" : ""}`}
+                  aria-pressed={gridContrastMode === "strong"}
+                  onClick={() => setGridContrastMode("strong")}
+                >
+                  Strong Grid
                 </button>
               </div>
             </div>

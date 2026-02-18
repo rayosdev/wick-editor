@@ -82,9 +82,9 @@ describe("TypeScript everywhere guards", () => {
         const absolutePath = path.join(repoRoot, repoRelative);
         const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
         return lines
-          .map((line, index) => ({ line, index: index + 1 }))
-          .filter(({ line }) => explicitAnyPattern.test(line))
-          .map(({ index }) => `${repoRelative}:${index}`);
+          .map((line: string, index: number) => ({ line, index: index + 1 }))
+          .filter(({ line }: { line: string }) => explicitAnyPattern.test(line))
+          .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
       },
     );
 
@@ -101,11 +101,11 @@ describe("TypeScript everywhere guards", () => {
         const absolutePath = path.join(repoRoot, repoRelative);
         const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
         return lines
-          .map((line, index) => ({ line, index: index + 1 }))
+          .map((line: string, index: number) => ({ line, index: index + 1 }))
           .filter(
-            ({ line }) => tsIgnorePattern.test(line) || tsNocheckPattern.test(line),
+            ({ line }: { line: string }) => tsIgnorePattern.test(line) || tsNocheckPattern.test(line),
           )
-          .map(({ index }) => `${repoRelative}:${index}`);
+          .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
       },
     );
 
@@ -122,9 +122,9 @@ describe("TypeScript everywhere guards", () => {
         const absolutePath = path.join(repoRoot, repoRelative);
         const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
         return lines
-          .map((line, index) => ({ line, index: index + 1 }))
-          .filter(({ line }) => tsExpectErrorPattern.test(line))
-          .map(({ index }) => `${repoRelative}:${index}`);
+          .map((line: string, index: number) => ({ line, index: index + 1 }))
+          .filter(({ line }: { line: string }) => tsExpectErrorPattern.test(line))
+          .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
       },
     );
 

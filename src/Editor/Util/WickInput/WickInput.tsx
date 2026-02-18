@@ -313,7 +313,7 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
     return (
       <Input
         type="radio"
-        {...(radioProps as unknown as React.ComponentProps<typeof Input>)}
+        {...(radioProps as React.ComponentProps<typeof Input>)}
         onChange={
           onChange
             ? (event: React.ChangeEvent<HTMLInputElement>) => {

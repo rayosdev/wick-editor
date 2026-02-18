@@ -43,8 +43,7 @@ const ErrorBoundary: React.FC<ErrorBoundaryProps> = ({
     <ReactErrorBoundary
       FallbackComponent={FallbackComponent}
       onError={(error, errorInfo) => {
-        console.log("error234", true);
-        if (processError) {
+        if (processError && error instanceof Error) {
           processError(error, errorInfo);
         }
       }}
@@ -55,4 +54,3 @@ const ErrorBoundary: React.FC<ErrorBoundaryProps> = ({
 };
 
 export default ErrorBoundary;
-

@@ -18,7 +18,6 @@
  */
 
 import React from 'react';
-import './_inspectortitle.scss';
 
 interface InspectorTitleProps {
   title?: string;
@@ -28,15 +27,15 @@ interface InspectorTitleProps {
 const InspectorTitle: React.FC<InspectorTitleProps> = ({ title, type }) => {
   const renderSelectionType = (): JSX.Element => {
     return (
-      <div className="inspector-title-selection-type">
+      <div className="inspector-title-selection-type ml-2 inline-flex h-[80%] items-center text-[11px] font-bold text-[#BDBDBD]">
         {title}
       </div>
     );
   };
 
   return (
-    <div className="inspector-title">
-      <div className="inspector-title-name">Inspector</div>
+    <div className="inspector-title flex h-[36px] items-center whitespace-nowrap px-[10px]">
+      <div className="inspector-title-name inline-block font-['Nunito_Sans'] text-[12px] font-bold uppercase tracking-[0.03em] text-white">Inspector</div>
       {type && title && renderSelectionType()}
     </div>
   );

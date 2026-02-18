@@ -102,6 +102,7 @@ export default function ColorPicker (props: ColorPickerProps): JSX.Element {
             toggle={toggle}
             target={itemID}
             boundariesElement="clippingParents"
+            fade={false}
             transition={{ timeout: 150 }}>
             <WickColorPicker
               toggle={toggle}

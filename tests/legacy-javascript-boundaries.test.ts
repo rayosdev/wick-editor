@@ -20,10 +20,10 @@ function listTrackedFiles(): string[] {
   });
   return output
     .split("\n")
-    .map((line) => line.trim())
+    .map((line: string) => line.trim())
     .filter(Boolean)
-    .map((repoRelative) => path.normalize(repoRelative))
-    .filter((repoRelative) => fs.existsSync(path.join(repoRoot, repoRelative)));
+    .map((repoRelative: string) => path.normalize(repoRelative))
+    .filter((repoRelative: string) => fs.existsSync(path.join(repoRoot, repoRelative)));
 }
 
 describe("Legacy JavaScript boundaries", () => {

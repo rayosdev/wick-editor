@@ -45,6 +45,12 @@ const DISALLOWED_SCSS_FILES = new Set([
   "src/Editor/Panels/DockedPanel/_dockedpanel.scss",
   "src/Editor/Panels/DeleteCopyPaste/_deletecopypaste.scss",
   "src/Editor/Panels/CanvasTransforms/_canvastransforms.scss",
+  "src/Editor/Panels/Inspector/InspectorActionButton/_inspectoractionbutton.scss",
+  "src/Editor/Panels/Inspector/InspectorTitle/_inspectortitle.scss",
+  "src/Editor/Panels/Inspector/InspectorPreview/_inspectorpreview.scss",
+  "src/Editor/Panels/Inspector/InspectorScriptWindow/_inspectorscriptwindow.scss",
+  "src/Editor/Panels/Inspector/InspectorScriptWindow/ScriptWindowRow/_scriptwindowrow.scss",
+  "src/Editor/Panels/OutlinerExpandButton/_outlinerexpandbutton.scss",
   "src/Editor/Panels/MobileContainer/MobileInspector/MobileInpsectorTabbedInterface/_mobileinspectortabbedinterface.scss",
 ]);
 

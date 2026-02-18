@@ -33,7 +33,7 @@ export default function DeleteCopyPaste(props: DeleteCopyPasteProps): JSX.Elemen
             className={classNames(
               "canvas-transform-button",
               "canvas-transform-item",
-              "h-[40px] w-[40px] p-[3px] pl-[1.5px] pr-[1.5px]"
+              "!h-[40px] !w-[40px] p-[3px] pl-[1.5px] pr-[1.5px]"
             )}
             buttonClassName={"canvas-transform-wick-button rounded-none"}
             iconClassName={classNames(
@@ -50,7 +50,7 @@ export default function DeleteCopyPaste(props: DeleteCopyPasteProps): JSX.Elemen
             className={classNames(
               "canvas-transform-button",
               "canvas-transform-item",
-              "h-[40px] w-[40px] p-[3px] pl-[1.5px] pr-[1.5px]"
+              "!h-[40px] !w-[40px] p-[3px] pl-[1.5px] pr-[1.5px]"
             )}
             buttonClassName={"canvas-transform-wick-button rounded-none"}
             iconClassName={classNames(
@@ -66,7 +66,7 @@ export default function DeleteCopyPaste(props: DeleteCopyPasteProps): JSX.Elemen
             className={classNames(
               "canvas-transform-button",
               "canvas-transform-item",
-              "h-[40px] w-[40px] p-[3px] pl-[1.5px] pr-[1.5px]"
+              "!h-[40px] !w-[40px] p-[3px] pl-[1.5px] pr-[1.5px]"
             )}
             buttonClassName={"canvas-transform-wick-button rounded-none"}
             iconClassName="canvas-transform-icon w-[90%]"

@@ -19,7 +19,7 @@
 
 import React from 'react';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
-import './_scriptwindowrow.scss';
+import classNames from 'classnames';
 import type { ScriptWindowScriptInfoInterface } from 'Editor/types';
 
 // https://flaviocopes.com/how-to-uppercase-first-letter-javascript/
@@ -57,11 +57,22 @@ const ScriptWindowRow: React.FC<ScriptWindowRowProps> = ({
   };
 
   const scriptName = capitalize(name);
+  const barColor = getColorBar();
 
   return (
-    <div className="inspector-script-window-row-container">
-      <div className="script-row-item inspector-script-window-row-name">
-        <div className={`inspector-script-window-row-color-bar ${getColorBar()}`} />
+    <div className="inspector-script-window-row-container mt-[5px] mx-[5px] flex h-[25px] flex-row justify-between rounded-[3px]">
+      <div className="script-row-item inspector-script-window-row-name flex h-full w-[calc(100%-29px)] overflow-hidden rounded-[3px] bg-[#303030] text-white">
+        <div
+          className={classNames(
+            "inspector-script-window-row-color-bar h-full w-[5px] mr-[5px]",
+            barColor,
+            {
+              "bg-[#05B8FF]": barColor === "blue-bar",
+              "bg-[#29F1A3]": barColor === "green-bar",
+              "bg-[#FFE243]": barColor === "yellow-bar",
+            }
+          )}
+        />
         <ActionButton
           id={`inspector-script-window-row-edit${name}`}
           text={capitalize(name)}
@@ -72,7 +83,7 @@ const ScriptWindowRow: React.FC<ScriptWindowRowProps> = ({
           className="action-button-script-name"
         />
       </div>
-      <div className="script-row-item inspector-script-window-row-delete">
+      <div className="script-row-item inspector-script-window-row-delete h-full w-[25px] rounded-[3px] bg-[#303030] text-white">
         <ActionButton
           id={`inspector-script-window-row-delete${name}`}
           icon="delete-black"

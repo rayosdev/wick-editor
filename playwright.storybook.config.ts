@@ -3,7 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests/storybook",
   testMatch: "**/*.spec.ts",
-  fullyParallel: true,
+  fullyParallel: false,
+  workers: Number(process.env.PW_STORYBOOK_WORKERS ?? "1"),
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: "list",

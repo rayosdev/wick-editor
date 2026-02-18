@@ -1,0 +1,328 @@
+import { type ReactNode, useId } from "react";
+import classNames from "classnames";
+import "./WickInputV2.css";
+
+export type WickInputV2Option = {
+  label: string;
+  value: string;
+  disabled?: boolean;
+};
+
+type SharedProps = {
+  id?: string;
+  label?: string;
+  hint?: string;
+  error?: string;
+  className?: string;
+  controlClassName?: string;
+  disabled?: boolean;
+  required?: boolean;
+  readOnly?: boolean;
+  "data-testid"?: string;
+};
+
+type TextInputProps = SharedProps & {
+  kind?: "text";
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  maxLength?: number;
+};
+
+type NumberInputProps = SharedProps & {
+  kind: "number";
+  value: number;
+  onChange: (value: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  precision?: number;
+};
+
+type SelectInputProps = SharedProps & {
+  kind: "select";
+  value: string;
+  onChange: (value: string) => void;
+  options: WickInputV2Option[];
+};
+
+type CheckboxInputProps = SharedProps & {
+  kind: "checkbox";
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+};
+
+type RangeInputProps = SharedProps & {
+  kind: "range";
+  value: number;
+  onChange: (value: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+};
+
+type ColorInputProps = SharedProps & {
+  kind: "color";
+  value: string;
+  onChange: (value: string) => void;
+};
+
+type ActionInputProps = SharedProps & {
+  kind: "action";
+  onClick: () => void;
+  intent?: "neutral" | "primary" | "danger";
+  children: ReactNode;
+};
+
+export type WickInputV2Props =
+  | TextInputProps
+  | NumberInputProps
+  | SelectInputProps
+  | CheckboxInputProps
+  | RangeInputProps
+  | ColorInputProps
+  | ActionInputProps;
+
+type ControlA11y = {
+  describedBy?: string;
+  invalid: boolean;
+};
+
+const DEFAULT_RANGE_MIN = 0;
+const DEFAULT_RANGE_MAX = 100;
+const DEFAULT_RANGE_STEP = 1;
+
+function clampNumber(value: number, min?: number, max?: number): number {
+  let output = value;
+  if (min !== undefined) {
+    output = Math.max(output, min);
+  }
+
+  if (max !== undefined) {
+    output = Math.min(output, max);
+  }
+
+  return output;
+}
+
+function applyPrecision(value: number, precision?: number): number {
+  if (precision === undefined || precision < 0) {
+    return value;
+  }
+
+  const multiplier = 10 ** precision;
+  return Math.round(value * multiplier) / multiplier;
+}
+
+function normalizeColor(value: string): string {
+  const normalized = value.trim();
+  if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(normalized)) {
+    return normalized;
+  }
+
+  return "#4fa3ff";
+}
+
+function renderControl(
+  props: WickInputV2Props,
+  controlId: string,
+  a11y: ControlA11y
+): ReactNode {
+  const baseControlClass = classNames("wick-input-v2-control", props.controlClassName);
+  switch (props.kind) {
+    case "number":
+      return (
+        <input
+          id={controlId}
+          type="number"
+          className={classNames(baseControlClass, "wick-input-v2-control--number")}
+          value={props.value}
+          min={props.min}
+          max={props.max}
+          step={props.step}
+          onChange={(event) => {
+            const parsed = Number(event.currentTarget.value);
+            if (Number.isNaN(parsed)) {
+              return;
+            }
+
+            const clamped = clampNumber(parsed, props.min, props.max);
+            props.onChange(applyPrecision(clamped, props.precision));
+          }}
+          disabled={props.disabled}
+          readOnly={props.readOnly}
+          required={props.required}
+          aria-invalid={a11y.invalid || undefined}
+          aria-describedby={a11y.describedBy}
+        />
+      );
+
+    case "select":
+      return (
+        <select
+          id={controlId}
+          className={classNames(baseControlClass, "wick-input-v2-control--select")}
+          value={props.value}
+          onChange={(event) => props.onChange(event.currentTarget.value)}
+          disabled={props.disabled}
+          required={props.required}
+          aria-invalid={a11y.invalid || undefined}
+          aria-describedby={a11y.describedBy}
+        >
+          {props.options.map((option: WickInputV2Option) => (
+            <option key={option.value} value={option.value} disabled={option.disabled}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      );
+
+    case "checkbox":
+      return (
+        <label
+          htmlFor={controlId}
+          className={classNames(baseControlClass, "wick-input-v2-control--checkbox")}
+        >
+          <input
+            id={controlId}
+            type="checkbox"
+            className="wick-input-v2-checkbox"
+            checked={props.checked}
+            onChange={(event) => props.onChange(event.currentTarget.checked)}
+            disabled={props.disabled}
+            required={props.required}
+            aria-invalid={a11y.invalid || undefined}
+            aria-describedby={a11y.describedBy}
+          />
+          <span className="wick-input-v2-checkbox-label">{props.label ?? "Enabled"}</span>
+        </label>
+      );
+
+    case "range":
+      return (
+        <input
+          id={controlId}
+          type="range"
+          className={classNames(baseControlClass, "wick-input-v2-control--range")}
+          value={props.value}
+          min={props.min ?? DEFAULT_RANGE_MIN}
+          max={props.max ?? DEFAULT_RANGE_MAX}
+          step={props.step ?? DEFAULT_RANGE_STEP}
+          onChange={(event) => {
+            const next = Number(event.currentTarget.value);
+            if (!Number.isNaN(next)) {
+              props.onChange(next);
+            }
+          }}
+          disabled={props.disabled}
+          readOnly={props.readOnly}
+          required={props.required}
+          aria-invalid={a11y.invalid || undefined}
+          aria-describedby={a11y.describedBy}
+        />
+      );
+
+    case "color":
+      return (
+        <input
+          id={controlId}
+          type="color"
+          className={classNames(baseControlClass, "wick-input-v2-control--color")}
+          value={normalizeColor(props.value)}
+          onChange={(event) => props.onChange(event.currentTarget.value)}
+          disabled={props.disabled}
+          readOnly={props.readOnly}
+          required={props.required}
+          aria-invalid={a11y.invalid || undefined}
+          aria-describedby={a11y.describedBy}
+        />
+      );
+
+    case "action":
+      return (
+        <button
+          id={controlId}
+          type="button"
+          className={classNames(
+            baseControlClass,
+            "wick-input-v2-control--action",
+            `wick-input-v2-control--${props.intent ?? "neutral"}`
+          )}
+          onClick={props.onClick}
+          disabled={props.disabled}
+          aria-describedby={a11y.describedBy}
+        >
+          {props.children}
+        </button>
+      );
+
+    case "text":
+    case undefined:
+    default: {
+      const textProps = props as TextInputProps;
+      return (
+        <input
+          id={controlId}
+          type="text"
+          className={classNames(baseControlClass, "wick-input-v2-control--text")}
+          value={textProps.value}
+          onChange={(event) => textProps.onChange(event.currentTarget.value)}
+          placeholder={textProps.placeholder}
+          maxLength={textProps.maxLength}
+          disabled={textProps.disabled}
+          readOnly={textProps.readOnly}
+          required={textProps.required}
+          aria-invalid={a11y.invalid || undefined}
+          aria-describedby={a11y.describedBy}
+        />
+      );
+    }
+  }
+}
+
+export default function WickInputV2(props: WickInputV2Props): JSX.Element {
+  const generatedId = useId().replace(/:/g, "");
+  const controlId = props.id ?? `wick-input-v2-${generatedId}`;
+  const hintId = props.hint ? `${controlId}-hint` : undefined;
+  const errorId = props.error ? `${controlId}-error` : undefined;
+  const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
+  const kind = props.kind ?? "text";
+  const showTopLabel =
+    Boolean(props.label) && kind !== "checkbox" && kind !== "action";
+
+  return (
+    <div
+      className={classNames("wick-input-v2-field", props.className, {
+        "wick-input-v2-field--error": Boolean(props.error),
+        "wick-input-v2-field--disabled": props.disabled,
+      })}
+      data-testid={props["data-testid"]}
+    >
+      {showTopLabel && (
+        <label htmlFor={controlId} className="wick-input-v2-label">
+          {props.label}
+          {props.required && (
+            <span className="wick-input-v2-required" aria-hidden="true">
+              *
+            </span>
+          )}
+        </label>
+      )}
+
+      {renderControl(props, controlId, {
+        describedBy,
+        invalid: Boolean(props.error),
+      })}
+
+      {props.error ? (
+        <p id={errorId} className="wick-input-v2-message wick-input-v2-message--error">
+          {props.error}
+        </p>
+      ) : props.hint ? (
+        <p id={hintId} className="wick-input-v2-message">
+          {props.hint}
+        </p>
+      ) : null}
+    </div>
+  );
+}

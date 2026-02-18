@@ -80,7 +80,7 @@ export class Decoder {
     debug && console.time('fastgif-instantiate');
     this._exports = WebAssembly.instantiate(source, {env}).then((wa) => {
       debug && console.timeEnd('fastgif-instantiate');
-      return wa.instance.exports as unknown as DecoderExports;
+      return wa.instance.exports as DecoderExports;
     });
   }
 

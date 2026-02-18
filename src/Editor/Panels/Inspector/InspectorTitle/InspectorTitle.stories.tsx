@@ -1,12 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import DynamicComponentStory from "Editor/storybook/DynamicComponentStory";
+import InspectorTitle from "./InspectorTitle";
 
-const loadComponent = () => import("./InspectorTitle");
-
-const meta: Meta = {
+const meta: Meta<typeof InspectorTitle> = {
   title: "Editor/Panels/Inspector/InspectorTitle/InspectorTitle",
   parameters: {
     layout: "padded",
+  },
+  args: {
+    title: "Rectangle",
+    type: "shape",
   },
 };
 
@@ -16,10 +18,16 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: (args) => (
-    <DynamicComponentStory
-      componentName="InspectorTitle"
-      loader={loadComponent}
-      args={args as Record<string, unknown>}
-    />
+    <div className="w-80 bg-[#2f2f2f]">
+      <InspectorTitle {...args} />
+    </div>
   ),
+};
+
+export const NameOnly: Story = {
+  args: {
+    title: undefined,
+    type: undefined,
+  },
+  render: Default.render,
 };

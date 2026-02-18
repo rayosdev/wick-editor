@@ -18,7 +18,6 @@
  */
 
 import React from 'react';
-import './_inspectoractionbutton.scss';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 
 interface InspectorAction {
@@ -40,7 +39,7 @@ const InspectorActionButton: React.FC<InspectorActionButtonProps> = ({ action })
   const actionColor = action.color ? action.color : "inspector";
 
   return (
-    <div className="inspector-button">
+    <div className="inspector-button h-[40px] w-full">
       <ActionButton
         color={actionColor}
         icon={action.icon}

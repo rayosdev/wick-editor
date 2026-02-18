@@ -432,14 +432,14 @@ export interface WickProject extends WickBase {
   createTween(): void;
   getFonts(): string[];
   hasFont(font: string): boolean;
-  extendFrames(frames: WickSelectableObject[]): void;
-  shrinkFrames(frames: WickSelectableObject[]): void;
+  extendFrames(frames: WickFrame[]): void;
+  shrinkFrames(frames: WickFrame[]): void;
   moveSelectedFramesRight(): void;
   moveSelectedFramesLeft(): void;
   cutSelectedFrames(): void;
   insertBlankFrame(): void;
-  extendFramesAndPushOtherFrames(frames: WickSelectableObject[]): void;
-  shrinkFramesAndPullOtherFrames(frames: WickSelectableObject[]): void;
+  extendFramesAndPushOtherFrames(frames: WickFrame[]): void;
+  shrinkFramesAndPullOtherFrames(frames: WickFrame[]): void;
   onError(fn: (message: string) => void): void;
   play(options?: {
     onError?: (error: unknown) => void;

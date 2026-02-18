@@ -6,6 +6,13 @@
 import type { AutosavePayload, AutosaveRecord, CurrentProjectRecord, SettingsRecord } from './database';
 import { db } from './database';
 import {
+  getLatestAutosaveIndexEntry,
+  removeAutosaveIndexEntry,
+  replaceAutosaveIndexSource,
+  upsertAutosaveIndexEntry,
+  type AutosaveSource,
+} from "./autosaveIndex";
+import {
   parseAutosavePayload,
   parseSettingsRecord,
   AutosaveRecordSchema,
@@ -14,6 +21,7 @@ import {
 } from './schemas';
 
 const CURRENT_PROJECT_KEY = 'current';
+type LegacyAutosaveEntry = { uuid: string; lastModified?: number };
 
 export class ProjectStorage {
   static async saveAutosave(autosaveData: AutosavePayload): Promise<void> {
@@ -28,31 +36,59 @@ export class ProjectStorage {
     };
 
     await db.autosaves.put(record);
+    upsertAutosaveIndexEntry("dexie", uuid, parsedPayload.lastModified);
   }
 
   static async getLatestAutosave(): Promise<AutosaveRecord | null> {
-    const latest = await db.autosaves.orderBy('lastModified').reverse().first();
+    const indexedLatest = getLatestAutosaveIndexEntry("dexie");
+    if (indexedLatest) {
+      const indexedEntry = await db.autosaves.get(indexedLatest.uuid);
+      if (indexedEntry) {
+        const indexedParsed = AutosaveRecordSchema.safeParse(indexedEntry);
+        if (indexedParsed.success) {
+          return indexedParsed.data;
+        }
+      }
+
+      removeAutosaveIndexEntry("dexie", indexedLatest.uuid);
+    }
+
+    const latest = await db.autosaves.orderBy("lastModified").reverse().first();
     if (!latest) {
       return null;
     }
 
     const parsed = AutosaveRecordSchema.safeParse(latest);
     if (!parsed.success) {
-      console.warn('[ProjectStorage] Invalid autosave record in storage, ignoring latest entry', parsed.error);
+      console.warn(
+        "[ProjectStorage] Invalid autosave record in storage, ignoring latest entry",
+        parsed.error,
+      );
+      if (typeof latest.uuid === "string") {
+        removeAutosaveIndexEntry("dexie", latest.uuid);
+      }
       return null;
     }
 
+    upsertAutosaveIndexEntry("dexie", parsed.data.uuid, parsed.data.lastModified);
     return parsed.data;
   }
 
   static async getAllAutosaves(): Promise<AutosaveRecord[]> {
-    const autosaves = await db.autosaves.orderBy('lastModified').reverse().toArray();
+    const autosaves = await db.autosaves.orderBy("lastModified").reverse().toArray();
     return autosaves.flatMap((autosave) => {
       const parsed = AutosaveRecordSchema.safeParse(autosave);
       if (!parsed.success) {
-        console.warn('[ProjectStorage] Invalid autosave record in storage, skipping', parsed.error);
+        console.warn(
+          "[ProjectStorage] Invalid autosave record in storage, skipping",
+          parsed.error,
+        );
+        if (typeof autosave.uuid === "string") {
+          removeAutosaveIndexEntry("dexie", autosave.uuid);
+        }
         return [];
       }
+      upsertAutosaveIndexEntry("dexie", parsed.data.uuid, parsed.data.lastModified);
       return [parsed.data];
     });
   }
@@ -60,20 +96,24 @@ export class ProjectStorage {
   static async getAutosaveByUUID(uuid: string): Promise<AutosaveRecord | null> {
     const entry = await db.autosaves.get(uuid);
     if (!entry) {
+      removeAutosaveIndexEntry("dexie", uuid);
       return null;
     }
 
     const parsed = AutosaveRecordSchema.safeParse(entry);
     if (!parsed.success) {
       console.warn('[ProjectStorage] Invalid autosave record for UUID, skipping', { uuid, error: parsed.error });
+      removeAutosaveIndexEntry("dexie", uuid);
       return null;
     }
 
+    upsertAutosaveIndexEntry("dexie", parsed.data.uuid, parsed.data.lastModified);
     return parsed.data;
   }
 
   static async deleteAutosave(uuid: string): Promise<void> {
     await db.autosaves.delete(uuid);
+    removeAutosaveIndexEntry("dexie", uuid);
   }
 
   static async cleanupOldAutosaves(keepCount = 10): Promise<void> {
@@ -85,6 +125,9 @@ export class ProjectStorage {
     const toDelete = autosaves.slice(keepCount);
     if (toDelete.length) {
       await db.autosaves.bulkDelete(toDelete.map(({ uuid }) => uuid));
+      toDelete.forEach(({ uuid }) => {
+        removeAutosaveIndexEntry("dexie", uuid);
+      });
     }
   }
 
@@ -168,6 +211,40 @@ export class ProjectStorage {
     const hoursSinceLastSave = (Date.now() - entry.lastModified) / (1000 * 60 * 60);
     return hoursSinceLastSave <= 24;
   }
+
+  static recordLegacyAutosave(entry: LegacyAutosaveEntry): void {
+    if (!entry?.uuid) {
+      return;
+    }
+
+    upsertAutosaveIndexEntry("legacy", entry.uuid, entry.lastModified ?? Date.now());
+  }
+
+  static reconcileLegacyAutosaves(entries: LegacyAutosaveEntry[]): void {
+    replaceAutosaveIndexSource("legacy", entries);
+  }
+
+  static removeLegacyAutosave(uuid: string): void {
+    removeAutosaveIndexEntry("legacy", uuid);
+  }
+
+  static getLatestIndexedAutosave(): {
+    source: AutosaveSource;
+    uuid: string;
+    lastModified: number;
+  } | null {
+    const latest = getLatestAutosaveIndexEntry();
+    if (!latest) {
+      return null;
+    }
+
+    return {
+      source: latest.source,
+      uuid: latest.uuid,
+      lastModified: latest.lastModified,
+    };
+  }
+
 }
 
 export default ProjectStorage;

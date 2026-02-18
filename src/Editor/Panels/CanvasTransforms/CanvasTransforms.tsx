@@ -50,6 +50,8 @@ const CanvasTransforms: React.FC<CanvasTransformsProps> = ({
   };
 
   const renderTransformButton = (options: TransformButtonOptions): JSX.Element => {
+    const isThinButton = options.className?.includes("thin-transform-button");
+
     return (
       <ActionButton
         color="tool"
@@ -65,7 +67,8 @@ const CanvasTransforms: React.FC<CanvasTransformsProps> = ({
         action={options.action}
         icon={options.name}
         className={classNames(
-          "canvas-transform-button h-[40px] w-[40px] p-[3px] pl-[1.5px] pr-[1.5px]",
+          "canvas-transform-button !h-[40px] p-[3px] pl-[1.5px] pr-[1.5px]",
+          isThinButton ? "!w-[24px]" : "!w-[40px]",
           options.className
         )}
         buttonClassName={"canvas-transform-wick-button rounded-none"}
@@ -127,7 +130,7 @@ const CanvasTransforms: React.FC<CanvasTransformsProps> = ({
       action: () => zoomIn(),
       name: "zoomin",
       tooltip: "Zoom In",
-      className: "thin-transform-button zoom-in-button !w-[24px] !pr-0",
+      className: "thin-transform-button zoom-in-button !pr-0",
     });
   };
 
@@ -136,7 +139,7 @@ const CanvasTransforms: React.FC<CanvasTransformsProps> = ({
       action: () => zoomOut(),
       name: "zoomout",
       tooltip: "Zoom Out",
-      className: "thin-transform-button zoom-out-button !w-[24px] !pl-0",
+      className: "thin-transform-button zoom-out-button !pl-0",
     });
   };
 

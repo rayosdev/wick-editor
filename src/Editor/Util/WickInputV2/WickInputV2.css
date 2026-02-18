@@ -1,0 +1,156 @@
+.wick-input-v2-field {
+  --wick-input-v2-border: #3c4658;
+  --wick-input-v2-focus: #5cb2ff;
+  --wick-input-v2-bg-top: #2f3849;
+  --wick-input-v2-bg-bottom: #252d3b;
+  --wick-input-v2-text: #f7fbff;
+  --wick-input-v2-muted: #9fb0cd;
+  --wick-input-v2-danger: #ff8c8c;
+  display: grid;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.wick-input-v2-label {
+  color: #d9e7ff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wick-input-v2-required {
+  color: var(--wick-input-v2-danger);
+  margin-left: 0.25rem;
+}
+
+.wick-input-v2-control {
+  width: 100%;
+  min-height: 2.1rem;
+  border: 1px solid var(--wick-input-v2-border);
+  border-radius: 0.6rem;
+  background: linear-gradient(
+    180deg,
+    var(--wick-input-v2-bg-top) 0%,
+    var(--wick-input-v2-bg-bottom) 100%
+  );
+  color: var(--wick-input-v2-text);
+  padding: 0.45rem 0.65rem;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    opacity 120ms ease;
+}
+
+.wick-input-v2-control::placeholder {
+  color: var(--wick-input-v2-muted);
+}
+
+.wick-input-v2-control:focus-visible {
+  outline: none;
+  border-color: var(--wick-input-v2-focus);
+  box-shadow: 0 0 0 3px rgb(92 178 255 / 22%);
+}
+
+.wick-input-v2-control:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.wick-input-v2-control--select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #9ec2ff 50%),
+    linear-gradient(135deg, #9ec2ff 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) calc(50% - 1px),
+    calc(100% - 9px) calc(50% - 1px);
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 1.7rem;
+}
+
+.wick-input-v2-control--checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
+}
+
+.wick-input-v2-checkbox {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #5cb2ff;
+}
+
+.wick-input-v2-checkbox-label {
+  color: var(--wick-input-v2-text);
+  font-size: 0.85rem;
+  line-height: 1.1rem;
+}
+
+.wick-input-v2-control--range {
+  padding: 0;
+}
+
+.wick-input-v2-control--range::-webkit-slider-runnable-track {
+  height: 0.35rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2fd2a6 0%, #64adff 100%);
+}
+
+.wick-input-v2-control--range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 0.95rem;
+  height: 0.95rem;
+  border: 2px solid #ecf7ff;
+  border-radius: 50%;
+  background: #1e96ff;
+  cursor: pointer;
+  margin-top: -0.32rem;
+}
+
+.wick-input-v2-control--color {
+  padding: 0.18rem;
+  min-height: 2.2rem;
+  cursor: pointer;
+}
+
+.wick-input-v2-control--action {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.wick-input-v2-control--neutral {
+  background: linear-gradient(180deg, #4d5769 0%, #3a4454 100%);
+}
+
+.wick-input-v2-control--primary {
+  background: linear-gradient(180deg, #2ca8ff 0%, #1882df 100%);
+}
+
+.wick-input-v2-control--danger {
+  background: linear-gradient(180deg, #ff7f7f 0%, #f05050 100%);
+}
+
+.wick-input-v2-message {
+  margin: 0;
+  color: var(--wick-input-v2-muted);
+  font-size: 0.72rem;
+  line-height: 1.1rem;
+}
+
+.wick-input-v2-message--error {
+  color: var(--wick-input-v2-danger);
+}
+
+.wick-input-v2-field--error .wick-input-v2-control {
+  border-color: var(--wick-input-v2-danger);
+}
+
+.wick-input-v2-field--disabled {
+  opacity: 0.75;
+}

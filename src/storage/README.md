@@ -17,11 +17,13 @@ This directory contains the new Dexie.js-based storage system that replaces loca
 - Localforage-compatible adapter created
 - Editor.tsx updated to use Dexie adapter
 - index.html updated to prefer Dexie, fallback to localforage
+- Tinybase autosave metadata index (Dexie + legacy source tracking)
 
 ### 🔄 In Progress
 - Engine FileCache migration (still uses localforage)
 - Engine AutoSave migration (still uses localforage)
 - Engine ToolSettings migration (still uses localforage)
+- Optional migration of full autosave payload persistence to Tinybase-backed structures
 
 ### 📋 Benefits of Dexie.js
 - Better TypeScript support
@@ -67,5 +69,4 @@ The migration is gradual:
 2. Old code still works with localforage
 3. Both systems coexist during transition
 4. Eventually remove localforage dependency
-
 

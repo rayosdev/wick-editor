@@ -69,6 +69,7 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
         mobile && "mobile",
         className
       )}
+      fade={false}
       transition={{ timeout: 150 }}
       trigger="legacy"
       rootClose

@@ -27,6 +27,19 @@ interface FileInfo {
 Wick.FileCache = class {
     private static _files: { [uuid: string]: FileInfo } = {};
 
+    private static cacheFile (src: string, uuid: string, persist: boolean): void {
+        this._files[uuid] = {
+            src: src
+        };
+
+        if (!persist) return;
+
+        // Save asset to localforage
+        localforage.setItem(this.getLocalForageKeyForUUID(uuid), src).then(() => {
+
+        });
+    }
+
     /**
      * A prefix to use in localforage so we can identify which items in localforage are files.
      * @type {string}
@@ -41,14 +54,7 @@ Wick.FileCache = class {
      * @param {string} uuid - The UUID of the file
      */
     static addFile (src: string, uuid: string): void {
-        this._files[uuid] = {
-            src: src
-        };
-
-        // Save asset to localforage
-        localforage.setItem(this.getLocalForageKeyForUUID(uuid), src).then(() => {
-
-        });
+        this.cacheFile(src, uuid, true);
     }
 
     /**
@@ -83,11 +89,17 @@ Wick.FileCache = class {
      * @param {function} callback - called when the assets are done being loaded.
      */
     static loadFilesFromLocalforage (project: Wick.Project, callback: () => void): void {
-        Promise.all(project.getAssets().map(asset => {
+        var assetsInProject = project.getAssets();
+        Promise.all(assetsInProject.map(asset => {
             return localforage.getItem(this.getLocalForageKeyForUUID(asset.uuid));
         })).then((assets) => {
             for(var i = 0; i < assets.length; i++) {
-                this.addFile(assets[i], project.getAssets()[i].uuid);
+                var src = assets[i];
+                var asset = assetsInProject[i];
+                if(typeof src === 'string' && asset) {
+                    // Avoid rewriting entries we just loaded.
+                    this.cacheFile(src, asset.uuid, false);
+                }
             }
             callback();
         });

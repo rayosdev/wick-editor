@@ -19,7 +19,6 @@
 
 import React from 'react';
 import ScriptWindowRow from './ScriptWindowRow/ScriptWindowRow';
-import './_inspectorscriptwindow.scss';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import type { Script, ScriptWindowScriptInfoInterface, ScriptObject } from 'Editor/types';
 
@@ -48,13 +47,13 @@ const InspectorScriptWindow: React.FC<InspectorScriptWindowProps> = ({
   };
 
   return (
-    <div className="inspector-script-window-container">
-      <div className="inspector-script-window-header">
+    <div className="inspector-script-window-container h-full w-full rounded-[3px] bg-[#4A4A4A] pb-[5px]">
+      <div className="inspector-script-window-header h-[25px] w-full rounded-t-[3px] bg-[#3B3B3B] text-center text-white">
         Scripts
       </div>
       <div className="inspector-script-window-body">
         {script.scripts.map(renderScriptRow)}
-        <div className="inspector-script-window-row-container">
+        <div className="inspector-script-window-row-container mt-[5px] flex h-[25px] flex-row justify-between rounded-[3px] mx-[5px]">
           <ActionButton
             color="inspector"
             text="+ add script"

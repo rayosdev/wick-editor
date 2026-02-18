@@ -16,11 +16,12 @@ type WickComponentStoryProps = {
 };
 
 type DynamicStoryComponent = React.ComponentType<Record<string, unknown>>;
+type StoryDndProviderProps = React.PropsWithChildren<
+  Parameters<typeof DndProvider>[0]
+>;
 
-const DndProviderComponent = DndProvider as unknown as React.ComponentType<{
-  backend: unknown;
-  children?: React.ReactNode;
-}>;
+const StoryDndProvider =
+  DndProvider as React.ComponentType<StoryDndProviderProps>;
 
 const basePanelStyle: React.CSSProperties = {
   margin: "1rem",
@@ -144,11 +145,10 @@ export default function WickComponentStory({
   return (
     <SafeStoryWrapper componentName={componentName}>
       {withDndProvider ? (
-        <DndProviderComponent backend={HTML5Backend}>{storyNode}</DndProviderComponent>
+        <StoryDndProvider backend={HTML5Backend}>{storyNode}</StoryDndProvider>
       ) : (
         storyNode
       )}
     </SafeStoryWrapper>
   );
 }
-

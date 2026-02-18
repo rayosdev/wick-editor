@@ -76,6 +76,25 @@ test.describe("Storybook functional checks", () => {
     await expect(numericInput).toHaveClass(/valid/);
   });
 
+  test("WickInputV2 composite form updates field state", async ({ page }) => {
+    await gotoStory(page, "editor-util-wickinputv2-wickinputv2--composite-form");
+
+    await page.getByLabel("Project Name").fill("Storyboard QA");
+    await page.getByLabel("Frame Rate").fill("30");
+    await page.getByLabel("Renderer").selectOption("gpu");
+    await page.getByLabel("Lock Camera In Preview").check();
+    await page.getByLabel("Accent Color").fill("#ff3366");
+    await page.getByRole("button", { name: "Apply Preset" }).click();
+
+    const summary = page.getByTestId("wick-input-v2-summary");
+    await expect(summary).toContainText("Project: Storyboard QA");
+    await expect(summary).toContainText("FPS: 30");
+    await expect(summary).toContainText("Renderer: gpu");
+    await expect(summary).toContainText("Locked: yes");
+    await expect(summary).toContainText("Accent: #ff3366");
+    await expect(summary).toContainText("Applied: 1");
+  });
+
   test("TabbedInterface switches tabs and updates selected state", async ({
     page,
   }) => {

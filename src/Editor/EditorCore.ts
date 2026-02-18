@@ -52,7 +52,7 @@ import type { CurrentProjectRecord as StoredCurrentProjectRecord } from "../stor
 
 type EditorCoreProps = Record<string, never>;
 type EditorCoreState = EditorCoreUIState & Record<string, unknown>;
-type AutosaveEntry = { uuid: string };
+type AutosaveEntry = { uuid: string; lastModified?: number };
 type ExportMediaArgs = {
   name?: string;
   width?: number;
@@ -123,16 +123,37 @@ function chooseMostRecentCurrentProject(
   return primary ?? secondary ?? null;
 }
 
+function chooseMostRecentAutosave(
+  dexieAutosave: AutosaveData | null,
+  legacyAutosave: AutosaveEntry | null,
+): "dexie" | "legacy" | null {
+  if (dexieAutosave && legacyAutosave) {
+    const legacyLastModified =
+      typeof legacyAutosave.lastModified === "number"
+        ? legacyAutosave.lastModified
+        : 0;
+    return legacyLastModified > dexieAutosave.lastModified ? "legacy" : "dexie";
+  }
+
+  if (dexieAutosave) {
+    return "dexie";
+  }
+
+  if (legacyAutosave) {
+    return "legacy";
+  }
+
+  return null;
+}
+
 class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   [key: string]: EditorDynamicValue;
   project!: WickProjectEngine;
+  protected notifyTimelineSoftRender?: () => void;
   protected _autosaveDebounceTimeoutID?: number;
 
   protected triggerTimelineSoftRender = (): void => {
-    const notify = (
-      this as unknown as { notifyTimelineSoftRender?: () => void }
-    ).notifyTimelineSoftRender;
-    notify?.();
+    this.notifyTimelineSoftRender?.();
   };
 
   protected selectionObjectsOfType = <T,>(type: string): T[] => {
@@ -743,9 +764,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {Wick.Clip} object Object to set as focus.
    */
   setFocusObject = (object: WickClipEngine | WickProjectEngine): void => {
-    this.project.focus = object as unknown as
-      | WickClipEngine
-      | WickProjectEngine;
+    this.project.focus = object;
     this.projectDidChange({ actionName: "Set Focus Object" });
   };
 
@@ -1903,6 +1922,10 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       .then(() => ProjectStorage.cleanupOldAutosaves(10))
       .then(() => {
         window.Wick.AutoSave.saveAutosaveData(autosaveData, () => {
+          ProjectStorage.recordLegacyAutosave({
+            uuid: autosaveData.projectData.uuid,
+            lastModified: autosaveData.lastModified,
+          });
           callback();
         });
       })
@@ -1912,6 +1935,10 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
           err,
         );
         window.Wick.AutoSave.saveAutosaveData(autosaveData, () => {
+          ProjectStorage.recordLegacyAutosave({
+            uuid: autosaveData.projectData.uuid,
+            lastModified: autosaveData.lastModified,
+          });
           this.saveCurrentProjectFromAutosaveData(autosaveData);
           callback();
         });
@@ -1990,6 +2017,60 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     } catch (error) {
       console.warn("Error in sync save:", error);
     }
+  };
+
+  /**
+   * Returns the newest autosave entry from the legacy localforage-backed list.
+   */
+  getLegacyLatestAutosave = (): Promise<AutosaveEntry | null> => {
+    return new Promise((resolve) => {
+      try {
+        window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
+          ProjectStorage.reconcileLegacyAutosaves(autosaveList);
+          resolve(autosaveList[0] ?? null);
+        });
+      } catch {
+        resolve(null);
+      }
+    });
+  };
+
+  /**
+   * Resolves the most recent autosave source across Dexie and legacy stores.
+   */
+  getMostRecentAutosaveSource = async (): Promise<
+    | { source: "dexie"; autosave: AutosaveData }
+    | { source: "legacy"; autosave: AutosaveEntry }
+    | { source: null; autosave: null }
+  > => {
+    const [dexieAutosave, legacyAutosave] = await Promise.all([
+      ProjectStorage.getLatestAutosave().catch(() => null),
+      this.getLegacyLatestAutosave(),
+    ]);
+
+    const selectedSource = chooseMostRecentAutosave(
+      dexieAutosave ? toAutosaveData(dexieAutosave) : null,
+      legacyAutosave,
+    );
+
+    if (selectedSource === "dexie" && dexieAutosave) {
+      return {
+        source: "dexie",
+        autosave: toAutosaveData(dexieAutosave),
+      };
+    }
+
+    if (selectedSource === "legacy" && legacyAutosave) {
+      return {
+        source: "legacy",
+        autosave: legacyAutosave,
+      };
+    }
+
+    return {
+      source: null,
+      autosave: null,
+    };
   };
 
   /**
@@ -2107,39 +2188,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         return;
       }
 
-      ProjectStorage.getLatestAutosave()
-        .then((latest) => {
-          if (!latest) {
-            this.doesAutoSavedProjectExist((exists: boolean) => {
-              if (exists) {
-                this.loadAutosavedProject(() => {});
-              }
-            });
-            return;
-          }
-
-          this.showWaitOverlay();
-          const autosaveData: AutosaveData = toAutosaveData({
-            projectData: latest.projectData,
-            objectsData: latest.objectsData,
-            lastModified: latest.lastModified,
-          });
-
-          window.Wick.AutoSave.generateProjectFromAutosaveData(
-            autosaveData,
-            (project: WickProjectEngine) => {
-              this.setupNewProject(project);
-              this.hideWaitOverlay();
-            },
-          );
-        })
-        .catch(() => {
-          this.doesAutoSavedProjectExist((exists: boolean) => {
-            if (exists) {
-              this.loadAutosavedProject(() => {});
-            }
-          });
-        });
+      this.loadAutosavedProject(() => {});
     });
   };
 
@@ -2147,39 +2196,29 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Attempts to load an autosaved project, preferring Dexie storage.
    */
   loadAutosavedProject = (callback: AutosaveCallback): void => {
-    ProjectStorage.getLatestAutosave()
-      .then((latest) => {
-        if (!latest) {
-          window.Wick.AutoSave.getAutosavesList(
-            (autosaveList: AutosaveEntry[]) => {
-              if (!autosaveList[0]) {
-                callback();
-                return;
-              }
+    this.getMostRecentAutosaveSource()
+      .then((result) => {
+        if (result.source === null) {
+          callback();
+          return;
+        }
 
-              this.showWaitOverlay();
-              window.Wick.AutoSave.load(
-                autosaveList[0].uuid,
-                (project: WickProjectEngine) => {
-                  this.setupNewProject(project);
-                  this.hideWaitOverlay();
-                  callback();
-                },
-              );
+        this.showWaitOverlay();
+
+        if (result.source === "legacy") {
+          window.Wick.AutoSave.load(
+            result.autosave.uuid,
+            (project: WickProjectEngine) => {
+              this.setupNewProject(project);
+              this.hideWaitOverlay();
+              callback();
             },
           );
           return;
         }
 
-        this.showWaitOverlay();
-        const autosaveData: AutosaveData = toAutosaveData({
-          projectData: latest.projectData,
-          objectsData: latest.objectsData,
-          lastModified: latest.lastModified,
-        });
-
         window.Wick.AutoSave.generateProjectFromAutosaveData(
-          autosaveData,
+          result.autosave,
           (project: WickProjectEngine) => {
             this.setupNewProject(project);
             this.hideWaitOverlay();
@@ -2188,24 +2227,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         );
       })
       .catch(() => {
-        window.Wick.AutoSave.getAutosavesList(
-          (autosaveList: AutosaveEntry[]) => {
-            if (!autosaveList[0]) {
-              callback();
-              return;
-            }
-
-            this.showWaitOverlay();
-            window.Wick.AutoSave.load(
-              autosaveList[0].uuid,
-              (project: WickProjectEngine) => {
-                this.setupNewProject(project);
-                this.hideWaitOverlay();
-                callback();
-              },
-            );
-          },
-        );
+        callback();
       });
   };
   /**
@@ -2214,6 +2236,12 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * True if an autosave exists.
    */
   doesAutoSavedProjectExist = (callback: (exists: boolean) => void): void => {
+    const latestIndexedAutosave = ProjectStorage.getLatestIndexedAutosave();
+    if (latestIndexedAutosave) {
+      callback(true);
+      return;
+    }
+
     ProjectStorage.getLatestAutosave()
       .then((latestAutosave) => {
         if (latestAutosave) {
@@ -2222,11 +2250,13 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         }
 
         window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
+          ProjectStorage.reconcileLegacyAutosaves(autosaveList);
           callback(autosaveList.length > 0);
         });
       })
       .catch(() => {
         window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
+          ProjectStorage.reconcileLegacyAutosaves(autosaveList);
           callback(autosaveList.length > 0);
         });
       });
@@ -2251,46 +2281,47 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       }
     };
 
-    const clearLegacyAutosaves = () =>
+    const deleteLegacyAutosaveByUUID = (uuid: string) =>
       new Promise<void>((resolve) => {
         try {
-          window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
-            const uuids = autosaveList
-              .map((autosave) => autosave.uuid)
-              .filter((uuid): uuid is string => Boolean(uuid));
-
-            const deleteNext = (index: number) => {
-              if (index >= uuids.length) {
-                resolve();
-                return;
-              }
-
-              window.Wick.AutoSave.delete(uuids[index], () => {
-                deleteNext(index + 1);
-              });
-            };
-
-            deleteNext(0);
+          window.Wick.AutoSave.delete(uuid, () => {
+            ProjectStorage.removeLegacyAutosave(uuid);
+            resolve();
           });
         } catch {
+          ProjectStorage.removeLegacyAutosave(uuid);
           resolve();
         }
       });
 
-    ProjectStorage.getAllAutosaves()
-      .then((autosaves) =>
-        Promise.all(
-          autosaves.map((autosave) =>
-            ProjectStorage.deleteAutosave(autosave.uuid).catch(() => {
-              /* ignore */
-            }),
+    Promise.all([
+      ProjectStorage.getLatestAutosave().catch(() => null),
+      this.getLegacyLatestAutosave().catch(() => null),
+    ])
+      .then(([latestDexieAutosave, latestLegacyAutosave]) => {
+        const uuidsToDelete = new Set<string>();
+        if (latestDexieAutosave?.uuid) {
+          uuidsToDelete.add(latestDexieAutosave.uuid);
+        }
+        if (latestLegacyAutosave?.uuid) {
+          uuidsToDelete.add(latestLegacyAutosave.uuid);
+        }
+
+        if (uuidsToDelete.size === 0 && this.project?.uuid) {
+          uuidsToDelete.add(this.project.uuid);
+        }
+
+        return Promise.all(
+          Array.from(uuidsToDelete).map((uuid) =>
+            Promise.all([
+              ProjectStorage.deleteAutosave(uuid).catch(() => {
+                /* ignore */
+              }),
+              deleteLegacyAutosaveByUUID(uuid),
+            ]),
           ),
-        ),
-      )
-      .catch(() => {
-        /* ignore */
+        );
       })
-      .then(() => clearLegacyAutosaves())
       .finally(() => {
         clearCurrentProjectSnapshots().finally(() => {
           callback();
@@ -2310,7 +2341,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Return all possible sound assets.
    */
   getAllSoundAssets = (): WickAssetEngine[] => {
-    return this.project.getAssets("Sound") as unknown as WickAssetEngine[];
+    return this.project.getAssets("Sound") as WickAssetEngine[];
   };
 
   /**
@@ -2386,7 +2417,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         let obj = window.Wick.ObjectCache.getObjectByUUID(objectUuid);
 
         if (obj) {
-          this.selectObject(obj as unknown as SelectableObject);
+          this.selectObject(obj as SelectableObject);
         }
       }
 
@@ -2487,14 +2518,14 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   };
 
   extendFrame = (): void => {
-    var frames = this.project.selection.getSelectedObjects("Frame");
+    const frames = this.selectionObjectsOfType<WickFrameEngine>("Frame");
     this.project.extendFrames(frames);
     this.project.guiElement.draw();
     this.triggerTimelineSoftRender();
   };
 
   shrinkFrame = (): void => {
-    var frames = this.project.selection.getSelectedObjects("Frame");
+    const frames = this.selectionObjectsOfType<WickFrameEngine>("Frame");
     this.project.shrinkFrames(frames);
     this.project.guiElement.draw();
     this.triggerTimelineSoftRender();
@@ -2533,37 +2564,29 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   };
 
   extendSelectedFramesAndPushOtherFrames = (): void => {
-    var frames = this.project.selection.getSelectedObjects("Frame");
-    this.project.extendFramesAndPushOtherFrames(
-      frames as unknown as Array<{ [key: string]: unknown }>,
-    );
+    const frames = this.selectionObjectsOfType<WickFrameEngine>("Frame");
+    this.project.extendFramesAndPushOtherFrames(frames);
     this.project.guiElement.draw();
     this.triggerTimelineSoftRender();
   };
 
   shrinkSelectedFramesAndPullOtherFrames = (): void => {
-    var frames = this.project.selection.getSelectedObjects("Frame");
-    this.project.shrinkFramesAndPullOtherFrames(
-      frames as unknown as Array<{ [key: string]: unknown }>,
-    );
+    const frames = this.selectionObjectsOfType<WickFrameEngine>("Frame");
+    this.project.shrinkFramesAndPullOtherFrames(frames);
     this.project.guiElement.draw();
     this.triggerTimelineSoftRender();
   };
 
   extendActiveFramesAndPushOtherFrames = (): void => {
-    var frames = this.project.activeTimeline.activeFrames;
-    this.project.extendFramesAndPushOtherFrames(
-      frames as unknown as Array<{ [key: string]: unknown }>,
-    );
+    const frames = this.project.activeTimeline.activeFrames;
+    this.project.extendFramesAndPushOtherFrames(frames);
     this.project.guiElement.draw();
     this.triggerTimelineSoftRender();
   };
 
   shrinkActiveFramesAndPullOtherFrames = (): void => {
-    var frames = this.project.activeTimeline.activeFrames;
-    this.project.shrinkFramesAndPullOtherFrames(
-      frames as unknown as Array<{ [key: string]: unknown }>,
-    );
+    const frames = this.project.activeTimeline.activeFrames;
+    this.project.shrinkFramesAndPullOtherFrames(frames);
     this.project.guiElement.draw();
     this.triggerTimelineSoftRender();
   };

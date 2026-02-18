@@ -15,10 +15,11 @@ type DynamicComponentStoryProps = {
 };
 
 type DynamicStoryComponent = React.ComponentType<Record<string, unknown>>;
-const DndProviderComponent = DndProvider as unknown as React.ComponentType<{
-  backend: unknown;
-  children?: React.ReactNode;
-}>;
+type StoryDndProviderProps = React.PropsWithChildren<
+  Parameters<typeof DndProvider>[0]
+>;
+const StoryDndProvider =
+  DndProvider as React.ComponentType<StoryDndProviderProps>;
 const REQUIRED_ANCHOR_IDS: Record<string, string[]> = {
   CanvasActions: ["more-canvas-actions-popover-button"],
   Toolbox: ["more-canvas-actions-popover-button"],
@@ -73,6 +74,9 @@ function resolveComponent(
 }
 
 function isFunctionLikeProp(key: string): boolean {
+  const hasOpenVerbPrefix = key.startsWith("open") && key.length > "open".length;
+  const hasCloseVerbPrefix = key.startsWith("close") && key.length > "close".length;
+
   if (
     key.startsWith("on") ||
     key.startsWith("set") ||
@@ -83,8 +87,8 @@ function isFunctionLikeProp(key: string): boolean {
     key.startsWith("create") ||
     key.startsWith("load") ||
     key.startsWith("save") ||
-    key.startsWith("open") ||
-    key.startsWith("close") ||
+    hasOpenVerbPrefix ||
+    hasCloseVerbPrefix ||
     key.startsWith("add") ||
     key.startsWith("remove") ||
     key.startsWith("delete") ||
@@ -295,13 +299,13 @@ function createFallbackFunction(key: string): (...args: unknown[]) => unknown {
 function fallbackForProp(prop: string): unknown {
   const key = prop.toLowerCase();
 
-  if (isFunctionLikeProp(key)) {
-    return createFallbackFunction(key);
-  }
-
   const primitive = primitiveFallbackForProp(key);
   if (primitive !== undefined) {
     return primitive;
+  }
+
+  if (isFunctionLikeProp(key)) {
+    return createFallbackFunction(key);
   }
 
   if (key === "project" || key.endsWith("project")) {
@@ -348,15 +352,15 @@ function shouldReplaceProvidedValue(prop: string, value: unknown): boolean {
     return true;
   }
 
+  if (isBooleanLikeProp(key) && typeof value !== "boolean") {
+    return true;
+  }
+
   if (isFunctionLikeProp(key) && typeof value !== "function") {
     return true;
   }
 
   if (isCollectionLikeProp(key) && !Array.isArray(value)) {
-    return true;
-  }
-
-  if (isBooleanLikeProp(key) && typeof value !== "boolean") {
     return true;
   }
 
@@ -525,9 +529,9 @@ export default function DynamicComponentStory({
           }}
         />
       ))}
-      <DndProviderComponent backend={HTML5Backend}>
+      <StoryDndProvider backend={HTML5Backend}>
         <LoadedComponent {...resolvedArgs} />
-      </DndProviderComponent>
+      </StoryDndProvider>
     </SafeStoryWrapper>
   );
 }

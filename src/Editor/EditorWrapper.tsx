@@ -214,7 +214,7 @@ function EditorWrapper({ editor, children }: EditorWrapperProps) {
             />
             <GlobalHotKeys
                 allowChanges={true}
-                keyMap={editor.getKeyMap() as unknown as KeyMap}
+                keyMap={editor.getKeyMap() as KeyMap}
                 handlers={editor.getKeyHandlers()}
             />
             <div id="editor" className="theme-default">

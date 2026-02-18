@@ -46,11 +46,17 @@ const WickModal: React.FC<WickModalProps> = ({
   children
 }) => {
   useEffect(() => {
-    // Use #root as the app element so react-modal doesn't try to toggle aria-hidden on <body>
+    // Set an app element for react-modal in both app and Storybook iframe contexts.
     try {
-      const root = document.getElementById("root");
-      if (root) {
-        Modal.setAppElement("#root");
+      const modalSelector =
+        (window as Window & { __REACT_MODAL_APP_ELEMENT?: string })
+          .__REACT_MODAL_APP_ELEMENT ?? "#root";
+      const appElement =
+        document.querySelector(modalSelector) ??
+        document.querySelector("#storybook-root");
+
+      if (appElement) {
+        Modal.setAppElement(appElement);
       }
     } catch (e) {
       // No-op in non-DOM environments

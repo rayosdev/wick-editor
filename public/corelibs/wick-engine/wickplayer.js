@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2026.2.18.14.2.38";
+  var WICK_ENGINE_BUILD_VERSION = "2026.2.18.16.49.2";
   (function() {
 
     var _a;
@@ -33718,6 +33718,14 @@
       }
     };
     Wick.FileCache = (_a = class {
+      static cacheFile(src, uuid2, persist) {
+        this._files[uuid2] = {
+          src
+        };
+        if (!persist) return;
+        localforage.setItem(this.getLocalForageKeyForUUID(uuid2), src).then(() => {
+        });
+      }
       /**
        * A prefix to use in localforage so we can identify which items in localforage are files.
        * @type {string}
@@ -33731,11 +33739,7 @@
        * @param {string} uuid - The UUID of the file
        */
       static addFile(src, uuid2) {
-        this._files[uuid2] = {
-          src
-        };
-        localforage.setItem(this.getLocalForageKeyForUUID(uuid2), src).then(() => {
-        });
+        this.cacheFile(src, uuid2, true);
       }
       /**
        * Get info for a file by its UUID.
@@ -33766,11 +33770,16 @@
        * @param {function} callback - called when the assets are done being loaded.
        */
       static loadFilesFromLocalforage(project, callback) {
-        Promise.all(project.getAssets().map((asset) => {
+        var assetsInProject = project.getAssets();
+        Promise.all(assetsInProject.map((asset) => {
           return localforage.getItem(this.getLocalForageKeyForUUID(asset.uuid));
         })).then((assets) => {
           for (var i = 0; i < assets.length; i++) {
-            this.addFile(assets[i], project.getAssets()[i].uuid);
+            var src = assets[i];
+            var asset = assetsInProject[i];
+            if (typeof src === "string" && asset) {
+              this.cacheFile(src, asset.uuid, false);
+            }
           }
           callback();
         });

@@ -38,6 +38,8 @@ declare global {
     Wick?: WickRuntime;
     process?: ProcessShim;
     JSZip?: typeof JSZip;
+    __REACT_MODAL_APP_ELEMENT?: string;
+    __STORYBOOK_CANVAS_2D_PATCHED__?: boolean;
     editor?: Record<string, unknown> & {
       setActiveTool?: (tool: string) => void;
       _onEyedropperPickedColor?: unknown;
@@ -88,6 +90,7 @@ class StorybookWickColor {
 }
 
 let wickEnginePromise: Promise<void> | null = null;
+let reactModalSetupPromise: Promise<void> | null = null;
 
 function ensureWickRoot(): WickRuntime {
   window.Wick = window.Wick ?? {};
@@ -141,6 +144,77 @@ function ensureStorybookAnchorNodes(): void {
   });
 }
 
+function ensureCanvas2DReadbackHint(): void {
+  if (
+    typeof window === "undefined" ||
+    typeof HTMLCanvasElement === "undefined" ||
+    window.__STORYBOOK_CANVAS_2D_PATCHED__
+  ) {
+    return;
+  }
+
+  try {
+    const originalGetContext = HTMLCanvasElement.prototype.getContext;
+    if (typeof originalGetContext !== "function") {
+      return;
+    }
+
+    HTMLCanvasElement.prototype.getContext = function patchedGetContext(
+      this: HTMLCanvasElement,
+      ...args: Parameters<typeof originalGetContext>
+    ) {
+      const [contextId, options] = args;
+      if (contextId !== "2d") {
+        return originalGetContext.apply(this, args);
+      }
+
+      const mergedOptions = {
+        ...(typeof options === "object" && options !== null ? options : {}),
+      } as CanvasRenderingContext2DSettings;
+
+      if (typeof mergedOptions.willReadFrequently === "undefined") {
+        mergedOptions.willReadFrequently = true;
+      }
+
+      return originalGetContext.call(this, "2d", mergedOptions);
+    } as typeof originalGetContext;
+
+    window.__STORYBOOK_CANVAS_2D_PATCHED__ = true;
+  } catch (error) {
+    // Ignore in environments without canvas support.
+  }
+}
+
+function ensureReactModalAppElement(): Promise<void> {
+  if (reactModalSetupPromise) {
+    return reactModalSetupPromise;
+  }
+
+  reactModalSetupPromise = import("react-modal")
+    .then(({ default: ReactModal }) => {
+      if (typeof document === "undefined") {
+        return;
+      }
+
+      const appElement =
+        document.querySelector("#storybook-root") ??
+        document.querySelector("#root");
+
+      if (!appElement || typeof ReactModal?.setAppElement !== "function") {
+        return;
+      }
+
+      const selector = appElement.id === "storybook-root" ? "#storybook-root" : "#root";
+      window.__REACT_MODAL_APP_ELEMENT = selector;
+      ReactModal.setAppElement(appElement);
+    })
+    .catch(() => {
+      // Ignore in storybook contexts without react-modal available.
+    });
+
+  return reactModalSetupPromise;
+}
+
 function ensureWickEngineLoaded(): Promise<void> {
   if (window.Wick?.Project) return Promise.resolve();
   if (wickEnginePromise) return wickEnginePromise;
@@ -185,12 +259,14 @@ async function bootstrapStorybookRuntime(): Promise<void> {
   ensureWickColorFallback();
   ensureEditorStub();
   ensureStorybookAnchorNodes();
+  ensureCanvas2DReadbackHint();
 
   if (!window.JSZip) {
     window.JSZip = JSZip;
   }
 
   initializeDefaultFileHandlers();
+  await ensureReactModalAppElement();
 
   await ensureWickEngineLoaded();
   ensureWickColorFallback();

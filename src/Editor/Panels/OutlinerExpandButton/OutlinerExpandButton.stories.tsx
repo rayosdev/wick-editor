@@ -31,3 +31,12 @@ export const Default: Story = {
     );
   },
 };
+
+export const Collapsed: Story = {
+  render: () => (
+    <div style={{ display: "grid", gap: "0.75rem", justifyItems: "start" }}>
+      <OutlinerExpandButton expanded={false} toggleOutliner={() => undefined} />
+      <output data-testid="outliner-expanded-state">State: Collapsed</output>
+    </div>
+  ),
+};

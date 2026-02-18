@@ -18,7 +18,6 @@
  */
 
 import React from 'react';
-import './_inspectorpreview.scss';
 
 import AudioPlayer from 'Editor/Util/AudioPlayer/AudioPlayer';
 
@@ -37,13 +36,13 @@ interface InspectorPreviewProps {
 const InspectorPreview: React.FC<InspectorPreviewProps> = ({ info }) => {
   if (info.type === "image") {
     return (
-      <div className="inspector-image-preview-container">
-        <img alt='' className="inspector-image-preview" src={info.src} />
+      <div className="inspector-image-preview-container my-[10px] flex h-[100px] w-full items-center justify-center">
+        <img alt='' className="inspector-image-preview h-[100px] w-auto" src={info.src} />
       </div>
     );
   } else if (info.type === 'sound') {
     return (
-      <div className="inspector-sound-preview-container">
+      <div className="inspector-sound-preview-container m-[5px]">
         <AudioPlayer key={Math.random()} src={info.src} loadSrc={info.loadSrc || (() => { })} />
       </div>
     );

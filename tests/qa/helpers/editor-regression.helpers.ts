@@ -188,15 +188,17 @@ export const readEditorState = async (page: Page): Promise<EditorStateSnapshot> 
       }
     };
 
-    childObjects.forEach((entry, index) => {
+    childObjects.forEach((entry: RuntimeObject, index: number) => {
       ingestObject(entry, `child-${index}`);
       ingestPath(entry, `child-${index}`);
     });
-    legacyPaths.forEach((entry, index) => {
+    legacyPaths.forEach((entry: RuntimeObject, index: number) => {
       ingestObject(entry, `legacy-${index}`);
       ingestPath(entry, `legacy-${index}`, true);
     });
-    clips.forEach((entry, index) => ingestObject(entry, `clip-${index}`));
+    clips.forEach((entry: RuntimeObject, index: number) =>
+      ingestObject(entry, `clip-${index}`),
+    );
 
     const layers = Array.isArray(timeline?.layers) ? timeline.layers : [];
     const activeLayerIndex = Math.max(0, Number(timeline?.activeLayerIndex ?? 0));

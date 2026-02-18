@@ -219,7 +219,7 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
         const actionName = TOOL_HOTKEY_ACTIONS[tool];
         type HotKeyMapForLookup = Parameters<typeof HotKeyInterface.getHotKey>[0];
         const rawHotkey = HotKeyInterface.getHotKey(
-            props.keyMap as unknown as HotKeyMapForLookup,
+            props.keyMap as HotKeyMapForLookup,
             actionName
         );
         if (!rawHotkey) {
@@ -257,7 +257,6 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
     const renderToolButtons = (isMobile = false): JSX.Element => {
         const activeToolName = props.getActiveToolName();
         const baseProps = getToolButtonBaseProps();
-        const selectorLabelPrefix = isMobile ? "Tap" : "Click";
 
         return (
             <div className="tool-collection-container">
