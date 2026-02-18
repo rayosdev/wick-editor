@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2026.2.17.17.9.49";
+  var WICK_ENGINE_BUILD_VERSION = "2026.2.18.11.1.43";
   (function() {
 
     var _a;

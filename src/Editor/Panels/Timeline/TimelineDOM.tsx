@@ -309,6 +309,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     end: 120,
   });
   const [loopWorkArea, setLoopWorkArea] = useState(false);
+  const [showHeaderOptions, setShowHeaderOptions] = useState(false);
   const [jumpFrameValue, setJumpFrameValue] = useState("");
   const [jumpLayerValue, setJumpLayerValue] = useState("");
 
@@ -1912,7 +1913,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
           : location.col * cellWidth + cellWidth / 2;
       const pointerXInFrame = pointerLocalX - frameLeftPx;
 
-      const handleWidth = Math.max(14, Math.floor(cellWidth * 0.36));
+      const handleWidth = event.pointerType === "touch"
+        ? Math.max(22, Math.floor(cellWidth * 0.5))
+        : Math.max(14, Math.floor(cellWidth * 0.36));
       const nearLeft = pointerXInFrame <= handleWidth;
       const nearRight = frameRightPx - pointerLocalX <= handleWidth;
 
@@ -2342,129 +2345,146 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             <span className="timeline-flash-scene-name">{focusLabel}</span>
           </div>
           <div className="timeline-flash-header-right">
-            <div className="timeline-flash-meta">{timelineMeta}</div>
-            <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline shortcut preset">
+            <div className="timeline-flash-header-right-primary">
+              <div className="timeline-flash-meta">{timelineMeta}</div>
+              <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline shortcut preset">
+                <button
+                  type="button"
+                  className={`timeline-shortcut-toggle-button ${props.timelineShortcutPreset === "wick" ? "active" : ""}`}
+                  aria-pressed={props.timelineShortcutPreset === "wick"}
+                  onClick={() => handleShortcutPresetSwitch("wick")}
+                >
+                  Wick
+                </button>
+                <button
+                  type="button"
+                  className={`timeline-shortcut-toggle-button ${props.timelineShortcutPreset === "flash" ? "active" : ""}`}
+                  aria-pressed={props.timelineShortcutPreset === "flash"}
+                  onClick={() => handleShortcutPresetSwitch("flash")}
+                >
+                  Flash
+                </button>
+              </div>
+              <div className="timeline-renderer-toggle" role="group" aria-label="Timeline renderer">
+                <button
+                  type="button"
+                  className={`timeline-renderer-toggle-button ${props.timelineRendererMode === "dom" ? "active" : ""}`}
+                  aria-pressed={props.timelineRendererMode === "dom"}
+                  onClick={() => handleModeSwitch("dom")}
+                >
+                  DOM
+                </button>
+                <button
+                  type="button"
+                  className={`timeline-renderer-toggle-button ${props.timelineRendererMode === "classic" ? "active" : ""}`}
+                  aria-pressed={props.timelineRendererMode === "classic"}
+                  onClick={() => handleModeSwitch("classic")}
+                >
+                  Classic
+                </button>
+              </div>
               <button
                 type="button"
-                className={`timeline-shortcut-toggle-button ${props.timelineShortcutPreset === "wick" ? "active" : ""}`}
-                aria-pressed={props.timelineShortcutPreset === "wick"}
-                onClick={() => handleShortcutPresetSwitch("wick")}
+                className={`timeline-header-options-button ${showHeaderOptions ? "active" : ""}`}
+                aria-expanded={showHeaderOptions}
+                aria-controls="timeline-header-options-panel"
+                onClick={() => setShowHeaderOptions((current) => !current)}
               >
-                Wick
-              </button>
-              <button
-                type="button"
-                className={`timeline-shortcut-toggle-button ${props.timelineShortcutPreset === "flash" ? "active" : ""}`}
-                aria-pressed={props.timelineShortcutPreset === "flash"}
-                onClick={() => handleShortcutPresetSwitch("flash")}
-              >
-                Flash
-              </button>
-            </div>
-            <div className="timeline-shortcut-toggle" role="group" aria-label="Playhead follow mode">
-              <button
-                type="button"
-                className={`timeline-shortcut-toggle-button ${props.timelinePlaybackFollowMode === "follow-playhead" ? "active" : ""
-                  }`}
-                aria-pressed={props.timelinePlaybackFollowMode === "follow-playhead"}
-                onClick={() => handlePlaybackFollowModeSwitch("follow-playhead")}
-              >
-                Follow
-              </button>
-              <button
-                type="button"
-                className={`timeline-shortcut-toggle-button ${props.timelinePlaybackFollowMode === "off" ? "active" : ""
-                  }`}
-                aria-pressed={props.timelinePlaybackFollowMode === "off"}
-                onClick={() => handlePlaybackFollowModeSwitch("off")}
-              >
-                Free
-              </button>
-            </div>
-            <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline snap mode">
-              <button
-                type="button"
-                className={`timeline-shortcut-toggle-button ${props.timelineSnapMode === "none" ? "active" : ""
-                  }`}
-                aria-pressed={props.timelineSnapMode === "none"}
-                onClick={() => handleSnapModeSwitch("none")}
-              >
-                No Snap
-              </button>
-              <button
-                type="button"
-                className={`timeline-shortcut-toggle-button ${props.timelineSnapMode === "frames" ? "active" : ""
-                  }`}
-                aria-pressed={props.timelineSnapMode === "frames"}
-                onClick={() => handleSnapModeSwitch("frames")}
-              >
-                Frames
-              </button>
-              <button
-                type="button"
-                className={`timeline-shortcut-toggle-button ${props.timelineSnapMode === "markers" ? "active" : ""
-                  }`}
-                aria-pressed={props.timelineSnapMode === "markers"}
-                onClick={() => handleSnapModeSwitch("markers")}
-              >
-                Markers
+                {showHeaderOptions ? "Hide Options" : "Options"}
               </button>
             </div>
-            <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline density mode">
-              <button
-                type="button"
-                className={`timeline-shortcut-toggle-button ${props.timelineDensityMode === "compact" ? "active" : ""
-                  }`}
-                aria-pressed={props.timelineDensityMode === "compact"}
-                onClick={() => handleDensityModeSwitch("compact")}
-              >
-                Compact
-              </button>
-              <button
-                type="button"
-                className={`timeline-shortcut-toggle-button ${props.timelineDensityMode === "standard" ? "active" : ""
-                  }`}
-                aria-pressed={props.timelineDensityMode === "standard"}
-                onClick={() => handleDensityModeSwitch("standard")}
-              >
-                Standard
-              </button>
-            </div>
-            <div className="timeline-renderer-toggle" role="group" aria-label="Timeline renderer">
-              <button
-                type="button"
-                className={`timeline-renderer-toggle-button ${props.timelineRendererMode === "dom" ? "active" : ""}`}
-                aria-pressed={props.timelineRendererMode === "dom"}
-                onClick={() => handleModeSwitch("dom")}
-              >
-                DOM
-              </button>
-              <button
-                type="button"
-                className={`timeline-renderer-toggle-button ${props.timelineRendererMode === "classic" ? "active" : ""}`}
-                aria-pressed={props.timelineRendererMode === "classic"}
-                onClick={() => handleModeSwitch("classic")}
-              >
-                Classic
-              </button>
-            </div>
-            <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline insert mode">
-              <button
-                type="button"
-                className={`timeline-shortcut-toggle-button ${insertMode === "overwrite" ? "active" : ""}`}
-                aria-pressed={insertMode === "overwrite"}
-                onClick={() => setInsertMode("overwrite")}
-              >
-                Overwrite
-              </button>
-              <button
-                type="button"
-                className={`timeline-shortcut-toggle-button ${insertMode === "ripple" ? "active" : ""}`}
-                aria-pressed={insertMode === "ripple"}
-                onClick={() => setInsertMode("ripple")}
-              >
-                Ripple
-              </button>
+            <div
+              id="timeline-header-options-panel"
+              className={`timeline-flash-header-right-advanced ${showHeaderOptions ? "open" : ""}`}
+              hidden={!showHeaderOptions}
+            >
+              <div className="timeline-shortcut-toggle" role="group" aria-label="Playhead follow mode">
+                <button
+                  type="button"
+                  className={`timeline-shortcut-toggle-button ${props.timelinePlaybackFollowMode === "follow-playhead" ? "active" : ""
+                    }`}
+                  aria-pressed={props.timelinePlaybackFollowMode === "follow-playhead"}
+                  onClick={() => handlePlaybackFollowModeSwitch("follow-playhead")}
+                >
+                  Follow
+                </button>
+                <button
+                  type="button"
+                  className={`timeline-shortcut-toggle-button ${props.timelinePlaybackFollowMode === "off" ? "active" : ""
+                    }`}
+                  aria-pressed={props.timelinePlaybackFollowMode === "off"}
+                  onClick={() => handlePlaybackFollowModeSwitch("off")}
+                >
+                  Free
+                </button>
+              </div>
+              <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline snap mode">
+                <button
+                  type="button"
+                  className={`timeline-shortcut-toggle-button ${props.timelineSnapMode === "none" ? "active" : ""
+                    }`}
+                  aria-pressed={props.timelineSnapMode === "none"}
+                  onClick={() => handleSnapModeSwitch("none")}
+                >
+                  No Snap
+                </button>
+                <button
+                  type="button"
+                  className={`timeline-shortcut-toggle-button ${props.timelineSnapMode === "frames" ? "active" : ""
+                    }`}
+                  aria-pressed={props.timelineSnapMode === "frames"}
+                  onClick={() => handleSnapModeSwitch("frames")}
+                >
+                  Frames
+                </button>
+                <button
+                  type="button"
+                  className={`timeline-shortcut-toggle-button ${props.timelineSnapMode === "markers" ? "active" : ""
+                    }`}
+                  aria-pressed={props.timelineSnapMode === "markers"}
+                  onClick={() => handleSnapModeSwitch("markers")}
+                >
+                  Markers
+                </button>
+              </div>
+              <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline density mode">
+                <button
+                  type="button"
+                  className={`timeline-shortcut-toggle-button ${props.timelineDensityMode === "compact" ? "active" : ""
+                    }`}
+                  aria-pressed={props.timelineDensityMode === "compact"}
+                  onClick={() => handleDensityModeSwitch("compact")}
+                >
+                  Compact
+                </button>
+                <button
+                  type="button"
+                  className={`timeline-shortcut-toggle-button ${props.timelineDensityMode === "standard" ? "active" : ""
+                    }`}
+                  aria-pressed={props.timelineDensityMode === "standard"}
+                  onClick={() => handleDensityModeSwitch("standard")}
+                >
+                  Standard
+                </button>
+              </div>
+              <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline insert mode">
+                <button
+                  type="button"
+                  className={`timeline-shortcut-toggle-button ${insertMode === "overwrite" ? "active" : ""}`}
+                  aria-pressed={insertMode === "overwrite"}
+                  onClick={() => setInsertMode("overwrite")}
+                >
+                  Overwrite
+                </button>
+                <button
+                  type="button"
+                  className={`timeline-shortcut-toggle-button ${insertMode === "ripple" ? "active" : ""}`}
+                  aria-pressed={insertMode === "ripple"}
+                  onClick={() => setInsertMode("ripple")}
+                >
+                  Ripple
+                </button>
+              </div>
             </div>
           </div>
           <div className="timeline-flash-header-actions" role="toolbar" aria-label="Timeline Actions">

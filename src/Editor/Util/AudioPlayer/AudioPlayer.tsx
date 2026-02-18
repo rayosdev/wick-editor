@@ -24,8 +24,6 @@ import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 
 import ClipLoader from "react-spinners/ClipLoader";
 
-import './_audioplayer.scss';
-
 interface AudioPlayerProps {
   src?: string;
   loadSrc: () => void;
@@ -71,7 +69,7 @@ export const AudioPlayer = ({src, loadSrc}: AudioPlayerProps): JSX.Element => {
     // Update currentTime while playing
     useEffect(
         () => {
-            let interval: NodeJS.Timeout | null = null;
+            let interval: ReturnType<typeof setInterval> | null = null;
             if (!paused && canPlay && audioRef.current) {
                 interval = setInterval(() => {
                     if (audioRef.current) {
@@ -99,7 +97,7 @@ export const AudioPlayer = ({src, loadSrc}: AudioPlayerProps): JSX.Element => {
     }
 
     return (
-        <div className="audio-player-container">
+        <div className="audio-player-container w-full h-[50px] rounded-[4px] bg-editor-primary pt-[5px] pl-[5px]">
             {src &&
             <audio
                 ref={audioRef}
@@ -117,7 +115,7 @@ export const AudioPlayer = ({src, loadSrc}: AudioPlayerProps): JSX.Element => {
                 }}
             />
             }
-            <span className="playbutton">
+            <span className="playbutton inline-flex h-[40px] w-[40px] flex-col">
                 {loading ? 
                 <ClipLoader
                 color={"#ffffff"}
@@ -131,9 +129,9 @@ export const AudioPlayer = ({src, loadSrc}: AudioPlayerProps): JSX.Element => {
                 }
                 
             </span>
-            <span className="controls">
-                <div className="info-text">{get_time_string()}</div>
-                <div className="control">
+            <span className="controls inline-flex h-[90%] w-[calc(100%-40px)] flex-col align-top">
+                <div className="info-text overflow-hidden text-center text-white">{get_time_string()}</div>
+                <div className="control mx-auto w-[90%]">
                     <WickInput
                     type="slider"
                     containerclassname="time-slider-container"

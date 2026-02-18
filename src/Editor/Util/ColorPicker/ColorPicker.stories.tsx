@@ -15,6 +15,25 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  args: {
+    id: "storybook-color-picker",
+    color: "#ffffff",
+    placement: "bottom",
+    colorPickerType: "swatches",
+    changeColorPickerType: () => undefined,
+    disableAlpha: false,
+    onChangeComplete: () => undefined,
+    lastColorsUsed: [
+      "#000000",
+      "#FFFFFF",
+      "#1EE29A",
+      "#00ADEF",
+      "#F86868",
+      "#FFC835",
+      "#4F4F4F",
+      "#303030",
+    ],
+  },
   render: (args) => (
     <DynamicComponentStory
       componentName="ColorPicker"

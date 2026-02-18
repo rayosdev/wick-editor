@@ -1,8 +1,27 @@
 import { expect, test, type Page } from "@playwright/test";
 
+test.describe.configure({ mode: "serial" });
+
+async function waitForStorybookCanvas(page: Page) {
+  await page.waitForLoadState("domcontentloaded");
+  await page
+    .locator("#storybook-root, #root")
+    .first()
+    .waitFor({ state: "visible", timeout: 15000 });
+  await page.waitForTimeout(150);
+}
+
 async function gotoStory(page: Page, storyId: string) {
-  await page.goto(`/iframe.html?id=${storyId}&viewMode=story`);
-  await expect(page.getByText(/failed to (render|import)\./i)).toHaveCount(0);
+  await page.goto(`/iframe.html?id=${storyId}&viewMode=story`, {
+    waitUntil: "domcontentloaded",
+  });
+  await waitForStorybookCanvas(page);
+  await expect(page.locator("#storybook-root, #root").first()).toBeVisible({
+    timeout: 15000,
+  });
+  await expect(page.locator("body")).not.toContainText(
+    /failed to (render|import)\./i
+  );
 }
 
 test.describe("Storybook functional checks", () => {

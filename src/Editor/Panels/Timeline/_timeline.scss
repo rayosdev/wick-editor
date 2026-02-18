@@ -406,11 +406,64 @@ body.hasHover .timeline-context-menu-item:hover:not(:disabled) {
 }
 
 .timeline-flash-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.timeline-flash-header-right-primary {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  min-width: 0;
-  flex-shrink: 0;
+  gap: 8px;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.timeline-flash-header-right-primary .timeline-flash-meta {
+  margin-right: auto;
+}
+
+.timeline-flash-header-right-advanced {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.timeline-flash-header-right-advanced.open {
+  display: inline-flex;
+}
+
+.timeline-header-options-button {
+  min-width: 92px;
+  height: 26px;
+  border: 1px solid $editor-primary-outline;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  color: $editor-secondary-text;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0 10px;
+}
+
+.timeline-header-options-button.active {
+  background-color: rgba(118, 189, 255, 0.18);
+  color: $editor-primary-text;
+}
+
+body.hasHover .timeline-header-options-button:hover {
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .timeline-renderer-toggle {
@@ -1114,6 +1167,13 @@ body.hasHover .timeline-renderer-toggle-button:hover {
     padding: 0 8px;
   }
 
+  .timeline-header-options-button {
+    min-width: 82px;
+    height: 24px;
+    font-size: 10px;
+    padding: 0 8px;
+  }
+
   .timeline-renderer-toggle-button {
     min-width: 60px;
     height: 24px;
@@ -1158,6 +1218,20 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 
   .timeline-flash-meta {
     width: 100%;
+  }
+
+  .timeline-flash-header-right {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .timeline-flash-header-right-primary,
+  .timeline-flash-header-right-advanced {
+    justify-content: flex-start;
+  }
+
+  .timeline-flash-header-right-primary .timeline-flash-meta {
+    margin-right: 0;
   }
 
   .timeline-flash-action-button {
@@ -1208,6 +1282,12 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 
   .timeline-shortcut-toggle-button {
     min-width: 74px;
+    height: 34px;
+    font-size: 12px;
+  }
+
+  .timeline-header-options-button {
+    min-width: 96px;
     height: 34px;
     font-size: 12px;
   }

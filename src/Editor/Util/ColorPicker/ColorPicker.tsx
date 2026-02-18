@@ -22,8 +22,6 @@ import { Popover } from 'reactstrap';
 import WickColorPicker  from 'Editor/Util/ColorPicker/WickColorPicker';
 import classNames from "classnames";
 
-import './_colorpicker.scss';
-
 export interface PickerColorRGB {
   r: number;
   g: number;
@@ -87,7 +85,10 @@ export default function ColorPicker (props: ColorPickerProps): JSX.Element {
 
   return (
       <button
-        className={classNames("btn-color-picker", props.className)}
+        className={classNames(
+          "btn-color-picker !box-border flex !h-full !w-full !rounded-[16px] !border-4 !border-editor-text-secondary",
+          props.className
+        )}
         aria-label="color picker button"
         id={itemID}
         onClick={toggle}

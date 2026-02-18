@@ -120,7 +120,7 @@ const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
             icon="spectrum"
           />
         </div>
-        <div className="color-picker-control-div">
+        <div className="color-picker-control-div flex flex-row">
           <div id="btn-color-picker-close">
             <ActionButton
               color="tool"

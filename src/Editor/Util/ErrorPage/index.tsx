@@ -17,15 +17,13 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import "./_index.scss";
-
 /**
  * Error page component displayed when the application encounters an error
  * Informs the user that their project has been auto-saved
  */
 function ErrorPage(): JSX.Element {
   return (
-    <main className="error-page">
+    <main className="error-page flex h-full flex-col justify-center bg-wick-green text-center">
       <h1> Oops! Something Broke!</h1>
       <p>
         Don't worry, we auto-saved your project! Please try refreshing the page

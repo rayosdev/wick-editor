@@ -19,7 +19,6 @@
 
 import React, { ReactNode } from "react";
 import classNames from "classnames";
-import "./_toolbutton.scss";
 
 // Tools
 import iconBrush from "resources/toolbar-icons/brush.svg";
@@ -342,6 +341,12 @@ interface ToolIconProps {
  * @returns JSX.Element
  */
 const ToolIcon: React.FC<ToolIconProps> = ({ name, className, default: defaultContent }) => {
+  const sharedIconClassName =
+    "img-tool-icon flex h-full items-center select-none pointer-events-none";
+  const nonDraggableStyle = {
+    WebkitUserDrag: "none",
+  } as React.CSSProperties;
+
   const getSource = (): string => {
     if (name && name in icons) {
       return icons[name]!;
@@ -353,13 +358,18 @@ const ToolIcon: React.FC<ToolIconProps> = ({ name, className, default: defaultCo
   if ((name && name in icons) || defaultContent === undefined) {
     return (
       <img
-        className={classNames("img-tool-icon", className)}
+        className={classNames(sharedIconClassName, className)}
         alt={`${name || "unknown"} icon`}
         src={getSource()}
+        style={nonDraggableStyle}
       />
     );
   } else {
-    return <div className="img-tool-icon">{defaultContent}</div>;
+    return (
+      <div className={classNames(sharedIconClassName, className)} style={nonDraggableStyle}>
+        {defaultContent}
+      </div>
+    );
   }
 };
 
