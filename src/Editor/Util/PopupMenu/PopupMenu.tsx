@@ -19,7 +19,7 @@
 
 import React, { ReactNode } from "react";
 import { Popover } from "reactstrap";
-import "./_popupmenu.scss";
+import "./popupmenu-legacy.css";
 
 import classNames from "classnames";
 
@@ -44,6 +44,13 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
   children,
   className
 }) => {
+  const classTokens = new Set((className ?? "").split(/\s+/).filter(Boolean));
+  const isToolSelector = classTokens.has("tool-selector-menu-popover");
+  const isDesktop = classTokens.has("desktop");
+  const isToolSettings = classTokens.has("tool-settings-menu-popover");
+  const isToolSettingsPresets = classTokens.has("tool-settings-presets-menu-popover");
+  const isCanvasActions = classTokens.has("canvas-actions-menu-popover");
+
   return (
     <Popover
       placement="bottom"
@@ -51,7 +58,14 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
       toggle={toggle}
       target={target}
       className={classNames(
-        "popup-menu-popover",
+        "popup-menu-popover !border-0 !bg-transparent",
+        mobile && "!max-w-[calc(100vw-16px)]",
+        !mobile && !isToolSelector && !isToolSettings && !isCanvasActions && "!max-w-[560px]",
+        !mobile && isToolSelector && isDesktop && "!max-w-[260px]",
+        !mobile && isToolSelector && !isDesktop && "!max-w-[220px]",
+        !mobile && isToolSettings && !isToolSettingsPresets && "!max-w-[220px]",
+        !mobile && isToolSettingsPresets && "!max-w-[280px]",
+        !mobile && isCanvasActions && "!max-w-[620px]",
         mobile && "mobile",
         className
       )}

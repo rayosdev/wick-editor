@@ -18,7 +18,6 @@
  */
 
 import React from 'react';
-import './_menubariconbutton.scss';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 
 interface MenuBarIconButtonProps {
@@ -37,7 +36,7 @@ const MenuBarIconButton: React.FC<MenuBarIconButtonProps> = ({
   icon
 }) => {
   return (
-    <div className="menu-bar-icon-button">
+    <div className="menu-bar-icon-button flex h-full items-center justify-center p-[2px] last:mr-[6px]">
       <ActionButton
         color="menu"
         id={id}

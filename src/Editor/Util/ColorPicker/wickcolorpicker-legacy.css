@@ -1,0 +1,19 @@
+.wick-color-picker .flexbox-fix {
+  margin-top: 9px !important;
+  padding-top: 0 !important;
+}
+
+.wick-color-picker input {
+  width: 100% !important;
+  border-radius: 4px;
+  background-color: var(--wick-editor-primary) !important;
+  border: 3px solid #191919 !important;
+  color: var(--wick-editor-text-primary) !important;
+  box-shadow: none !important;
+  padding: 0 0 0 2px !important;
+}
+
+.wick-color-picker span {
+  padding-bottom: 0 !important;
+  color: var(--wick-editor-text-primary) !important;
+}

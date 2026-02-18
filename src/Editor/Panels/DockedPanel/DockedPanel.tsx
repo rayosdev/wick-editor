@@ -18,7 +18,6 @@
  */
 
 import { PureComponent, ReactNode } from 'react';
-import './_dockedpanel.scss';
 
 interface DockedPanelProps {
   showOverlay?: boolean;
@@ -28,8 +27,8 @@ interface DockedPanelProps {
 class DockedPanel extends PureComponent<DockedPanelProps> {
   render(): JSX.Element {
     return (
-      <div className="docked-panel">
-        {this.props.showOverlay && <div className="docked-panel-overlay" />}
+      <div className="docked-panel relative h-full select-none overflow-hidden">
+        {this.props.showOverlay && <div className="docked-panel-overlay absolute left-0 top-0 z-[1] h-full w-full bg-black opacity-50" />}
         {this.props.children}
       </div>
     )

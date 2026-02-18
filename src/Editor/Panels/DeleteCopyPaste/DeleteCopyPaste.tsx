@@ -1,8 +1,6 @@
 import React from "react";
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
-import "../CanvasTransforms/_canvastransforms.scss";
-import "./_deletecopypaste.scss";
 
 import classNames from "classnames";
 
@@ -24,9 +22,9 @@ interface DeleteCopyPasteProps {
 
 export default function DeleteCopyPaste(props: DeleteCopyPasteProps): JSX.Element {
   return (
-    <div className="delete-copy-paste-widget">
+    <div className="delete-copy-paste-widget absolute left-0 top-0 mr-[15px] mt-[15px] flex h-[40px] items-center rounded-[4px] bg-[#191919]">
       {!props.previewPlaying && (
-        <div className="delete-copy-paste-container">
+        <div className="delete-copy-paste-container flex flex-row items-center pr-[2px]">
           <ActionButton
             disabled={props.selectionEmpty}
             color="tool"
@@ -34,12 +32,14 @@ export default function DeleteCopyPaste(props: DeleteCopyPasteProps): JSX.Elemen
             icon="delete"
             className={classNames(
               "canvas-transform-button",
-              "canvas-transform-item"
+              "canvas-transform-item",
+              "h-[40px] w-[40px] p-[3px] pl-[1.5px] pr-[1.5px]"
             )}
-            buttonClassName={"canvas-transform-wick-button"}
+            buttonClassName={"canvas-transform-wick-button rounded-none"}
             iconClassName={classNames(
               "canvas-transform-icon",
-              props.selectionEmpty && "disabled"
+              "w-[90%]",
+              props.selectionEmpty && "opacity-25"
             )}
           />
           <ActionButton
@@ -49,12 +49,14 @@ export default function DeleteCopyPaste(props: DeleteCopyPasteProps): JSX.Elemen
             icon="copy"
             className={classNames(
               "canvas-transform-button",
-              "canvas-transform-item"
+              "canvas-transform-item",
+              "h-[40px] w-[40px] p-[3px] pl-[1.5px] pr-[1.5px]"
             )}
-            buttonClassName={"canvas-transform-wick-button"}
+            buttonClassName={"canvas-transform-wick-button rounded-none"}
             iconClassName={classNames(
               "canvas-transform-icon",
-              props.selectionEmpty && "disabled"
+              "w-[90%]",
+              props.selectionEmpty && "opacity-25"
             )}
           />
           <ActionButton
@@ -63,10 +65,11 @@ export default function DeleteCopyPaste(props: DeleteCopyPasteProps): JSX.Elemen
             icon="paste"
             className={classNames(
               "canvas-transform-button",
-              "canvas-transform-item"
+              "canvas-transform-item",
+              "h-[40px] w-[40px] p-[3px] pl-[1.5px] pr-[1.5px]"
             )}
-            buttonClassName={"canvas-transform-wick-button"}
-            iconClassName="canvas-transform-icon"
+            buttonClassName={"canvas-transform-wick-button rounded-none"}
+            iconClassName="canvas-transform-icon w-[90%]"
           />
         </div>
       )}

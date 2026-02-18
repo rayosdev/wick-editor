@@ -1,5 +1,4 @@
 import { FC, MouseEvent } from 'react';
-import './_menubariconbutton.scss';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 
 export type MenuBarIconButtonProps = {
@@ -18,7 +17,7 @@ const MenuBarIconButton: FC<MenuBarIconButtonProps> = ({
   icon,
 }) => {
   return (
-    <div className="menu-bar-icon-button">
+    <div className="menu-bar-icon-button flex h-full items-center justify-center p-[2px] last:mr-[6px]">
       <ActionButton
         color="menu"
         id={id}
@@ -32,4 +31,3 @@ const MenuBarIconButton: FC<MenuBarIconButtonProps> = ({
 };
 
 export default MenuBarIconButton;
-

@@ -3,7 +3,7 @@ import type { PickerColorChange, PickerColorValue } from "./ColorPicker";
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
-import "./_wickcolorpicker.scss";
+import "./wickcolorpicker-legacy.css";
 import { CustomPicker } from "react-color";
 import WickSwatch from "Editor/Util/ColorPicker/WickSwatch/WickSwatch";
 import {
@@ -32,6 +32,12 @@ interface WickColorPickerProps {
  * @returns JSX.Element
  */
 const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
+  const checkerboardTileStyle: CSSProperties = {
+    backgroundImage:
+      'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVQ4T2NkYGAQYcAP3uCTZhw1gGGYhAGBZIA/nYDCgBDAm9BGDWAAJyRCgLaBCAAgXwixzAS0pgAAAABJRU5ErkJggg==")',
+    backgroundSize: "15px 15px",
+  };
+
   const currentColor =
     typeof props.color === "string"
       ? props.color
@@ -41,7 +47,7 @@ const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
     return (
       <div
         key={`swatch-color-column-${i}`}
-        className="wick-swatch-picker-column"
+        className="wick-swatch-picker-column mb-[4px] mr-[4px] flex flex-col overflow-hidden rounded-[2px]"
       >
         {colorList.map((color, i) => {
           return (
@@ -59,7 +65,7 @@ const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
 
   const renderSwatchbook = (colors: string[][]): JSX.Element => {
     return (
-      <div className="wick-swatch-picker-book">
+      <div className="wick-swatch-picker-book -mx-[10px] my-[5px] flex flex-row flex-wrap pb-0 pl-[10px] pr-0 pt-[5px]">
         {colors.map((colorList, i) => {
           return renderSwatchColumn(colorList, i);
         })}
@@ -84,9 +90,9 @@ const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
     ];
 
     return (
-      <div className="wick-color-picker">
+      <div className="wick-color-picker h-[300px] w-[220px] rounded-[4px] bg-editor-primary px-[10px] pb-0 pt-[10px]">
         {renderHeader()}
-        <div className="wick-swatch-color-picker-body">
+        <div className="wick-swatch-color-picker-body flex flex-col">
           {renderSwatchbook(colors)}
         </div>
       </div>
@@ -95,8 +101,8 @@ const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
 
   const renderHeader = (): JSX.Element => {
     return (
-      <div className="wick-color-picker-header">
-        <div className="wick-color-picker-action-button">
+      <div className="wick-color-picker-header flex h-[25px]">
+        <div className="wick-color-picker-action-button mr-[4px] h-[25px] w-[30px]">
           <ActionButton
             color="tool"
             id="color-picker-swatches-button"
@@ -108,7 +114,7 @@ const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
             icon="swatches"
           />
         </div>
-        <div className="wick-color-picker-action-button spacer">
+        <div className="wick-color-picker-action-button spacer mr-auto h-[25px] w-[30px]">
           <ActionButton
             color="tool"
             id="color-picker-spectrum-button"
@@ -121,7 +127,7 @@ const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
           />
         </div>
         <div className="color-picker-control-div flex flex-row">
-          <div id="btn-color-picker-close">
+          <div id="btn-color-picker-close" className="ml-auto h-[25px] w-[25px]">
             <ActionButton
               color="tool"
               icon="closemodal"
@@ -135,12 +141,13 @@ const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
 
   const renderSwatchContainer = (colors: string[]): JSX.Element => {
     return (
-      <div className="wick-color-picker-swatches-container">
+      <div className="wick-color-picker-swatches-container -mx-[10px] my-[5px] flex h-[25px] flex-wrap border-t border-solid border-black/10 pb-0 pl-[10px] pr-0 pt-[5px]">
         {colors.map((color, i) => {
           return (
             <div
               key={`color-swatch-${color}-${i}`}
-              className="wick-color-picker-small-swatch"
+              className="wick-color-picker-small-swatch mb-[10px] mr-[10px] h-[16px] min-w-[16px] w-[16px] overflow-hidden rounded-[4px] border-[1px] border-solid border-[#222]"
+              style={checkerboardTileStyle}
             >
               <Swatch
                 color={color}
@@ -198,13 +205,13 @@ const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
     ];
     let lastColors = props.lastColorsUsed || lastUsedColorsDefaults;
     return (
-      <div className="wick-color-picker">
+      <div className="wick-color-picker h-[300px] w-[220px] rounded-[4px] bg-editor-primary px-[10px] pb-0 pt-[10px]">
         {renderHeader()}
-        <div className="wick-color-picker-saturation">
+        <div className="wick-color-picker-saturation relative mt-[5px] h-[115px] w-full overflow-hidden rounded-[2px]">
           <Saturation {...props} />
         </div>
-        <div className="wick-color-picker-control-body">
-          <div id="btn-color-picker-dropper">
+        <div className="wick-color-picker-control-body mt-[5px] flex w-full flex-row">
+          <div id="btn-color-picker-dropper" className="mr-[5px] h-[25px] w-[25px]">
             <ActionButton
               icon="eyedropper"
               id="color-picker-eyedropper"
@@ -214,14 +221,14 @@ const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
             />
           </div>
           <div id="wick-color-picker-bar-container">
-            <div className="wick-color-picker-control-bar">
+            <div className="wick-color-picker-control-bar relative mb-[2.5%] h-[45%] w-[140px] bg-white">
               <Hue {...props} height={11} />
             </div>
-            <div className="wick-color-picker-control-bar">
+            <div className="wick-color-picker-control-bar relative mb-[2.5%] h-[45%] w-[140px] bg-white">
               <Alpha {...props} />
             </div>
           </div>
-          <div className="wick-color-picker-color-block-container">
+          <div className="wick-color-picker-color-block-container relative ml-[5px] h-[25px] w-[25px] rounded-[2px] bg-white">
             <Checkboard />
             <div style={styles.activeColor} />
           </div>

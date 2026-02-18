@@ -1,7 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import DynamicComponentStory from "Editor/storybook/DynamicComponentStory";
+import WickComponentStory from "Editor/storybook/WickComponentStory";
+import { createInspectorNumericInputStoryArgs } from "Editor/storybook/wickStoryFixtures";
 
 const loadComponent = () => import("./InspectorNumericInput");
+const defaultArgs = createInspectorNumericInputStoryArgs();
 
 const meta: Meta = {
   title: "Editor/Panels/Inspector/InspectorRow/InspectorRowTypes/InspectorNumericInput",
@@ -15,11 +17,12 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: (args) => (
-    <DynamicComponentStory
+  render: () => (
+    <WickComponentStory
       componentName="InspectorNumericInput"
       loader={loadComponent}
-      args={args as Record<string, unknown>}
+      defaultArgs={defaultArgs}
+      args={defaultArgs}
     />
   ),
 };

@@ -1,12 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import DynamicComponentStory from "Editor/storybook/DynamicComponentStory";
+import DockedPanel from "./DockedPanel";
 
-const loadComponent = () => import("./DockedPanel");
-
-const meta: Meta = {
+const meta: Meta<typeof DockedPanel> = {
   title: "Editor/Panels/DockedPanel/DockedPanel",
   parameters: {
     layout: "padded",
+  },
+  args: {
+    showOverlay: false,
   },
 };
 
@@ -16,10 +17,17 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: (args) => (
-    <DynamicComponentStory
-      componentName="DockedPanel"
-      loader={loadComponent}
-      args={args as Record<string, unknown>}
-    />
+    <div className="h-56 w-80 bg-[#2f2f2f]">
+      <DockedPanel {...args}>
+        <div className="p-3 text-white">Panel Content</div>
+      </DockedPanel>
+    </div>
   ),
+};
+
+export const WithOverlay: Story = {
+  args: {
+    showOverlay: true,
+  },
+  render: Default.render,
 };

@@ -1,12 +1,23 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import DynamicComponentStory from "Editor/storybook/DynamicComponentStory";
+import MenuBar from "./MenuBar";
 
-const loadComponent = () => import("./MenuBar");
+const noop = () => undefined;
 
-const meta: Meta = {
+const meta: Meta<typeof MenuBar> = {
   title: "Editor/Panels/MenuBar/MenuBar",
   parameters: {
     layout: "padded",
+  },
+  args: {
+    renderSize: "large",
+    projectName: "My Project",
+    exporting: false,
+    openModal: noop,
+    openNewProjectConfirmation: noop,
+    openProjectFileDialog: noop,
+    exportProjectAsWickFile: noop,
+    openExportMedia: noop,
+    openExportOptions: noop,
   },
 };
 
@@ -16,10 +27,19 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: (args) => (
-    <DynamicComponentStory
-      componentName="MenuBar"
-      loader={loadComponent}
-      args={args as Record<string, unknown>}
-    />
+    <div className="h-10 w-[1100px]">
+      <MenuBar {...args} />
+    </div>
+  ),
+};
+
+export const Mobile: Story = {
+  args: {
+    renderSize: "small",
+  },
+  render: (args) => (
+    <div className="h-10 w-[420px]">
+      <MenuBar {...args} />
+    </div>
   ),
 };

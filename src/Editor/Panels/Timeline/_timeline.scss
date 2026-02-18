@@ -34,6 +34,7 @@ $timeline-grid-bg: $editor-secondary;
   background-color: $editor-secondary;
   /* overflow: hidden; Removed to fix potential clipping issues (e.g. popovers) */
   min-height: 0;
+  position: relative;
 }
 
 .timeline-flash-shell {
@@ -154,11 +155,17 @@ $timeline-grid-bg: $editor-secondary;
 
 .timeline-flash-footer {
   flex-shrink: 0;
+  margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
   border-top: 1px solid $editor-primary-outline;
+  box-shadow: 0 -6px 12px rgba(0, 0, 0, 0.22);
   background-color: $editor-primary;
   overflow-x: auto;
   overflow-y: hidden;
@@ -1403,9 +1410,20 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 
 .timeline-unified-body {
   position: relative;
+  z-index: 1;
+  opacity: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   min-width: min-content;
   display: flex;
   flex-direction: column;
+}
+
+.timeline-unified-grid-canvas {
+  position: absolute;
+  inset: 0 auto auto 0;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .timeline-unified-overlays {
@@ -1419,6 +1437,8 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 }
 
 .timeline-unified-row {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: row;
   height: 32px; /* fallback */
@@ -1440,5 +1460,5 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 .timeline-unified-track {
   flex: 1;
   position: relative;
-  background-color: $timeline-grid-bg;
+  background-color: transparent;
 }

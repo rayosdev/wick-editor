@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import SafeStoryWrapper from "./SafeStoryWrapper";
+import { createDynamicStoryDefaultArgs } from "./wickStoryFixtures";
 
 type ComponentModule = Record<string, unknown> & {
   default?: unknown;
@@ -18,6 +19,10 @@ const DndProviderComponent = DndProvider as unknown as React.ComponentType<{
   backend: unknown;
   children?: React.ReactNode;
 }>;
+const REQUIRED_ANCHOR_IDS: Record<string, string[]> = {
+  CanvasActions: ["more-canvas-actions-popover-button"],
+  Toolbox: ["more-canvas-actions-popover-button"],
+};
 
 const STORYBOOK_SELECT_OPTIONS = [
   { label: "Option A", value: "option-a" },
@@ -379,6 +384,43 @@ function createSafeArgs(args: Record<string, unknown>): Record<string, unknown> 
   });
 }
 
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  if (Array.isArray(value)) {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function mergeArgsWithDefaults(
+  defaults: Record<string, unknown>,
+  overrides: Record<string, unknown>
+): Record<string, unknown> {
+  const merged: Record<string, unknown> = { ...defaults };
+
+  Object.entries(overrides).forEach(([key, overrideValue]) => {
+    if (overrideValue === undefined) {
+      return;
+    }
+
+    const defaultValue = merged[key];
+
+    if (isPlainRecord(defaultValue) && isPlainRecord(overrideValue)) {
+      merged[key] = mergeArgsWithDefaults(defaultValue, overrideValue);
+      return;
+    }
+
+    merged[key] = overrideValue;
+  });
+
+  return merged;
+}
+
 export default function DynamicComponentStory({
   componentName,
   loader,
@@ -408,9 +450,25 @@ export default function DynamicComponentStory({
     return () => {
       cancelled = true;
     };
-  }, [loader]);
+  }, [componentName, loader]);
 
-  const safeArgs = createSafeArgs(args);
+  const defaultArgs = useMemo(
+    () => createDynamicStoryDefaultArgs(componentName),
+    [componentName]
+  );
+  const mergedArgs = useMemo(
+    () => mergeArgsWithDefaults(defaultArgs, args),
+    [defaultArgs, args]
+  );
+  const hasFixtureDefaults = useMemo(
+    () => Object.keys(defaultArgs).length > 0,
+    [defaultArgs]
+  );
+  const resolvedArgs = useMemo(
+    () => (hasFixtureDefaults ? mergedArgs : createSafeArgs(mergedArgs)),
+    [hasFixtureDefaults, mergedArgs]
+  );
+  const requiredAnchorIds = REQUIRED_ANCHOR_IDS[componentName] ?? [];
 
   if (loadError) {
     return (
@@ -455,8 +513,20 @@ export default function DynamicComponentStory({
 
   return (
     <SafeStoryWrapper componentName={componentName}>
+      {requiredAnchorIds.map((anchorId) => (
+        <div
+          key={anchorId}
+          id={anchorId}
+          style={{
+            width: 1,
+            height: 1,
+            opacity: 0,
+            pointerEvents: "none",
+          }}
+        />
+      ))}
       <DndProviderComponent backend={HTML5Backend}>
-        <LoadedComponent {...safeArgs} />
+        <LoadedComponent {...resolvedArgs} />
       </DndProviderComponent>
     </SafeStoryWrapper>
   );

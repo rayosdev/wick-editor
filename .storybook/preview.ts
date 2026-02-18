@@ -123,6 +123,24 @@ function ensureEditorStub(): void {
     });
 }
 
+function ensureStorybookAnchorNodes(): void {
+  const anchorIds = ["more-canvas-actions-popover-button"];
+
+  anchorIds.forEach((anchorId) => {
+    if (document.getElementById(anchorId)) {
+      return;
+    }
+
+    const anchor = document.createElement("div");
+    anchor.id = anchorId;
+    anchor.style.width = "1px";
+    anchor.style.height = "1px";
+    anchor.style.opacity = "0";
+    anchor.style.pointerEvents = "none";
+    document.body.appendChild(anchor);
+  });
+}
+
 function ensureWickEngineLoaded(): Promise<void> {
   if (window.Wick?.Project) return Promise.resolve();
   if (wickEnginePromise) return wickEnginePromise;
@@ -166,6 +184,7 @@ async function bootstrapStorybookRuntime(): Promise<void> {
   ensureWickRoot();
   ensureWickColorFallback();
   ensureEditorStub();
+  ensureStorybookAnchorNodes();
 
   if (!window.JSZip) {
     window.JSZip = JSZip;

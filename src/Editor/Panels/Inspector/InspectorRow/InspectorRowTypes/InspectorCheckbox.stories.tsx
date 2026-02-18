@@ -1,7 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import DynamicComponentStory from "Editor/storybook/DynamicComponentStory";
+import WickComponentStory from "Editor/storybook/WickComponentStory";
+import { createInspectorCheckboxStoryArgs } from "Editor/storybook/wickStoryFixtures";
 
 const loadComponent = () => import("./InspectorCheckbox");
+const defaultArgs = createInspectorCheckboxStoryArgs();
 
 const meta: Meta = {
   title: "Editor/Panels/Inspector/InspectorRow/InspectorRowTypes/InspectorCheckbox",
@@ -15,11 +17,12 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: (args) => (
-    <DynamicComponentStory
+  render: () => (
+    <WickComponentStory
       componentName="InspectorCheckbox"
       loader={loadComponent}
-      args={args as Record<string, unknown>}
+      defaultArgs={defaultArgs}
+      args={defaultArgs}
     />
   ),
 };

@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2026.2.18.11.1.43";
+  var WICK_ENGINE_BUILD_VERSION = "2026.2.18.14.2.38";
   (function() {
 
     var _a;
@@ -34404,7 +34404,7 @@
       loadSettingsFromLocalstorage() {
         Wick.ToolSettings.DEFAULT_SETTINGS.forEach((setting) => {
           localforage.getItem(this.getStorageKey(setting.name)).then((value) => {
-            if (value) {
+            if (value !== null && value !== void 0) {
               this._settings[setting.name] = {
                 type: setting.type,
                 name: setting.name,

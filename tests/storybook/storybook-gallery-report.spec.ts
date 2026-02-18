@@ -67,6 +67,43 @@ function formatList(items: string[]): string {
   return items.length > 0 ? items.map((item) => `- ${item}`).join("\n") : "- None";
 }
 
+function isTransientNavigationError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes("net::ERR_ABORTED") ||
+    message.includes("net::ERR_CONNECTION_REFUSED") ||
+    message.includes("net::ERR_FAILED")
+  );
+}
+
+async function gotoStoryFrameWithRetry(
+  page: Page,
+  storyUrlPath: string,
+  notes: string[]
+): Promise<void> {
+  const maxAttempts = 3;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      await page.goto(storyUrlPath, { waitUntil: "domcontentloaded" });
+      await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {
+        notes.push("Timed out waiting for full network idle; captured current state.");
+      });
+      await page.waitForTimeout(350);
+      return;
+    } catch (error) {
+      if (!isTransientNavigationError(error) || attempt === maxAttempts) {
+        throw error;
+      }
+
+      notes.push(
+        `Retrying story navigation after transient error (attempt ${attempt}/${maxAttempts}).`
+      );
+      await page.waitForTimeout(400 * attempt);
+    }
+  }
+}
+
 async function runInteractionSmokeChecks(page: Page) {
   const results: InteractionResult[] = [];
 
@@ -324,24 +361,41 @@ test("capture all Storybook stories with screenshots and markdown reports", asyn
       page.on("console", onConsole);
       page.on("pageerror", onPageError);
 
-      await page.goto(storyUrlPath, { waitUntil: "domcontentloaded" });
-      await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {
-        notes.push("Timed out waiting for full network idle; captured current state.");
-      });
-      await page.waitForTimeout(350);
+      await gotoStoryFrameWithRetry(page, storyUrlPath, notes);
 
-      const renderErrorVisible = await page
+      let renderErrorVisible = await page
         .getByText(/failed to (render|import)\./i)
         .first()
         .isVisible()
         .catch(() => false);
+      let previewErrorText = compactText(
+        (await page.locator("body").innerText().catch(() => "")) ?? ""
+      );
+
+      const hasTransientImportError =
+        previewErrorText.includes("Failed to fetch dynamically imported module") ||
+        previewErrorText.includes("Loading chunk") ||
+        previewErrorText.includes("Could not fetch dynamically imported module");
+
+      if (renderErrorVisible && hasTransientImportError) {
+        notes.push("Retrying story once after transient dynamic-import error.");
+        consoleMessages.length = 0;
+        pageErrors.length = 0;
+        await gotoStoryFrameWithRetry(page, storyUrlPath, notes);
+
+        renderErrorVisible = await page
+          .getByText(/failed to (render|import)\./i)
+          .first()
+          .isVisible()
+          .catch(() => false);
+        previewErrorText = compactText(
+          (await page.locator("body").innerText().catch(() => "")) ?? ""
+        );
+      }
 
       if (renderErrorVisible) {
         status = "FAIL";
         notes.push("Storybook reported a render/import failure in the preview.");
-        const previewErrorText = compactText(
-          (await page.locator("body").innerText().catch(() => "")) ?? ""
-        );
         if (previewErrorText) {
           notes.push(`Preview excerpt: ${truncate(previewErrorText, 320)}`);
         }

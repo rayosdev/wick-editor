@@ -18,7 +18,6 @@
  */
 
 import React from 'react';
-import './_menubarsupportbutton.scss';
 import ActionButton from '../../../Util/ActionButton/ActionButton';
 
 interface MenuBarSupportButtonProps {
@@ -35,7 +34,7 @@ const MenuBarSupportButton: React.FC<MenuBarSupportButtonProps> = ({
   icon,
 }) => {
   return (
-    <div className="menu-bar-support-button">
+    <div className="menu-bar-support-button float-left h-full p-[2px]">
       <ActionButton
         color="support"
         id={id}

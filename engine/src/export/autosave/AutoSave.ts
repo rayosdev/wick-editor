@@ -47,6 +47,15 @@ Wick.AutoSave = class {
         var autosaveData = this.generateAutosaveData(project);
         if(Wick.AutoSave.ENABLE_PERF_TIMERS) console.timeEnd('serialize step')
 
+        this.saveAutosaveData(autosaveData, callback);
+    }
+
+    /**
+     * Saves precomputed autosave data to localforage.
+     * @param {object} autosaveData - Precomputed autosave payload.
+     * @param {function} callback - Called when save completes.
+     */
+    static saveAutosaveData (autosaveData, callback) {
         if(Wick.AutoSave.ENABLE_PERF_TIMERS) console.time('localforage step')
         this.addAutosaveToList(autosaveData, () => {
             this.writeAutosaveData(autosaveData, () => {
@@ -133,7 +142,10 @@ Wick.AutoSave = class {
      */
     static addAutosaveToList (autosaveData, callback) {
         this.getAutosavesList((list) => {
-            list.push({
+            list = list.filter(item => {
+                return item.uuid !== autosaveData.projectData.uuid;
+            });
+            list.unshift({
                 uuid: autosaveData.projectData.uuid,
                 lastModified: autosaveData.lastModified,
             });
@@ -164,11 +176,21 @@ Wick.AutoSave = class {
      */
     static getAutosavesList (callback) {
         localforage.getItem(this.AUTOSAVES_LIST_KEY).then(result => {
-            var projectList = result || [];
+            var projectList = (result || []).filter(item => {
+                return item && item.uuid;
+            });
 
             // Sort by lastModified
             projectList.sort((a,b) => {
                 return b.lastModified - a.lastModified;
+            });
+
+            // Keep only newest entry per UUID.
+            var seenUUIDs = {};
+            projectList = projectList.filter(item => {
+                if(seenUUIDs[item.uuid]) return false;
+                seenUUIDs[item.uuid] = true;
+                return true;
             });
 
             callback(projectList);

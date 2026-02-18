@@ -484,6 +484,7 @@ export interface AutosaveEntry {
 
 export interface WickAutoSave {
   save(project: WickProject, callback: () => void): void;
+  saveAutosaveData(autosaveData: AutosaveData, callback: () => void): void;
   load(uuid: string, callback: (project: WickProject) => void): void;
   delete(uuid: string, callback: () => void): void;
   getAutosavesList(callback: (autosaves: AutosaveEntry[]) => void): void;

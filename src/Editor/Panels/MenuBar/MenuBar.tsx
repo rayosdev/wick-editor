@@ -1,5 +1,4 @@
 import { FC, ReactNode } from 'react';
-import './_menubar.scss';
 import MenuBarButton from './MenuBarButton/MenuBarButton';
 import MenuBarIconButton from './MenuBarIconButton/MenuBarIconButton';
 import MenuBarSupportButton from './MenuBarSupportButton/MenuBarSupportButton';
@@ -41,8 +40,8 @@ const MenuBar: FC<MenuBarProps> = ({
     };
 
     const renderDesktop = (): ReactNode => (
-        <div className="docked-pane menu-bar" aria-label="Menu Bar">
-            <div className="menu-bar-info-container">
+        <div className="docked-pane menu-bar box-border flex h-full w-full items-center overflow-visible border-[4px] border-solid border-[#191919] bg-editor-primary" aria-label="Menu Bar">
+            <div className="menu-bar-info-container flex h-full flex-row">
                 <MenuBarIconButton
                     id="tool-information-button"
                     tooltip="Editor Information"
@@ -59,14 +58,15 @@ const MenuBar: FC<MenuBarProps> = ({
             </div>
 
             <div
-                className="menu-bar-project-name"
+                className="menu-bar-project-name mx-auto cursor-pointer text-[18px] text-white transition-all duration-[400ms]"
+                style={{ fontFamily: 'Nunito Sans' }}
                 role="button"
                 onClick={() => openModal('SimpleProjectSettings')}
             >
                 {projectName}
             </div>
 
-            <div className="menu-bar-actions-container">
+            <div className="menu-bar-actions-container float-right flex h-full items-center text-[16px]" style={{ fontFamily: 'Nunito Sans' }}>
                 <MenuBarButton text="new" action={openNewProjectConfirmation} />
 
                 <MenuBarButton text="open" action={openProjectFileDialog} />
@@ -91,7 +91,7 @@ const MenuBar: FC<MenuBarProps> = ({
     );
 
     const renderMobile = (): ReactNode => (
-        <div className="docked-pane menu-bar">
+        <div className="docked-pane menu-bar box-border flex h-full w-full items-center overflow-visible border-[4px] border-solid border-[#191919] bg-editor-primary">
             <MenuBarIconButton
                 icon="hamburger"
                 action={() => openModal('MobileMenuModal')}
@@ -106,12 +106,13 @@ const MenuBar: FC<MenuBarProps> = ({
             <div
                 role="button"
                 onClick={() => openModal('SimpleProjectSettings')}
-                className="menu-bar-project-name-mobile"
+                className="menu-bar-project-name-mobile mx-auto text-center text-[18px] text-white transition-all duration-[400ms]"
+                style={{ fontFamily: 'Nunito Sans' }}
             >
                 {projectName}
             </div>
 
-            <div className="menu-bar-actions-container">
+            <div className="menu-bar-actions-container float-right flex h-full items-center text-[16px]" style={{ fontFamily: 'Nunito Sans' }}>
                 <MenuBarButton
                     text="save"
                     action={exportProjectAsWickFile}

@@ -291,7 +291,7 @@ Wick.ToolSettings = class {
         Wick.ToolSettings.DEFAULT_SETTINGS.forEach(setting => {
             // Get stored tool setting if it exists.
             localforage.getItem(this.getStorageKey(setting.name)).then( (value) => {
-                if (value) {
+                if (value !== null && value !== undefined) {
                     this._settings[setting.name] = {
                         type: setting.type,
                         name: setting.name,

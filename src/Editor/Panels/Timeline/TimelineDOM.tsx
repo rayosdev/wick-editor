@@ -269,6 +269,7 @@ const clampContextMenuPosition = (
 
 const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   const workspaceRef = useRef<HTMLDivElement>(null);
+  const unifiedGridCanvasRef = useRef<HTMLCanvasElement>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const interactionRef = useRef<InteractionState | null>(null);
   const selectionBoxRef = useRef<SelectionBox | null>(null);
@@ -335,6 +336,10 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     gridViewport.height > 0
       ? gridViewport.height
       : Math.max(cellHeight, gridViewportHeight);
+  const totalUnifiedRows = Math.max(1, layers.length + 1);
+  const unifiedGridHeight = Math.max(totalUnifiedRows * cellHeight, viewportHeight);
+  const unifiedGridWidth = timelineLength * cellWidth;
+  const unifiedBodyMinWidth = LAYER_PANEL_WIDTH_PX + unifiedGridWidth;
   const shouldVirtualizeLayerRows = layers.length >= VIRTUALIZATION_LAYER_THRESHOLD;
   const shouldVirtualizeFrames = timelineLength >= VIRTUALIZATION_FRAME_THRESHOLD;
   const visibleLayerStart =
@@ -1345,6 +1350,72 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       return next;
     });
   }, [timelineLength]);
+
+  useEffect(() => {
+    const canvas = unifiedGridCanvasRef.current;
+    if (!canvas) {
+      return;
+    }
+
+    const cssWidth = Math.max(1, unifiedBodyMinWidth);
+    const cssHeight = Math.max(1, unifiedGridHeight);
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+    const nextWidth = Math.round(cssWidth * dpr);
+    const nextHeight = Math.round(cssHeight * dpr);
+
+    if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
+      canvas.width = nextWidth;
+      canvas.height = nextHeight;
+      canvas.style.width = `${cssWidth}px`;
+      canvas.style.height = `${cssHeight}px`;
+    }
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      return;
+    }
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+    const trackStartX = LAYER_PANEL_WIDTH_PX;
+    const trackEndX = trackStartX + unifiedGridWidth;
+    const gridColor = "rgba(255, 255, 255, 0.06)";
+    const majorGridColor = "rgba(255, 255, 255, 0.12)";
+
+    ctx.fillStyle = "rgba(0, 0, 0, 0.03)";
+    ctx.fillRect(trackStartX, 0, unifiedGridWidth, cssHeight);
+
+    ctx.beginPath();
+    for (let row = 0; row <= totalUnifiedRows; row += 1) {
+      const y = row * cellHeight + 0.5;
+      ctx.moveTo(trackStartX, y);
+      ctx.lineTo(trackEndX, y);
+    }
+    ctx.strokeStyle = gridColor;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    for (let col = 0; col <= timelineLength; col += 1) {
+      const x = trackStartX + col * cellWidth + 0.5;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, cssHeight);
+      ctx.strokeStyle = col % 5 === 0 ? majorGridColor : gridColor;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  }, [
+    cellHeight,
+    cellWidth,
+    timelineLength,
+    totalUnifiedRows,
+    unifiedBodyMinWidth,
+    unifiedGridHeight,
+    unifiedGridWidth,
+    viewportHeight,
+  ]);
 
   useEffect(() => {
     requestRender();
@@ -2705,7 +2776,12 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             </div>
           </div>
 
-          <div className="timeline-unified-body">
+          <div className="timeline-unified-body" style={{ minWidth: `${unifiedBodyMinWidth}px` }}>
+            <canvas
+              ref={unifiedGridCanvasRef}
+              className="timeline-unified-grid-canvas"
+              aria-hidden
+            />
             <div className="timeline-unified-overlays" style={{ left: `${LAYER_PANEL_WIDTH_PX}px` }}>
               <div
                 className="timeline-dom-playhead"

@@ -53,7 +53,7 @@ const WickSwatch: React.FC<WickSwatchProps> = ({ color, selectedColor, onChangeC
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="column-swatch"
+      className="column-swatch first:mb-[2px] h-[20px] w-[30px]"
       style={style}
     >
       <Swatch

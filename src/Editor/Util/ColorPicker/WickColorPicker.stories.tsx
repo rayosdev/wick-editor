@@ -1,12 +1,20 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import DynamicComponentStory from "Editor/storybook/DynamicComponentStory";
+import WickColorPicker from "./WickColorPicker";
 
-const loadComponent = () => import("./WickColorPicker");
-
-const meta: Meta = {
+const meta: Meta<typeof WickColorPicker> = {
   title: "Editor/Util/ColorPicker/WickColorPicker",
   parameters: {
     layout: "padded",
+  },
+  args: {
+    color: "#ffffff",
+    colorPickerType: "swatches",
+    changeColorPickerType: () => undefined,
+    disableAlpha: false,
+    onChangeComplete: () => undefined,
+    onChange: () => undefined,
+    lastColorsUsed: ["#111111", "#333333", "#555555", "#777777", "#999999", "#bbbbbb", "#dddddd", "#ffffff"],
+    toggle: () => undefined,
   },
 };
 
@@ -15,11 +23,12 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: (args) => (
-    <DynamicComponentStory
-      componentName="WickColorPicker"
-      loader={loadComponent}
-      args={args as Record<string, unknown>}
-    />
-  ),
+  render: (args) => <WickColorPicker {...args} />,
+};
+
+export const Spectrum: Story = {
+  args: {
+    colorPickerType: "spectrum",
+  },
+  render: Default.render,
 };
