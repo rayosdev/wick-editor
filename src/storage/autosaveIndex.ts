@@ -15,11 +15,20 @@ type LegacyAutosaveLikeEntry = {
   uuid: string;
   lastModified?: number;
 };
+type AutosaveIndexRow = {
+  source: string;
+  uuid: string;
+  lastModified: number;
+  updatedAt: number;
+};
+type AutosavesTable = Record<string, AutosaveIndexRow>;
 
 const AUTOSAVES_TABLE_ID = "autosaves";
 const BY_SOURCE_INDEX_ID = "by_source";
 const BY_RECENCY_INDEX_ID = "by_recency";
 const ALL_SOURCES_SLICE_ID = "all";
+const AUTOSAVE_INDEX_STORAGE_KEY = "wickEditor_autosaveIndex_tinybase_v1";
+let didHydrateFromStorage = false;
 
 const store = createStore();
 store.setTablesSchema({
@@ -48,6 +57,94 @@ const indexes = createIndexes(store)
     defaultSorter,
     sortDescending,
   );
+
+function canUseLocalStorage(): boolean {
+  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function sanitizeAutosavesTable(input: Record<string, unknown>): AutosavesTable {
+  const sanitized: AutosavesTable = {};
+
+  Object.entries(input).forEach(([rowId, rowValue]) => {
+    if (!isRecord(rowValue)) {
+      return;
+    }
+
+    const source = rowValue.source;
+    const uuid = rowValue.uuid;
+    const lastModified = toFiniteNumber(rowValue.lastModified);
+    const updatedAt = toFiniteNumber(rowValue.updatedAt);
+
+    if (
+      typeof source !== "string" ||
+      source.length === 0 ||
+      typeof uuid !== "string" ||
+      uuid.length === 0 ||
+      lastModified === null
+    ) {
+      return;
+    }
+
+    sanitized[rowId] = {
+      source,
+      uuid,
+      lastModified,
+      updatedAt: updatedAt ?? lastModified,
+    };
+  });
+
+  return sanitized;
+}
+
+function hydrateFromLocalStorageIfNeeded(): void {
+  if (didHydrateFromStorage) {
+    return;
+  }
+
+  didHydrateFromStorage = true;
+  if (!canUseLocalStorage()) {
+    return;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(AUTOSAVE_INDEX_STORAGE_KEY);
+    if (!raw) {
+      return;
+    }
+
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed) || parsed.length === 0 || !isRecord(parsed[0])) {
+      return;
+    }
+
+    const tables = parsed[0];
+    const autosavesTable = tables[AUTOSAVES_TABLE_ID];
+    if (!isRecord(autosavesTable)) {
+      return;
+    }
+
+    store.setTable(AUTOSAVES_TABLE_ID, sanitizeAutosavesTable(autosavesTable));
+  } catch {
+    // Ignore parse or storage errors and continue with an empty in-memory index.
+  }
+}
+
+function persistToLocalStorage(): void {
+  if (!canUseLocalStorage()) {
+    return;
+  }
+
+  try {
+    const content = JSON.stringify([store.getTables(), {}]);
+    window.localStorage.setItem(AUTOSAVE_INDEX_STORAGE_KEY, content);
+  } catch {
+    // Ignore quota/security errors and keep in-memory index.
+  }
+}
 
 function toFiniteNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -130,6 +227,8 @@ export function upsertAutosaveIndexEntry(
   uuid: string,
   lastModified: number,
 ): void {
+  hydrateFromLocalStorageIfNeeded();
+
   if (!uuid) {
     return;
   }
@@ -141,17 +240,21 @@ export function upsertAutosaveIndexEntry(
     lastModified: normalizedLastModified,
     updatedAt: Date.now(),
   });
+  persistToLocalStorage();
 }
 
 export function removeAutosaveIndexEntry(
   source: AutosaveSource,
   uuid: string,
 ): void {
+  hydrateFromLocalStorageIfNeeded();
+
   if (!uuid) {
     return;
   }
 
   store.delRow(AUTOSAVES_TABLE_ID, getRowId(source, uuid));
+  persistToLocalStorage();
 }
 
 export function removeAutosaveIndexEntriesByUUID(uuid: string): void {
@@ -167,6 +270,8 @@ export function replaceAutosaveIndexSource(
   source: AutosaveSource,
   entries: LegacyAutosaveLikeEntry[],
 ): void {
+  hydrateFromLocalStorageIfNeeded();
+
   const nextEntries = new Map<string, number>();
 
   entries.forEach((entry) => {
@@ -200,11 +305,15 @@ export function replaceAutosaveIndexSource(
       store.delRow(AUTOSAVES_TABLE_ID, rowId);
     }
   });
+
+  persistToLocalStorage();
 }
 
 export function getLatestAutosaveIndexEntry(
   source?: AutosaveSource,
 ): AutosaveIndexEntry | null {
+  hydrateFromLocalStorageIfNeeded();
+
   const rowIds = source ? getRowIdsForSource(source) : getAllRowIdsByRecency();
 
   for (const rowId of rowIds) {
@@ -218,11 +327,22 @@ export function getLatestAutosaveIndexEntry(
 }
 
 export function hasAutosaveIndexSource(source: AutosaveSource): boolean {
+  hydrateFromLocalStorageIfNeeded();
   return getRowIdsForSource(source).length > 0;
 }
 
 export function clearAutosaveIndexForTests(): void {
+  hydrateFromLocalStorageIfNeeded();
+
   getAllRowIdsByRecency().forEach((rowId) => {
     store.delRow(AUTOSAVES_TABLE_ID, rowId);
   });
+
+  if (canUseLocalStorage()) {
+    try {
+      window.localStorage.removeItem(AUTOSAVE_INDEX_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+  }
 }

@@ -18,12 +18,13 @@
  */
 
 import React from 'react';
-import './_outlinertitle.scss';
 
 const OutlinerTitle: React.FC = () => {
   return (
-    <div className="outliner-title">
-      <div className="outliner-title-name">Outliner</div>
+    <div className="outliner-title flex h-[36px] items-center whitespace-nowrap px-[10px]">
+      <div className="outliner-title-name inline-block font-['Nunito_Sans'] text-[12px] font-bold uppercase tracking-[0.03em] text-editor-text-primary">
+        Outliner
+      </div>
     </div>
   );
 };

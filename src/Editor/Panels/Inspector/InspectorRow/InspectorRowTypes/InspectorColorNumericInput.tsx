@@ -21,8 +21,6 @@ import React from 'react';
 
 import InspectorInput from 'Editor/Panels/Inspector/InspectorRow/InspectorInput/InspectorInput';
 
-import '../_inspectorrow.scss';
-
 interface InspectorColorNumericInputProps {
   tooltip1: string;
   tooltip2: string;
@@ -57,14 +55,17 @@ const InspectorColorNumericInput: React.FC<InspectorColorNumericInputProps> = ({
   const idLabel2 = tooltip2.replace(/\s+/g, '-').toLowerCase();
 
   return (
-    <div className="inspector-row">
+    <div className="inspector-row mb-[4px] flex h-[26px] w-full flex-row last:mb-0">
       {/* Identifier1 */}
-      <label htmlFor={`${idLabel1}-input`} className="inspector-row-identifier">
+      <label
+        htmlFor={`${idLabel1}-input`}
+        className="inspector-row-identifier mt-[3px] flex h-full w-[30%] max-w-[30%] flex-col overflow-hidden whitespace-nowrap px-[1.5%] text-right text-[14px] font-bold text-white first:pl-0"
+      >
         {tooltip1}
       </label>
 
       {/* Input1 */}
-      <div className="inspector-small-input-container">
+      <div className="inspector-small-input-container flex h-[90%] w-[20%] min-w-[30px] flex-col items-center pl-[1.5%] last:pr-0">
         <InspectorInput
           inputProps={{ id: `${idLabel1}-input` }}
           input={{
@@ -83,12 +84,15 @@ const InspectorColorNumericInput: React.FC<InspectorColorNumericInputProps> = ({
       </div>
 
       {/* Identifier2 */}
-      <label htmlFor={`${idLabel2}-${tooltip2}-input`} className="inspector-row-identifier">
+      <label
+        htmlFor={`${idLabel2}-${tooltip2}-input`}
+        className="inspector-row-identifier mt-[3px] flex h-full w-[30%] max-w-[30%] flex-col overflow-hidden whitespace-nowrap px-[1.5%] text-right text-[14px] font-bold text-white first:pl-0"
+      >
         {tooltip2}
       </label>
 
       {/* Input2 */}
-      <div className="inspector-small-input-container">
+      <div className="inspector-small-input-container flex h-[90%] w-[20%] min-w-[30px] flex-col items-center pl-[1.5%] last:pr-0">
         <InspectorInput
           inputProps={{ id: `${idLabel2}-${tooltip2}-input` }}
           input={{

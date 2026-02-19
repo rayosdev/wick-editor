@@ -17,10 +17,10 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useState } from 'react';
-import { Popover } from 'reactstrap';
+import { useRef, useState } from 'react';
 import WickColorPicker  from 'Editor/Util/ColorPicker/WickColorPicker';
 import classNames from "classnames";
+import WickPopover from "Editor/Util/WickPopover/WickPopover";
 
 export interface PickerColorRGB {
   r: number;
@@ -55,6 +55,28 @@ interface ColorPickerProps {
   lastColorsUsed?: string[];
 }
 
+type WickPopoverPosition = "left" | "right" | "top" | "bottom";
+type WickPopoverAlign = "start" | "center" | "end";
+
+function mapPopoverPlacement(
+  placement: ColorPickerProps["placement"]
+): { positions: WickPopoverPosition[]; align: WickPopoverAlign } {
+  if (!placement || placement === "auto") {
+    return { positions: ["bottom", "right", "top", "left"], align: "center" };
+  }
+
+  const [positionRaw = "", alignRaw = ""] = placement.split("-");
+  const position = ["top", "right", "bottom", "left"].includes(positionRaw)
+    ? (positionRaw as WickPopoverPosition)
+    : "bottom";
+  const align = alignRaw === "start" || alignRaw === "end" ? alignRaw : "center";
+
+  const fallbackOrder: WickPopoverPosition[] = ["bottom", "right", "top", "left"];
+  const positions = [position, ...fallbackOrder.filter((item) => item !== position)];
+
+  return { positions, align };
+}
+
 /**
  * ColorPicker - A button component that opens a Popover containing a color picker.
  * @param props - Component props
@@ -62,18 +84,33 @@ interface ColorPickerProps {
  */
 export default function ColorPicker (props: ColorPickerProps): JSX.Element {
   const [open, setOpen] = useState<boolean>(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   let color = props.color ? props.color : new window.Wick.Color("#FFFFFF")
   const colorString = typeof color === "string" ? color : color.rgba ?? color.toString();
   let itemID = props.id;
   let popoverID = itemID+'-popover';
+  const placement = mapPopoverPlacement(props.placement);
 
   function toggle (): void {
-    if (!open) {
-      setTimeout(selectPopover, 200);
+    setOpen((prevOpen) => {
+      if (!prevOpen) {
+        setTimeout(selectPopover, 200);
+      }
+
+      return !prevOpen;
+    });
+  }
+
+  function handleClickOutside (event: MouseEvent): void {
+    const clickNode = event.target as Node | null;
+    if (clickNode && buttonRef.current?.contains(clickNode)) {
+      return;
     }
 
-    setOpen(!open)
+    if (open) {
+      setOpen(false);
+    }
   }
 
   function selectPopover (): void {
@@ -84,7 +121,29 @@ export default function ColorPicker (props: ColorPickerProps): JSX.Element {
   }
 
   return (
+      <WickPopover
+        isOpen={open}
+        targetElement={buttonRef.current}
+        positions={placement.positions}
+        align={placement.align}
+        onClickOutside={handleClickOutside}
+        content={
+          <div tabIndex={-1} id={popoverID} className="popover wick-color-picker-popover">
+            <div className="popover-body">
+              <WickColorPicker
+                toggle={toggle}
+                colorPickerType={props.colorPickerType}
+                changeColorPickerType={props.changeColorPickerType}
+                disableAlpha={props.disableAlpha}
+                color={color}
+                onChangeComplete={props.onChangeComplete}
+                lastColorsUsed={props.lastColorsUsed}
+              />
+            </div>
+          </div>
+        }>
       <button
+        ref={buttonRef}
         className={classNames(
           "btn-color-picker !box-border flex !h-full !w-full !rounded-[16px] !border-4 !border-editor-text-secondary",
           props.className
@@ -94,26 +153,7 @@ export default function ColorPicker (props: ColorPickerProps): JSX.Element {
         onClick={toggle}
         style={props.stroke ? {borderColor: colorString} : {backgroundColor: colorString}}
         >
-          <Popover
-            tabIndex={-1}
-            id={popoverID}
-            placement={props.placement}
-            isOpen={open}
-            toggle={toggle}
-            target={itemID}
-            boundariesElement="clippingParents"
-            fade={false}
-            transition={{ timeout: 150 }}>
-            <WickColorPicker
-              toggle={toggle}
-              colorPickerType={props.colorPickerType}
-              changeColorPickerType={props.changeColorPickerType}
-              disableAlpha={props.disableAlpha}
-              color={color}
-              onChangeComplete={props.onChangeComplete}
-              lastColorsUsed={props.lastColorsUsed}
-            />
-          </Popover>
       </button>
+      </WickPopover>
   )
 }

@@ -626,10 +626,24 @@ class Editor extends EditorCore {
 
   hidePreloader = () => {
     let preloader = window.document.getElementById("preloader");
+    if (!preloader) {
+      this.recenterCanvas();
+      this.project?.view?.render();
+      return;
+    }
+
     setTimeout(() => {
+      if (!preloader) {
+        return;
+      }
+
       preloader.style.opacity = "0";
       this.recenterCanvas(); // Recenter the canvas after reload;
       setTimeout(() => {
+        if (!preloader) {
+          return;
+        }
+
         preloader.style.display = "none";
         preloader.remove();
       }, 500);
@@ -641,6 +655,10 @@ class Editor extends EditorCore {
     window.clearTimeout(this._showWaitOverlayTimeoutID);
     this._showWaitOverlayTimeoutID = window.setTimeout(() => {
       let waitOverlay = window.document.getElementById("wait-overlay");
+      if (!waitOverlay) {
+        return;
+      }
+
       waitOverlay.innerHTML = message || "Please wait...";
       waitOverlay.style.display = "block";
     }, 250);
@@ -649,6 +667,10 @@ class Editor extends EditorCore {
   hideWaitOverlay = () => {
     window.clearTimeout(this._showWaitOverlayTimeoutID);
     let waitOverlay = window.document.getElementById("wait-overlay");
+    if (!waitOverlay) {
+      return;
+    }
+
     waitOverlay.style.display = "none";
   };
 

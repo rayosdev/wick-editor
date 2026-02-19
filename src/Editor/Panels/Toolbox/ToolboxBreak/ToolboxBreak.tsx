@@ -19,8 +19,7 @@
  */
 
 import React from 'react';
-
-import './_toolboxbreak.scss';
+import classNames from "classnames";
 
 interface ToolboxBreakProps {
   vertical?: boolean;
@@ -31,8 +30,21 @@ const ToolboxBreak: React.FC<ToolboxBreakProps> = ({ vertical, className }) => {
   const breakClassName = vertical
     ? "toolbox-break-vertical"
     : className || "toolbox-break";
+  const classTokens = breakClassName.split(/\s+/).filter(Boolean);
+  const hasHorizontalClass = classTokens.includes("toolbox-break");
+  const hasVerticalClass = classTokens.includes("toolbox-break-vertical");
+  const hasMobileClass = classTokens.includes("mobile");
 
-  return <div className={breakClassName}></div>;
+  return (
+    <div
+      className={classNames(
+        breakClassName,
+        hasHorizontalClass && "h-[70%] w-[3px] min-w-[3px] bg-[#191919] mx-2",
+        hasHorizontalClass && hasMobileClass && "mx-1",
+        hasVerticalClass && "w-[25px] h-[3px] min-h-[3px] bg-[#191919] my-2"
+      )}
+    ></div>
+  );
 };
 
 export default ToolboxBreak;

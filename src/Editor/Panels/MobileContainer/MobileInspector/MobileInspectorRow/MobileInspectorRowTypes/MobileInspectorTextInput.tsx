@@ -53,7 +53,7 @@ const MobileInspectorTextInput: React.FC<MobileInspectorTextInputProps> = ({
       </label>
 
       {/* Input */}
-      <div className="inspector-large-input-container">
+      <div className="mobile-inspector-large-input-container">
         <MobileInspectorInput
           inputProps={{ id: inputId }}
           input={{

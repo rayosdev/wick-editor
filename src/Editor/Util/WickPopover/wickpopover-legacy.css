@@ -1,0 +1,15 @@
+.wick-popover-container {
+  z-index: 1200;
+}
+
+.wick-popover-content {
+  pointer-events: auto;
+}
+
+.wick-popover-anchor {
+  position: fixed;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}

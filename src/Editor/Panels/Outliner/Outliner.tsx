@@ -349,7 +349,12 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
 
     return (
         <div className={classNames("docked-pane outliner", className)} aria-label="Outliner">
-            <div className="outliner-title-container">
+            <div
+                className={classNames(
+                    "outliner-title-container",
+                    "relative z-0 flex items-center justify-between pr-2 shadow-[0px_2px_4px_black]"
+                )}
+            >
                 <OutlinerTitle />
                 <OutlinerFilterMenu
                     display={display}

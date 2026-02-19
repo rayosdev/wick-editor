@@ -18,10 +18,10 @@
  */
 
 import React, { ReactNode } from "react";
-import { Popover } from "reactstrap";
 import "./popupmenu-legacy.css";
 
 import classNames from "classnames";
+import WickPopover from "Editor/Util/WickPopover/WickPopover";
 
 interface PopupMenuProps {
   isOpen: boolean;
@@ -51,31 +51,46 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
   const isToolSettingsPresets = classTokens.has("tool-settings-presets-menu-popover");
   const isCanvasActions = classTokens.has("canvas-actions-menu-popover");
 
+  const handleClickOutside = (event: MouseEvent) => {
+    const clickNode = event.target as Node | null;
+    const targetElement = document.getElementById(target);
+    if (clickNode && targetElement?.contains(clickNode)) {
+      return;
+    }
+
+    if (isOpen) {
+      toggle();
+    }
+  };
+
+  const popoverClassName = classNames(
+    "popover popup-menu-popover !border-0 !bg-transparent",
+    mobile && "!max-w-[calc(100vw-16px)]",
+    !mobile && !isToolSelector && !isToolSettings && !isCanvasActions && "!max-w-[560px]",
+    !mobile && isToolSelector && isDesktop && "!max-w-[260px]",
+    !mobile && isToolSelector && !isDesktop && "!max-w-[220px]",
+    !mobile && isToolSettings && !isToolSettingsPresets && "!max-w-[220px]",
+    !mobile && isToolSettingsPresets && "!max-w-[280px]",
+    !mobile && isCanvasActions && "!max-w-[620px]",
+    mobile && "mobile",
+    className
+  );
+
   return (
-    <Popover
-      placement="bottom"
+    <WickPopover
       isOpen={isOpen}
-      toggle={toggle}
-      target={target}
-      className={classNames(
-        "popup-menu-popover !border-0 !bg-transparent",
-        mobile && "!max-w-[calc(100vw-16px)]",
-        !mobile && !isToolSelector && !isToolSettings && !isCanvasActions && "!max-w-[560px]",
-        !mobile && isToolSelector && isDesktop && "!max-w-[260px]",
-        !mobile && isToolSelector && !isDesktop && "!max-w-[220px]",
-        !mobile && isToolSettings && !isToolSettingsPresets && "!max-w-[220px]",
-        !mobile && isToolSettingsPresets && "!max-w-[280px]",
-        !mobile && isCanvasActions && "!max-w-[620px]",
-        mobile && "mobile",
-        className
-      )}
-      fade={false}
-      transition={{ timeout: 150 }}
-      trigger="legacy"
-      rootClose
+      targetId={target}
+      positions={["bottom", "top"]}
+      align="start"
+      onClickOutside={handleClickOutside}
+      content={
+        <div className={popoverClassName}>
+          <div className="popover-body">{children}</div>
+        </div>
+      }
     >
-      {children}
-    </Popover>
+      <span className="wick-popover-anchor" aria-hidden />
+    </WickPopover>
   );
 };
 
