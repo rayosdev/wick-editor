@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2026.2.18.16.49.39";
+  var WICK_ENGINE_BUILD_VERSION = "2026.2.23.17.28.59";
   (function() {
 
     var _a;
@@ -41470,11 +41470,11 @@
         if (selection.location === "Canvas") {
           if (selection.numObjects === 1) {
             var selectedObject = selection.getSelectedObject();
-            if (selectedObject instanceof window.Wick.Path) {
+            if (selectedObject.classname === "Path") {
               return selectedObject.pathType;
-            } else if (selectedObject instanceof window.Wick.Button) {
+            } else if (selectedObject.classname === "Button") {
               return "button";
-            } else if (selectedObject instanceof window.Wick.Clip) {
+            } else if (selectedObject.classname === "Clip") {
               return "clip";
             }
           } else if (selection.types.length === 1) {
@@ -41488,30 +41488,33 @@
           }
         } else if (selection.location === "Timeline") {
           if (selection.numObjects === 1) {
-            if (selection.getSelectedObject() instanceof window.Wick.Frame) {
+            var selectedObj = selection.getSelectedObject();
+            if (selectedObj.classname === "Frame") {
               return "frame";
-            } else if (selection.getSelectedObject() instanceof window.Wick.Layer) {
+            } else if (selectedObj.classname === "Layer") {
               return "layer";
-            } else if (selection.getSelectedObject() instanceof window.Wick.Tween) {
+            } else if (selectedObj.classname === "Tween") {
               return "tween";
             }
           } else if (selection.types.length === 1) {
-            if (selection.getSelectedObjects()[0] instanceof window.Wick.Frame) {
+            var firstObj = selection.getSelectedObjects()[0];
+            if (firstObj.classname === "Frame") {
               return "multiframe";
-            } else if (selection.getSelectedObjects()[0] instanceof window.Wick.Layer) {
+            } else if (firstObj.classname === "Layer") {
               return "multilayer";
-            } else if (selection.getSelectedObjects()[0] instanceof window.Wick.Tween) {
+            } else if (firstObj.classname === "Tween") {
               return "multitween";
             }
           } else {
             return "multitimeline";
           }
         } else if (selection.location === "AssetLibrary") {
-          if (selection.getSelectedObjects()[0] instanceof window.Wick.ImageAsset) {
+          var firstAsset = selection.getSelectedObjects()[0];
+          if (firstAsset.classname === "ImageAsset") {
             return "imageasset";
-          } else if (selection.getSelectedObjects()[0] instanceof window.Wick.SoundAsset) {
+          } else if (firstAsset.classname === "SoundAsset") {
             return "soundasset";
-          } else if (selection.getSelectedObjects()[0] instanceof window.Wick.SVGAsset) {
+          } else if (firstAsset.classname === "SVGAsset") {
             return "svgasset";
           } else {
             return "multiassetmixed";
@@ -42008,13 +42011,15 @@
         return result;
       }
       _locationOf(object) {
-        if (object instanceof Wick.Frame || object instanceof Wick.Tween || object instanceof Wick.Layer) {
+        if (!object) return null;
+        if (["Frame", "Tween", "Layer"].includes(object.classname)) {
           return "Timeline";
-        } else if (object instanceof Wick.Asset) {
+        } else if (["Asset", "ImageAsset", "SoundAsset", "SVGAsset"].includes(object.classname)) {
           return "AssetLibrary";
-        } else if (object instanceof Wick.Path || object instanceof Wick.Clip) {
+        } else if (["Path", "Clip", "Button"].includes(object.classname)) {
           return "Canvas";
         }
+        return "unknown";
       }
       /* Helper function: Calculate the selection x,y */
       _resetPositioningValues() {
