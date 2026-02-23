@@ -1936,6 +1936,11 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         return;
       }
 
+      const eventTarget = event.target as HTMLElement | null;
+      if (eventTarget?.closest(".timeline-unified-layer-controls")) {
+        return;
+      }
+
       if (event.pointerType === "touch") {
         clearLongPressTimer();
         longPressTriggeredRef.current = false;
@@ -2002,7 +2007,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       const gridRect = gridElem?.getBoundingClientRect();
       const pointerLocalX =
         gridElem && gridRect
-          ? event.clientX - gridRect.left + gridElem.scrollLeft - 210
+          ? event.clientX - gridRect.left + gridElem.scrollLeft - LAYER_PANEL_WIDTH_PX
           : location.col * cellWidth + cellWidth / 2;
       const pointerXInFrame = pointerLocalX - frameLeftPx;
 
@@ -2421,7 +2426,13 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       onKeyDownCapture={handleMarkerNavigationHotkeys}
     >
       {props.isOver && <div className="drag-drop-overlay" />}
-      <div className={`timeline-flash-shell timeline-dom-shell timeline-density-${props.timelineDensityMode}`}>
+      <div
+        className={`timeline-flash-shell timeline-dom-shell timeline-density-${props.timelineDensityMode}`}
+        style={{
+          ["--timeline-cell-width" as string]: `${cellWidth}px`,
+          ["--timeline-cell-height" as string]: `${cellHeight}px`,
+        }}
+      >
         <div className="timeline-flash-header">
           <div className="timeline-flash-breadcrumb">
             {isNestedTimeline && (

@@ -889,6 +889,7 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 
 .timeline-dom-frame {
   position: absolute;
+  box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.05);
@@ -907,7 +908,7 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 .timeline-dom-frame::before {
   content: "";
   position: absolute;
-  left: 7px;
+  left: calc((var(--timeline-cell-width) / 2) - (var(--timeline-keyframe-glyph-size) / 2));
   top: 50%;
   width: var(--timeline-keyframe-glyph-size);
   height: var(--timeline-keyframe-glyph-size);
@@ -951,8 +952,8 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   border-color: rgba(118, 189, 255, 0.4);
   background: linear-gradient(
     to right,
-    rgba(118, 189, 255, 0.34) 0 22px,
-    rgba(118, 189, 255, 0.14) 22px 100%
+    rgba(118, 189, 255, 0.34) 0 calc(var(--timeline-cell-width) - 1px),
+    rgba(118, 189, 255, 0.14) calc(var(--timeline-cell-width) - 1px) 100%
   );
 }
 
@@ -966,8 +967,8 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   border-color: rgba(255, 255, 255, 0.28);
   background: linear-gradient(
     to right,
-    rgba(255, 255, 255, 0.14) 0 22px,
-    rgba(255, 255, 255, 0.05) 22px 100%
+    rgba(255, 255, 255, 0.14) 0 calc(var(--timeline-cell-width) - 1px),
+    rgba(255, 255, 255, 0.05) calc(var(--timeline-cell-width) - 1px) 100%
   );
 }
 
@@ -1018,6 +1019,7 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 
 .timeline-dom-tween {
   position: absolute;
+  box-sizing: border-box;
   top: 50%;
   width: 14px;
   height: 14px;

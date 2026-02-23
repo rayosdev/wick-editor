@@ -54,7 +54,12 @@ const DISALLOWED_SCSS_FILES = new Set([
   "src/Editor/Panels/Inspector/InspectorRow/InspectorInput/_inspectorinput.scss",
   "src/Editor/Panels/OutlinerExpandButton/_outlinerexpandbutton.scss",
   "src/Editor/Panels/Outliner/OutlinerTitle/_outlinertitle.scss",
+  "src/Editor/Panels/Outliner/OutlinerName/_outlinername.scss",
+  "src/Editor/Panels/Outliner/OutlinerObject/OutlinerDropdown/_outlinerdropdown.scss",
+  "src/Editor/Panels/Outliner/OutlinerRow/_outlinerrow.scss",
+  "src/Editor/Panels/Outliner/OutlinerFilterMenu/_outlinerfiltermenu.scss",
   "src/Editor/Panels/Toolbox/ToolboxBreak/_toolboxbreak.scss",
+  "src/Editor/Panels/Toolbox/ToolButton/_toolbutton.scss",
   "src/Editor/Panels/MobileContainer/MobileInspector/MobileInpsectorTabbedInterface/_mobileinspectortabbedinterface.scss",
 ]);
 

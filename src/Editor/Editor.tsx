@@ -241,7 +241,7 @@ class Editor extends EditorCore {
 
     // Init actions
     this.actionMapInterface = new ActionMapInterface(
-      this as unknown as ConstructorParameters<typeof ActionMapInterface>[0]
+      this as ConstructorParameters<typeof ActionMapInterface>[0]
     );
 
     // Init Script Info

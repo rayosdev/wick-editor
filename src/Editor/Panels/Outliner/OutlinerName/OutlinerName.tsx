@@ -1,6 +1,5 @@
 import React from 'react';
-
-import './_outlinername.scss';
+import classNames from "classnames";
 
 interface OutlinerNameProps {
   type: string;
@@ -8,8 +7,16 @@ interface OutlinerNameProps {
 }
 
 const OutlinerName: React.FC<OutlinerNameProps> = ({ type, name }) => {
+  const typeClassName = `outliner-name-${type}`;
+  const isKnownType = type === "layer" || type === "frame" || type === "object";
+
   return (
-    <div className={`outliner-name-${type}`}>
+    <div
+      className={classNames(
+        typeClassName,
+        isKnownType && "inline-block"
+      )}
+    >
       {name}
     </div>
   );

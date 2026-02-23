@@ -36,6 +36,15 @@ module.exports = {
       fontFamily: {
         nunito: ["Nunito Sans", "sans-serif"],
       },
+      keyframes: {
+        "outliner-dropdown-rotate": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(90deg)" },
+        },
+      },
+      animation: {
+        "outliner-dropdown-rotate": "outliner-dropdown-rotate 75ms ease-in forwards",
+      },
     },
   },
   plugins: [

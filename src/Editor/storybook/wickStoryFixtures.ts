@@ -1160,6 +1160,23 @@ export function createToolboxStoryArgs(): StoryArgs {
   };
 }
 
+export function createToolSettingsInputStoryArgs(): StoryArgs {
+  return {
+    type: "numeric",
+    name: "Brush Size",
+    value: 12,
+    icon: "brush",
+    onChange: noop,
+    inputRestrictions: {
+      min: 1,
+      max: 100,
+      step: 1,
+    },
+    isMobile: false,
+    renderSize: "large",
+  };
+}
+
 export function createToolButtonStoryArgs(): StoryArgs {
   return {
     name: "cursor",
@@ -1306,6 +1323,7 @@ const dynamicStoryArgsFactories: Record<string, () => StoryArgs> = {
   ScriptWindowRow: createScriptWindowRowStoryArgs,
   Timeline: createTimelineStoryArgs,
   ToolButton: createToolButtonStoryArgs,
+  ToolSettingsInput: createToolSettingsInputStoryArgs,
   Toolbox: createToolboxStoryArgs,
   WickCodeEditor: createWickCodeEditorStoryArgs,
   WickSwatch: createWickSwatchStoryArgs,

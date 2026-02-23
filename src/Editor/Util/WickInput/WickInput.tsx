@@ -199,6 +199,8 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
         const rgb = color.rgb;
         const str = `rgba(${rgb.r},${rgb.g},${rgb.b},${rgb.a})`;
         newColor = str;
+      } else if (typeof color.hex === "string") {
+        newColor = color.hex;
       }
 
       props.updateLastColors &&

@@ -31,7 +31,6 @@ import type {
   WickFrame,
   WickPath,
   WickTween,
-  WickLayer,
   CanvasObject,
   TimelineObject,
   ScriptableObject,
@@ -93,6 +92,7 @@ type BrowserFileAPI = {
 };
 
 type EditorDynamicValue = ReturnType<typeof JSON.parse>;
+const AUTOSAVE_PERF_LOG_KEY = "wickEditor_autosave_perf";
 
 function toAutosaveData(input: {
   projectData: unknown;
@@ -144,6 +144,43 @@ function chooseMostRecentAutosave(
   }
 
   return null;
+}
+
+function getPerfNowMs(): number {
+  if (typeof performance !== "undefined" && typeof performance.now === "function") {
+    return performance.now();
+  }
+
+  return Date.now();
+}
+
+function isAutosavePerfLoggingEnabled(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    const value = window.localStorage?.getItem(AUTOSAVE_PERF_LOG_KEY);
+    return value === "1" || value === "true";
+  } catch {
+    return false;
+  }
+}
+
+function logAutosavePerf(
+  event: string,
+  startMs: number,
+  details: Record<string, unknown> = {},
+): void {
+  if (!isAutosavePerfLoggingEnabled()) {
+    return;
+  }
+
+  const elapsedMs = Math.round((getPerfNowMs() - startMs) * 100) / 100;
+  console.debug("[AutosavePerf]", event, {
+    elapsedMs,
+    ...details,
+  });
 }
 
 class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
@@ -547,13 +584,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {object} target The object to insert into
    * @param {number} index The index to insert at
    */
-  moveSelection = (target: WickFrame | WickLayer, index: number): void => {
-    if (
-      this.project.moveSelection(
-        target as unknown as WickFrameEngine | WickLayerEngine,
-        index,
-      )
-    ) {
+  moveSelection = (
+    target: WickFrameEngine | WickLayerEngine,
+    index: number,
+  ): void => {
+    if (this.project.moveSelection(target, index)) {
       this.projectDidChange({ actionName: "Moved Selection" });
     }
   };
@@ -2036,13 +2071,89 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   };
 
   /**
+   * Resolves the latest autosave using Tinybase index metadata first.
+   * Returns null when index data is stale or unavailable.
+   */
+  getMostRecentAutosaveSourceFromIndex = async (): Promise<
+    | { source: "dexie"; autosave: AutosaveData }
+    | { source: "legacy"; autosave: AutosaveEntry }
+    | null
+  > => {
+    const perfStart = getPerfNowMs();
+    const indexedAutosave = ProjectStorage.getLatestIndexedAutosave();
+    if (!indexedAutosave) {
+      logAutosavePerf("resolve_from_index", perfStart, {
+        hit: false,
+        reason: "no_index_entry",
+      });
+      return null;
+    }
+
+    if (indexedAutosave.source === "dexie") {
+      const dexieAutosave = await ProjectStorage.getAutosaveByUUID(
+        indexedAutosave.uuid,
+      ).catch(() => null);
+
+      if (!dexieAutosave) {
+        logAutosavePerf("resolve_from_index", perfStart, {
+          hit: false,
+          reason: "stale_dexie_index",
+          uuid: indexedAutosave.uuid,
+        });
+        return null;
+      }
+
+      logAutosavePerf("resolve_from_index", perfStart, {
+        hit: true,
+        source: "dexie",
+        uuid: indexedAutosave.uuid,
+      });
+      return {
+        source: "dexie",
+        autosave: toAutosaveData(dexieAutosave),
+      };
+    }
+
+    const legacyAutosave = await this.getLegacyLatestAutosave();
+    if (!legacyAutosave || legacyAutosave.uuid !== indexedAutosave.uuid) {
+      logAutosavePerf("resolve_from_index", perfStart, {
+        hit: false,
+        reason: "stale_legacy_index",
+        uuid: indexedAutosave.uuid,
+      });
+      return null;
+    }
+
+    logAutosavePerf("resolve_from_index", perfStart, {
+      hit: true,
+      source: "legacy",
+      uuid: indexedAutosave.uuid,
+    });
+    return {
+      source: "legacy",
+      autosave: legacyAutosave,
+    };
+  };
+
+  /**
    * Resolves the most recent autosave source across Dexie and legacy stores.
+   * Uses Tinybase index metadata first, then falls back to cross-store scan.
    */
   getMostRecentAutosaveSource = async (): Promise<
     | { source: "dexie"; autosave: AutosaveData }
     | { source: "legacy"; autosave: AutosaveEntry }
     | { source: null; autosave: null }
   > => {
+    const perfStart = getPerfNowMs();
+    const indexedResult = await this.getMostRecentAutosaveSourceFromIndex();
+    if (indexedResult) {
+      logAutosavePerf("resolve_latest_source", perfStart, {
+        path: "index",
+        source: indexedResult.source,
+      });
+      return indexedResult;
+    }
+
     const [dexieAutosave, legacyAutosave] = await Promise.all([
       ProjectStorage.getLatestAutosave().catch(() => null),
       this.getLegacyLatestAutosave(),
@@ -2054,6 +2165,10 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     );
 
     if (selectedSource === "dexie" && dexieAutosave) {
+      logAutosavePerf("resolve_latest_source", perfStart, {
+        path: "fallback_scan",
+        source: "dexie",
+      });
       return {
         source: "dexie",
         autosave: toAutosaveData(dexieAutosave),
@@ -2061,12 +2176,20 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     }
 
     if (selectedSource === "legacy" && legacyAutosave) {
+      logAutosavePerf("resolve_latest_source", perfStart, {
+        path: "fallback_scan",
+        source: "legacy",
+      });
       return {
         source: "legacy",
         autosave: legacyAutosave,
       };
     }
 
+    logAutosavePerf("resolve_latest_source", perfStart, {
+      path: "fallback_scan",
+      source: null,
+    });
     return {
       source: null,
       autosave: null,
@@ -2196,9 +2319,14 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Attempts to load an autosaved project, preferring Dexie storage.
    */
   loadAutosavedProject = (callback: AutosaveCallback): void => {
+    const perfStart = getPerfNowMs();
     this.getMostRecentAutosaveSource()
       .then((result) => {
         if (result.source === null) {
+          logAutosavePerf("load_autosaved_project", perfStart, {
+            source: null,
+            loaded: false,
+          });
           callback();
           return;
         }
@@ -2211,6 +2339,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
             (project: WickProjectEngine) => {
               this.setupNewProject(project);
               this.hideWaitOverlay();
+              logAutosavePerf("load_autosaved_project", perfStart, {
+                source: "legacy",
+                loaded: true,
+                uuid: result.autosave.uuid,
+              });
               callback();
             },
           );
@@ -2222,11 +2355,21 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
           (project: WickProjectEngine) => {
             this.setupNewProject(project);
             this.hideWaitOverlay();
+            logAutosavePerf("load_autosaved_project", perfStart, {
+              source: "dexie",
+              loaded: true,
+              uuid: result.autosave.projectData.uuid,
+            });
             callback();
           },
         );
       })
-      .catch(() => {
+      .catch((error) => {
+        logAutosavePerf("load_autosaved_project", perfStart, {
+          source: "unknown",
+          loaded: false,
+          error: error instanceof Error ? error.message : "unknown",
+        });
         callback();
       });
   };
@@ -2236,29 +2379,64 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * True if an autosave exists.
    */
   doesAutoSavedProjectExist = (callback: (exists: boolean) => void): void => {
+    const fallbackCheck = () => {
+      ProjectStorage.getLatestAutosave()
+        .then((latestAutosave) => {
+          if (latestAutosave) {
+            callback(true);
+            return;
+          }
+
+          window.Wick.AutoSave.getAutosavesList(
+            (autosaveList: AutosaveEntry[]) => {
+              ProjectStorage.reconcileLegacyAutosaves(autosaveList);
+              callback(autosaveList.length > 0);
+            },
+          );
+        })
+        .catch(() => {
+          window.Wick.AutoSave.getAutosavesList(
+            (autosaveList: AutosaveEntry[]) => {
+              ProjectStorage.reconcileLegacyAutosaves(autosaveList);
+              callback(autosaveList.length > 0);
+            },
+          );
+        });
+    };
+
     const latestIndexedAutosave = ProjectStorage.getLatestIndexedAutosave();
-    if (latestIndexedAutosave) {
-      callback(true);
+    if (!latestIndexedAutosave) {
+      fallbackCheck();
       return;
     }
 
-    ProjectStorage.getLatestAutosave()
-      .then((latestAutosave) => {
-        if (latestAutosave) {
+    if (latestIndexedAutosave.source === "dexie") {
+      ProjectStorage.getAutosaveByUUID(latestIndexedAutosave.uuid)
+        .then((autosave) => {
+          if (autosave) {
+            callback(true);
+            return;
+          }
+
+          fallbackCheck();
+        })
+        .catch(() => {
+          fallbackCheck();
+        });
+      return;
+    }
+
+    this.getLegacyLatestAutosave()
+      .then((autosave) => {
+        if (autosave && autosave.uuid === latestIndexedAutosave.uuid) {
           callback(true);
           return;
         }
 
-        window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
-          ProjectStorage.reconcileLegacyAutosaves(autosaveList);
-          callback(autosaveList.length > 0);
-        });
+        fallbackCheck();
       })
       .catch(() => {
-        window.Wick.AutoSave.getAutosavesList((autosaveList: AutosaveEntry[]) => {
-          ProjectStorage.reconcileLegacyAutosaves(autosaveList);
-          callback(autosaveList.length > 0);
-        });
+        fallbackCheck();
       });
   };
 
@@ -2266,6 +2444,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Clears autosaved project data from both Dexie and legacy autosave stores.
    */
   clearAutoSavedProject = (callback: AutosaveCallback): void => {
+    const perfStart = getPerfNowMs();
+    let usedIndexedDexie = false;
+    let usedIndexedLegacy = false;
+    let deletedUUIDCount = 0;
+
     const clearCurrentProjectSnapshots = async () => {
       await ProjectStorage.clearCurrentProject().catch(() => {
         /* ignore */
@@ -2294,22 +2477,48 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         }
       });
 
-    Promise.all([
-      ProjectStorage.getLatestAutosave().catch(() => null),
-      this.getLegacyLatestAutosave().catch(() => null),
-    ])
-      .then(([latestDexieAutosave, latestLegacyAutosave]) => {
+    const resolveLatestDexieUUID = async (): Promise<string | null> => {
+      const indexedDexieAutosave =
+        ProjectStorage.getLatestIndexedAutosaveForSource("dexie");
+      if (indexedDexieAutosave?.uuid) {
+        usedIndexedDexie = true;
+        return indexedDexieAutosave.uuid;
+      }
+
+      const latestDexieAutosave = await ProjectStorage.getLatestAutosave().catch(
+        () => null,
+      );
+      return latestDexieAutosave?.uuid ?? null;
+    };
+
+    const resolveLatestLegacyUUID = async (): Promise<string | null> => {
+      const indexedLegacyAutosave =
+        ProjectStorage.getLatestIndexedAutosaveForSource("legacy");
+      if (indexedLegacyAutosave?.uuid) {
+        usedIndexedLegacy = true;
+        return indexedLegacyAutosave.uuid;
+      }
+
+      const latestLegacyAutosave = await this.getLegacyLatestAutosave().catch(
+        () => null,
+      );
+      return latestLegacyAutosave?.uuid ?? null;
+    };
+
+    Promise.all([resolveLatestDexieUUID(), resolveLatestLegacyUUID()])
+      .then(([latestDexieUUID, latestLegacyUUID]) => {
         const uuidsToDelete = new Set<string>();
-        if (latestDexieAutosave?.uuid) {
-          uuidsToDelete.add(latestDexieAutosave.uuid);
+        if (latestDexieUUID) {
+          uuidsToDelete.add(latestDexieUUID);
         }
-        if (latestLegacyAutosave?.uuid) {
-          uuidsToDelete.add(latestLegacyAutosave.uuid);
+        if (latestLegacyUUID) {
+          uuidsToDelete.add(latestLegacyUUID);
         }
 
         if (uuidsToDelete.size === 0 && this.project?.uuid) {
           uuidsToDelete.add(this.project.uuid);
         }
+        deletedUUIDCount = uuidsToDelete.size;
 
         return Promise.all(
           Array.from(uuidsToDelete).map((uuid) =>
@@ -2324,6 +2533,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       })
       .finally(() => {
         clearCurrentProjectSnapshots().finally(() => {
+          logAutosavePerf("clear_autosaved_project", perfStart, {
+            deletedUUIDCount,
+            usedIndexedDexie,
+            usedIndexedLegacy,
+          });
           callback();
         });
       });

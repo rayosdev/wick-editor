@@ -1,6 +1,5 @@
 import React from 'react';
-
-import './_outlinerdropdown.scss';
+import classNames from "classnames";
 
 import dropdownIcon from 'resources/outliner-icons/dropdown.svg';
 import emptyDropdownIcon from 'resources/outliner-icons/empty_dropdown.svg';
@@ -20,14 +19,24 @@ const OutlinerDropdown: React.FC<OutlinerDropdownProps> = ({
 
   return empty ? (
     <img
-      className="outliner-dropdown-icon empty"
+      className={classNames(
+        "outliner-dropdown-icon empty",
+        "relative z-[-1] ml-1 inline-block h-[15px] w-[15px] align-middle p-[4.5px]",
+        "transition-colors duration-150 ease-in-out has-hover:bg-transparent"
+      )}
       alt="dropdown-icon"
       src={emptyDropdownIcon}
     />
   ) : (
     <input
       type="image"
-      className={`outliner-dropdown-icon ${collapsedClass}`}
+      className={classNames(
+        "outliner-dropdown-icon",
+        collapsedClass,
+        "relative z-0 ml-1 h-[15px] w-[15px] align-middle",
+        "transition-colors duration-150 ease-in-out has-hover:bg-white/20",
+        !collapsed && "animate-outliner-dropdown-rotate"
+      )}
       alt="dropdown-icon"
       src={dropdownIcon}
       onClick={(e) => {

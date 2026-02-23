@@ -126,10 +126,12 @@ const prepareDomTimeline = async (page: Page): Promise<PreparedTimeline> => {
 
     const frameA = new Wick.Frame({ start: 1, end: 6, identifier: "A" });
     const frameA2 = new Wick.Frame({ start: 9, end: 10, identifier: "A2" });
+    const frameKey = new Wick.Frame({ start: 12, end: 12, identifier: "K" });
     const frameB = new Wick.Frame({ start: 3, end: 8, identifier: "B" });
 
     layerA.addFrame?.(frameA);
     layerA.addFrame?.(frameA2);
+    layerA.addFrame?.(frameKey);
     layerB.addFrame?.(frameB);
 
     const tween = new Wick.Tween({ playheadPosition: 2 });
@@ -237,6 +239,31 @@ const readPlayhead = async (page: Page): Promise<number> => {
   });
 };
 
+const readKeyframeGlyphAlignmentDelta = async (
+  page: Page,
+  selector: string,
+): Promise<number> => {
+  return page.evaluate((inputSelector) => {
+    const frame = document.querySelector(inputSelector) as HTMLElement | null;
+    if (!frame) {
+      return Number.POSITIVE_INFINITY;
+    }
+
+    const shell = frame.closest(".timeline-dom-shell") as HTMLElement | null;
+    const frameBefore = window.getComputedStyle(frame, "::before");
+    const glyphLeft = Number.parseFloat(frameBefore.left || "0");
+    const glyphSize = Number.parseFloat(frameBefore.width || "0");
+    const glyphCenter = glyphLeft + glyphSize / 2;
+
+    const cellWidth = shell
+      ? Number.parseFloat(window.getComputedStyle(shell).getPropertyValue("--timeline-cell-width") || "0")
+      : frame.getBoundingClientRect().width;
+    const expectedCenter = cellWidth / 2;
+
+    return Math.abs(glyphCenter - expectedCenter);
+  }, selector);
+};
+
 test.describe("Timeline DOM editing", () => {
   test("frame, tween, layer, and context-menu editing updates model", async ({ page }) => {
     await bootEditor(page);
@@ -321,6 +348,28 @@ test.describe("Timeline DOM editing", () => {
 
     await expect(page.locator('[data-timeline-renderer-mode="dom"]')).toBeVisible();
     await expect(page.locator("text=DOM timeline had an error and was switched to Classic.")).toHaveCount(0);
+
+    const optionsButton = page.getByRole("button", { name: "Options" });
+    await optionsButton.click();
+    await page
+      .getByRole("group", { name: "Timeline density mode" })
+      .getByRole("button", { name: "Standard" })
+      .click();
+    const keyframeDeltaStandard = await readKeyframeGlyphAlignmentDelta(
+      page,
+      ".timeline-dom-frame",
+    );
+    expect(keyframeDeltaStandard).toBeLessThanOrEqual(1.5);
+
+    await page
+      .getByRole("group", { name: "Timeline density mode" })
+      .getByRole("button", { name: "Compact" })
+      .click();
+    const keyframeDeltaCompact = await readKeyframeGlyphAlignmentDelta(
+      page,
+      ".timeline-dom-frame",
+    );
+    expect(keyframeDeltaCompact).toBeLessThanOrEqual(1.5);
 
     const firstFrame = page.locator(".timeline-dom-frame").first();
     await expect(firstFrame).toHaveAttribute(

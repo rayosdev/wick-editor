@@ -245,6 +245,25 @@ export class ProjectStorage {
     };
   }
 
+  static getLatestIndexedAutosaveForSource(
+    source: AutosaveSource,
+  ): {
+    source: AutosaveSource;
+    uuid: string;
+    lastModified: number;
+  } | null {
+    const latest = getLatestAutosaveIndexEntry(source);
+    if (!latest) {
+      return null;
+    }
+
+    return {
+      source: latest.source,
+      uuid: latest.uuid,
+      lastModified: latest.lastModified,
+    };
+  }
+
 }
 
 export default ProjectStorage;

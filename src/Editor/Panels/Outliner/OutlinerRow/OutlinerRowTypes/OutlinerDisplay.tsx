@@ -19,8 +19,6 @@
 
 import React from 'react';
 
-import '../_outlinerrow.scss'
-
 import OutlinerWidget from '../../OutlinerWidget/OutlinerWidget';
 
 interface DisplaySettings {
@@ -48,13 +46,13 @@ const OutlinerDisplay: React.FC<OutlinerDisplayProps> = ({ tooltip, display, onC
   };
 
   return (
-    <div className="outliner-row">
+    <div className="outliner-row mb-0 flex h-[26px] w-full items-center">
       {/* Identifier */}
-      <span className="outliner-row-identifier">
+      <span className="outliner-row-identifier mt-[3px] flex h-full w-[30%] max-w-[30%] items-center justify-center overflow-hidden whitespace-nowrap pl-0 pr-[1%] text-right text-[16px] font-bold text-editor-text-primary">
         {tooltip}
       </span>
       {/* Input */}
-      <span className="outliner-input-container">
+      <span className="outliner-input-container ml-1 flex h-[90%] w-[70%] items-center">
         {Object.keys(items).map((item) => {
           return (
             <OutlinerWidget

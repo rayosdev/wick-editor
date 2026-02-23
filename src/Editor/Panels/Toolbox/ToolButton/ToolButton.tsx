@@ -22,8 +22,6 @@ import HotKeyInterface from "Editor/hotKeyMap";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import type { HotKeyMap } from "Editor/types/hotkeys";
 
-import "./_toolbutton.scss";
-
 import classNames from "classnames";
 
 export interface ToolButtonProps {
@@ -74,7 +72,7 @@ const ToolButton: React.FC<ToolButtonProps> = ({
         tooltipPlace={tooltipPlace ? tooltipPlace : "bottom"}
         icon={name}
         className="tool-button-select"
-        iconClassName={classNames("tool-button-icon", iconClassName)}
+        iconClassName={classNames("tool-button-icon !h-[80%]", iconClassName)}
         dropdown={dropdown}
       />
     );
@@ -82,7 +80,7 @@ const ToolButton: React.FC<ToolButtonProps> = ({
 
   return (
     <div className={className || ""}>
-      <div className="tool-button-select-container">
+      <div className="tool-button-select-container h-[30px] w-[30px]">
         {renderSelectButton()}
       </div>
     </div>
