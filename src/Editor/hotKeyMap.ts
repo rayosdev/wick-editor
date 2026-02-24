@@ -380,6 +380,18 @@ class HotKeyInterface extends Object {
         name: "Open Project",
         sequences: ['meta+o'],
       },
+      'native-pass-through-c': {
+        name: "Native Pass Through C",
+        sequences: ['meta+shift+c'],
+      },
+      'native-pass-through-v': {
+        name: "Native Pass Through V",
+        sequences: ['meta+shift+v'],
+      },
+      'native-pass-through-x': {
+        name: "Native Pass Through X",
+        sequences: ['meta+shift+x'],
+      },
       'create-clip-from-selection': {
         name: "Create Clip from Selection",
         sequences: ['meta+g'],
@@ -587,6 +599,9 @@ class HotKeyInterface extends Object {
       'export-project-as-wick-file': this.editor.exportProjectAsWickFile,
       'export-project-to-new-window': this.editor.exportProjectToNewWindow,
       'import-project-as-wick-file': (() => console.log("Ctrl-O as a shortcut doesn't work yet.")),
+      'native-pass-through-c': (() => {}),
+      'native-pass-through-v': (() => {}),
+      'native-pass-through-x': (() => {}),
       'create-clip-from-selection': (() => this.editor.createClipFromSelection("", false)),
       'break-apart-selection': (() => this.editor.breakApartSelection()),
       'export-selection': this.editor.exportSelectedClip,
@@ -616,6 +631,10 @@ class HotKeyInterface extends Object {
     name: string,
     fn: (e: KeyboardEvent) => void
   ): void => {
+    if (name.startsWith('native-pass-through')) {
+      return;
+    }
+
     if(e.target && (e.target as HTMLElement).tagName !== 'INPUT' && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
       // If we are not on a text input area, use the hotkey's function
       e.preventDefault();
