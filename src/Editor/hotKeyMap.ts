@@ -300,7 +300,7 @@ class HotKeyInterface extends Object {
       },
       'cut-frame': {
         name: "Cut Frame",
-        sequences: ['shift+c'],
+        sequences: ['shift+x'],
       },
       'insert-blank-frame': {
         name: "Insert Blank Frame",

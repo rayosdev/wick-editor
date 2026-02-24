@@ -3445,7 +3445,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
           <div className="timeline-flash-footer-hint timeline-flash-footer-shortcuts">
             {props.timelineShortcutPreset === "flash"
               ? "Flash Keys: F5 Extend, F6 Keyframe, F7 Blank, Shift+F5 Shrink"
-              : "Wick Keys: Shift+. Extend, Shift+C Keyframe, Shift+8 Blank, Shift+, Shrink"}
+              : "Wick Keys: Shift+. Extend, Shift+X Keyframe, Shift+8 Blank, Shift+, Shrink"}
           </div>
         </div>
 
