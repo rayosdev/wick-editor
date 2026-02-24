@@ -944,17 +944,36 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
     selection.clear();
 
-    layers.forEach((layer, layerIndex) => {
-      if (layerIndex < startRow || layerIndex > endRow) {
-        return;
-      }
+    const noMovement = startCol === endCol && startRow === endRow;
 
-      layer.frames.forEach((frame) => {
-        if (frameInRange(frame, startCol + 1, endCol + 1)) {
-          selection.select(frame);
+    if (noMovement) {
+      const clickedLayer = layers[startRow];
+      if (clickedLayer) {
+        clickedLayer.activate?.();
+        const playheadPosition = endCol + 1;
+        setPlayhead(playheadPosition);
+
+        const newFrame = clickedLayer.insertBlankFrame?.(playheadPosition);
+        if (newFrame) {
+          selection.select(newFrame);
+          commitProjectChange("Insert Blank Frame");
+          requestRender();
+          return;
         }
+      }
+    } else {
+      layers.forEach((layer, layerIndex) => {
+        if (layerIndex < startRow || layerIndex > endRow) {
+          return;
+        }
+
+        layer.frames.forEach((frame) => {
+          if (frameInRange(frame, startCol + 1, endCol + 1)) {
+            selection.select(frame);
+          }
+        });
       });
-    });
+    }
 
     setPlayhead(endCol + 1);
     requestRender();
@@ -3071,14 +3090,24 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                           ) && Boolean(previewRow && dragPreview);
 
 
-                        const previewLeft =
-                          isDraggedFrame && dragPreview
-                            ? left + dragPreview.moveCols * cellWidth
-                            : left;
-                        const previewTop =
-                          isDraggedFrame && dragPreview
-                            ? dragPreview.moveRows * cellHeight
-                            : 0;
+                        let previewLeft = left;
+                        let previewTop = 0;
+                        let previewWidth = width;
+
+                        if (isDraggedFrame && dragPreview) {
+                          const mode = interactionRef.current?.mode;
+                          if (mode === "frame-move") {
+                            previewLeft = left + dragPreview.moveCols * cellWidth;
+                            previewTop = dragPreview.moveRows * cellHeight;
+                          } else if (mode === "frame-resize-left") {
+                            const deltaWidth = dragPreview.moveCols * cellWidth;
+                            previewLeft = left + deltaWidth;
+                            previewWidth = Math.max(cellWidth, width - deltaWidth);
+                          } else if (mode === "frame-resize-right") {
+                            const deltaWidth = dragPreview.moveCols * cellWidth;
+                            previewWidth = Math.max(cellWidth, width + deltaWidth);
+                          }
+                        }
 
                         return (
                           <div
@@ -3095,7 +3124,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                             style={{
                               left: `${previewLeft}px`,
                               top: `${previewTop}px`,
-                              width: `${width}px`,
+                              width: `${previewWidth}px`,
                               height: `${cellHeight - 2}px`,
                             }}
                             onPointerDown={(event) => {
