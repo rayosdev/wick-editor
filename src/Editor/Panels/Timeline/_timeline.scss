@@ -43,6 +43,13 @@ $timeline-grid-bg: $editor-secondary;
   /* overflow: hidden; Removed to fix potential clipping issues (e.g. popovers) */
   min-height: 0;
   position: relative;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+
+  img {
+    -webkit-user-drag: none;
+  }
 }
 
 .timeline-flash-shell {
