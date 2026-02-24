@@ -287,6 +287,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   const [contextMenuPosition, setContextMenuPosition] =
     useState<TimelineContextMenuPosition | null>(null);
   const [contextMenuTarget, setContextMenuTarget] = useState<TimelineContextTarget | null>(null);
+  const [doubleClickMenuContext, setDoubleClickMenuContext] = useState<{ layer: TimelineLayerLike; playheadPosition: number; label: string } | null>(null);
   const [dragPreview, setDragPreview] = useState<{ moveCols: number; moveRows: number } | null>(
     null,
   );
@@ -621,6 +622,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   };
 
   const closeContextMenu = (): void => {
+    setDoubleClickMenuContext(null);
     setContextMenuPosition(null);
     setContextMenuTarget(null);
   };
@@ -2029,6 +2031,30 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       if (!frame) {
         layer.activate?.();
         setPlayhead(location.playheadPosition);
+
+        const leftFrames = layer.frames.filter(
+          (f) => Number(f.start) < location.playheadPosition
+        );
+        let closestLeftFrame = null;
+        if (leftFrames.length > 0) {
+          leftFrames.sort((a, b) => Number(b.start) - Number(a.start));
+          closestLeftFrame = leftFrames[0];
+        }
+
+        const hasLeftTween =
+          closestLeftFrame &&
+          Array.isArray(closestLeftFrame.tweens) &&
+          closestLeftFrame.tweens.length > 0;
+
+        if (hasLeftTween) {
+          setDoubleClickMenuContext({
+            layer,
+            playheadPosition: location.playheadPosition,
+            label: `Create Keyframe at ${location.playheadPosition}`
+          });
+          setContextMenuPosition(clampContextMenuPosition(event.clientX, event.clientY));
+          return;
+        }
 
         const newFrame = layer.insertBlankFrame?.(location.playheadPosition);
         if (newFrame) {
@@ -3475,9 +3501,46 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             }}
           >
             <div className="timeline-context-menu-target">
-              {contextMenuTarget?.label ?? "Current Selection"}
+              {doubleClickMenuContext ? doubleClickMenuContext.label : (contextMenuTarget?.label ?? "Current Selection")}
             </div>
-            {timelineContextMenuItems.map((item) => (
+            {(doubleClickMenuContext ? [
+              {
+                id: "insert-blank-double-click",
+                label: "Insert Blank Keyframe",
+                icon: "create",
+                action: () => {
+                  closeContextMenu();
+                  const { layer, playheadPosition } = doubleClickMenuContext;
+                  layer.activate?.();
+                  setPlayhead(playheadPosition);
+                  const newFrame = layer.insertBlankFrame?.(playheadPosition);
+                  if (newFrame) {
+                    project?.selection?.clear?.();
+                    project?.selection?.select?.(newFrame);
+                    commitProjectChange("Insert Blank Frame");
+                    requestRender();
+                  }
+                },
+              },
+              {
+                id: "insert-tween-double-click",
+                label: "Insert Tween Keyframe",
+                icon: "layerTween",
+                action: () => {
+                  closeContextMenu();
+                  const { layer, playheadPosition } = doubleClickMenuContext;
+                  layer.activate?.();
+                  setPlayhead(playheadPosition);
+                  const newFrame = layer.insertBlankFrame?.(playheadPosition);
+                  if (newFrame) {
+                    project?.selection?.clear?.();
+                    project?.selection?.select?.(newFrame);
+                    props.addTweenKeyframe();
+                    requestRender();
+                  }
+                },
+              }
+            ] as unknown as TimelineContextMenuItem[] : timelineContextMenuItems).map((item) => (
               <button
                 key={item.id}
                 type="button"
