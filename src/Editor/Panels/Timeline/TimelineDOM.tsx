@@ -270,6 +270,7 @@ const clampContextMenuPosition = (
 const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   const workspaceRef = useRef<HTMLDivElement>(null);
   const unifiedGridCanvasRef = useRef<HTMLCanvasElement>(null);
+  const unifiedNumberLineCanvasRef = useRef<HTMLCanvasElement>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const interactionRef = useRef<InteractionState | null>(null);
   const selectionBoxRef = useRef<SelectionBox | null>(null);
@@ -1440,6 +1441,65 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   ]);
 
   useEffect(() => {
+    const canvas = unifiedNumberLineCanvasRef.current;
+    if (!canvas) return;
+
+    const cssWidth = Math.max(1, timelineLength * cellWidth);
+    const cssHeight = 34; // Set natively in SCSS
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+    const nextWidth = Math.round(cssWidth * dpr);
+    const nextHeight = Math.round(cssHeight * dpr);
+
+    if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
+      canvas.width = nextWidth;
+      canvas.height = nextHeight;
+    }
+
+    const ctx = canvas.getContext("2d", { alpha: false });
+    if (!ctx) return;
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = gridContrastMode === "strong" ? "#1A1A1A" : "#242424"; // editor-primary color
+    ctx.fillRect(0, 0, cssWidth, cssHeight);
+
+    ctx.fillStyle = "#A3A3A3"; // editor-secondary-text
+    ctx.font = '700 11px "Nunito Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1;
+
+    ctx.beginPath();
+    for (let i = 0; i < timelineLength; i++) {
+      const frameNumber = i + 1;
+      const x = i * cellWidth;
+      const isMajorTick = i === 0 || i % 10 === 9;
+      const highlight = i === 0 || i % 5 === 4;
+
+      if (isMajorTick) {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
+        ctx.fillRect(x + cellWidth - 1, 0, 1, cssHeight);
+      } else {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+        ctx.fillRect(x + cellWidth - 1, 0, 1, cssHeight);
+      }
+
+      if (frameSizeMode !== "small" || highlight) {
+        ctx.fillStyle = highlight ? "#E0E0E0" : "#A3A3A3";
+        ctx.fillText(String(frameNumber), x + cellWidth / 2, cssHeight / 2);
+      }
+    }
+
+  }, [
+    cellWidth,
+    timelineLength,
+    frameSizeMode,
+    gridContrastMode
+  ]);
+
+  useEffect(() => {
     requestRender();
   }, [props.timelineSoftRenderTick]);
 
@@ -1885,6 +1945,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     event: React.PointerEvent<HTMLDivElement>,
   ): void => {
     try {
+      event.stopPropagation();
       if (!activeTimeline || event.button !== 0) {
         return;
       }
@@ -1937,7 +1998,10 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       }
 
       const eventTarget = event.target as HTMLElement | null;
-      if (eventTarget?.closest(".timeline-unified-layer-controls")) {
+      if (
+        eventTarget?.closest(".timeline-unified-layer-controls") ||
+        eventTarget?.closest(".timeline-unified-header")
+      ) {
         return;
       }
 
@@ -2287,6 +2351,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     marker: TimelineMarker,
   ): void => {
     try {
+      event.stopPropagation();
       if (event.button !== 0) {
         return;
       }
@@ -2805,25 +2870,12 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 </div>
               </div>
               <div className="timeline-dom-numberline" onPointerDown={handleNumberLinePointerDown}>
-                {Array.from({ length: timelineLength }, (_, index) => {
-                  const frameNumber = index + 1;
-                  const isPlayhead = frameNumber === playheadPosition;
-                  const highlight = index === 0 || index % 5 === 4;
-                  const isMajorTick = index === 0 || index % 10 === 9;
-                  return (
-                    <button
-                      key={`frame-number-${frameNumber}`}
-                      type="button"
-                      className={`timeline-dom-numberline-cell ${highlight ? "highlight" : ""} ${isMajorTick ? "major" : ""
-                        } ${isPlayhead ? "playhead" : ""
-                        }`}
-                      style={{ width: `${cellWidth}px` }}
-                      onClick={() => setPlayhead(frameNumber)}
-                    >
-                      {frameSizeMode !== "small" || highlight ? frameNumber : ""}
-                    </button>
-                  );
-                })}
+                <canvas
+                  ref={unifiedNumberLineCanvasRef}
+                  className="timeline-unified-numberline-canvas"
+                  aria-hidden
+                  style={{ width: `${timelineLength * cellWidth}px`, height: '100%' }}
+                />
                 <div
                   className="timeline-dom-playhead-cap"
                   style={{ left: `${(playheadPosition - 1) * cellWidth + Math.floor(cellWidth / 2)}px` }}
