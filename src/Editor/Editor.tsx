@@ -168,7 +168,7 @@ class Editor extends EditorCore {
       popoutOutlinerSize: 250,
       outlinerPoppedOut: false,
       inspectorSize: 250,
-      timelineSize: 175,
+      timelineSize: 280,
       timelineRendererMode: "dom",
       timelineShortcutPreset: "wick",
       timelinePlaybackFollowMode: "follow-playhead",
@@ -421,7 +421,7 @@ class Editor extends EditorCore {
       .then((timelinePlaybackFollowMode) => {
         const normalizedMode =
           timelinePlaybackFollowMode === "off" ||
-          timelinePlaybackFollowMode === "follow-playhead"
+            timelinePlaybackFollowMode === "follow-playhead"
             ? timelinePlaybackFollowMode
             : "follow-playhead";
 
@@ -439,8 +439,8 @@ class Editor extends EditorCore {
       .then((timelineSnapMode) => {
         const normalizedMode =
           timelineSnapMode === "none" ||
-          timelineSnapMode === "markers" ||
-          timelineSnapMode === "frames"
+            timelineSnapMode === "markers" ||
+            timelineSnapMode === "frames"
             ? timelineSnapMode
             : "frames";
 
