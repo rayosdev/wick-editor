@@ -1220,72 +1220,82 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     }
   };
 
-  useEffect(() => {
-    const handlePointerMove = (event: PointerEvent) => {
-      try {
-        const interaction = interactionRef.current;
-        if (!interaction || interaction.pointerId !== event.pointerId) {
-          return;
-        }
+  const pointerHandlersRef = useRef({
+    handlePointerMove: (event: PointerEvent) => { },
+    handlePointerUp: (event: PointerEvent) => { },
+    handlePointerCancel: (event: PointerEvent) => { },
+  });
 
-        updateInteractionFromPointer(event.clientX, event.clientY);
-
-        if (longPressStartRef.current) {
-          const deltaX = Math.abs(event.clientX - longPressStartRef.current.x);
-          const deltaY = Math.abs(event.clientY - longPressStartRef.current.y);
-          if (deltaX > LONG_PRESS_CANCEL_DISTANCE_PX || deltaY > LONG_PRESS_CANCEL_DISTANCE_PX) {
-            clearLongPressTimer();
-            longPressStartRef.current = null;
-            setPressFeedback(null);
-          }
-        }
-      } catch (error) {
-        reportRendererError(error);
-      }
-    };
-
-    const handlePointerUp = (event: PointerEvent) => {
-      try {
-        const interaction = interactionRef.current;
-        if (!interaction || interaction.pointerId !== event.pointerId) {
-          return;
-        }
-
-        if (longPressTriggeredRef.current) {
-          longPressTriggeredRef.current = false;
-          resetInteraction();
-          return;
-        }
-
-        finishInteraction();
-        clearLongPressTimer();
-        longPressStartRef.current = null;
-        setPressFeedback(null);
-      } catch (error) {
-        reportRendererError(error);
-      }
-    };
-
-    const handlePointerCancel = (event: PointerEvent) => {
+  pointerHandlersRef.current.handlePointerMove = (event: PointerEvent) => {
+    try {
       const interaction = interactionRef.current;
       if (!interaction || interaction.pointerId !== event.pointerId) {
         return;
       }
 
+      updateInteractionFromPointer(event.clientX, event.clientY);
+
+      if (longPressStartRef.current) {
+        const deltaX = Math.abs(event.clientX - longPressStartRef.current.x);
+        const deltaY = Math.abs(event.clientY - longPressStartRef.current.y);
+        if (deltaX > LONG_PRESS_CANCEL_DISTANCE_PX || deltaY > LONG_PRESS_CANCEL_DISTANCE_PX) {
+          clearLongPressTimer();
+          longPressStartRef.current = null;
+          setPressFeedback(null);
+        }
+      }
+    } catch (error) {
+      reportRendererError(error);
+    }
+  };
+
+  pointerHandlersRef.current.handlePointerUp = (event: PointerEvent) => {
+    try {
+      const interaction = interactionRef.current;
+      if (!interaction || interaction.pointerId !== event.pointerId) {
+        return;
+      }
+
+      if (longPressTriggeredRef.current) {
+        longPressTriggeredRef.current = false;
+        resetInteraction();
+        return;
+      }
+
+      finishInteraction();
       clearLongPressTimer();
       longPressStartRef.current = null;
       setPressFeedback(null);
-      resetInteraction();
-    };
+    } catch (error) {
+      reportRendererError(error);
+    }
+  };
 
-    window.addEventListener("pointermove", handlePointerMove, true);
-    window.addEventListener("pointerup", handlePointerUp, true);
-    window.addEventListener("pointercancel", handlePointerCancel, true);
+  pointerHandlersRef.current.handlePointerCancel = (event: PointerEvent) => {
+    const interaction = interactionRef.current;
+    if (!interaction || interaction.pointerId !== event.pointerId) {
+      return;
+    }
+
+    clearLongPressTimer();
+    longPressStartRef.current = null;
+    setPressFeedback(null);
+    resetInteraction();
+  };
+
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => pointerHandlersRef.current.handlePointerMove(e);
+    const onUp = (e: PointerEvent) => pointerHandlersRef.current.handlePointerUp(e);
+    const onCancel = (e: PointerEvent) => pointerHandlersRef.current.handlePointerCancel(e);
+
+    window.addEventListener("pointermove", onMove, true);
+    window.addEventListener("pointerup", onUp, true);
+    window.addEventListener("pointercancel", onCancel, true);
 
     return () => {
-      window.removeEventListener("pointermove", handlePointerMove, true);
-      window.removeEventListener("pointerup", handlePointerUp, true);
-      window.removeEventListener("pointercancel", handlePointerCancel, true);
+      window.removeEventListener("pointermove", onMove, true);
+      window.removeEventListener("pointerup", onUp, true);
+      window.removeEventListener("pointercancel", onCancel, true);
     };
   }, []);
 
