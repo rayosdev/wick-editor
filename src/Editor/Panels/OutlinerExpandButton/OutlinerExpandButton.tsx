@@ -22,7 +22,8 @@ const OutlinerExpandButton: React.FC<OutlinerExpandButtonProps> = ({
       action={toggleOutliner}
       tooltipPlace="left"
       icon="outliner"
-      className="outliner-expand-button absolute right-0 top-[35px] h-[39px] w-[39px] !border-[4px] !border-black !border-r-0 rounded-l-[3px] bg-[#303030] !text-black transition-[background-color] duration-200 has-hover:bg-[#3B3B3B]"
+      containerClassName="outliner-expand-button absolute right-0 top-[35px] h-[39px] w-[39px] z-10"
+      className="!border-[4px] !border-black !border-r-0 rounded-l-[3px] bg-[#303030] !text-black transition-[background-color] duration-200 has-hover:bg-[#3B3B3B]"
       iconClassName={classNames("outliner-toggle-icon", {
         "outliner-expand-button-closed scale-x-[-1]": !expanded,
       })}

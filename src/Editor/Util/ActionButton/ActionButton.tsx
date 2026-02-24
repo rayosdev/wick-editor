@@ -43,6 +43,7 @@ interface ActionButtonProps {
   dropdown?: boolean;
   secondaryAction?: () => void;
   buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  containerClassName?: string;
 }
 
 const BUTTON_BASE_CLASSES =
@@ -260,6 +261,7 @@ export default function ActionButton(props: ActionButtonProps): JSX.Element {
 
   return (
     <WickInput
+      containerclassname={props.containerClassName}
       buttonProps={props.buttonProps}
       tooltip={getTooltip()}
       tooltipID={tooltipID}
