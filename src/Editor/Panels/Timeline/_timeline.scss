@@ -89,8 +89,8 @@ $timeline-grid-bg: $editor-secondary;
 .timeline-flash-header-actions {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 4px;
-  margin-left: auto;
   flex-shrink: 0;
 }
 
@@ -613,6 +613,10 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* Matches numberline */
   background-color: $editor-primary;
   z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 8px;
 }
 
 .timeline-dom-layers-scroll {

@@ -944,36 +944,17 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
     selection.clear();
 
-    const noMovement = startCol === endCol && startRow === endRow;
-
-    if (noMovement) {
-      const clickedLayer = layers[startRow];
-      if (clickedLayer) {
-        clickedLayer.activate?.();
-        const playheadPosition = endCol + 1;
-        setPlayhead(playheadPosition);
-
-        const newFrame = clickedLayer.insertBlankFrame?.(playheadPosition);
-        if (newFrame) {
-          selection.select(newFrame);
-          commitProjectChange("Insert Blank Frame");
-          requestRender();
-          return;
-        }
+    layers.forEach((layer, layerIndex) => {
+      if (layerIndex < startRow || layerIndex > endRow) {
+        return;
       }
-    } else {
-      layers.forEach((layer, layerIndex) => {
-        if (layerIndex < startRow || layerIndex > endRow) {
-          return;
-        }
 
-        layer.frames.forEach((frame) => {
-          if (frameInRange(frame, startCol + 1, endCol + 1)) {
-            selection.select(frame);
-          }
-        });
+      layer.frames.forEach((frame) => {
+        if (frameInRange(frame, startCol + 1, endCol + 1)) {
+          selection.select(frame);
+        }
       });
-    }
+    });
 
     setPlayhead(endCol + 1);
     requestRender();
@@ -2008,6 +1989,50 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     openContextMenu(event.clientX, event.clientY);
   };
 
+  const handleGridDoubleClick = (
+    event: React.MouseEvent<HTMLDivElement>,
+  ): void => {
+    try {
+      if (!activeTimeline || event.button !== 0) {
+        return;
+      }
+
+      const eventTarget = event.target as HTMLElement | null;
+      if (
+        eventTarget?.closest(".timeline-unified-layer-controls") ||
+        eventTarget?.closest(".timeline-unified-header")
+      ) {
+        return;
+      }
+
+      const location = resolveGridLocation(event.clientX, event.clientY);
+      if (!location) {
+        return;
+      }
+
+      const layer = layers[location.layerIndex];
+      if (!layer) {
+        return;
+      }
+      const frame = getFrameAtPlayhead(layer, location.playheadPosition);
+
+      if (!frame) {
+        layer.activate?.();
+        setPlayhead(location.playheadPosition);
+
+        const newFrame = layer.insertBlankFrame?.(location.playheadPosition);
+        if (newFrame) {
+          project?.selection?.clear?.();
+          project?.selection?.select?.(newFrame);
+          commitProjectChange("Insert Blank Frame");
+          requestRender();
+        }
+      }
+    } catch (error) {
+      reportRendererError(error);
+    }
+  };
+
   const handleGridPointerDown = (
     event: React.PointerEvent<HTMLDivElement>,
   ): void => {
@@ -2694,77 +2719,6 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               </div>
             </div>
           </div>
-          <div className="timeline-flash-header-actions" role="toolbar" aria-label="Timeline Actions">
-            <ActionButton
-              id="timeline-step-backward"
-              text="<"
-              color="tool"
-              tooltip="Previous Frame"
-              tooltipPlace="bottom"
-              className="timeline-flash-action-button timeline-flash-text-action"
-              action={() => {
-                props.movePlayheadBackwards();
-                requestRender();
-              }}
-            />
-            <ActionButton
-              id="timeline-step-forward"
-              text=">"
-              color="tool"
-              tooltip="Next Frame"
-              tooltipPlace="bottom"
-              className="timeline-flash-action-button timeline-flash-text-action"
-              action={() => {
-                props.movePlayheadForwards();
-                requestRender();
-              }}
-            />
-            <ActionButton
-              id="timeline-insert-keyframe"
-              icon="split"
-              color="tool"
-              tooltip="Insert Keyframe"
-              tooltipPlace="bottom"
-              className="timeline-flash-action-button"
-              action={props.cutFrame}
-            />
-            <ActionButton
-              id="timeline-insert-blank-keyframe"
-              icon="create"
-              color="tool"
-              tooltip="Insert Blank Keyframe"
-              tooltipPlace="bottom"
-              className="timeline-flash-action-button"
-              action={props.insertBlankFrame}
-            />
-            <ActionButton
-              id="timeline-add-tween-keyframe"
-              icon="layerTween"
-              color="tool"
-              tooltip="Add Tween Keyframe"
-              tooltipPlace="bottom"
-              className="timeline-flash-action-button"
-              action={props.addTweenKeyframe}
-            />
-            <ActionButton
-              id="timeline-create-tween"
-              icon="tween"
-              color="tool"
-              tooltip="Create Tween"
-              tooltipPlace="bottom"
-              className="timeline-flash-action-button"
-              action={props.createTween}
-            />
-            <ActionButton
-              id="timeline-delete-selection"
-              icon="delete"
-              color="tool"
-              tooltip="Delete Selected Frames/Objects"
-              tooltipPlace="bottom"
-              className="timeline-flash-action-button"
-              action={props.deleteSelectedObjects}
-            />
-          </div>
         </div>
 
         <div
@@ -2791,11 +2745,84 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
           }}
           onContextMenu={handleGridContextMenu}
           onPointerDown={handleGridPointerDown}
+          onDoubleClick={handleGridDoubleClick}
         >
           <div className="timeline-unified-header">
             <div className="timeline-unified-corner">
               <div className="timeline-dom-layers-header">Layers</div>
-              <div className="timeline-dom-layers-subheader" />
+              <div className="timeline-dom-layers-subheader">
+                <div className="timeline-flash-header-actions" role="toolbar" aria-label="Timeline Actions">
+                  <ActionButton
+                    id="timeline-step-backward"
+                    text="<"
+                    color="tool"
+                    tooltip="Previous Frame"
+                    tooltipPlace="bottom"
+                    className="timeline-flash-action-button timeline-flash-text-action"
+                    action={() => {
+                      props.movePlayheadBackwards();
+                      requestRender();
+                    }}
+                  />
+                  <ActionButton
+                    id="timeline-step-forward"
+                    text=">"
+                    color="tool"
+                    tooltip="Next Frame"
+                    tooltipPlace="bottom"
+                    className="timeline-flash-action-button timeline-flash-text-action"
+                    action={() => {
+                      props.movePlayheadForwards();
+                      requestRender();
+                    }}
+                  />
+                  <ActionButton
+                    id="timeline-insert-keyframe"
+                    icon="split"
+                    color="tool"
+                    tooltip="Insert Keyframe"
+                    tooltipPlace="bottom"
+                    className="timeline-flash-action-button"
+                    action={props.cutFrame}
+                  />
+                  <ActionButton
+                    id="timeline-insert-blank-keyframe"
+                    icon="create"
+                    color="tool"
+                    tooltip="Insert Blank Keyframe"
+                    tooltipPlace="bottom"
+                    className="timeline-flash-action-button"
+                    action={props.insertBlankFrame}
+                  />
+                  <ActionButton
+                    id="timeline-add-tween-keyframe"
+                    icon="layerTween"
+                    color="tool"
+                    tooltip="Add Tween Keyframe"
+                    tooltipPlace="bottom"
+                    className="timeline-flash-action-button"
+                    action={props.addTweenKeyframe}
+                  />
+                  <ActionButton
+                    id="timeline-create-tween"
+                    icon="tween"
+                    color="tool"
+                    tooltip="Create Tween"
+                    tooltipPlace="bottom"
+                    className="timeline-flash-action-button"
+                    action={props.createTween}
+                  />
+                  <ActionButton
+                    id="timeline-delete-selection"
+                    icon="delete"
+                    color="tool"
+                    tooltip="Delete Selected Frames/Objects"
+                    tooltipPlace="bottom"
+                    className="timeline-flash-action-button"
+                    action={props.deleteSelectedObjects}
+                  />
+                </div>
+              </div>
             </div>
             <div className="timeline-unified-ruler">
               <div className="timeline-dom-marker-row">
