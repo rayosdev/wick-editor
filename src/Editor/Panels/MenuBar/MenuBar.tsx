@@ -51,22 +51,21 @@ const MenuBar: FC<MenuBarProps> = ({
 
                 <MenuBarSupportButton
                     icon="redheart"
-                    text="support us"
+                    text="Support Us"
                     id="support-us-button"
                     action={() => openModal('SupportUs')}
                 />
             </div>
 
             <div
-                className="menu-bar-project-name mx-auto cursor-pointer text-[18px] text-white transition-all duration-[400ms]"
-                style={{ fontFamily: 'Nunito Sans' }}
+                className="menu-bar-project-name mx-auto cursor-pointer text-[18px] text-white transition-all duration-[400ms] font-nunito"
                 role="button"
                 onClick={() => openModal('SimpleProjectSettings')}
             >
                 {projectName}
             </div>
 
-            <div className="menu-bar-actions-container float-right flex h-full items-center text-[16px]" style={{ fontFamily: 'Nunito Sans' }}>
+            <div className="menu-bar-actions-container float-right flex h-full items-center text-[16px] font-nunito">
                 <MenuBarButton text="new" action={openNewProjectConfirmation} />
 
                 <MenuBarButton text="open" action={openProjectFileDialog} />
@@ -99,6 +98,7 @@ const MenuBar: FC<MenuBarProps> = ({
 
             <MenuBarSupportButton
                 icon="redheart"
+                text="Support Us"
                 id="support-us-button"
                 action={() => openModal('SupportUs')}
             />
@@ -106,13 +106,12 @@ const MenuBar: FC<MenuBarProps> = ({
             <div
                 role="button"
                 onClick={() => openModal('SimpleProjectSettings')}
-                className="menu-bar-project-name-mobile mx-auto text-center text-[18px] text-white transition-all duration-[400ms]"
-                style={{ fontFamily: 'Nunito Sans' }}
+                className="menu-bar-project-name-mobile mx-auto text-center text-[18px] text-white transition-all duration-[400ms] font-nunito"
             >
                 {projectName}
             </div>
 
-            <div className="menu-bar-actions-container float-right flex h-full items-center text-[16px]" style={{ fontFamily: 'Nunito Sans' }}>
+            <div className="menu-bar-actions-container float-right flex h-full items-center text-[16px] font-nunito">
                 <MenuBarButton
                     text="save"
                     action={exportProjectAsWickFile}

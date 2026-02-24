@@ -947,6 +947,10 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   border: 1px solid rgba(255, 255, 255, 0.82);
 }
 
+.timeline-dom-frame.has-start-tween::before {
+  display: none !important;
+}
+
 .timeline-dom-frame[data-frame-state="span-content"] {
   border-style: solid;
   border-color: rgba(118, 189, 255, 0.4);
@@ -1007,6 +1011,45 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   );
 }
 
+.timeline-dom-frame-resize-left,
+.timeline-dom-frame-resize-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  cursor: ew-resize;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.timeline-dom-frame-resize-left {
+  left: 0;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.1), transparent);
+}
+
+.timeline-dom-frame-resize-right {
+  right: 0;
+  background: linear-gradient(to left, rgba(255, 255, 255, 0.1), transparent);
+}
+
+.timeline-dom-frame-resize-left::after,
+.timeline-dom-frame-resize-right::after {
+  content: "";
+  height: 12px;
+  width: 2px;
+  border-left: 1px solid rgba(255, 255, 255, 0.7);
+  border-right: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.timeline-dom-frame:hover .timeline-dom-frame-resize-left,
+.timeline-dom-frame:hover .timeline-dom-frame-resize-right {
+  opacity: 1;
+}
+
 .timeline-dom-frame-label {
   max-width: 100%;
   overflow: hidden;
@@ -1021,13 +1064,21 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   position: absolute;
   box-sizing: border-box;
   top: 50%;
-  width: 14px;
-  height: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.48);
-  background: rgba(255, 255, 255, 0.22);
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  background: rgba(152, 214, 255, 0.6);
   transform: translateY(-50%) rotate(45deg);
-  border-radius: 2px;
+  border-radius: 1.5px;
   padding: 0;
+  transition: transform 0.1s ease, border-color 0.1s ease;
+  z-index: 2;
+}
+
+.timeline-dom-tween:hover {
+  transform: translateY(-50%) rotate(45deg) scale(1.15);
+  border-color: #ffffff;
+  background: rgba(152, 214, 255, 0.9);
 }
 
 .timeline-dom-tween::after {

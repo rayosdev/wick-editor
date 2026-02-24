@@ -2734,6 +2734,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     className="timeline-dom-work-area-handle timeline-dom-work-area-handle-start"
                     style={{ left: `${(workArea.start - 1) * cellWidth}px` }}
                     aria-label="Adjust work area start"
+                    title="Adjust work area start"
                     onPointerDown={(event) => handleWorkAreaHandlePointerDown(event, "work-area-start")}
                   />
                   <button
@@ -2741,6 +2742,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     className="timeline-dom-work-area-handle timeline-dom-work-area-handle-end"
                     style={{ left: `${workArea.end * cellWidth}px` }}
                     aria-label="Adjust work area end"
+                    title="Adjust work area end"
                     onPointerDown={(event) => handleWorkAreaHandlePointerDown(event, "work-area-end")}
                   />
                   {markers.map((marker) => (
@@ -2770,6 +2772,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     className="timeline-flash-footer-button"
                     onClick={handleAddMarker}
                     aria-label="Add marker at playhead"
+                    title="Add marker at playhead"
                   >
                     + Marker
                   </button>
@@ -2778,6 +2781,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     className="timeline-flash-footer-button"
                     onClick={() => jumpToMarker("previous")}
                     aria-label="Jump to previous marker"
+                    title="Jump to previous marker"
                   >
                     Prev Marker
                   </button>
@@ -2786,6 +2790,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     className="timeline-flash-footer-button"
                     onClick={() => jumpToMarker("next")}
                     aria-label="Jump to next marker"
+                    title="Jump to next marker"
                   >
                     Next Marker
                   </button>
@@ -2954,6 +2959,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                           commitProjectChange("Toggle Layer Hidden");
                         }}
                         aria-label={layer.hidden ? "Show Layer" : "Hide Layer"}
+                        title={layer.hidden ? "Show Layer" : "Hide Layer"}
                       >
                         <img src={layer.hidden ? iconHidden : iconShown} alt="" />
                       </button>
@@ -2966,6 +2972,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                           commitProjectChange("Toggle Layer Locked");
                         }}
                         aria-label={layer.locked ? "Unlock Layer" : "Lock Layer"}
+                        title={layer.locked ? "Unlock Layer" : "Lock Layer"}
                       >
                         <img src={layer.locked ? iconLock : iconUnlock} alt="" />
                       </button>
@@ -2974,6 +2981,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                         className="timeline-dom-layer-delete-button"
                         onClick={() => handleLayerDelete(layer)}
                         aria-label="Delete Layer"
+                        title="Delete Layer"
                       >
                         <img src={iconDelete} alt="" />
                       </button>
@@ -2994,6 +3002,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                         const frameLength = normalizeFrameLength(frame);
                         const frameVisualState = getFrameVisualState(frame);
                         const selected = isFrameSelected(frame);
+                        const hasStartTween = Array.isArray(frame.tweens) && frame.tweens.some((t) => Number(t.playheadPosition ?? 1) === frameStart);
                         const left = (frameStart - 1) * cellWidth;
                         const width = Math.max(cellWidth, frameLength * cellWidth - 1);
                         //const isDraggedFrame = // REMOVE THIS
@@ -3023,7 +3032,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                           <div
                             key={frame.uuid ?? `${layerIndex}-${frameStart}-${frameLength}`}
                             className={`timeline-dom-frame ${selected ? "selected" : ""} ${frame.contentful ? "contentful" : "blank"
-                              } ${isDraggedFrame ? "dragging" : ""} ${isDraggedFrame && dragCollisionMode
+                              } ${hasStartTween ? "has-start-tween" : ""} ${isDraggedFrame ? "dragging" : ""} ${isDraggedFrame && dragCollisionMode
                                 ? `drag-collision-${dragCollisionMode}`
                                 : ""
                               }`}
@@ -3059,17 +3068,23 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                             }}
                           >
                             <span className="timeline-dom-frame-label">{frame.identifier ?? ""}</span>
+                            <div className="timeline-dom-frame-resize-left" aria-hidden />
+                            <div className="timeline-dom-frame-resize-right" aria-hidden />
                             {Array.isArray(frame.tweens) &&
                               frame.tweens.map((tween) => {
-                                const tweenOffset = Number(tween.playheadPosition ?? 1) - 1;
+                                const absolutePos = Number(tween.playheadPosition ?? 1);
+                                const localOffset = absolutePos - frameStart;
+                                const isAtStart = localOffset === 0;
+
                                 return (
                                   <button
-                                    key={tween.uuid ?? `${frame.uuid}-tween-${tweenOffset}`}
+                                    key={tween.uuid ?? `${frame.uuid}-tween-${absolutePos}`}
                                     type="button"
-                                    className="timeline-dom-tween"
+                                    className={`timeline-dom-tween ${isAtStart ? "overlaps-keyframe" : ""}`}
                                     data-tween-state="tween-span"
                                     aria-label="Tween"
-                                    style={{ left: `${tweenOffset * cellWidth + cellWidth / 2 - 7}px` }}
+                                    title="Tween"
+                                    style={{ left: `${localOffset * cellWidth + cellWidth / 2 - 5}px` }}
                                     onPointerDown={(event) => handleTweenPointerDown(event, tween)}
                                   />
                                 );
@@ -3159,6 +3174,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               className="timeline-flash-footer-button"
               onClick={() => nudgeFps(-1)}
               aria-label="Decrease Framerate"
+              title="Decrease Framerate"
             >
               -
             </button>
@@ -3183,6 +3199,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               className="timeline-flash-footer-button"
               onClick={() => nudgeFps(1)}
               aria-label="Increase Framerate"
+              title="Increase Framerate"
             >
               +
             </button>
@@ -3278,6 +3295,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               }}
               placeholder="Frame"
               aria-label="Jump to frame"
+              title="Jump to frame"
             />
             <input
               className="timeline-flash-footer-input timeline-flash-footer-input-jump"
@@ -3292,6 +3310,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               }}
               placeholder="Layer name"
               aria-label="Jump to layer"
+              title="Jump to layer"
             />
           </div>
 

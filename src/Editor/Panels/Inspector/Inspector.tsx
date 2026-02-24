@@ -183,11 +183,17 @@ const Inspector: React.FC<InspectorProps> = (props) => {
                 <InspectorColorNumericInput
                     tooltip1="Fill"
                     tooltip2="Opacity"
-                    val1={fillColor?.toCSS?.() ?? "#000000"}
-                    onChange1={(col) => setSelectionAttribute("fillColor", col)}
+                    val1={typeof fillColor === "string" ? fillColor : fillColor?.toCSS?.() ?? "#000000"}
+                    onChange1={(col) => setSelectionAttribute("fillColor", new window.Wick.Color(col))}
                     id={"inspector-selection-fill-color"}
-                    val2={getSelectionAttribute("fillColorOpacity")}
-                    onChange2={(val) => setSelectionAttribute("fillColorOpacity", val)}
+                    val2={typeof fillColor === "string" ? 100 : Math.round((fillColor?.a ?? 1) * 100)}
+                    onChange2={(val) => {
+                        let c = typeof fillColor === "string" ? new window.Wick.Color(fillColor) : fillColor;
+                        if (c) {
+                            c.a = (val as number) / 100;
+                            setSelectionAttribute("fillColor", c);
+                        }
+                    }}
                     divider={false}
                     colorPickerType={props.colorPickerType}
                     changeColorPickerType={props.changeColorPickerType}
@@ -197,8 +203,8 @@ const Inspector: React.FC<InspectorProps> = (props) => {
                 <InspectorColorNumericInput
                     tooltip1="Stroke"
                     tooltip2="Weight"
-                    val1={strokeColor?.toCSS?.() ?? "#000000"}
-                    onChange1={(col) => setSelectionAttribute("strokeColor", col)}
+                    val1={typeof strokeColor === "string" ? strokeColor : strokeColor?.toCSS?.() ?? "#000000"}
+                    onChange1={(col) => setSelectionAttribute("strokeColor", new window.Wick.Color(col))}
                     id={"inspector-selection-stroke-color"}
                     stroke={true}
                     val2={getSelectionAttribute("strokeWidth")}

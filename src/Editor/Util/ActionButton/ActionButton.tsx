@@ -85,7 +85,7 @@ const COLOR_STYLE_CLASSES: Record<string, string> = {
   flame:
     "bg-[#F66A37] text-black text-[16px] has-hover:bg-[#FF7848] active:bg-[#E6460E]",
   support:
-    "flex flex-row items-center justify-center cursor-pointer bg-transparent border-2 border-[#E85B46] px-[6px] py-[2px] text-[16px] text-[#E0E0E0] has-hover:text-white [&_img]:order-1 [&_img]:h-[18px] [&_img]:w-auto [&_span]:order-2 [&_span]:pl-[5px] [&_span]:font-nunito",
+    "flex flex-row items-center justify-center cursor-pointer bg-transparent border-2 border-[#E85B46] rounded-[6px] ml-[8px] box-border px-[6px] py-[2px] text-[16px] text-[#E0E0E0] has-hover:text-white [&_img]:order-1 [&_img]:h-[18px] [&_img]:w-auto [&_span]:order-2 [&_span]:pl-[5px] [&_span]:font-nunito",
 };
 
 const ACTIVE_STYLE_CLASSES: Record<string, string> = {
@@ -96,7 +96,7 @@ const ACTIVE_STYLE_CLASSES: Record<string, string> = {
   "active-green": "bg-[#01C094]",
   green: "bg-[#01C094]",
   yellow: "bg-[#E9AA02]",
-  tool: "border-[#01C094] bg-[#3B3B3B]",
+  tool: "border-[#01C094] bg-[#424242] shadow-[inset_0_0_4px_#01C094]",
   menu: "text-white",
   "tool-settings": "bg-[#4A4A4A]",
   upload: "text-[#01C094] border-[#29F1A3]",
@@ -136,13 +136,13 @@ export default function ActionButton(props: ActionButtonProps): JSX.Element {
 
   const activeTokenClasses = active
     ? colorTokens
-        .map((token) => {
-          if (token === "menu" && hasSaveToken) {
-            return "";
-          }
-          return ACTIVE_STYLE_CLASSES[token] || "";
-        })
-        .filter(Boolean)
+      .map((token) => {
+        if (token === "menu" && hasSaveToken) {
+          return "";
+        }
+        return ACTIVE_STYLE_CLASSES[token] || "";
+      })
+      .filter(Boolean)
     : [];
 
   const finalColorClassName = classNames(
@@ -180,18 +180,18 @@ export default function ActionButton(props: ActionButtonProps): JSX.Element {
 
   function renderDropdownIcon(): JSX.Element {
     return (
-      <div className="action-button-dropdown-icon-container flex h-full w-full flex-col items-center justify-center">
+      <div className="action-button-dropdown-icon-container relative flex h-full w-full items-center justify-center">
         <ToolIcon
-          className={classNames(props.iconClassName, {
-            "dropdown-action-button-icon h-[18px]": props.dropdown,
-          })}
+          className={classNames(
+            "action-button-single-icon mx-auto p-px",
+            props.iconClassName
+          )}
           name={props.icon}
         />
         {props.dropdown && (
-          <ToolIcon
-            className="dropdown-extra-icon mt-px h-[6px]"
-            name="moreactions"
-          />
+          <div className="dropdown-extra-icon absolute bottom-0 right-0 mb-[2px] mr-[2px] h-[5px] w-[5px] opacity-70">
+            <ToolIcon className="h-full w-full" name="moreactions" />
+          </div>
         )}
       </div>
     );
