@@ -2,7 +2,6 @@ import React from "react";
 
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 import PopupMenu from "Editor/Util/PopupMenu/PopupMenu";
-import "./_canvasactions.scss";
 
 import classNames from "classnames";
 
@@ -44,11 +43,11 @@ const CanvasActions: React.FC<CanvasActionsProps> = ({
       <button
         key={action.icon}
         type="button"
-        className="canvas-actions-menu-item"
+        className="canvas-actions-menu-item flex min-h-8 w-full items-center gap-2 rounded-[4px] border-0 bg-transparent px-2 py-[5px] text-left font-nunito text-[12px] font-bold text-editor-text-primary has-hover:bg-editor-secondary active:bg-editor-modal-gray max-[800px]:min-h-10 max-[800px]:text-[13px]"
         onClick={(event) => action.action(event)}
       >
-        <ToolIcon className="canvas-actions-menu-item-icon" name={action.icon} />
-        <span className="canvas-actions-menu-item-label">{action.tooltip}</span>
+        <ToolIcon className="canvas-actions-menu-item-icon !h-4 !w-4 shrink-0" name={action.icon} />
+        <span className="canvas-actions-menu-item-label flex-1 whitespace-nowrap">{action.tooltip}</span>
       </button>
     );
   };
@@ -81,14 +80,14 @@ const CanvasActions: React.FC<CanvasActionsProps> = ({
     return (
       <div
         className={classNames(
-          "canvas-actions-menu",
-          renderSize === "small" && "vertical"
+          "canvas-actions-menu flex max-w-[560px] gap-[10px]",
+          renderSize === "small" && "vertical max-w-none flex-col"
         )}
       >
         {actionGroups.map((group) => (
-          <div key={group.title} className="canvas-actions-menu-group">
-            <div className="canvas-actions-menu-group-title">{group.title}</div>
-            <div className="canvas-actions-menu-group-items">
+          <div key={group.title} className="canvas-actions-menu-group flex min-w-[180px] flex-col gap-[6px] max-[800px]:min-w-full">
+            <div className="canvas-actions-menu-group-title px-[6px] py-[2px] font-nunito text-[10px] font-bold uppercase tracking-[0.03em] text-editor-text-secondary">{group.title}</div>
+            <div className="canvas-actions-menu-group-items flex flex-col gap-1">
               {group.actions.map(renderActionButton)}
             </div>
           </div>
@@ -107,8 +106,8 @@ const CanvasActions: React.FC<CanvasActionsProps> = ({
     >
       <div
         className={classNames(
-          "canvas-actions-widget",
-          renderSize === "small" && "vertical"
+          "canvas-actions-widget m-0 flex flex-col bg-editor-primary p-[6px]",
+          renderSize === "small" && "vertical w-full"
         )}
       >
         {!previewPlaying && renderActions()}

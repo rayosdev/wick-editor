@@ -29,6 +29,7 @@ export const Default: Story = {
 export const Spectrum: Story = {
   args: {
     colorPickerType: "spectrum",
+    disableAlpha: true,
   },
   render: Default.render,
 };

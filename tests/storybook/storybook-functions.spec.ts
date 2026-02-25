@@ -95,6 +95,30 @@ test.describe("Storybook functional checks", () => {
     await expect(summary).toContainText("Applied: 1");
   });
 
+  test("WickInputV2 legacy adapter preserves WickInput-style behavior", async ({
+    page,
+  }) => {
+    await gotoStory(
+      page,
+      "editor-util-wickinputv2-wickinputv2legacyadapter--legacy-parity-form"
+    );
+
+    await page.getByLabel("Project Name").fill("Legacy QA");
+    await page.getByLabel("Frame Rate").fill("30");
+    await page.getByLabel("Renderer").selectOption("gpu");
+    await page.getByLabel("Loop Playback").check();
+    await page.getByLabel("Accent").fill("#ff7711");
+    await page.getByRole("button", { name: "Apply Legacy Preset" }).click();
+
+    const summary = page.getByTestId("wick-input-v2-legacy-summary");
+    await expect(summary).toContainText("Name: Legacy QA");
+    await expect(summary).toContainText("FPS: 30");
+    await expect(summary).toContainText("Renderer: gpu");
+    await expect(summary).toContainText("Loop: yes");
+    await expect(summary).toContainText("Accent: #ff7711");
+    await expect(summary).toContainText("Applied: 1");
+  });
+
   test("TabbedInterface switches tabs and updates selected state", async ({
     page,
   }) => {

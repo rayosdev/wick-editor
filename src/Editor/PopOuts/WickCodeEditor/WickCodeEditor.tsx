@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ReflexContainer, ReflexSplitter, ReflexElement } from "react-reflex";
 import { Rnd } from "react-rnd";
 import AceEditor from "react-ace";
@@ -196,8 +196,25 @@ const WickCodeEditor = ({
     const [addScriptTab, setAddScriptTab] = useState<string>("Mouse");
     const [consoleType, setConsoleType] = useState<ConsoleView>("console");
     const [aceEditor, setAceEditor] = useState<Ace.Editor | null>(null);
+    const [reflexReady, setReflexReady] = useState(false);
 
     const editorThemeSelectRef = useRef<HTMLSelectElement | null>(null);
+
+    useEffect(() => {
+        let rafOne = 0;
+        let rafTwo = 0;
+
+        rafOne = window.requestAnimationFrame(() => {
+            rafTwo = window.requestAnimationFrame(() => {
+                setReflexReady(true);
+            });
+        });
+
+        return () => {
+            window.cancelAnimationFrame(rafOne);
+            window.cancelAnimationFrame(rafTwo);
+        };
+    }, []);
 
     const onDragHandler = (_e: unknown, data: { x: number; y: number }): void => {
         updateCodeEditorWindowProperties({
@@ -485,73 +502,76 @@ const WickCodeEditor = ({
                     </div>
                     <div className="wick-code-editor-content">
                         {renderCodeTabs()}
-                        <ReflexContainer>
-                            <ReflexElement>{renderCodeEditor()}</ReflexElement>
+                        {!reflexReady && renderCodeEditor()}
+                        {reflexReady && (
+                            <ReflexContainer>
+                                <ReflexElement>{renderCodeEditor()}</ReflexElement>
 
-                            <ReflexSplitter />
+                                <ReflexSplitter />
 
-                            <ReflexElement
-                                minSize={40}
-                                size={
-                                    codeEditorWindowProperties.consoleOpen
-                                        ? codeEditorWindowProperties.consoleHeight
-                                        : 1
-                                }
-                                onStopResize={resizeConsole}
-                            >
-                                <div className="wick-code-editor-console">
-                                    <div className="we-code-console-bar">
-                                        <div className="we-code-console-title">
-                                            {consoleType === "options"
-                                                ? "Text Editor Options"
-                                                : "Console"}
+                                <ReflexElement
+                                    minSize={40}
+                                    size={
+                                        codeEditorWindowProperties.consoleOpen
+                                            ? codeEditorWindowProperties.consoleHeight
+                                            : 1
+                                    }
+                                    onStopResize={resizeConsole}
+                                >
+                                    <div className="wick-code-editor-console">
+                                        <div className="we-code-console-bar">
+                                            <div className="we-code-console-title">
+                                                {consoleType === "options"
+                                                    ? "Text Editor Options"
+                                                    : "Console"}
+                                            </div>
+                                            <div className="we-code-console-options-container">
+                                                {consoleType === "options" && (
+                                                    <ActionButton
+                                                        className="we-code-console-option"
+                                                        id="console-console-button"
+                                                        icon="codeConsole"
+                                                        action={() => setConsoleType("console")}
+                                                        tooltip="Show Console"
+                                                        tooltipPlace="left"
+                                                        color="tool"
+                                                    />
+                                                )}
+
+                                                {consoleType === "console" && (
+                                                    <ActionButton
+                                                        className="we-code-console-option"
+                                                        id="console-option-button"
+                                                        icon="gear"
+                                                        action={() => setConsoleType("options")}
+                                                        tooltip="Show Options"
+                                                        tooltipPlace="left"
+                                                        color="tool"
+                                                    />
+                                                )}
+
+                                                {consoleType === "console" && (
+                                                    <ActionButton
+                                                        className="we-code-console-option we-code-clear-console"
+                                                        id="clear-console-button"
+                                                        icon="clear"
+                                                        action={clearConsole}
+                                                        tooltip="Clear Console"
+                                                        tooltipPlace="left"
+                                                        color="tool"
+                                                    />
+                                                )}
+                                            </div>
                                         </div>
-                                        <div className="we-code-console-options-container">
-                                            {consoleType === "options" && (
-                                                <ActionButton
-                                                    className="we-code-console-option"
-                                                    id="console-console-button"
-                                                    icon="codeConsole"
-                                                    action={() => setConsoleType("console")}
-                                                    tooltip="Show Console"
-                                                    tooltipPlace="left"
-                                                    color="tool"
-                                                />
-                                            )}
 
-                                            {consoleType === "console" && (
-                                                <ActionButton
-                                                    className="we-code-console-option"
-                                                    id="console-option-button"
-                                                    icon="gear"
-                                                    action={() => setConsoleType("options")}
-                                                    tooltip="Show Options"
-                                                    tooltipPlace="left"
-                                                    color="tool"
-                                                />
-                                            )}
-
-                                            {consoleType === "console" && (
-                                                <ActionButton
-                                                    className="we-code-console-option we-code-clear-console"
-                                                    id="clear-console-button"
-                                                    icon="clear"
-                                                    action={clearConsole}
-                                                    tooltip="Clear Console"
-                                                    tooltipPlace="left"
-                                                    color="tool"
-                                                />
-                                            )}
-                                        </div>
+                                        {consoleType === "console" && (
+                                            <ConsolePanel logs={consoleLogs ?? []} />
+                                        )}
+                                        {consoleType === "options" && renderCodeEditorOptions()}
                                     </div>
-
-                                    {consoleType === "console" && (
-                                        <ConsolePanel logs={consoleLogs ?? []} />
-                                    )}
-                                    {consoleType === "options" && renderCodeEditorOptions()}
-                                </div>
-                            </ReflexElement>
-                        </ReflexContainer>
+                                </ReflexElement>
+                            </ReflexContainer>
+                        )}
                     </div>
                 </div>
             </Rnd>

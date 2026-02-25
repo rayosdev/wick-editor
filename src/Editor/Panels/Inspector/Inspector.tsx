@@ -175,7 +175,9 @@ const Inspector: React.FC<InspectorProps> = (props) => {
     };
 
     const renderSelectionColor = (): JSX.Element => {
-        const fillColor = getSelectionAttribute<{ toCSS?: () => string } | undefined>("fillColor");
+        const fillColor = getSelectionAttribute<
+            { toCSS?: () => string; a?: number } | undefined
+        >("fillColor");
         const strokeColor = getSelectionAttribute<{ toCSS?: () => string } | undefined>("strokeColor");
 
         return (

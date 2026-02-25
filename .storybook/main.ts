@@ -16,6 +16,10 @@ const config: StorybookConfig = {
         alias: {
           Editor: path.resolve(__dirname, "../src/Editor"),
           resources: path.resolve(__dirname, "../src/resources"),
+          "react-sizeme": path.resolve(
+            __dirname,
+            "../src/Editor/storybook/shims/react-size-me.tsx"
+          ),
         },
       },
       css: {

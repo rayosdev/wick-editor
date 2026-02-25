@@ -344,6 +344,7 @@ export type WickToolName =
 
 export interface WickTool {
   name: WickToolName;
+  isInProgress?: () => boolean;
 }
 
 export interface WickProject extends WickBase {
@@ -370,6 +371,7 @@ export interface WickProject extends WickBase {
   focus: WickClip | WickProject;
   assets: WickAsset[];
   activeTool: WickToolName | WickTool;
+  tools?: Partial<Record<WickToolName, WickTool>>;
   toolSettings: WickToolSettings;
   playing: boolean;
   muted: boolean;

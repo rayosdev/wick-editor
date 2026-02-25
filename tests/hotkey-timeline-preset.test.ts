@@ -12,7 +12,7 @@ describe("timeline shortcut preset hotkeys", () => {
     const map = hotkeys.getKeyMap();
 
     expect(map["extend-frame"]?.sequences[0]).toBe("shift+.");
-    expect(map["cut-frame"]?.sequences[0]).toBe("shift+c");
+    expect(map["cut-frame"]?.sequences[0]).toBe("shift+x");
     expect(map["insert-blank-frame"]?.sequences[0]).toBe("shift+8");
     expect(map["shrink-frame"]?.sequences[0]).toBe("shift+,");
   });

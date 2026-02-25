@@ -6,7 +6,7 @@ const loadComponent = () => import("./WickCodeEditor");
 const meta: Meta = {
   title: "Editor/PopOuts/WickCodeEditor/WickCodeEditor",
   parameters: {
-    layout: "padded",
+    layout: "fullscreen",
   },
 };
 
@@ -16,10 +16,12 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: (args) => (
-    <DynamicComponentStory
-      componentName="WickCodeEditor"
-      loader={loadComponent}
-      args={args as Record<string, unknown>}
-    />
+    <div style={{ height: "760px", width: "100%", minHeight: "760px" }}>
+      <DynamicComponentStory
+        componentName="WickCodeEditor"
+        loader={loadComponent}
+        args={args as Record<string, unknown>}
+      />
+    </div>
   ),
 };

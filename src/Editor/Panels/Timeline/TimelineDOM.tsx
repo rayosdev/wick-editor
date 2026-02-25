@@ -1224,9 +1224,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   };
 
   const pointerHandlersRef = useRef({
-    handlePointerMove: (event: PointerEvent) => { },
-    handlePointerUp: (event: PointerEvent) => { },
-    handlePointerCancel: (event: PointerEvent) => { },
+    handlePointerMove: (_event: PointerEvent) => {},
+    handlePointerUp: (_event: PointerEvent) => {},
+    handlePointerCancel: (_event: PointerEvent) => {},
   });
 
   pointerHandlersRef.current.handlePointerMove = (event: PointerEvent) => {
@@ -2560,6 +2560,47 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     };
   }, [contextMenuPosition]);
 
+  const contextMenuItems: TimelineContextMenuItem[] = doubleClickMenuContext
+    ? [
+        {
+          id: "insert-blank-double-click",
+          label: "Insert Blank Keyframe",
+          icon: "create",
+          action: () => {
+            closeContextMenu();
+            const { layer, playheadPosition } = doubleClickMenuContext;
+            layer.activate?.();
+            setPlayhead(playheadPosition);
+            const newFrame = layer.insertBlankFrame?.(playheadPosition);
+            if (newFrame) {
+              project?.selection?.clear?.();
+              project?.selection?.select?.(newFrame);
+              commitProjectChange("Insert Blank Frame");
+              requestRender();
+            }
+          },
+        },
+        {
+          id: "insert-tween-double-click",
+          label: "Insert Tween Keyframe",
+          icon: "layerTween",
+          action: () => {
+            closeContextMenu();
+            const { layer, playheadPosition } = doubleClickMenuContext;
+            layer.activate?.();
+            setPlayhead(playheadPosition);
+            const newFrame = layer.insertBlankFrame?.(playheadPosition);
+            if (newFrame) {
+              project?.selection?.clear?.();
+              project?.selection?.select?.(newFrame);
+              props.addTweenKeyframe();
+              requestRender();
+            }
+          },
+        },
+      ]
+    : timelineContextMenuItems;
+
   return (
     <div
       id="animation-timeline-container"
@@ -3532,44 +3573,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             <div className="timeline-context-menu-target">
               {doubleClickMenuContext ? doubleClickMenuContext.label : (contextMenuTarget?.label ?? "Current Selection")}
             </div>
-            {(doubleClickMenuContext ? [
-              {
-                id: "insert-blank-double-click",
-                label: "Insert Blank Keyframe",
-                icon: "create",
-                action: () => {
-                  closeContextMenu();
-                  const { layer, playheadPosition } = doubleClickMenuContext;
-                  layer.activate?.();
-                  setPlayhead(playheadPosition);
-                  const newFrame = layer.insertBlankFrame?.(playheadPosition);
-                  if (newFrame) {
-                    project?.selection?.clear?.();
-                    project?.selection?.select?.(newFrame);
-                    commitProjectChange("Insert Blank Frame");
-                    requestRender();
-                  }
-                },
-              },
-              {
-                id: "insert-tween-double-click",
-                label: "Insert Tween Keyframe",
-                icon: "layerTween",
-                action: () => {
-                  closeContextMenu();
-                  const { layer, playheadPosition } = doubleClickMenuContext;
-                  layer.activate?.();
-                  setPlayhead(playheadPosition);
-                  const newFrame = layer.insertBlankFrame?.(playheadPosition);
-                  if (newFrame) {
-                    project?.selection?.clear?.();
-                    project?.selection?.select?.(newFrame);
-                    props.addTweenKeyframe();
-                    requestRender();
-                  }
-                },
-              }
-            ] as unknown as TimelineContextMenuItem[] : timelineContextMenuItems).map((item) => (
+            {contextMenuItems.map((item) => (
               <button
                 key={item.id}
                 type="button"

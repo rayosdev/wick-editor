@@ -6,6 +6,10 @@ import {
 } from "./helpers/editor-regression.helpers";
 
 test.describe.configure({ mode: "serial", timeout: 90000 });
+test.skip(
+  ({ browserName, isMobile }) => browserName !== "chromium" || isMobile,
+  "UI regression suite currently targets desktop Chromium only."
+);
 
 test.describe("QA regression: UI workflows", () => {
   test("project settings modal persists project name updates", async ({

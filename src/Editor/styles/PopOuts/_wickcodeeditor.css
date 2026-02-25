@@ -96,6 +96,8 @@
   display: flex;
   width: calc(100% - var(--reference-width));
   flex-direction: column;
+  height: 100%;
+  min-height: 1px;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */

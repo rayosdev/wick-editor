@@ -60,6 +60,7 @@ const DISALLOWED_SCSS_FILES = new Set([
   "src/Editor/Panels/Outliner/OutlinerFilterMenu/_outlinerfiltermenu.scss",
   "src/Editor/Panels/Toolbox/ToolboxBreak/_toolboxbreak.scss",
   "src/Editor/Panels/Toolbox/ToolButton/_toolbutton.scss",
+  "src/Editor/Panels/Toolbox/CanvasActions/_canvasactions.scss",
   "src/Editor/Panels/MobileContainer/MobileInspector/MobileInpsectorTabbedInterface/_mobileinspectortabbedinterface.scss",
 ]);
 

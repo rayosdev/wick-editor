@@ -32,7 +32,7 @@ const WickSwatch: React.FC<WickSwatchProps> = ({ color, selectedColor, onChangeC
   }
 
   const selectedStyle: React.CSSProperties = {
-    border: `3px solid${contrastColor}`,
+    border: `3px solid ${contrastColor}`,
   };
 
   let style: React.CSSProperties = {};
@@ -58,10 +58,17 @@ const WickSwatch: React.FC<WickSwatchProps> = ({ color, selectedColor, onChangeC
     >
       <Swatch
         color={color}
-        onClick={(swatchColor: unknown) => {
-          if (typeof swatchColor === "object" && swatchColor !== null && "rgb" in swatchColor) {
-            onChangeComplete(swatchColor as PickerColorChange);
-          }
+        onClick={() => {
+          const rgb = colorInfo.toRgb();
+          onChangeComplete({
+            hex: color,
+            rgb: {
+              r: rgb.r,
+              g: rgb.g,
+              b: rgb.b,
+              a: rgb.a,
+            },
+          } as PickerColorChange);
         }}
       />
     </div>

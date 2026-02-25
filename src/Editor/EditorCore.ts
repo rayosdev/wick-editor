@@ -1925,6 +1925,14 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     }
 
     this._autosaveDebounceTimeoutID = window.setTimeout(() => {
+      // Avoid any autosave state/render work while a brush stroke is active.
+      // Rendering the canvas re-activates tools and can force brush strokes to finish early.
+      if (this.isBrushStrokeInProgress()) {
+        this._autosaveDebounceTimeoutID = undefined;
+        this.requestAutosave();
+        return;
+      }
+
       this.setState({ isAutosaving: true });
 
       this.autoSaveProject(() => {
@@ -1933,6 +1941,19 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         this.setState({ isAutosaving: false });
       });
     }, 2000);
+  };
+
+  private isBrushStrokeInProgress = (): boolean => {
+    if (!this.project) {
+      return false;
+    }
+
+    const brushTool = this.project.tools?.brush;
+    if (typeof brushTool?.isInProgress !== "function") {
+      return false;
+    }
+
+    return Boolean(brushTool.isInProgress());
   };
 
   /**
@@ -1945,6 +1966,12 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       this.state.activeModalName !== null
     ) {
       this.setState({ isAutosaving: false });
+      return;
+    }
+
+    if (this.isBrushStrokeInProgress()) {
+      this.setState({ isAutosaving: false });
+      this.requestAutosave();
       return;
     }
 

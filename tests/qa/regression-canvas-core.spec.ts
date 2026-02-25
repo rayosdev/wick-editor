@@ -11,6 +11,10 @@ import {
 } from "./helpers/editor-regression.helpers";
 
 test.describe.configure({ mode: "serial", timeout: 90000 });
+test.skip(
+  ({ browserName, isMobile }) => browserName !== "chromium" || isMobile,
+  "Canvas regression suite currently targets desktop Chromium only."
+);
 
 type UndoRedoBridge = Window & {
   editor?: {

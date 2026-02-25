@@ -73,9 +73,14 @@ function resolveComponent(
   );
 }
 
-function isFunctionLikeProp(key: string): boolean {
+function isFunctionLikeProp(prop: string): boolean {
+  const key = prop.toLowerCase();
   const hasOpenVerbPrefix = key.startsWith("open") && key.length > "open".length;
   const hasCloseVerbPrefix = key.startsWith("close") && key.length > "close".length;
+  const hasInfixPredicatePrefix =
+    /[a-z]Is[A-Z]/.test(prop) ||
+    /[a-z]Has[A-Z]/.test(prop) ||
+    /[a-z]Can[A-Z]/.test(prop);
 
   if (
     key.startsWith("on") ||
@@ -107,11 +112,16 @@ function isFunctionLikeProp(key: string): boolean {
     return true;
   }
 
+  if (hasInfixPredicatePrefix) {
+    return true;
+  }
+
   // Predicates like `isAssetInLibrary` are often function props.
   return key.startsWith("is") && key.includes("in");
 }
 
-function isBooleanLikeProp(key: string): boolean {
+function isBooleanLikeProp(prop: string): boolean {
+  const key = prop.toLowerCase();
   return (
     key === "open" ||
     key === "closed" ||
@@ -127,7 +137,8 @@ function isBooleanLikeProp(key: string): boolean {
   );
 }
 
-function isCollectionLikeProp(key: string): boolean {
+function isCollectionLikeProp(prop: string): boolean {
+  const key = prop.toLowerCase();
   return (
     key === "options" ||
     key.endsWith("options") ||
@@ -151,11 +162,11 @@ function primitiveFallbackForProp(prop: string): unknown {
   if (key.includes("placeholder")) return "Storybook placeholder";
   if (key.includes("name")) return "Storybook Name";
   if (key.includes("color")) return "#00a8ff";
-  if (isBooleanLikeProp(key)) {
+  if (isBooleanLikeProp(prop)) {
     return false;
   }
 
-  if (isCollectionLikeProp(key)) {
+  if (isCollectionLikeProp(prop)) {
     return key.includes("options") ? STORYBOOK_SELECT_OPTIONS : [];
   }
 
@@ -304,7 +315,7 @@ function fallbackForProp(prop: string): unknown {
     return primitive;
   }
 
-  if (isFunctionLikeProp(key)) {
+  if (isFunctionLikeProp(prop)) {
     return createFallbackFunction(key);
   }
 
@@ -352,15 +363,15 @@ function shouldReplaceProvidedValue(prop: string, value: unknown): boolean {
     return true;
   }
 
-  if (isBooleanLikeProp(key) && typeof value !== "boolean") {
+  if (isBooleanLikeProp(prop) && typeof value !== "boolean") {
     return true;
   }
 
-  if (isFunctionLikeProp(key) && typeof value !== "function") {
+  if (isFunctionLikeProp(prop) && typeof value !== "function") {
     return true;
   }
 
-  if (isCollectionLikeProp(key) && !Array.isArray(value)) {
+  if (isCollectionLikeProp(prop) && !Array.isArray(value)) {
     return true;
   }
 

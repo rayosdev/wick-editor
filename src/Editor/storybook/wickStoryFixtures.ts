@@ -1205,7 +1205,7 @@ export function createWickCodeEditorStoryArgs(): StoryArgs {
 
   return {
     selectionType: "clip",
-    renderSize: "large",
+    renderSize: "small",
     script: {
       scripts,
       addScript: noop,

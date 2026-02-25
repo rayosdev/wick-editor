@@ -1,4 +1,5 @@
 import React, { CSSProperties } from "react";
+import tinycolor from "tinycolor2";
 import type { PickerColorChange, PickerColorValue } from "./ColorPicker";
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
@@ -10,7 +11,6 @@ import {
   Saturation,
   Hue,
   Alpha,
-  Checkboard,
   Swatch,
 } from "react-color/lib/components/common";
 import { SketchFields } from "react-color/lib/components/sketch/SketchFields";
@@ -156,9 +156,24 @@ const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
                   ":focus": { outline: "2px solid white" },
                 }}
                 onClick={(color: unknown) => {
-                  if (typeof color === "object" && color !== null && "rgb" in color) {
-                    props.onChangeComplete(color as PickerColorChange);
-                  }
+                  const parsed = tinycolor(
+                    typeof color === "object" &&
+                      color !== null &&
+                      "hex" in color &&
+                      typeof (color as { hex?: unknown }).hex === "string"
+                      ? (color as { hex: string }).hex
+                      : colors[i]
+                  );
+                  const rgb = parsed.toRgb();
+                  props.onChangeComplete({
+                    hex: parsed.toHexString(),
+                    rgb: {
+                      r: rgb.r,
+                      g: rgb.g,
+                      b: rgb.b,
+                      a: rgb.a,
+                    },
+                  } as PickerColorChange);
                 }}
               />
             </div>
@@ -224,12 +239,20 @@ const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
             <div className="wick-color-picker-control-bar relative mb-[2.5%] h-[45%] w-[140px] bg-white">
               <Hue {...props} height={11} />
             </div>
-            <div className="wick-color-picker-control-bar relative mb-[2.5%] h-[45%] w-[140px] bg-white">
-              <Alpha {...props} />
-            </div>
+            {!props.disableAlpha && (
+              <div className="wick-color-picker-control-bar relative mb-[2.5%] h-[45%] w-[140px] bg-white">
+                <Alpha {...props} />
+              </div>
+            )}
           </div>
           <div className="wick-color-picker-color-block-container relative ml-[5px] h-[25px] w-[25px] rounded-[2px] bg-white">
-            <Checkboard />
+            <div
+              style={{
+                ...checkerboardTileStyle,
+                position: "absolute",
+                inset: 0,
+              }}
+            />
             <div style={styles.activeColor} />
           </div>
         </div>

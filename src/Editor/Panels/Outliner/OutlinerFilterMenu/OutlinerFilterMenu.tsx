@@ -90,8 +90,8 @@ const OutlinerFilterMenu: React.FC<OutlinerFilterMenuProps> = ({ display, onChan
         target={buttonId}
         className="outliner-filter-popup !max-w-[180px]"
       >
-        <div className="outliner-filter-content py-2">
-          <div className="outliner-filter-header mb-1 border-b border-solid border-[#191919] px-[12px] pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.5px] text-editor-text-secondary">
+        <div className="outliner-filter-content w-[120.25px] py-2">
+          <div className="outliner-filter-header mb-1 box-border h-[29.5px] border-b border-solid border-[#191919] px-[12px] pb-2 pt-1 text-[11px] font-semibold uppercase leading-[16.5px] tracking-[0.5px] text-editor-text-secondary">
             Show Objects
           </div>
           {filterItems.map(({ key, label, icon }) => (

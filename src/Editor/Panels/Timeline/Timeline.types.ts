@@ -74,6 +74,7 @@ export type TimelineLayerLike = {
   locked?: boolean;
   activate?: () => void;
   addFrame?: (frame: TimelineFrameLike) => void;
+  insertBlankFrame?: (playheadPosition: number) => TimelineFrameLike | null;
   remove?: () => void;
   getFrameAtPlayheadPosition?: (playheadPosition: number) => TimelineFrameLike | null;
 };

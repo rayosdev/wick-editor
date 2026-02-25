@@ -11,6 +11,7 @@ const authoredAllowlist = new Set([
 ]);
 
 const tsHygieneRoots = ["src", "tests", "types"] as const;
+const tsAppHygieneRoots = ["src"] as const;
 const tsHygieneSelfFile = path.normalize("tests/typescript-everywhere.test.ts");
 const tsSuppressionAllowlist = new Set([
   path.normalize("src/Editor/Editor.tsx"),
@@ -21,6 +22,7 @@ const explicitAnyPattern = /(:\s*any\b|<any\b|as any\b|\bany\[\])/;
 const tsIgnorePattern = /@ts-ignore\b/;
 const tsNocheckPattern = /@ts-nocheck\b/;
 const tsExpectErrorPattern = /@ts-expect-error\b/;
+const doubleUnknownCastPattern = /\bas unknown as\b/;
 
 function collectFiles(rootDir: string): string[] {
   if (!fs.existsSync(rootDir)) return [];
@@ -124,6 +126,23 @@ describe("TypeScript everywhere guards", () => {
         return lines
           .map((line: string, index: number) => ({ line, index: index + 1 }))
           .filter(({ line }: { line: string }) => tsExpectErrorPattern.test(line))
+          .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
+      },
+    );
+
+    expect(offending).toEqual([]);
+  });
+
+  it("does not use double unknown casts in app source", () => {
+    const offending = collectTypeScriptFiles(tsAppHygieneRoots).flatMap(
+      (repoRelative) => {
+        const absolutePath = path.join(repoRoot, repoRelative);
+        const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
+        return lines
+          .map((line: string, index: number) => ({ line, index: index + 1 }))
+          .filter(
+            ({ line }: { line: string }) => doubleUnknownCastPattern.test(line),
+          )
           .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
       },
     );

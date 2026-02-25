@@ -114,7 +114,7 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
   };
 
   const renderNumeric = (): JSX.Element => {
-    const { min, max, ...rest } = props;
+    const { min, max, onChange, ...rest } = props;
 
     const isValid = (input: string | number): boolean => {
       let validNumber = !isNaN(Number(input)) && input !== "";
@@ -141,10 +141,24 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
       return (Math.round(numVal * 1000) / 1000).toString();
     };
 
+    const wrappedOnChange = (input: string): void => {
+      if (!onChange) {
+        return;
+      }
+
+      const parsed = Number.parseFloat(input);
+      if (!Number.isFinite(parsed)) {
+        return;
+      }
+
+      onChange(parsed);
+    };
+
     return (
       <WickTextInput
         {...rest}
         value={props.value || ""}
+        onChange={wrappedOnChange}
         className={classNames(
           INPUT_BASE_CLASSES,
           INPUT_STATE_CLASSES,
