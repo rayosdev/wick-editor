@@ -1770,14 +1770,22 @@ Wick.Project = class extends Wick.Base {
      * Zooms the canvas in.
      */
     zoomIn() {
-        this.zoom *= 1.25;
+        if (this.view && typeof this.view.zoomToPoint === 'function') {
+            this.view.zoomToPoint(1.25);
+        } else {
+            this.zoom *= 1.25;
+        }
     }
 
     /**
      * Zooms the canvas out.
      */
     zoomOut() {
-        this.zoom *= 0.8;
+        if (this.view && typeof this.view.zoomToPoint === 'function') {
+            this.view.zoomToPoint(0.8);
+        } else {
+            this.zoom *= 0.8;
+        }
     }
 
     /**

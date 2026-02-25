@@ -906,12 +906,13 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 .timeline-dom-frame::before {
   content: "";
   position: absolute;
-  left: calc((var(--timeline-cell-width) / 2) - (var(--timeline-keyframe-glyph-size) / 2));
+  box-sizing: border-box;
+  left: calc((var(--timeline-cell-width) / 2) - 1px);
   top: 50%;
   width: var(--timeline-keyframe-glyph-size);
   height: var(--timeline-keyframe-glyph-size);
   border-radius: 50%;
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%);
   opacity: var(--timeline-keyframe-glyph-contrast);
   pointer-events: none;
 }

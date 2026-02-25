@@ -368,6 +368,48 @@ Wick.View.Project = class extends Wick.View {
     }
   }
 
+  /**
+   * Zooms toward the last known mouse position, or the canvas center if none is known.
+   * @param {number} scaleMultiplier - The factor to multiply the current zoom by (e.g. 1.25 to zoom in)
+   */
+  zoomToPoint(scaleMultiplier) {
+    if (this.model.isPublished) return;
+
+    const oldZoom = Number.isFinite(this.paper.view.zoom)
+      ? this.paper.view.zoom
+      : 1;
+    
+    const newZoom = Math.max(
+      Wick.View.Project.ZOOM_MIN,
+      Math.min(
+        Wick.View.Project.ZOOM_MAX,
+        oldZoom * scaleMultiplier,
+      ),
+    );
+
+    // If we have a tracked mouse position over the canvas, zoom toward it
+    if (this._lastMousePosition && Math.abs(newZoom - oldZoom) > 0.001) {
+      const beta = oldZoom / newZoom;
+      // Calculate position relative to paper view
+      const point = new this.paper.Point(
+        this._lastMousePosition.x,
+        this._lastMousePosition.y,
+      );
+      const viewPoint = this.paper.view.viewToProject(point);
+      
+      const mouseOffset = viewPoint.subtract(this.paper.view.center);
+      const offset = mouseOffset.multiply(1 - beta);
+
+      this.paper.view.zoom = newZoom;
+      this.paper.view.center = this.paper.view.center.add(offset);
+    } else {
+      // Fallback: Just zoom into the center
+      this.paper.view.zoom = newZoom;
+    }
+
+    this._applyZoomAndPanChangesFromPaper();
+  }
+
   _setupTools() {
     // Attach scroll to zoom event using native wheel event
     this._svgCanvas.addEventListener(
@@ -377,6 +419,28 @@ Wick.View.Project = class extends Wick.View {
         this.scrollToZoom(e);
       },
       { passive: false },
+    );
+
+    // Track mouse position over canvas for hotkey/button zoom-to-cursor
+    this._svgCanvas.addEventListener(
+      "mousemove",
+      (e) => {
+        const rect = this._svgCanvas.getBoundingClientRect();
+        this._lastMousePosition = {
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top
+        };
+      },
+      { passive: true }
+    );
+    
+    // Clear mouse position when cursor leaves canvas so hotkeys fallback to centering
+    this._svgCanvas.addEventListener(
+      "mouseleave",
+      () => {
+        this._lastMousePosition = null;
+      },
+      { passive: true }
     );
 
     // Add pinch-to-zoom support for trackpads and touch devices

@@ -14,6 +14,8 @@
 /build-ios/WebViewExample/local_html
 /build-electron
 /dist
+/engine/dist
+/public/corelibs/wick-engine
 /storybook-static
 
 # misc
