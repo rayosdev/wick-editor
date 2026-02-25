@@ -56,15 +56,15 @@ Wick.View.Project = class extends Wick.View {
   }
 
   static get PINCH_ACCELERATION_BASE() {
-    return 0.15;
+    return 0.6;
   }
 
   static get PINCH_ACCELERATION_MULTIPLIER() {
-    return 12;
+    return 25;
   }
 
   static get PINCH_ACCELERATION_MAX_BOOST() {
-    return 2.5;
+    return 6.0;
   }
 
   /*
