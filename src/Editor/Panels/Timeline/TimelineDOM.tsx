@@ -3,6 +3,7 @@ import {
   useMemo,
   useRef,
   useState,
+  Fragment,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 
@@ -3215,22 +3216,50 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                             <div className="timeline-dom-frame-resize-left" aria-hidden />
                             <div className="timeline-dom-frame-resize-right" aria-hidden />
                             {Array.isArray(frame.tweens) &&
-                              frame.tweens.map((tween) => {
+                              frame.tweens.map((tween, index) => {
                                 const absolutePos = Number(tween.playheadPosition ?? 1);
                                 const localOffset = absolutePos - frameStart;
                                 const isAtStart = localOffset === 0;
 
+                                // Calculate the span for the tween arrow
+                                const nextTween = frame.tweens[index + 1];
+                                const nextAbsolutePos = nextTween ? Number(nextTween.playheadPosition ?? 1) : frameStart + frameLength;
+                                const nextLocalOffset = nextAbsolutePos - frameStart;
+
+                                // The arrow should start slightly past the diamond
+                                const arrowStart = localOffset * cellWidth + cellWidth / 2 + 6;
+
+                                // The arrow stops just before the next diamond or near the end of the frame
+                                const arrowEnd = nextTween
+                                  ? (nextLocalOffset * cellWidth + cellWidth / 2 - 8)
+                                  : (frameLength * cellWidth - 5);
+
+                                const arrowWidth = arrowEnd - arrowStart;
+
                                 return (
-                                  <button
-                                    key={tween.uuid ?? `${frame.uuid}-tween-${absolutePos}`}
-                                    type="button"
-                                    className={`timeline-dom-tween ${isAtStart ? "overlaps-keyframe" : ""}`}
-                                    data-tween-state="tween-span"
-                                    aria-label="Tween"
-                                    title="Tween"
-                                    style={{ left: `${localOffset * cellWidth + cellWidth / 2 - 5}px` }}
-                                    onPointerDown={(event) => handleTweenPointerDown(event, tween)}
-                                  />
+                                  <Fragment key={tween.uuid ?? `${frame.uuid}-tween-${absolutePos}`}>
+                                    {arrowWidth > 15 && (
+                                      <div
+                                        className="timeline-dom-tween-arrow"
+                                        style={{
+                                          left: `${arrowStart}px`,
+                                          width: `${arrowWidth}px`
+                                        }}
+                                      >
+                                        <div className="line" />
+                                        <div className="head" />
+                                      </div>
+                                    )}
+                                    <button
+                                      type="button"
+                                      className={`timeline-dom-tween ${isAtStart ? "overlaps-keyframe" : ""}`}
+                                      data-tween-state="tween-span"
+                                      aria-label="Tween"
+                                      title="Tween"
+                                      style={{ left: `${localOffset * cellWidth + cellWidth / 2 - 5}px` }}
+                                      onPointerDown={(event) => handleTweenPointerDown(event, tween)}
+                                    />
+                                  </Fragment>
                                 );
                               })}
                           </div>
