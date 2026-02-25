@@ -98,7 +98,7 @@ const bootEditor = async (page: Page): Promise<void> => {
 
 const prepareDomTimeline = async (page: Page): Promise<PreparedTimeline> => {
   const prepared = await page.evaluate(() => {
-    const bridge = window as unknown as EditorBridge;
+    const bridge = window as EditorBridge;
 
     const editor = bridge.editor;
     const project = editor?.project;
@@ -166,7 +166,7 @@ const prepareDomTimeline = async (page: Page): Promise<PreparedTimeline> => {
 
 const readFrameStart = async (page: Page, frameUuid: string): Promise<number> => {
   return page.evaluate((inputFrameUuid) => {
-    const bridge = window as unknown as EditorBridge;
+    const bridge = window as EditorBridge;
     const project = bridge.editor?.project;
     if (!project) {
       return -1;
@@ -182,7 +182,7 @@ const readFrameStart = async (page: Page, frameUuid: string): Promise<number> =>
 
 const readFrameEnd = async (page: Page, frameUuid: string): Promise<number> => {
   return page.evaluate((inputFrameUuid) => {
-    const bridge = window as unknown as EditorBridge;
+    const bridge = window as EditorBridge;
     const project = bridge.editor?.project;
     if (!project) {
       return -1;
@@ -198,7 +198,7 @@ const readFrameEnd = async (page: Page, frameUuid: string): Promise<number> => {
 
 const readTweenPlayhead = async (page: Page, tweenUuid: string): Promise<number> => {
   return page.evaluate((inputTweenUuid) => {
-    const bridge = window as unknown as EditorBridge;
+    const bridge = window as EditorBridge;
     const project = bridge.editor?.project;
     if (!project) {
       return -1;
@@ -215,7 +215,7 @@ const readTweenPlayhead = async (page: Page, tweenUuid: string): Promise<number>
 
 const readLayerCount = async (page: Page): Promise<number> => {
   return page.evaluate(() => {
-    const bridge = window as unknown as EditorBridge;
+    const bridge = window as EditorBridge;
     const project = bridge.editor?.project;
     return project?.activeTimeline.layers.length ?? 0;
   });
@@ -223,7 +223,7 @@ const readLayerCount = async (page: Page): Promise<number> => {
 
 const readLayerOrder = async (page: Page): Promise<string[]> => {
   return page.evaluate(() => {
-    const bridge = window as unknown as EditorBridge;
+    const bridge = window as EditorBridge;
     const project = bridge.editor?.project;
     return (project?.activeTimeline.layers ?? [])
       .map((layer: TimelineLayerModel) => layer.uuid)
@@ -233,7 +233,7 @@ const readLayerOrder = async (page: Page): Promise<string[]> => {
 
 const readPlayhead = async (page: Page): Promise<number> => {
   return page.evaluate(() => {
-    const bridge = window as unknown as EditorBridge;
+    const bridge = window as EditorBridge;
     const project = bridge.editor?.project;
     return Number(project?.activeTimeline.playheadPosition ?? 0);
   });
@@ -273,7 +273,7 @@ test.describe("Timeline DOM editing", () => {
 
     const playheadBeforePreview = await readPlayhead(page);
     await page.evaluate(() => {
-      const bridge = window as unknown as EditorBridge;
+      const bridge = window as EditorBridge;
       if (!bridge.editor?.togglePreviewPlaying) {
         return;
       }
@@ -285,7 +285,7 @@ test.describe("Timeline DOM editing", () => {
 
     await page.waitForFunction(
       (startPlayhead) => {
-        const bridge = window as unknown as EditorBridge;
+        const bridge = window as EditorBridge;
         const timeline = bridge.editor?.project?.activeTimeline;
         return Number(timeline?.playheadPosition ?? startPlayhead) !== Number(startPlayhead);
       },
@@ -297,7 +297,7 @@ test.describe("Timeline DOM editing", () => {
     expect(playheadDuringPreview).not.toBe(playheadBeforePreview);
 
     await page.evaluate(() => {
-      const bridge = window as unknown as EditorBridge;
+      const bridge = window as EditorBridge;
       if (!bridge.editor?.togglePreviewPlaying) {
         return;
       }
@@ -308,12 +308,12 @@ test.describe("Timeline DOM editing", () => {
     });
 
     await page.waitForFunction(() => {
-      const bridge = window as unknown as EditorBridge;
+      const bridge = window as EditorBridge;
       return !bridge.editor?.state?.previewPlaying;
     });
 
     await page.evaluate(() => {
-      const bridge = window as unknown as EditorBridge;
+      const bridge = window as EditorBridge;
       const project = bridge.editor?.project;
       if (!project?.view?.render) {
         return;
@@ -379,7 +379,7 @@ test.describe("Timeline DOM editing", () => {
     await firstFrame.click();
 
     const selectedFrameCount = await page.evaluate(() => {
-      const bridge = window as unknown as EditorBridge;
+      const bridge = window as EditorBridge;
       const project = bridge.editor?.project;
       return project?.selection?.getSelectedObjects?.("Frame")?.length ?? 0;
     });
@@ -389,7 +389,7 @@ test.describe("Timeline DOM editing", () => {
     await secondFrame.click({ modifiers: ["Shift"] });
 
     const rangeSelectedFrameCount = await page.evaluate(() => {
-      const bridge = window as unknown as EditorBridge;
+      const bridge = window as EditorBridge;
       const project = bridge.editor?.project;
       return project?.selection?.getSelectedObjects?.("Frame")?.length ?? 0;
     });
@@ -400,7 +400,7 @@ test.describe("Timeline DOM editing", () => {
     await page.keyboard.up("Control");
 
     const toggledSelectedFrameCount = await page.evaluate(() => {
-      const bridge = window as unknown as EditorBridge;
+      const bridge = window as EditorBridge;
       const project = bridge.editor?.project;
       return project?.selection?.getSelectedObjects?.("Frame")?.length ?? 0;
     });
@@ -412,7 +412,7 @@ test.describe("Timeline DOM editing", () => {
       .click();
 
     const rippleMode = await page.evaluate(() => {
-      const bridge = window as unknown as EditorBridge;
+      const bridge = window as EditorBridge;
       return bridge.editor?.project?.activeTimeline?.fillGapsMethod;
     });
     expect(rippleMode).toBe("auto_extend");
@@ -423,7 +423,7 @@ test.describe("Timeline DOM editing", () => {
       .click();
 
     const overwriteMode = await page.evaluate(() => {
-      const bridge = window as unknown as EditorBridge;
+      const bridge = window as EditorBridge;
       return bridge.editor?.project?.activeTimeline?.fillGapsMethod;
     });
     expect(overwriteMode).toBe("blank_frames");
@@ -519,7 +519,7 @@ test.describe("Timeline DOM editing", () => {
     await renameInput.press("Enter");
 
     const renamedLayerExists = await page.evaluate(() => {
-      const bridge = window as unknown as EditorBridge;
+      const bridge = window as EditorBridge;
       const project = bridge.editor?.project;
       return Boolean(
         project?.activeTimeline.layers.find(
@@ -534,7 +534,7 @@ test.describe("Timeline DOM editing", () => {
     await firstLayerRow.locator(".timeline-dom-layer-icon-button").nth(1).click();
 
     const layerFlags = await page.evaluate(() => {
-      const bridge = window as unknown as EditorBridge;
+      const bridge = window as EditorBridge;
       const project = bridge.editor?.project;
       const firstLayer = project?.activeTimeline.layers[0];
       return {
@@ -570,7 +570,7 @@ test.describe("Timeline DOM editing", () => {
       const layerOrderAfterMove = await readLayerOrder(page);
       if (layerOrderAfterMove.join(",") === layerOrderBeforeMove.join(",")) {
         const layerOrderAfterModelMove = await page.evaluate(() => {
-          const bridge = window as unknown as EditorBridge;
+          const bridge = window as EditorBridge;
           const editor = bridge.editor;
           const timeline = editor?.project?.activeTimeline;
 

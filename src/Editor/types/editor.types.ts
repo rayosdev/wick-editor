@@ -223,7 +223,7 @@ export type ModalName =
 // Color Picker
 // ============================================================================
 
-export type ColorPickerType = "chrome" | "sketch" | "circle";
+export type ColorPickerType = "swatches" | "spectrum";
 
 // ============================================================================
 // Onion Skin
@@ -457,6 +457,7 @@ export interface EditorState {
   renderStatusMessage: string;
   customHotKeys: CustomHotKeys;
   colorPickerType: string;
+  isAutosaving: boolean;
   lastColorsUsed: string[];
   exporting: boolean;
   useCustomOnionSkinningColors: boolean;

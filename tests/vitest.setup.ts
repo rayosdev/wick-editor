@@ -28,23 +28,23 @@ type ReactGlobal = {
   ReactDOM?: typeof ReactDOM;
 };
 
-const processGlobal = globalThis as unknown as ProcessGlobal;
+const processGlobal = globalThis as ProcessGlobal;
 if (typeof processGlobal.process === "undefined") {
   processGlobal.process = { env: {} };
 }
 
-const platformGlobal = globalThis as unknown as PlatformGlobal;
+const platformGlobal = globalThis as PlatformGlobal;
 if (typeof platformGlobal.platform === "undefined") {
   platformGlobal.platform = {
     os: { architecture: "x64", family: "unknown", version: "0" },
   };
 }
 
-const canvasGlobal = globalThis as unknown as CanvasGlobal;
+const canvasGlobal = globalThis as CanvasGlobal;
 if (!canvasGlobal.HTMLCanvasElement) {
   canvasGlobal.HTMLCanvasElement = CanvasMock;
 }
 
-const reactGlobal = globalThis as unknown as ReactGlobal;
+const reactGlobal = globalThis as ReactGlobal;
 reactGlobal.React = React;
 reactGlobal.ReactDOM = ReactDOM;

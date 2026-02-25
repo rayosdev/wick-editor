@@ -40,7 +40,7 @@ const InspectorNumericInput: React.FC<InspectorNumericInputProps> = ({
   const inputId = id ?? `${idLabel}-input`;
 
   return (
-    <div className="inspector-row mb-[4px] flex h-[26px] w-full flex-row last:mb-0">
+    <div className="inspector-row mb-[4px] flex min-h-[34px] w-full flex-row items-center last:mb-0">
       {/* Identifier */}
       <label
         htmlFor={inputId}

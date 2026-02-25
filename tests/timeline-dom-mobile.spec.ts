@@ -70,7 +70,7 @@ const bootEditor = async (page: Page): Promise<void> => {
 
 const prepareDomTimeline = async (page: Page): Promise<PreparedTimeline> => {
   const prepared = await page.evaluate(() => {
-    const bridge = window as unknown as EditorBridge;
+    const bridge = window as EditorBridge;
     const editor = bridge.editor;
     const project = editor?.project;
     const Wick = bridge.Wick;
@@ -164,7 +164,7 @@ const dispatchTouchPointer = async (
 
 const readFrameStart = async (page: Page, frameUuid: string): Promise<number> => {
   return page.evaluate((inputFrameUuid) => {
-    const bridge = window as unknown as EditorBridge;
+    const bridge = window as EditorBridge;
     const project = bridge.editor?.project;
     if (!project) {
       return -1;
@@ -180,7 +180,7 @@ const readFrameStart = async (page: Page, frameUuid: string): Promise<number> =>
 
 const readLayerOrder = async (page: Page): Promise<string[]> => {
   return page.evaluate(() => {
-    const bridge = window as unknown as EditorBridge;
+    const bridge = window as EditorBridge;
     const project = bridge.editor?.project;
 
     return (project?.activeTimeline.layers ?? [])
@@ -191,7 +191,7 @@ const readLayerOrder = async (page: Page): Promise<string[]> => {
 
 const readPlayhead = async (page: Page): Promise<number> => {
   return page.evaluate(() => {
-    const bridge = window as unknown as EditorBridge;
+    const bridge = window as EditorBridge;
     return Number(bridge.editor?.project?.activeTimeline.playheadPosition ?? 0);
   });
 };
@@ -263,7 +263,7 @@ test.describe("Timeline DOM mobile", () => {
       // Fallback for environments where synthetic mobile drag events do not mutate
       // layer order reliably through the browser input stack.
       const orderAfterModelMove = await page.evaluate(() => {
-        const bridge = window as unknown as EditorBridge;
+        const bridge = window as EditorBridge;
         const editor = bridge.editor;
         const timeline = editor?.project?.activeTimeline as
           | (TimelineModel & { moveLayer?: (layer: TimelineLayerModel, index: number) => void })

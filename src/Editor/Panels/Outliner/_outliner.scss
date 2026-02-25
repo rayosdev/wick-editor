@@ -1,26 +1,26 @@
 @use 'Editor/brand' as *;
 
-$outliner-title-height: 36px;
+$outliner-title-height: 28px;
 
-$outliner-padding: 10px;
-$outliner-row-height: 24px;
-$outliner-row-spacing: 2px;
+$outliner-padding: 6px;
+$outliner-row-height: 20px;
+$outliner-row-spacing: 1px;
 
 $outliner-icon-spacing: 4px;
 $outliner-icon-width: 14px;
-$outliner-name-size: 16px;
+$outliner-name-size: 14px;
 
-$widget-width: 20px;
+$widget-width: 18px;
 
 $dropdown-animation-duration: 75ms;
 
 $tab-spacing: 5px;
 $tab-radius: 3px;
-$tab-font-size: 20px;
+$tab-font-size: 16px;
 
-$indentation: 25px;
+$indentation: 20px;
 
-$outliner-break-size: calc(#{$editor-outline-padding} * .5);
+$outliner-break-size: calc(#{$editor-outline-padding} * .25);
 
 .outliner {
   background-color: $editor-primary;
@@ -58,8 +58,7 @@ $outliner-break-size: calc(#{$editor-outline-padding} * .5);
 }
 
 .outliner-script-icon {
-  vertical-align: top;
-  margin-top: calc(#{$outliner-icon-spacing}/2);
+  margin-top: 0;
   height: $outliner-name-size;
 }
 
@@ -74,6 +73,10 @@ $outliner-break-size: calc(#{$editor-outline-padding} * .5);
   align-content: flex-start;
   box-sizing: border-box;
   position: relative;
+  height: $outliner-row-height;
+  line-height: $outliner-row-height;
+  display: flex;
+  align-items: center;
   z-index: 0;
   background-color: $editor-secondary;
   border-top: $outliner-row-spacing solid $editor-primary;
@@ -125,7 +128,6 @@ $outliner-break-size: calc(#{$editor-outline-padding} * .5);
   z-index: -1;
   width: $outliner-icon-width;
   margin-left: $outliner-icon-spacing;
-  margin-bottom: 3px;
 }
 
 @keyframes expand {
@@ -144,10 +146,11 @@ $outliner-break-size: calc(#{$editor-outline-padding} * .5);
 .outliner-buttons-container {
   display: flex;
   flex-direction: row;
+  align-items: center;
   position: relative;
+  height: 100%;
   z-index: 0;
-  float: right;
-  margin-top: calc(#{$outliner-icon-spacing} / 2);
+  margin-left: auto;
 }
 
 .hover-top {

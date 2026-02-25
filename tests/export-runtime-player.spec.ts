@@ -52,7 +52,7 @@ test.describe("Export Runtime Player", () => {
             input,
             (loaded: unknown) => {
               const loadedProject = loaded as { root?: unknown } | null;
-              const ProjectClass = window.Wick.Project as unknown as new (
+              const ProjectClass = window.Wick.Project as new (
                 ...args: never[]
               ) => unknown;
               resolve({

@@ -26,7 +26,7 @@ export const Default: Story = {
     updateProjectSettings: () => undefined,
     toggle: () => undefined,
     isMobile: false,
-    colorPickerType: "chrome",
+    colorPickerType: "swatches",
     changeColorPickerType: () => undefined,
     updateLastColors: () => undefined,
     lastColorsUsed: ["#ffffff", "#01C094", "#4F4F4F"],

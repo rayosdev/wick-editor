@@ -49,7 +49,7 @@ test.describe("Timeline renderer switch", () => {
     await expect(page.locator('[data-timeline-renderer-mode="dom"]')).toBeVisible();
 
     await page.evaluate(() => {
-      const bridge = window as unknown as { editor?: { setTimelineRendererMode?: (mode: string) => void } };
+      const bridge = window as { editor?: { setTimelineRendererMode?: (mode: string) => void } };
       bridge.editor?.setTimelineRendererMode?.("classic");
     });
     await expect(page.locator('[data-timeline-renderer-mode="classic"]')).toBeVisible();
@@ -70,7 +70,7 @@ test.describe("Timeline renderer switch", () => {
     );
 
     await page.evaluate(() => {
-      const bridge = window as unknown as { editor?: { setTimelineRendererMode?: (mode: string) => void } };
+      const bridge = window as { editor?: { setTimelineRendererMode?: (mode: string) => void } };
       bridge.editor?.setTimelineRendererMode?.("dom");
     });
     await expect(page.locator('[data-timeline-renderer-mode="dom"]')).toBeVisible();

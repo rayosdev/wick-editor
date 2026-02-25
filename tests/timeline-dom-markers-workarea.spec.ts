@@ -27,7 +27,7 @@ const bootEditor = async (page: Page): Promise<void> => {
 
 const readPlayhead = async (page: Page): Promise<number> => {
   return page.evaluate(() => {
-    const bridge = window as unknown as EditorBridge;
+    const bridge = window as EditorBridge;
     return Number(bridge.editor?.project?.activeTimeline?.playheadPosition ?? 0);
   });
 };

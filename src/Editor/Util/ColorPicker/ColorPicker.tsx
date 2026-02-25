@@ -48,8 +48,8 @@ interface ColorPickerProps {
   color?: PickerColorValue;
   stroke?: boolean;
   placement?: 'auto' | 'auto-start' | 'auto-end' | 'top' | 'top-start' | 'top-end' | 'right' | 'right-start' | 'right-end' | 'bottom' | 'bottom-start' | 'bottom-end' | 'left' | 'left-start' | 'left-end';
-  colorPickerType?: string;
-  changeColorPickerType?: (type: string) => void;
+  colorPickerType?: "swatches" | "spectrum" | string;
+  changeColorPickerType?: (type: "swatches" | "spectrum") => void;
   disableAlpha?: boolean;
   onChangeComplete?: (color: PickerColorChange) => void;
   lastColorsUsed?: string[];
@@ -85,6 +85,10 @@ function mapPopoverPlacement(
 export default function ColorPicker (props: ColorPickerProps): JSX.Element {
   const [open, setOpen] = useState<boolean>(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const normalizedPickerType = props.colorPickerType === "spectrum" ? "spectrum" : "swatches";
+  const handlePickerTypeChange = (type: string): void => {
+    props.changeColorPickerType?.(type === "spectrum" ? "spectrum" : "swatches");
+  };
 
   let color = props.color ? props.color : new window.Wick.Color("#FFFFFF")
   const colorString = typeof color === "string" ? color : color.rgba ?? color.toString();
@@ -132,8 +136,8 @@ export default function ColorPicker (props: ColorPickerProps): JSX.Element {
             <div className="popover-body">
               <WickColorPicker
                 toggle={toggle}
-                colorPickerType={props.colorPickerType}
-                changeColorPickerType={props.changeColorPickerType}
+                colorPickerType={normalizedPickerType}
+                changeColorPickerType={handlePickerTypeChange}
                 disableAlpha={props.disableAlpha}
                 color={color}
                 onChangeComplete={props.onChangeComplete}

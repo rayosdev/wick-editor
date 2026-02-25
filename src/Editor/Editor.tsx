@@ -92,6 +92,9 @@ const isDevelopment =
   (import.meta as ViteImportMeta).env?.DEV ||
   (window.location && window.location.hostname === "localhost");
 
+const normalizeColorPickerType = (type) =>
+  type === "spectrum" ? "spectrum" : "swatches";
+
 class Editor extends EditorCore {
   // Instance properties with types
   declare project: WickProjectEngine | null;
@@ -376,9 +379,13 @@ class Editor extends EditorCore {
 
     // Set color picker state.
     localForage.getItem(this.colorPickerTypeKey).then((colorPickerType) => {
-      if (!colorPickerType) colorPickerType = "swatches";
+      const normalizedType = normalizeColorPickerType(colorPickerType);
+      if (colorPickerType !== normalizedType) {
+        localForage.setItem(this.colorPickerTypeKey, normalizedType);
+      }
+
       this.setState({
-        colorPickerType: colorPickerType,
+        colorPickerType: normalizedType,
       });
     });
 
@@ -681,12 +688,13 @@ class Editor extends EditorCore {
 
   /**
    * Updates the color picker type within the editor state.
-   * @param {String} type String representing the type of the color picker, can be swatches, spectrum, or gradient (TODO).
+   * @param {String} type String representing the picker mode ("swatches" or "spectrum").
    */
   changeColorPickerType = (type) => {
-    localForage.setItem(this.colorPickerTypeKey, type);
+    const normalizedType = normalizeColorPickerType(type);
+    localForage.setItem(this.colorPickerTypeKey, normalizedType);
     this.setState({
-      colorPickerType: type,
+      colorPickerType: normalizedType,
     });
   };
 

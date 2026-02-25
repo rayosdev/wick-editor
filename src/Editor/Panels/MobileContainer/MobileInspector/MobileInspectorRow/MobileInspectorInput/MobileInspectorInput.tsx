@@ -22,8 +22,25 @@ import React from 'react';
 import '../_mobileinspectorrow.scss';
 
 import WickInput from 'Editor/Util/WickInput/WickInput';
+import WickInputV2LegacyAdapter from 'Editor/Util/WickInputV2/WickInputV2LegacyAdapter';
 
 type WickInputProps = React.ComponentProps<typeof WickInput>;
+type WickInputV2LegacyAdapterProps = React.ComponentProps<
+  typeof WickInputV2LegacyAdapter
+>;
+
+const V2_SUPPORTED_TYPES = new Set<
+  WickInputV2LegacyAdapterProps["type"] | undefined
+>([
+  undefined,
+  "text",
+  "numeric",
+  "slider",
+  "select",
+  "color",
+  "checkbox",
+  "button",
+]);
 
 interface MobileInspectorInputProps {
   inputProps?: Partial<WickInputProps>;
@@ -31,9 +48,20 @@ interface MobileInspectorInputProps {
 }
 
 const MobileInspectorInput: React.FC<MobileInspectorInputProps> = ({ inputProps, input }) => {
+  const mergedInputProps: Partial<WickInputProps> = { ...inputProps, ...input };
+  if (V2_SUPPORTED_TYPES.has(mergedInputProps.type)) {
+    return (
+      <div className="inspector-input-element">
+        <WickInputV2LegacyAdapter
+          {...(mergedInputProps as WickInputV2LegacyAdapterProps)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="inspector-input-element">
-      <WickInput {...inputProps} {...input} />
+      <WickInput {...mergedInputProps} />
     </div>
   );
 };

@@ -19,11 +19,11 @@
 
 import React from "react";
 
-import WickInput, { type SelectOption } from "Editor/Util/WickInput/WickInput";
+import WickInputV2LegacyAdapter, {
+  type WickInputV2LegacySelectOption,
+} from "Editor/Util/WickInputV2/WickInputV2LegacyAdapter";
 import SettingsNumericSlider from "./SettingsNumericSlider/SettingsNumericSlider";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
-
-import "./_toolsettingsinput.scss";
 
 import classNames from "classnames";
 
@@ -49,7 +49,7 @@ type DropdownInputProps = {
   value: string;
   onChange: (value: string) => void;
   icon?: string;
-  options?: SelectOption[];
+  options?: WickInputV2LegacySelectOption[];
 };
 
 type ToolSettingsInputProps = (
@@ -81,7 +81,7 @@ const ToolSettingsInput: React.FC<ToolSettingsInputProps> = (props) => {
     inputProps: CheckboxInputProps & { name: string }
   ): JSX.Element => {
     return (
-      <div className="settings-checkbox-input">
+      <div className="settings-checkbox-input flex h-[30px] w-[30px] items-center">
         <ActionButton
           icon={inputProps.icon}
           isActive={() => inputProps.value}
@@ -89,7 +89,7 @@ const ToolSettingsInput: React.FC<ToolSettingsInputProps> = (props) => {
           id={`settings-input-id-${inputProps.name}`}
           tooltip={inputProps.name}
           action={() => inputProps.onChange(!inputProps.value)}
-          iconClassName="toolbox-input-icon"
+          iconClassName="toolbox-input-icon !w-full"
         />
       </div>
     );
@@ -99,10 +99,10 @@ const ToolSettingsInput: React.FC<ToolSettingsInputProps> = (props) => {
     inputProps: DropdownInputProps
   ): JSX.Element => {
     return (
-      <WickInput
+      <WickInputV2LegacyAdapter
         type="select"
         className="settings-dropdown-input"
-        onChange={inputProps.onChange}
+        onChange={(value) => inputProps.onChange(String(value))}
         value={inputProps.value}
         options={inputProps.options}
       />

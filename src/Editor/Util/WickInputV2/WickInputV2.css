@@ -25,6 +25,7 @@
 }
 
 .wick-input-v2-control {
+  box-sizing: border-box;
   width: 100%;
   min-height: 2.1rem;
   border: 1px solid var(--wick-input-v2-border);

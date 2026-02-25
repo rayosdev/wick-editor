@@ -44,7 +44,7 @@ const InspectorDualNumericInput: React.FC<InspectorDualNumericInputProps> = ({
   const idLabel2 = tooltip2.replace(/\s+/g, '-').toLowerCase();
 
   return (
-    <div className="inspector-row mb-[4px] flex h-[26px] w-full flex-row last:mb-0">
+    <div className="inspector-row mb-[4px] flex min-h-[34px] w-full flex-row items-center last:mb-0">
       {/* Identifier1 */}
       <label
         htmlFor={`${idLabel1}-input`}

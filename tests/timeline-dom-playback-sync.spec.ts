@@ -62,14 +62,14 @@ const bootEditor = async (page: Page): Promise<void> => {
 
 const readPlayhead = async (page: Page): Promise<number> => {
   return page.evaluate(() => {
-    const bridge = window as unknown as EditorBridge;
+    const bridge = window as EditorBridge;
     return Number(bridge.editor?.project?.activeTimeline?.playheadPosition ?? 0);
   });
 };
 
 const preparePreviewTimeline = async (page: Page): Promise<void> => {
   await page.evaluate(() => {
-    const bridge = window as unknown as EditorBridge;
+    const bridge = window as EditorBridge;
     const editor = bridge.editor;
     const project = editor?.project;
     const Wick = bridge.Wick;
@@ -110,7 +110,7 @@ test.describe("Timeline DOM playback sync", () => {
 
     const playheadBefore = await readPlayhead(page);
     await page.evaluate(() => {
-      const bridge = window as unknown as EditorBridge;
+      const bridge = window as EditorBridge;
       if (!bridge.editor?.togglePreviewPlaying) {
         return;
       }
@@ -121,7 +121,7 @@ test.describe("Timeline DOM playback sync", () => {
 
     await page.waitForFunction(
       (initialPlayhead) => {
-        const bridge = window as unknown as EditorBridge;
+        const bridge = window as EditorBridge;
         const current = Number(bridge.editor?.project?.activeTimeline?.playheadPosition ?? 0);
         return current !== Number(initialPlayhead);
       },
@@ -135,7 +135,7 @@ test.describe("Timeline DOM playback sync", () => {
     await expect(page.locator(".timeline-dom-playhead")).toBeVisible();
 
     await page.evaluate(() => {
-      const bridge = window as unknown as EditorBridge;
+      const bridge = window as EditorBridge;
       if (!bridge.editor?.togglePreviewPlaying) {
         return;
       }
@@ -145,7 +145,7 @@ test.describe("Timeline DOM playback sync", () => {
     });
 
     await page.waitForFunction(() => {
-      const bridge = window as unknown as EditorBridge;
+      const bridge = window as EditorBridge;
       return !bridge.editor?.state?.previewPlaying;
     });
 
