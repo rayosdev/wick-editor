@@ -204,8 +204,8 @@ export default function ActionButton(props: ActionButtonProps): JSX.Element {
         <ToolIcon
           className={classNames(
             props.iconClassName,
-            "action-button-text-icon mr-2 h-[18px] [&.mobile-asset-library-icon]:h-5 [&.mobile-asset-library-icon]:w-auto",
-            { "dropdown-action-button-icon h-[18px]": props.dropdown }
+            "action-button-text-icon mr-2 !h-[18px] w-auto shrink-0 object-contain [&.mobile-asset-library-icon]:h-5 [&.mobile-asset-library-icon]:w-auto",
+            { "dropdown-action-button-icon !h-[18px]": props.dropdown }
           )}
           name={props.icon}
         />
