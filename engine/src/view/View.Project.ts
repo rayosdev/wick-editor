@@ -56,15 +56,15 @@ Wick.View.Project = class extends Wick.View {
   }
 
   static get PINCH_ACCELERATION_BASE() {
-    return 0.6;
+    return 1.2;
   }
 
   static get PINCH_ACCELERATION_MULTIPLIER() {
-    return 25;
+    return 40;
   }
 
   static get PINCH_ACCELERATION_MAX_BOOST() {
-    return 6.0;
+    return 10.0;
   }
 
   /*
@@ -281,8 +281,11 @@ Wick.View.Project = class extends Wick.View {
     if (isZoomGesture) {
       // ZOOM: Pinch-to-zoom or ctrl/cmd + scroll
       const deltaY = event.deltaY || 0;
-      const baseDelta = deltaY * multiplier * 0.001;
-      const d = this._transformPinchDelta(baseDelta);
+      
+      // Calculate a direct scale multiplier based on the scroll distance
+      // This provides 1:1 hardware acceleration mapping from the trackpad, identical to panning
+      // (1 - delta) creates a scale factor. E.g., delta of 10 -> scale by 0.95
+      const scaleMultiplier = 1 - (deltaY * multiplier * 0.005);
 
       // Get mouse position in view coordinates for zoom-to-point
       const rect = this._svgCanvas.getBoundingClientRect();
@@ -295,19 +298,22 @@ Wick.View.Project = class extends Wick.View {
       // Store zoom point for animation frame
       this._zoomPoint = viewPoint;
 
-      // Accumulate deltas and apply at next animation frame
-      this._pendingZoomDelta = (this._pendingZoomDelta || 0) + d;
+      // Accumulate scaling factor and apply at next animation frame
+      this._pendingZoomScale = (this._pendingZoomScale || 1) * scaleMultiplier;
+      
       if (!this._zoomRAF) {
         this._zoomRAF = window.requestAnimationFrame(() => {
           try {
             const oldZoom = Number.isFinite(this.paper.view.zoom)
               ? this.paper.view.zoom
               : 1;
+            
+            // Apply accumulated scaling
             const newZoom = Math.max(
               Wick.View.Project.ZOOM_MIN,
               Math.min(
                 Wick.View.Project.ZOOM_MAX,
-                oldZoom + this._pendingZoomDelta,
+                oldZoom * this._pendingZoomScale,
               ),
             );
 
@@ -317,9 +323,7 @@ Wick.View.Project = class extends Wick.View {
               const mousePosition = this._zoomPoint.subtract(
                 this.paper.view.center,
               );
-              const offset = mousePosition
-                .multiply(beta)
-                .subtract(mousePosition);
+              const offset = mousePosition.multiply(1 - beta);
 
               this.paper.view.zoom = newZoom;
               this.paper.view.center = this.paper.view.center.add(offset);
@@ -329,7 +333,7 @@ Wick.View.Project = class extends Wick.View {
 
             this._applyZoomAndPanChangesFromPaper();
           } finally {
-            this._pendingZoomDelta = 0;
+            this._pendingZoomScale = 1;
             this._zoomRAF = null;
             this._zoomPoint = null;
           }
@@ -418,7 +422,7 @@ Wick.View.Project = class extends Wick.View {
             const mousePosition = this._gesturePoint.subtract(
               this._gestureStartCenter,
             );
-            const offset = mousePosition.multiply(beta).subtract(mousePosition);
+            const offset = mousePosition.multiply(1 - beta);
 
             this.paper.view.zoom = clampedZoom;
             this.paper.view.center = this._gestureStartCenter.add(offset);
@@ -558,9 +562,7 @@ Wick.View.Project = class extends Wick.View {
               const mousePosition = this._touchStartPoint.subtract(
                 this._touchStartCenter,
               );
-              const offset = mousePosition
-                .multiply(beta)
-                .subtract(mousePosition);
+              const offset = mousePosition.multiply(1 - beta);
 
               this.paper.view.zoom = clampedZoom;
               this.paper.view.center = this._touchStartCenter.add(offset);

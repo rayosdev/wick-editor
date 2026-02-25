@@ -73,7 +73,7 @@
   if (typeof __filename === "undefined") {
     var __filename = "";
   }
-  var WICK_ENGINE_BUILD_VERSION = "2026.2.24.22.0.23";
+  var WICK_ENGINE_BUILD_VERSION = "2026.2.25.6.16.1";
   (function() {
 
     var _a;
@@ -49047,13 +49047,13 @@
         return 1e4;
       }
       static get PINCH_ACCELERATION_BASE() {
-        return 0.35;
+        return 1.2;
       }
       static get PINCH_ACCELERATION_MULTIPLIER() {
-        return 18;
+        return 40;
       }
       static get PINCH_ACCELERATION_MAX_BOOST() {
-        return 4;
+        return 10;
       }
       /*
        * Create a new Project View.
@@ -49230,8 +49230,7 @@
         }
         if (isZoomGesture) {
           const deltaY = event.deltaY || 0;
-          const baseDelta = deltaY * multiplier * 1e-3;
-          const d = this._transformPinchDelta(baseDelta);
+          const scaleMultiplier = 1 - deltaY * multiplier * 5e-3;
           const rect = this._svgCanvas.getBoundingClientRect();
           const point = new this.paper.Point(
             event.clientX - rect.left,
@@ -49239,7 +49238,7 @@
           );
           const viewPoint = this.paper.view.viewToProject(point);
           this._zoomPoint = viewPoint;
-          this._pendingZoomDelta = (this._pendingZoomDelta || 0) + d;
+          this._pendingZoomScale = (this._pendingZoomScale || 1) * scaleMultiplier;
           if (!this._zoomRAF) {
             this._zoomRAF = window.requestAnimationFrame(() => {
               try {
@@ -49248,7 +49247,7 @@
                   Wick.View.Project.ZOOM_MIN,
                   Math.min(
                     Wick.View.Project.ZOOM_MAX,
-                    oldZoom + this._pendingZoomDelta
+                    oldZoom * this._pendingZoomScale
                   )
                 );
                 if (this._zoomPoint && Math.abs(newZoom - oldZoom) > 1e-3) {
@@ -49256,7 +49255,7 @@
                   const mousePosition = this._zoomPoint.subtract(
                     this.paper.view.center
                   );
-                  const offset = mousePosition.multiply(beta).subtract(mousePosition);
+                  const offset = mousePosition.multiply(1 - beta);
                   this.paper.view.zoom = newZoom;
                   this.paper.view.center = this.paper.view.center.add(offset);
                 } else {
@@ -49264,7 +49263,7 @@
                 }
                 this._applyZoomAndPanChangesFromPaper();
               } finally {
-                this._pendingZoomDelta = 0;
+                this._pendingZoomScale = 1;
                 this._zoomRAF = null;
                 this._zoomPoint = null;
               }
@@ -49337,7 +49336,7 @@
                 const mousePosition = this._gesturePoint.subtract(
                   this._gestureStartCenter
                 );
-                const offset = mousePosition.multiply(beta).subtract(mousePosition);
+                const offset = mousePosition.multiply(1 - beta);
                 this.paper.view.zoom = clampedZoom;
                 this.paper.view.center = this._gestureStartCenter.add(offset);
               } else {
@@ -49435,7 +49434,7 @@
                   const mousePosition = this._touchStartPoint.subtract(
                     this._touchStartCenter
                   );
-                  const offset = mousePosition.multiply(beta).subtract(mousePosition);
+                  const offset = mousePosition.multiply(1 - beta);
                   this.paper.view.zoom = clampedZoom;
                   this.paper.view.center = this._touchStartCenter.add(offset);
                 }
