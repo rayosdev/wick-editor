@@ -10,7 +10,6 @@ type WickScriptEntry = {
 };
 
 interface WickNode {
-    [key: string]: unknown;
     uuid: string;
     classname: string;
     name?: string;
@@ -34,9 +33,9 @@ interface WickNode {
 }
 
 interface WickTimeline {
-    [key: string]: unknown;
     classname?: string;
     parent?: WickNode | WickTimeline | null;
+    isSelected?: boolean;
     playheadPosition: number;
     getChildren: () => WickNode[];
 }

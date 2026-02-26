@@ -43,6 +43,7 @@ import type {
   WickClip as WickClipEngine,
   WickFrame as WickFrameEngine,
   WickLayer as WickLayerEngine,
+  WickSelectableObject,
   SerializedProject,
   AutosaveData,
   WickToolName,
@@ -627,7 +628,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @param {object} object - The object to add to the selection.
    */
   selectObject = (object: SelectableObject): void => {
-    this.project.selection.select(object as { [key: string]: unknown });
+    this.project.selection.select(object as WickSelectableObject);
     this.projectDidChange({ actionName: "Select Object" });
   };
 
@@ -638,7 +639,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   selectObjects = (objects: SelectableObject[]): void => {
     this.project.selection.selectMultipleObjects(
-      objects as Array<{ [key: string]: unknown }>,
+      objects as WickSelectableObject[],
     );
     this.projectDidChange({ actionName: "Select Multiple Objects" });
   };
@@ -650,7 +651,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   deselectObjects = (objects: SelectableObject[]): void => {
     objects.forEach((object) => {
-      this.project.selection.deselect(object as { [key: string]: unknown });
+      this.project.selection.deselect(object as WickSelectableObject);
     });
     this.projectDidChange({ actionName: "Deselect Multiple Objects" });
   };
@@ -758,7 +759,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {boolean} - True if the object is selected, false otherwise
    */
   isObjectSelected = (object: SelectableObject): boolean => {
-    return this.project.selection.isObjectSelected(object as { [key: string]: unknown });
+    return this.project.selection.isObjectSelected(
+      object as WickSelectableObject,
+    );
   };
 
   /**

@@ -167,6 +167,7 @@ function toSafeBoolean(value: unknown): boolean {
 export default function WickInputV2LegacyAdapter(
   props: WickInputV2LegacyAdapterProps
 ): JSX.Element {
+  const legacyAriaLabel = props["aria-label"] ?? props.label;
   const sharedProps = {
     id: props.id,
     name: props.name,
@@ -190,27 +191,51 @@ export default function WickInputV2LegacyAdapter(
   switch (props.type) {
     case "numeric":
       return (
-        <WickInputV2
-          {...sharedProps}
-          kind="number"
+        <LegacyWickInput
+          type="numeric"
+          id={props.id}
+          className={props.className}
+          containerclassname={props.containerclassname}
+          tooltip={props.tooltip}
+          tooltipID={props.tooltipID}
+          tooltipPlace={props.tooltipPlace}
           value={toSafeNumber(props.value)}
           min={props.min}
           max={props.max}
           step={props.step}
-          onChange={(value) => props.onChange?.(value)}
+          readOnly={props.readOnly}
+          aria-label={legacyAriaLabel}
+          onFocus={props.onFocus}
+          onBlur={props.onBlur}
+          onChange={(value) => props.onChange?.(toSafeNumber(value))}
+          onClick={(event?: SyntheticEvent) =>
+            props.onClick?.(event as MouseEvent<HTMLElement> | undefined)
+          }
         />
       );
 
     case "slider":
       return (
-        <WickInputV2
-          {...sharedProps}
-          kind="range"
+        <LegacyWickInput
+          type="slider"
+          id={props.id}
+          className={props.className}
+          containerclassname={props.containerclassname}
+          tooltip={props.tooltip}
+          tooltipID={props.tooltipID}
+          tooltipPlace={props.tooltipPlace}
           value={toSafeNumber(props.value)}
           min={props.min}
           max={props.max}
           step={props.step}
-          onChange={(value) => props.onChange?.(value)}
+          readOnly={props.readOnly}
+          aria-label={legacyAriaLabel}
+          onFocus={props.onFocus}
+          onBlur={props.onBlur}
+          onChange={(value) => props.onChange?.(toSafeNumber(value))}
+          onClick={(event?: SyntheticEvent) =>
+            props.onClick?.(event as MouseEvent<HTMLElement> | undefined)
+          }
         />
       );
 
@@ -273,6 +298,7 @@ export default function WickInputV2LegacyAdapter(
           tooltip={props.tooltip}
           tooltipID={props.tooltipID}
           tooltipPlace={props.tooltipPlace}
+          aria-label={legacyAriaLabel}
           onClick={(event?: SyntheticEvent) =>
             props.onClick?.(event as MouseEvent<HTMLElement> | undefined)
           }
@@ -288,18 +314,40 @@ export default function WickInputV2LegacyAdapter(
 
     case "color":
       return (
-        <WickInputV2
-          {...sharedProps}
-          kind="color"
-          value={toSafeString(props.color ?? props.value, "#4fa3ff")}
+        <LegacyWickInput
+          type="color"
+          id={props.id}
+          className={props.className}
+          containerclassname={props.containerclassname}
+          tooltip={props.tooltip}
+          tooltipID={props.tooltipID}
+          tooltipPlace={props.tooltipPlace}
+          aria-label={legacyAriaLabel}
+          color={toSafeString(props.color ?? props.value, "#4fa3ff")}
           stroke={props.stroke}
           placement={props.placement}
           colorPickerType={props.colorPickerType}
-          changeColorPickerType={props.changeColorPickerType}
+          changeColorPickerType={
+            props.changeColorPickerType
+              ? (type: string) =>
+                  props.changeColorPickerType?.(
+                    type === "spectrum" ? "spectrum" : "swatches"
+                  )
+              : undefined
+          }
           disableAlpha={props.disableAlpha}
           lastColorsUsed={props.lastColorsUsed}
           updateLastColors={props.updateLastColors}
-          onChange={(value) => props.onChange?.(value)}
+          onFocus={props.onFocus}
+          onBlur={props.onBlur}
+          onClick={(event?: SyntheticEvent) =>
+            props.onClick?.(event as MouseEvent<HTMLElement> | undefined)
+          }
+          onChange={(value) =>
+            props.onChange?.(
+              toSafeString(value, toSafeString(props.color ?? props.value, "#4fa3ff"))
+            )
+          }
         />
       );
 

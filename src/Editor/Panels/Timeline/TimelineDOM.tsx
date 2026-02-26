@@ -331,8 +331,14 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   const cellWidth = Math.max(20, Math.round(baseGridMetrics.cellWidth * densityScale));
   const cellHeight = Math.max(26, Math.round(baseGridMetrics.cellHeight * densityScale));
   const timelineLength = useMemo(() => {
-    return Math.max(getTimelineLength(layers) + 24, 48);
-  }, [layers, renderTick, frameSizeMode]);
+    const layerDrivenLength = getTimelineLength(layers) + 24;
+    const workAreaDrivenLength = Math.max(1, Math.round(Number(workArea.end ?? 1)));
+    const markerDrivenLength = markers.reduce((maxFrame, marker) => {
+      const markerFrame = Math.max(1, Math.round(Number(marker.frame ?? 1)));
+      return Math.max(maxFrame, markerFrame);
+    }, 1);
+    return Math.max(layerDrivenLength, workAreaDrivenLength, markerDrivenLength, 48);
+  }, [layers, markers, renderTick, frameSizeMode, workArea.end]);
   const maxLayerIndex = Math.max(0, layers.length - 1);
   const viewportWidth =
     gridViewport.width > 0
@@ -1797,8 +1803,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       return;
     }
 
-    const clampedStart = clampNumber(Math.round(parsedStart), 1, timelineLength);
-    const clampedEnd = clampNumber(Math.round(parsedEnd), 1, timelineLength);
+    const clampedStart = Math.max(1, Math.round(parsedStart));
+    const clampedEnd = Math.max(1, Math.round(parsedEnd));
     const nextWorkArea = normalizeWorkArea({
       start: Math.min(clampedStart, clampedEnd),
       end: Math.max(clampedStart, clampedEnd),

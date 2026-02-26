@@ -20,8 +20,6 @@
 import { useState } from "react";
 import classNames from "classnames";
 
-import "./_toolbox.scss";
-
 import HotKeyInterface from "Editor/hotKeyMap";
 import WickInputV2LegacyAdapter from "Editor/Util/WickInputV2/WickInputV2LegacyAdapter";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
@@ -132,6 +130,48 @@ type ToolDropdownConfig =
         options: ToolName[];
     };
 
+const TOOL_BOX_CONTAINER_CLASSES =
+    "tool-box-container h-full w-full overflow-hidden " +
+    "[&_#tool-box-stroke-color-button]:rounded-[20px] [&_#tool-box-fill-color-button]:rounded-[20px]";
+const TOOL_BOX_BASE_CLASSES =
+    "tool-box flex h-full w-full overflow-x-hidden border-b-[4px] border-l-[4px] [border-bottom-style:solid] [border-left-style:solid] border-b-[#191919] border-l-[#191919] bg-editor-primary pl-[2px] pr-1";
+const TOOL_BOX_LARGE_CLASSES =
+    "tool-box tool-box-large flex-row items-center overflow-hidden";
+const TOOL_BOX_MEDIUM_CLASSES =
+    "tool-box tool-box-medium h-20 flex-col overflow-hidden";
+const MEDIUM_TOOLBOX_ROW_CLASSES =
+    "medium-toolbox-row flex h-1/2 w-full flex-row items-center border-b-[3px] [border-bottom-style:solid] border-b-[#191919] last:border-b-0";
+const TOOL_COLLECTION_CONTAINER_CLASSES =
+    "tool-collection-container flex h-full flex-row items-center";
+const TOOLBOX_ITEM_CLASSES =
+    "toolbox-item h-[30px] w-[30px] max-w-[30px] ml-[3px] mr-[3px]";
+const TOOLBOX_DROPDOWN_ANCHOR_CLASSES = "tool-dropdown-anchor relative";
+const TOOL_SELECTOR_POPOUT_CLASSES =
+    "tool-selector-popout flex min-w-[180px] flex-col gap-[6px] bg-editor-primary p-[6px]";
+const TOOL_SELECTOR_MENU_LIST_CLASSES =
+    "tool-selector-menu-list flex flex-col gap-1";
+const TOOL_SELECTOR_MENU_ITEM_CLASSES =
+    "tool-selector-menu-item flex min-h-[34px] items-center gap-2 rounded-[4px] border-0 bg-transparent px-2 py-[6px] text-left font-nunito text-[12px] font-bold text-editor-text-primary has-hover:bg-[#4a4a4a] active:bg-editor-modal-gray [&.active]:!bg-[#4a4a4a] max-[800px]:min-h-10 max-[800px]:text-[13px]";
+const TOOL_SELECTOR_MENU_ITEM_ICON_CLASSES =
+    "tool-selector-menu-item-icon !h-4 !w-4 shrink-0";
+const TOOL_SELECTOR_MENU_ITEM_LABEL_CLASSES =
+    "tool-selector-menu-item-label flex-1";
+const TOOL_SELECTOR_MENU_ITEM_HOTKEY_CLASSES =
+    "tool-selector-menu-item-hotkey ml-[6px] font-nunito text-[10px] font-bold tracking-[0.02em] text-editor-text-secondary";
+const COLOR_CONTAINER_CLASSES =
+    "color-container toolbox-item float-left flex h-[25.5px] w-[25.5px] min-w-[25.5px] cursor-pointer items-center overflow-hidden ml-[3px] mr-[3px]";
+const TOOLBOX_ACTIONS_RIGHT_CONTAINER_CLASSES =
+    "toolbox-actions-right-container ml-auto flex h-full flex-row items-center";
+const TOOLBOX_ACTIONS_RIGHT_CLASSES =
+    "toolbox-actions-right flex flex-row items-center justify-center";
+const BUMP_UP_NO_DROPDOWN_ICON_CLASSES = "bump-up-no-dropdown mb-[2.5px]";
+
+const getToolboxItemClassName = (isMobile: boolean): string =>
+    classNames(TOOLBOX_ITEM_CLASSES, {
+        mobile: isMobile,
+        "mr-0": isMobile,
+    });
+
 const Toolbox: React.FC<ToolboxProps> = (props) => {
     const [dropdownSelector, setDropdownSelector] = useState<string | null>(null);
 
@@ -152,9 +192,7 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
     > => {
         return {
             setActiveTool: props.setActiveTool,
-            className: classNames("toolbox-item", {
-                mobile: props.renderSize === "small",
-            }),
+            className: getToolboxItemClassName(props.renderSize === "small"),
             getActiveToolName: props.getActiveToolName,
             keyMap: props.keyMap,
         };
@@ -259,7 +297,7 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
         const baseProps = getToolButtonBaseProps();
 
         return (
-            <div className="tool-collection-container">
+            <div className={TOOL_COLLECTION_CONTAINER_CLASSES}>
                 {TOOL_DROPDOWN_KEYS.map((key) => {
                     const dropdownConfig = toolDropdowns[key];
                     if (!dropdownConfig) {
@@ -272,10 +310,8 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                             <ToolButton
                                 key={key}
                                 {...baseProps}
-                                iconClassName="bump-up-no-dropdown"
-                                className={classNames("toolbox-item", {
-                                    mobile: isMobile,
-                                })}
+                                iconClassName={BUMP_UP_NO_DROPDOWN_ICON_CLASSES}
+                                className={getToolboxItemClassName(isMobile)}
                                 name={dropdownConfig}
                                 tooltip={tooltip}
                             />
@@ -294,12 +330,14 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                     const selectorKey = `${isMobile ? "mobile" : "desktop"}-${key}`;
                     const tooltip = getToolTooltip(resolvedConfig.active);
                     return (
-                        <div key={key} id={selectorId} className="tool-dropdown-anchor">
+                        <div
+                            key={key}
+                            id={selectorId}
+                            className={TOOLBOX_DROPDOWN_ANCHOR_CLASSES}
+                        >
                             <ToolButton
                                 {...baseProps}
-                                className={classNames("toolbox-item", {
-                                    mobile: isMobile,
-                                })}
+                                className={getToolboxItemClassName(isMobile)}
                                 action={() => {
                                     if (activeToolName === resolvedConfig.active) {
                                         toggleDropdownSelector(selectorKey);
@@ -324,8 +362,8 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                                     { desktop: !isMobile }
                                 )}
                             >
-                                <div className="tool-selector-popout">
-                                    <div className="tool-selector-menu-list">
+                                <div className={TOOL_SELECTOR_POPOUT_CLASSES}>
+                                    <div className={TOOL_SELECTOR_MENU_LIST_CLASSES}>
                                         {resolvedConfig.options.map((option) => {
                                             const optionIsActive =
                                                 activeToolName === option ||
@@ -337,8 +375,11 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                                                     key={option}
                                                     type="button"
                                                     className={classNames(
-                                                        "tool-selector-menu-item",
-                                                        { active: optionIsActive }
+                                                        TOOL_SELECTOR_MENU_ITEM_CLASSES,
+                                                        {
+                                                            active: optionIsActive,
+                                                            "!bg-[#4a4a4a]": optionIsActive,
+                                                        }
                                                     )}
                                                     onClick={() => {
                                                         props.setActiveTool(option);
@@ -346,14 +387,18 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                                                     }}
                                                 >
                                                     <ToolIcon
-                                                        className="tool-selector-menu-item-icon"
+                                                        className={TOOL_SELECTOR_MENU_ITEM_ICON_CLASSES}
                                                         name={option}
                                                     />
-                                                    <span className="tool-selector-menu-item-label">
+                                                    <span
+                                                        className={TOOL_SELECTOR_MENU_ITEM_LABEL_CLASSES}
+                                                    >
                                                         {getToolTooltip(option)}
                                                     </span>
                                                     {hotkey && (
-                                                        <span className="tool-selector-menu-item-hotkey">
+                                                        <span
+                                                            className={TOOL_SELECTOR_MENU_ITEM_HOTKEY_CLASSES}
+                                                        >
                                                             {hotkey}
                                                         </span>
                                                     )}
@@ -389,9 +434,9 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
         const strokeColor = getColorValue("strokeColor");
 
         return (
-            <div className="tool-collection-container">
+            <div className={TOOL_COLLECTION_CONTAINER_CLASSES}>
                 <div
-                    className="color-container toolbox-item"
+                    className={COLOR_CONTAINER_CLASSES}
                     id="fill-color-picker-container"
                 >
                     <WickInputV2LegacyAdapter
@@ -414,7 +459,7 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                     />
                 </div>
                 <div
-                    className="color-container toolbox-item"
+                    className={classNames(COLOR_CONTAINER_CLASSES, "box-border")}
                     id="stroke-color-picker-container"
                 >
                     <WickInputV2LegacyAdapter
@@ -442,8 +487,8 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
 
     const renderCanvasActions = (): JSX.Element => {
         return (
-            <div className="toolbox-actions-right-container">
-                <div className="toolbox-actions-right">
+            <div className={TOOLBOX_ACTIONS_RIGHT_CONTAINER_CLASSES}>
+                <div className={TOOLBOX_ACTIONS_RIGHT_CLASSES}>
                     <div id="more-canvas-actions-popover-button">
                         {renderToolButtonFromAction(
                             props.editorActions.showMoreCanvasActions
@@ -469,7 +514,7 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
 
     const renderLargeToolbox = (): JSX.Element => {
         return (
-            <div className={classNames("tool-box", "tool-box-large")}>
+            <div className={classNames(TOOL_BOX_BASE_CLASSES, TOOL_BOX_LARGE_CLASSES)}>
                 {renderToolButtons(false)}
 
                 <ToolboxBreak />
@@ -496,14 +541,14 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
 
     const renderMediumToolbox = (): JSX.Element => {
         return (
-            <div className={classNames("tool-box", "tool-box-medium")}>
-                <div className="medium-toolbox-row">
+            <div className={classNames(TOOL_BOX_BASE_CLASSES, TOOL_BOX_MEDIUM_CLASSES)}>
+                <div className={MEDIUM_TOOLBOX_ROW_CLASSES}>
                     {renderToolButtons(false)}
                     <ToolboxBreak />
                     {renderColorPickers()}
                     <ToolboxBreak />
                 </div>
-                <div className="medium-toolbox-row">
+                <div className={MEDIUM_TOOLBOX_ROW_CLASSES}>
                     <ToolSettings
                         renderSize={props.renderSize as "small" | "medium" | "large"}
                         activeTool={props.activeToolName}
@@ -522,13 +567,13 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
 
     const renderSmallToolbox = (): JSX.Element => {
         return (
-            <div className={classNames("tool-box", "tool-box-medium")}>
-                <div className="medium-toolbox-row">
+            <div className={classNames(TOOL_BOX_BASE_CLASSES, TOOL_BOX_MEDIUM_CLASSES)}>
+                <div className={MEDIUM_TOOLBOX_ROW_CLASSES}>
                     {renderToolButtons(true)}
                     <ToolboxBreak className={classNames("toolbox-break", "mobile")} />
                     {renderCanvasActionsMobile()}
                 </div>
-                <div className="medium-toolbox-row">
+                <div className={MEDIUM_TOOLBOX_ROW_CLASSES}>
                     {renderColorPickers()}
                     <ToolboxBreak className={classNames("toolbox-break", "mobile")} />
                     <ToolSettings
@@ -549,8 +594,8 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
 
     const renderCanvasActionsMobile = (): JSX.Element => {
         return (
-            <div className="toolbox-actions-right-container">
-                <div className="toolbox-actions-right">
+            <div className={TOOLBOX_ACTIONS_RIGHT_CONTAINER_CLASSES}>
+                <div className={TOOLBOX_ACTIONS_RIGHT_CLASSES}>
                     {renderToolButtonFromAction(props.editorActions.undo)}
                     {renderToolButtonFromAction(props.editorActions.redo)}
                     <div id="more-canvas-actions-popover-button">
@@ -571,7 +616,7 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
     };
 
     return (
-        <div className="tool-box-container" aria-label="Toolbox">
+        <div className={TOOL_BOX_CONTAINER_CLASSES} aria-label="Toolbox">
             {props.renderSize === "large"
                 ? renderLargeToolbox()
                 : props.renderSize === "medium"

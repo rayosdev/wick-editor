@@ -70,6 +70,7 @@ const DISALLOWED_SCSS_FILES = new Set([
   "src/Editor/Panels/Toolbox/ToolboxBreak/_toolboxbreak.scss",
   "src/Editor/Panels/Toolbox/ToolButton/_toolbutton.scss",
   "src/Editor/Panels/Toolbox/CanvasActions/_canvasactions.scss",
+  "src/Editor/Panels/Toolbox/_toolbox.scss",
   "src/Editor/Panels/Toolbox/toolbox.scss",
   "src/Editor/Panels/Toolbox/toolbox-shim.scss",
   "src/Editor/Panels/Toolbox/ToolSettings/_toolsettings.scss",

@@ -136,14 +136,21 @@ test.describe("Storybook functional checks", () => {
 
     await page.getByLabel("Renderer").selectOption({ label: "WebGL" });
     await page.getByLabel("Loop Playback").check();
-    await page.getByLabel("Accent").fill("#ff7711");
+    await page
+      .locator(".wick-color-picker, .wick-input-v2-control--color")
+      .first()
+      .click();
+    await page
+      .locator('[data-color-hex="#ff0000"]')
+      .first()
+      .evaluate((node) => (node as HTMLButtonElement).click());
     await page.getByRole("button", { name: "Apply Legacy Preset" }).click();
 
     await expect(summary).toContainText("Name: Legacy QA");
     await expect(summary).toContainText("FPS: 30");
     await expect(summary).toContainText("Renderer: gpu");
     await expect(summary).toContainText("Loop: yes");
-    await expect(summary).toContainText("Accent: #ff7711");
+    await expect(summary).toContainText("Accent: rgba(255,0,0,1)");
     await expect(summary).toContainText("Applied: 1");
   });
 
@@ -174,7 +181,10 @@ test.describe("Storybook functional checks", () => {
       "editor-util-wickinputv2-wickinputv2legacyadapter--legacy-advanced-color-picker-parity"
     );
 
-    await page.locator(".wick-input-v2-control--color").click();
+    await page
+      .locator(".wick-input-v2-control--color, .wick-color-picker")
+      .first()
+      .click();
     await page
       .locator('[data-color-hex="#ff0000"]')
       .first()

@@ -32,7 +32,6 @@ export interface PickerColorRGB {
 export interface PickerColorChange {
   rgb: PickerColorRGB;
   hex?: string;
-  [key: string]: unknown;
 }
 
 export type PickerColorValue =
@@ -57,6 +56,18 @@ interface ColorPickerProps {
 
 type WickPopoverPosition = "left" | "right" | "top" | "bottom";
 type WickPopoverAlign = "start" | "center" | "end";
+
+function getDefaultPickerColor(): PickerColorValue {
+  const wickGlobal = window.Wick as {
+    Color?: new (value: string) => { rgba?: string; toString(): string };
+  };
+
+  if (typeof wickGlobal.Color === "function") {
+    return new wickGlobal.Color("#FFFFFF");
+  }
+
+  return "#FFFFFF";
+}
 
 function mapPopoverPlacement(
   placement: ColorPickerProps["placement"]
@@ -90,7 +101,7 @@ export default function ColorPicker (props: ColorPickerProps): JSX.Element {
     props.changeColorPickerType?.(type === "spectrum" ? "spectrum" : "swatches");
   };
 
-  let color = props.color ? props.color : new window.Wick.Color("#FFFFFF")
+  const color = props.color ?? getDefaultPickerColor();
   const colorString = typeof color === "string" ? color : color.rgba ?? color.toString();
   let itemID = props.id;
   let popoverID = itemID+'-popover';

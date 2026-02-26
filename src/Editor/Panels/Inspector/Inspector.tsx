@@ -43,7 +43,7 @@ type SelectionAttributes = Record<string, unknown>; // Dynamic selection attribu
 type InspectorSelectorOption = {
     value: string | number | boolean | null | WickAsset; // Selector values can be primitives, null, or assets
     label: string;
-    [key: string]: unknown; // Additional props inherently flexible
+    className?: string;
 };
 type InspectorAction = ComponentProps<typeof InspectorActionButton>["action"];
 
