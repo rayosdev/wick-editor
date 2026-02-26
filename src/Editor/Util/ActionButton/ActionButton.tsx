@@ -31,6 +31,10 @@ interface ActionButtonProps {
   tooltip?: string;
   tooltipHotkey?: string;
   tooltipPlace?: "top" | "bottom" | "left" | "right";
+  tooltipDelayMs?: number;
+  tooltipLongPressMs?: number;
+  mobileTooltipMode?: "off" | "long-press";
+  hasLongPressAction?: boolean;
   action: (e?: React.MouseEvent) => void;
   useClickEvent?: boolean;
   isActive?: () => boolean;
@@ -266,6 +270,10 @@ export default function ActionButton(props: ActionButtonProps): JSX.Element {
       tooltip={getTooltip()}
       tooltipID={tooltipID}
       tooltipPlace={props.tooltipPlace}
+      tooltipDelayMs={props.tooltipDelayMs}
+      tooltipLongPressMs={props.tooltipLongPressMs}
+      mobileTooltipMode={props.mobileTooltipMode}
+      hasLongPressAction={props.hasLongPressAction}
       className={finalColorClassName}
       type="button"
       secondaryAction={props.secondaryAction}

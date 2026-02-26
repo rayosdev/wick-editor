@@ -1,4 +1,5 @@
 import type { PickerColorChange } from "./ColorPicker";
+import { getEditorRuntime } from "Editor/Util/editorRuntime";
 
 type EyedropperColorCallback = ((color: PickerColorChange) => void) | undefined;
 
@@ -18,7 +19,7 @@ function isEditorEyedropperBridge(value: unknown): value is EditorEyedropperBrid
 export function activateEditorEyedropper(
   onColorPicked: EyedropperColorCallback,
 ): boolean {
-  const editorBridge = window.editor;
+  const editorBridge = getEditorRuntime<EditorEyedropperBridge>();
 
   if (!isEditorEyedropperBridge(editorBridge)) {
     return false;

@@ -885,6 +885,7 @@ const TimelineClassic: React.FC<TimelineRendererProps> = (props) => {
                         color="tool"
                         tooltip="Previous Frame"
                         tooltipPlace="top"
+                        hasLongPressAction
                         className="timeline-flash-action-button timeline-flash-text-action"
                         action={stepPlayheadBackwards}
                     />
@@ -894,6 +895,7 @@ const TimelineClassic: React.FC<TimelineRendererProps> = (props) => {
                         color="tool"
                         tooltip="Next Frame"
                         tooltipPlace="top"
+                        hasLongPressAction
                         className="timeline-flash-action-button timeline-flash-text-action"
                         action={stepPlayheadForwards}
                     />

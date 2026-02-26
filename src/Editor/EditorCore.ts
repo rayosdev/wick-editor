@@ -26,6 +26,7 @@ import VideoExport from "./export/VideoExport";
 import GIFExport from "./export/GIFExport";
 import GIFImport from "./import/GIFImport";
 import AudioExport from "./export/AudioExport";
+import { getWickRuntime } from "./Util/wickRuntime";
 import type {
   WickClip,
   WickFrame,
@@ -234,12 +235,7 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   };
 
   protected getWickNamespace = (): Partial<WickNamespace> | null => {
-    const wickGlobal = window.Wick as Partial<WickNamespace> | undefined;
-    if (!wickGlobal || typeof wickGlobal !== "object") {
-      return null;
-    }
-
-    return wickGlobal;
+    return getWickRuntime();
   };
 
   protected getWickObjectByUUID = (uuid: string): WickBaseEngine | null => {

@@ -50,7 +50,6 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
   const isToolSettings = classTokens.has("tool-settings-menu-popover");
   const isToolSettingsPresets = classTokens.has("tool-settings-presets-menu-popover");
   const isCanvasActions = classTokens.has("canvas-actions-menu-popover");
-  const isOutlinerFilter = classTokens.has("outliner-filter-popup");
   const canvasActionsAlign =
     !mobile && isCanvasActions
       ? (() => {
@@ -65,7 +64,7 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
           return rect.left > window.innerWidth / 2 ? ("end" as const) : ("start" as const);
         })()
       : "start";
-  const popoverAlign = !mobile && isOutlinerFilter ? ("end" as const) : canvasActionsAlign;
+  const popoverAlign = canvasActionsAlign;
   const popoverPositions = !mobile && isCanvasActions
     ? (["bottom", "top", "left", "right"] as const)
     : (["bottom", "top"] as const);
@@ -104,11 +103,22 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
       onClickOutside={handleClickOutside}
       content={
         <div className={popoverClassName}>
-          <div className="popover-body">{children}</div>
+          <div
+            className={classNames(
+              "popover-body !border border-[#191919] !bg-editor-primary p-0 shadow-[0_10px_26px_rgba(0,0,0,0.5)]",
+              "rounded-[6px]",
+              mobile && "w-[min(480px,calc(100vw-16px))]"
+            )}
+          >
+            {children}
+          </div>
         </div>
       }
     >
-      <span className="wick-popover-anchor" aria-hidden />
+      <span
+        className="wick-popover-anchor pointer-events-none fixed h-0 w-0 overflow-hidden"
+        aria-hidden
+      />
     </WickPopover>
   );
 };

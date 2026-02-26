@@ -17,7 +17,13 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { ReactNode, ChangeEvent, forwardRef } from "react";
+import React, {
+  ReactNode,
+  ChangeEvent,
+  forwardRef,
+  useRef,
+  useEffect,
+} from "react";
 import "./wickinput.legacy.css";
 
 import Select from "react-select";
@@ -36,6 +42,10 @@ import WickTextInput from "./WickTextInput/WickTextInput";
 import { isMobile } from "react-device-detect";
 
 import classNames from "classnames";
+import {
+  TOOLTIP_HOVER_DELAY_MS,
+  TOOLTIP_LONG_PRESS_MS,
+} from "Editor/Util/WickInput/tooltipBehavior";
 
 export interface SelectOption {
   label: string;
@@ -61,8 +71,8 @@ type WickNativeInputProps = Omit<
   "type" | "value" | "onChange" | "onClick" | "color"
 >;
 
-const INPUT_BASE_CLASSES =
-  "wick-input h-full w-full rounded-[5px] border-0 bg-[#4F4F4F] py-[2px] pl-1 pr-[2px] text-white";
+const INPUT_BASE_CLASSES = "wick-input h-full w-full border-0 bg-[#4F4F4F] text-white";
+const INPUT_CHROME_CLASSES = "rounded-[5px] py-[2px] pl-1 pr-[2px]";
 const INPUT_STATE_CLASSES =
   "[&.invalid]:!border-l-[3px] [&.invalid]:!border-l-[#F86868] [&.wick-input-updating]:!border-[3px] [&.wick-input-updating]:!border-[#FFC835] [&.read-only]:bg-gray-500";
 
@@ -107,6 +117,10 @@ interface WickInputProps {
   tooltip?: string;
   tooltipID?: string;
   tooltipPlace?: "top" | "bottom" | "left" | "right";
+  tooltipDelayMs?: number;
+  tooltipLongPressMs?: number;
+  mobileTooltipMode?: "off" | "long-press";
+  hasLongPressAction?: boolean;
   value?: WickInputDynamicValue;
   onChange?: WickInputChangeHandler;
   readOnly?: boolean;
@@ -127,6 +141,7 @@ interface WickInputProps {
   updateLastColors?: (color: string) => void;
   buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
   secondaryAction?: () => void;
+  disableBasePadding?: boolean;
   onClick?: (e?: React.SyntheticEvent) => void;
   onTouch?: (e?: React.SyntheticEvent) => void;
   isSearchable?: boolean;
@@ -143,21 +158,87 @@ type WickInputPropsWithNative = WickInputProps & WickNativeInputProps;
  */
 const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
   (props, _ref) => {
-  const renderTooltip = (tooltipID: string): JSX.Element => {
-    return (
-      <ReactTooltip
-        disable={isMobile}
-        id={tooltipID}
-        type="info"
-        place={props.tooltipPlace === undefined ? "bottom" : props.tooltipPlace}
-        effect="solid"
-        aria-haspopup="true"
-        className="wick-tooltip"
-      >
-        <span>{props.tooltip}</span>
-      </ReactTooltip>
-    );
-  };
+    const tooltipID =
+      props.tooltipID === undefined
+        ? "action-button-tooltip-nyi"
+        : props.tooltipID;
+    const tooltipAnchorID = `${tooltipID}-anchor`;
+    const hasTooltip = Boolean(props.tooltip);
+    const mobileTooltipMode = props.mobileTooltipMode ?? "long-press";
+    const isTooltipMobileEligible =
+      isMobile &&
+      props.type === "button" &&
+      mobileTooltipMode === "long-press" &&
+      !props.hasLongPressAction &&
+      hasTooltip;
+    const shouldRenderTooltipContainer =
+      hasTooltip && (!isMobile || isTooltipMobileEligible);
+    const tooltipDelayMs = props.tooltipDelayMs ?? TOOLTIP_HOVER_DELAY_MS;
+    const tooltipLongPressMs =
+      props.tooltipLongPressMs ?? TOOLTIP_LONG_PRESS_MS;
+    const hideTooltipListenerRef = useRef<(() => void) | null>(null);
+
+    const clearHideTooltipListener = (): void => {
+      if (hideTooltipListenerRef.current) {
+        window.removeEventListener(
+          "touchend",
+          hideTooltipListenerRef.current,
+          true
+        );
+        window.removeEventListener(
+          "touchcancel",
+          hideTooltipListenerRef.current,
+          true
+        );
+        hideTooltipListenerRef.current = null;
+      }
+    };
+
+    useEffect(() => {
+      return () => {
+        clearHideTooltipListener();
+      };
+    }, []);
+
+    const showTooltipForAnchor = (): void => {
+      if (!isTooltipMobileEligible) {
+        return;
+      }
+
+      const anchorElement = document.getElementById(tooltipAnchorID);
+      if (!anchorElement) {
+        return;
+      }
+
+      clearHideTooltipListener();
+      ReactTooltip.show(anchorElement);
+
+      const hideTooltip = () => {
+        ReactTooltip.hide(anchorElement);
+        clearHideTooltipListener();
+      };
+
+      hideTooltipListenerRef.current = hideTooltip;
+      window.addEventListener("touchend", hideTooltip, true);
+      window.addEventListener("touchcancel", hideTooltip, true);
+    };
+
+    const renderTooltip = (nextTooltipID: string): JSX.Element => {
+      return (
+        <ReactTooltip
+          disable={isMobile && !isTooltipMobileEligible}
+          delayShow={tooltipDelayMs}
+          id={nextTooltipID}
+          type="info"
+          place={props.tooltipPlace === undefined ? "bottom" : props.tooltipPlace}
+          effect="solid"
+          aria-haspopup="true"
+          className="wick-tooltip"
+        >
+          <span>{props.tooltip}</span>
+        </ReactTooltip>
+      );
+    };
 
   const renderNumeric = (): JSX.Element => {
     const {
@@ -169,6 +250,10 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
       tooltip,
       tooltipID,
       tooltipPlace,
+      tooltipDelayMs,
+      tooltipLongPressMs,
+      mobileTooltipMode,
+      hasLongPressAction,
       options,
       color,
       stroke,
@@ -182,6 +267,7 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
       updateLastColors,
       buttonProps,
       secondaryAction,
+      disableBasePadding,
       onClick,
       onTouch,
       isSearchable,
@@ -233,6 +319,7 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
         onChange={wrappedOnChange}
         className={classNames(
           INPUT_BASE_CLASSES,
+          !disableBasePadding && INPUT_CHROME_CLASSES,
           INPUT_STATE_CLASSES,
           "numeric",
           { "read-only": props.readOnly },
@@ -254,6 +341,10 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
             tooltip,
             tooltipID,
             tooltipPlace,
+            tooltipDelayMs,
+            tooltipLongPressMs,
+            mobileTooltipMode,
+            hasLongPressAction,
             options,
             color,
             stroke,
@@ -267,6 +358,7 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
             updateLastColors,
             buttonProps,
             secondaryAction,
+            disableBasePadding,
             onClick,
             onTouch,
             isSearchable,
@@ -278,6 +370,7 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
         onChange={props.onChange ? (value: string) => props.onChange?.(value) : undefined}
         className={classNames(
           INPUT_BASE_CLASSES,
+          !props.disableBasePadding && INPUT_CHROME_CLASSES,
           INPUT_STATE_CLASSES,
           { "read-only": props.readOnly },
           props.className
@@ -301,6 +394,10 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
             tooltip,
             tooltipID,
             tooltipPlace,
+            tooltipDelayMs,
+            tooltipLongPressMs,
+            mobileTooltipMode,
+            hasLongPressAction,
             options,
             color,
             stroke,
@@ -436,6 +533,10 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
               tooltip,
               tooltipID,
               tooltipPlace,
+              tooltipDelayMs,
+              tooltipLongPressMs,
+              mobileTooltipMode,
+              hasLongPressAction,
               options,
               color,
               stroke,
@@ -482,6 +583,10 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
       tooltip,
       tooltipID,
       tooltipPlace,
+      tooltipDelayMs,
+      tooltipLongPressMs,
+      mobileTooltipMode,
+      hasLongPressAction,
       updateLastColors,
       buttonProps,
       secondaryAction,
@@ -522,6 +627,9 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
     return (
       <WickButton
         onClick={props.onClick ? () => props.onClick?.() : undefined}
+        onLongPress={isTooltipMobileEligible ? showTooltipForAnchor : undefined}
+        longPressMs={tooltipLongPressMs}
+        consumeClickAfterLongPress={isTooltipMobileEligible}
         secondaryAction={props.secondaryAction}
         className={buttonClassName}
         buttonProps={props.buttonProps}
@@ -553,29 +661,24 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
     return renderButton();
   };
 
-  const tooltipID =
-    props.tooltipID === undefined
-      ? "action-button-tooltip-nyi"
-      : props.tooltipID;
+    if (shouldRenderTooltipContainer) {
+      return (
+        <div
+          data-tip
+          data-for={tooltipID}
+          id={tooltipAnchorID}
+          className={classNames(
+            "wick-input-container flex h-full w-full",
+            props.containerclassname
+          )}
+        >
+          {renderTooltip(tooltipID)}
+          {renderContent()}
+        </div>
+      );
+    }
 
-  if (props.tooltip && !isMobile) {
-    return (
-      <div
-        data-tip
-        data-for={tooltipID}
-        id={tooltipID}
-        className={classNames(
-          "wick-input-container flex h-full w-full",
-          props.containerclassname
-        )}
-      >
-        {renderTooltip(tooltipID)}
-        {renderContent()}
-      </div>
-    );
-  }
-
-  return renderContent();
+    return renderContent();
   }
 );
 

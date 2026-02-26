@@ -32,8 +32,13 @@ const doubleUnknownCastPattern = /\bas unknown as\b/;
 const singleUnknownCastPattern = /\bas unknown\b/;
 const jsonParseReturnTypePattern = /\bReturnType<typeof JSON\.parse>\b/;
 const directWindowEditorAccessPattern = /\bwindow\.editor\.[A-Za-z_$]/;
+const windowEditorReferencePattern = /\bwindow\.editor\b/;
 const directWindowWickAccessPattern = /\bwindow\.Wick\.[A-Za-z_$]/;
+const windowWickReferencePattern = /\bwindow\.Wick\b/;
+const windowProjectReferencePattern = /\bwindow\.project\b/;
+const windowPaperReferencePattern = /\bwindow\.paper\b/;
 const adhocWindowWickCastPattern = /\bwindow\.Wick\s+as\s+\{/;
+const windowWickCastPattern = /\bwindow\.Wick\s+as\b/;
 const unknownStringIndexSignaturePattern =
   /\[\s*key\s*:\s*string\s*\]\s*:\s*unknown\s*;/;
 const FILE_SCAN_TEST_TIMEOUT_MS = 20_000;
@@ -275,6 +280,53 @@ describe("TypeScript everywhere guards", () => {
     expect(offending).toEqual([]);
   }, FILE_SCAN_TEST_TIMEOUT_MS);
 
+  it("uses window.editor references only in shared runtime helper", () => {
+    const allowlist = new Set([
+      path.normalize("src/Editor/Util/editorRuntime.ts"),
+    ]);
+
+    const offending = tsAppHygieneFiles.flatMap((repoRelative) => {
+      if (allowlist.has(repoRelative)) {
+        return [];
+      }
+
+      const lines = getFileLines(repoRelative);
+      return lines
+        .map((line: string, index: number) => ({ line, index: index + 1 }))
+        .filter(
+          ({ line }: { line: string }) =>
+            windowEditorReferencePattern.test(line),
+        )
+        .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
+    });
+
+    expect(offending).toEqual([]);
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
+
+  it("uses window.project and window.paper references only in shared app runtime helper", () => {
+    const allowlist = new Set([
+      path.normalize("src/Editor/Util/appRuntime.ts"),
+    ]);
+
+    const offending = tsAppHygieneFiles.flatMap((repoRelative) => {
+      if (allowlist.has(repoRelative)) {
+        return [];
+      }
+
+      const lines = getFileLines(repoRelative);
+      return lines
+        .map((line: string, index: number) => ({ line, index: index + 1 }))
+        .filter(
+          ({ line }: { line: string }) =>
+            windowProjectReferencePattern.test(line) ||
+            windowPaperReferencePattern.test(line),
+        )
+        .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
+    });
+
+    expect(offending).toEqual([]);
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
+
   it("does not directly access window.Wick members in EditorCore", () => {
     const repoRelative = path.normalize("src/Editor/EditorCore.ts");
     const lines = getFileLines(repoRelative);
@@ -286,6 +338,23 @@ describe("TypeScript everywhere guards", () => {
           directWindowWickAccessPattern.test(line),
       )
       .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
+
+    expect(offending).toEqual([]);
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
+
+  it("does not directly access window.Wick members in app source", () => {
+    const offending = tsAppHygieneFiles.flatMap(
+      (repoRelative) => {
+        const lines = getFileLines(repoRelative);
+        return lines
+          .map((line: string, index: number) => ({ line, index: index + 1 }))
+          .filter(
+            ({ line }: { line: string }) =>
+              directWindowWickAccessPattern.test(line),
+          )
+          .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
+      },
+    );
 
     expect(offending).toEqual([]);
   }, FILE_SCAN_TEST_TIMEOUT_MS);
@@ -307,6 +376,51 @@ describe("TypeScript everywhere guards", () => {
         .filter(
           ({ line }: { line: string }) =>
             adhocWindowWickCastPattern.test(line),
+        )
+        .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
+    });
+
+    expect(offending).toEqual([]);
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
+
+  it("uses window.Wick casts only in shared runtime helper", () => {
+    const allowlist = new Set([
+      path.normalize("src/Editor/Util/wickRuntime.ts"),
+    ]);
+
+    const offending = tsAppHygieneFiles.flatMap((repoRelative) => {
+      if (allowlist.has(repoRelative)) {
+        return [];
+      }
+
+      const lines = getFileLines(repoRelative);
+      return lines
+        .map((line: string, index: number) => ({ line, index: index + 1 }))
+        .filter(
+          ({ line }: { line: string }) => windowWickCastPattern.test(line),
+        )
+        .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
+    });
+
+    expect(offending).toEqual([]);
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
+
+  it("uses window.Wick references only in shared runtime helper", () => {
+    const allowlist = new Set([
+      path.normalize("src/Editor/Util/wickRuntime.ts"),
+    ]);
+
+    const offending = tsAppHygieneFiles.flatMap((repoRelative) => {
+      if (allowlist.has(repoRelative)) {
+        return [];
+      }
+
+      const lines = getFileLines(repoRelative);
+      return lines
+        .map((line: string, index: number) => ({ line, index: index + 1 }))
+        .filter(
+          ({ line }: { line: string }) =>
+            windowWickReferencePattern.test(line),
         )
         .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
     });

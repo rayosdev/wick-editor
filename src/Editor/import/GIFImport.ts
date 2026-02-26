@@ -1,5 +1,6 @@
 import * as fastgif from "./fastgif";
 import type { WickAsset, WickProject } from "../types/engine.types";
+import { getWickRuntime } from "Editor/Util/wickRuntime";
 
 interface GIFImportArgs {
   gifFile: File;
@@ -7,17 +8,6 @@ interface GIFImportArgs {
   onFinish: (gifAsset: WickAsset) => void;
   onProgress?: (percent: number) => void;
 }
-
-type WickGifRuntime = {
-  ImageAsset?: new (args: { filename: string; src: string }) => WickAsset;
-  GIFAsset?: {
-    fromImages?: (
-      imageAssets: WickAsset[],
-      project: WickProject,
-      callback: (gifAsset: WickAsset) => void,
-    ) => void;
-  };
-};
 
 class GIFImport {
   static importGIFIntoProject(args: GIFImportArgs): void {
@@ -46,9 +36,9 @@ class GIFImport {
             dataURLs.push(tempCanvas.toDataURL());
           });
 
-          const wickRuntime = window.Wick as WickGifRuntime;
-          const ImageAssetCtor = wickRuntime.ImageAsset;
-          const fromImages = wickRuntime.GIFAsset?.fromImages;
+          const wickRuntime = getWickRuntime();
+          const ImageAssetCtor = wickRuntime?.ImageAsset;
+          const fromImages = wickRuntime?.GIFAsset?.fromImages;
           if (
             typeof ImageAssetCtor !== "function" ||
             typeof fromImages !== "function"

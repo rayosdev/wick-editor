@@ -27,6 +27,10 @@ type SharedAdapterProps = {
   tooltip?: string;
   tooltipID?: string;
   tooltipPlace?: "top" | "bottom" | "left" | "right";
+  tooltipDelayMs?: number;
+  tooltipLongPressMs?: number;
+  mobileTooltipMode?: "off" | "long-press";
+  hasLongPressAction?: boolean;
   disabled?: boolean;
   readOnly?: boolean;
   required?: boolean;
@@ -43,6 +47,7 @@ type SharedAdapterProps = {
   onTouch?: (event?: MouseEvent<HTMLElement>) => void;
   buttonProps?: ButtonHTMLAttributes<HTMLButtonElement>;
   secondaryAction?: () => void;
+  disableBasePadding?: boolean;
 };
 
 type TextAdapterProps = SharedAdapterProps & {
@@ -199,11 +204,16 @@ export default function WickInputV2LegacyAdapter(
           tooltip={props.tooltip}
           tooltipID={props.tooltipID}
           tooltipPlace={props.tooltipPlace}
+          tooltipDelayMs={props.tooltipDelayMs}
+          tooltipLongPressMs={props.tooltipLongPressMs}
+          mobileTooltipMode={props.mobileTooltipMode}
+          hasLongPressAction={props.hasLongPressAction}
           value={toSafeNumber(props.value)}
           min={props.min}
           max={props.max}
           step={props.step}
           readOnly={props.readOnly}
+          disableBasePadding={props.disableBasePadding}
           aria-label={legacyAriaLabel}
           onFocus={props.onFocus}
           onBlur={props.onBlur}
@@ -224,6 +234,10 @@ export default function WickInputV2LegacyAdapter(
           tooltip={props.tooltip}
           tooltipID={props.tooltipID}
           tooltipPlace={props.tooltipPlace}
+          tooltipDelayMs={props.tooltipDelayMs}
+          tooltipLongPressMs={props.tooltipLongPressMs}
+          mobileTooltipMode={props.mobileTooltipMode}
+          hasLongPressAction={props.hasLongPressAction}
           value={toSafeNumber(props.value)}
           min={props.min}
           max={props.max}
@@ -298,6 +312,10 @@ export default function WickInputV2LegacyAdapter(
           tooltip={props.tooltip}
           tooltipID={props.tooltipID}
           tooltipPlace={props.tooltipPlace}
+          tooltipDelayMs={props.tooltipDelayMs}
+          tooltipLongPressMs={props.tooltipLongPressMs}
+          mobileTooltipMode={props.mobileTooltipMode}
+          hasLongPressAction={props.hasLongPressAction}
           aria-label={legacyAriaLabel}
           onClick={(event?: SyntheticEvent) =>
             props.onClick?.(event as MouseEvent<HTMLElement> | undefined)
@@ -322,6 +340,10 @@ export default function WickInputV2LegacyAdapter(
           tooltip={props.tooltip}
           tooltipID={props.tooltipID}
           tooltipPlace={props.tooltipPlace}
+          tooltipDelayMs={props.tooltipDelayMs}
+          tooltipLongPressMs={props.tooltipLongPressMs}
+          mobileTooltipMode={props.mobileTooltipMode}
+          hasLongPressAction={props.hasLongPressAction}
           aria-label={legacyAriaLabel}
           color={toSafeString(props.color ?? props.value, "#4fa3ff")}
           stroke={props.stroke}

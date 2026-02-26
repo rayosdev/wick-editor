@@ -52,6 +52,7 @@ export default function SettingsNumericSlider(props: SettingsNumericSliderProps)
           className={classNames("settings-numeric-input", {
             mobile: props.isMobile,
           })}
+          disableBasePadding
           onChange={props.onChange}
           onFocus={() => {
             setSliderOn(true);

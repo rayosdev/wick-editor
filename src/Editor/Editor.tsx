@@ -41,6 +41,8 @@ import ActionMapInterface from "./actionMap";
 import ScriptInfoInterface from "./scriptInfo";
 import FontInfoInterface from "./fontInfo";
 import EditorCore from "./EditorCore";
+import { setEditorRuntime } from "./Util/editorRuntime";
+import { getPaperRuntime, setProjectRuntime } from "./Util/appRuntime";
 
 import DockedPanel from "./Panels/DockedPanel/DockedPanel";
 import Canvas from "./Panels/Canvas/Canvas";
@@ -69,7 +71,6 @@ import type { ProjectDidChangeOptions } from "./types";
 import type {
   WickProject as WickProjectEngine,
   WickBase as WickBaseEngine,
-  WickNamespace,
   WickToolName,
 } from "./types/engine.types";
 
@@ -142,15 +143,6 @@ class Editor extends EditorCore {
 
   // TypeScript requires we define state type
   state: EditorState;
-
-  private getWickNamespace = (): Partial<WickNamespace> | null => {
-    const wickGlobal = window.Wick as Partial<WickNamespace> | undefined;
-    if (!wickGlobal || typeof wickGlobal !== "object") {
-      return null;
-    }
-
-    return wickGlobal;
-  };
 
   private getFileAssetAcceptExtensions = (): string => {
     const extensions = this.getWickNamespace()?.FileAsset?.getValidExtensions?.();
@@ -368,7 +360,7 @@ class Editor extends EditorCore {
     const projectConstructor = this.getWickNamespace()?.Project;
     this.project = projectConstructor ? new projectConstructor() : null;
     this.attachErrorHandlers();
-    this.paper = window.paper;
+    this.paper = getPaperRuntime();
 
     // Initialize storage (Dexie.js)
     // The localforageAdapter is already configured, but we can set it up here
@@ -1371,8 +1363,8 @@ class Editor extends EditorCore {
 
   render = () => {
     // Create some references to the project and editor to make debugging in the console easier:
-    window.project = this.project;
-    window.editor = this;
+    setProjectRuntime(this.project);
+    setEditorRuntime(this);
 
     let renderSize = this.getRenderSize();
 

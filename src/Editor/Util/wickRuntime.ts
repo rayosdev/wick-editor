@@ -1,12 +1,12 @@
 import type { WickNamespace } from "Editor/types/engine.types";
 
-type WickRuntime = Partial<WickNamespace>;
+export type WickRuntime = Partial<WickNamespace>;
 export type WickColorLike = {
   rgba?: string;
   hex?: string;
 };
 
-const getWickRuntime = (): WickRuntime | null => {
+export const getWickRuntime = (): WickRuntime | null => {
   const wickGlobal = window.Wick as WickRuntime | undefined;
   if (!wickGlobal || typeof wickGlobal !== "object") {
     return null;

@@ -9,6 +9,7 @@ import {
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
+import { getWickRuntime } from "Editor/Util/wickRuntime";
 import {
   TIMELINE_CONTEXT_MENU_CLASSES,
   TIMELINE_CONTEXT_MENU_HINT_CLASSES,
@@ -149,15 +150,14 @@ const VIRTUALIZATION_FRAME_THRESHOLD = 260;
 const VIRTUALIZATION_LAYER_OVERSCAN = 4;
 
 function createTimelineLayer(): TimelineLayerLike | null {
-  const wickGlobal = window.Wick as {
-    Layer?: new () => TimelineLayerLike;
-  };
-
-  if (typeof wickGlobal.Layer !== "function") {
+  const layerConstructor = getWickRuntime()?.Layer as
+    | (new () => TimelineLayerLike)
+    | undefined;
+  if (typeof layerConstructor !== "function") {
     return null;
   }
 
-  return new wickGlobal.Layer();
+  return new layerConstructor();
 }
 const VIRTUALIZATION_FRAME_OVERSCAN = 10;
 const LAYER_PANEL_WIDTH_PX = 210;
@@ -3216,6 +3216,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     color="tool"
                     tooltip="Previous Frame"
                     tooltipPlace="bottom"
+                    hasLongPressAction
                     className="timeline-flash-action-button timeline-flash-text-action"
                     action={() => {
                       props.movePlayheadBackwards();
@@ -3228,6 +3229,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     color="tool"
                     tooltip="Next Frame"
                     tooltipPlace="bottom"
+                    hasLongPressAction
                     className="timeline-flash-action-button timeline-flash-text-action"
                     action={() => {
                       props.movePlayheadForwards();

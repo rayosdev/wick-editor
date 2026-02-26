@@ -2,8 +2,6 @@ import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { Popover } from "react-tiny-popover";
 import classNames from "classnames";
 
-import "./wickpopover-legacy.css";
-
 type WickPopoverPosition = "left" | "right" | "top" | "bottom";
 type WickPopoverAlign = "start" | "center" | "end";
 
@@ -70,8 +68,8 @@ const WickPopover: React.FC<WickPopoverProps> = ({
       padding={padding}
       reposition={reposition}
       onClickOutside={onClickOutside}
-      containerClassName={classNames("wick-popover-container", className)}
-      content={<div className="wick-popover-content">{content}</div>}
+      containerClassName={classNames("wick-popover-container z-[1200]", className)}
+      content={<div className="wick-popover-content pointer-events-auto">{content}</div>}
     >
       {children}
     </Popover>
