@@ -36,6 +36,7 @@ import InspectorImagePreview from "./InspectorPreview/InspectorPreviewTypes/Insp
 import InspectorSoundPreview from "./InspectorPreview/InspectorPreviewTypes/InspectorSoundPreview";
 import InspectorScriptWindow from "./InspectorScriptWindow/InspectorScriptWindow";
 import InspectorCheckbox from "./InspectorRow/InspectorRowTypes/InspectorCheckbox";
+import { createWickColor, getWickTweenEasingTypes } from "Editor/Util/wickRuntime";
 
 import type { WickAsset } from "Editor/types";
 
@@ -86,24 +87,7 @@ const INSPECTOR_BODY_CLASSES =
 const INSPECTOR_ITEM_CLASSES =
     "inspector-item flex flex-col items-center border-b-2 [border-bottom-style:solid] border-b-[#191919] px-[10px] py-[5px]";
 
-const toWickColor = (color: string): unknown => {
-    const wickGlobal = window.Wick as { Color?: new (value: string) => unknown };
-    if (typeof wickGlobal.Color === "function") {
-        return new wickGlobal.Color(color);
-    }
-
-    return color;
-};
-
-const getTweenEasingTypes = (): string[] => {
-    const wickGlobal = window.Wick as { Tween?: { VALID_EASING_TYPES?: unknown } };
-    const easingTypes = wickGlobal.Tween?.VALID_EASING_TYPES;
-    if (!Array.isArray(easingTypes)) {
-        return [];
-    }
-
-    return easingTypes.filter((option): option is string => typeof option === "string");
-};
+const toWickColor = (color: string): unknown => createWickColor(color);
 
 const Inspector: React.FC<InspectorProps> = (props) => {
     const getSelectionAttribute = <T = unknown>(attribute: string): T => {
@@ -617,7 +601,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
     };
 
     const renderTweenEasingType = (): JSX.Element => {
-        const options = getTweenEasingTypes();
+        const options = getWickTweenEasingTypes();
         const optionLabels: Array<{ label: string; value: string }> = [];
         options.forEach((option: string) => {
             optionLabels.push({ label: option, value: option });

@@ -20,6 +20,7 @@
 import React from 'react';
 
 import WickInputV2LegacyAdapter from 'Editor/Util/WickInputV2/WickInputV2LegacyAdapter';
+import { createWickColor } from "Editor/Util/wickRuntime";
 import type { ColorPickerType, ToolSettingRestrictions } from 'Editor/types';
 
 import iconBackwards from 'resources/timeline-icons/backwards.svg';
@@ -29,17 +30,18 @@ interface WickColor {
   rgba: string;
 }
 
-function createWickColor(value: string): WickColor | string {
-  const wickGlobal = window.Wick as {
-    Color?: new (input: string) => WickColor;
-  };
+const createEditorSettingColor = (value: string): WickColor | string => {
+  const wickColor = createWickColor(value);
+  if (typeof wickColor === "string") {
+    return wickColor;
+  }
 
-  if (typeof wickGlobal.Color === "function") {
-    return new wickGlobal.Color(value);
+  if (typeof wickColor.rgba === "string") {
+    return { rgba: wickColor.rgba };
   }
 
   return value;
-}
+};
 
 interface EditorSettingsProps {
   getToolSetting: (setting: string) => string | number | boolean | WickColor;
@@ -102,7 +104,7 @@ const EditorSettings: React.FC<EditorSettingsProps> = (props) => {
                   disableAlpha={true}
                   placement={'bottom'}
                   color={(props.getToolSetting('backwardOnionSkinTint') as WickColor).rgba}
-                  onChange={(color: string) => { props.setToolSetting('backwardOnionSkinTint', createWickColor(color)) }}
+                  onChange={(color: string) => { props.setToolSetting('backwardOnionSkinTint', createEditorSettingColor(color)) }}
                   colorPickerType={props.colorPickerType}
                   changeColorPickerType={props.changeColorPickerType}
                   updateLastColors={props.updateLastColors}
@@ -123,7 +125,7 @@ const EditorSettings: React.FC<EditorSettingsProps> = (props) => {
                   disableAlpha={true}
                   placement={'bottom'}
                   color={(props.getToolSetting('forwardOnionSkinTint') as WickColor).rgba}
-                  onChange={(color: string) => { props.setToolSetting('forwardOnionSkinTint', createWickColor(color)) }}
+                  onChange={(color: string) => { props.setToolSetting('forwardOnionSkinTint', createEditorSettingColor(color)) }}
                   colorPickerType={props.colorPickerType}
                   changeColorPickerType={props.changeColorPickerType}
                   updateLastColors={props.updateLastColors}

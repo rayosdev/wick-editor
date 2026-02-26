@@ -20,6 +20,7 @@
 import React, { useState, useEffect } from "react";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import WickInputV2LegacyAdapter from "Editor/Util/WickInputV2/WickInputV2LegacyAdapter";
+import { createWickColor } from "Editor/Util/wickRuntime";
 import type {
   ColorPickerType,
   ProjectSettings as ProjectSettingsType,
@@ -42,12 +43,13 @@ interface ProjectSettingsProps {
 function createProjectBackgroundColor(
   color: string,
 ): string | { rgba: string } {
-  const wickGlobal = window.Wick as {
-    Color?: new (input: string) => { rgba: string };
-  };
+  const wickColor = createWickColor(color);
+  if (typeof wickColor === "string") {
+    return wickColor;
+  }
 
-  if (typeof wickGlobal.Color === "function") {
-    return new wickGlobal.Color(color);
+  if (typeof wickColor.rgba === "string") {
+    return { rgba: wickColor.rgba };
   }
 
   return color;

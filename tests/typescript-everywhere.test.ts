@@ -32,6 +32,8 @@ const doubleUnknownCastPattern = /\bas unknown as\b/;
 const singleUnknownCastPattern = /\bas unknown\b/;
 const jsonParseReturnTypePattern = /\bReturnType<typeof JSON\.parse>\b/;
 const directWindowEditorAccessPattern = /\bwindow\.editor\.[A-Za-z_$]/;
+const directWindowWickAccessPattern = /\bwindow\.Wick\.[A-Za-z_$]/;
+const adhocWindowWickCastPattern = /\bwindow\.Wick\s+as\s+\{/;
 const unknownStringIndexSignaturePattern =
   /\[\s*key\s*:\s*string\s*\]\s*:\s*unknown\s*;/;
 const FILE_SCAN_TEST_TIMEOUT_MS = 20_000;
@@ -269,6 +271,45 @@ describe("TypeScript everywhere guards", () => {
           .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
       },
     );
+
+    expect(offending).toEqual([]);
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
+
+  it("does not directly access window.Wick members in EditorCore", () => {
+    const repoRelative = path.normalize("src/Editor/EditorCore.ts");
+    const lines = getFileLines(repoRelative);
+
+    const offending = lines
+      .map((line: string, index: number) => ({ line, index: index + 1 }))
+      .filter(
+        ({ line }: { line: string }) =>
+          directWindowWickAccessPattern.test(line),
+      )
+      .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
+
+    expect(offending).toEqual([]);
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
+
+  it("does not use ad-hoc window.Wick casts in migrated UI files", () => {
+    const files = [
+      path.normalize("src/Editor/Util/ColorPicker/ColorPicker.tsx"),
+      path.normalize("src/Editor/Panels/Inspector/Inspector.tsx"),
+      path.normalize("src/Editor/Panels/MobileContainer/MobileInspector/MobileInspector.tsx"),
+      path.normalize("src/Editor/Panels/Toolbox/Toolbox.tsx"),
+      path.normalize("src/Editor/Modals/SettingsModal/EditorSettings/EditorSettings.tsx"),
+      path.normalize("src/Editor/Modals/SettingsModal/ProjectSettings/ProjectSettings.tsx"),
+    ];
+
+    const offending = files.flatMap((repoRelative) => {
+      const lines = getFileLines(repoRelative);
+      return lines
+        .map((line: string, index: number) => ({ line, index: index + 1 }))
+        .filter(
+          ({ line }: { line: string }) =>
+            adhocWindowWickCastPattern.test(line),
+        )
+        .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
+    });
 
     expect(offending).toEqual([]);
   }, FILE_SCAN_TEST_TIMEOUT_MS);

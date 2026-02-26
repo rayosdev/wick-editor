@@ -17,8 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useId, useMemo, useState } from 'react';
-import PopupMenu from 'Editor/Util/PopupMenu/PopupMenu';
+import React, { useEffect, useRef, useState } from 'react';
 import ToolIcon from 'Editor/Util/ToolIcon/ToolIcon';
 import classNames from 'classnames';
 import type { DisplayKey, DisplayOptions } from '../Outliner';
@@ -44,27 +43,52 @@ const filterItems: FilterItem[] = [
 
 const OutlinerFilterMenu: React.FC<OutlinerFilterMenuProps> = ({ display, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const reactId = useId();
-  const buttonId = useMemo(
-    () => `outliner-filter-menu-btn-${reactId.replace(/[^a-zA-Z0-9_-]/g, "")}`,
-    [reactId]
-  );
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
-const handleToggle = (key: DisplayKey) => {
+  const handleToggle = (key: DisplayKey) => {
     const newDisplay = { ...display };
     newDisplay[key] = !newDisplay[key];
     onChange(newDisplay);
   };
 
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const onPointerDown = (event: PointerEvent): void => {
+      if (!containerRef.current) {
+        return;
+      }
+
+      const target = event.target as Node | null;
+      if (target && !containerRef.current.contains(target)) {
+        setIsOpen(false);
+      }
+    };
+
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener("pointerdown", onPointerDown, { capture: true });
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("pointerdown", onPointerDown, { capture: true });
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isOpen]);
+
   const activeCount = Object.values(display).filter(Boolean).length;
   const allActive = activeCount === filterItems.length;
 
   return (
-    <div className="outliner-filter-menu flex items-center">
+    <div ref={containerRef} className="outliner-filter-menu relative z-30 flex items-center">
       <button
-        id={buttonId}
         className={classNames(
           'outliner-filter-trigger',
           'flex items-center gap-1 rounded-[4px] border-0 bg-transparent px-2 py-1 text-editor-text-primary transition-colors duration-150 ease-in-out has-hover:bg-editor-secondary',
@@ -72,6 +96,8 @@ const handleToggle = (key: DisplayKey) => {
         )}
         onClick={toggleMenu}
         title="Filter visible object types"
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
       >
         <ToolIcon name="shown" className="filter-trigger-icon !h-4 !w-4" />
         <span className="filter-trigger-text text-[13px] font-medium">
@@ -80,13 +106,13 @@ const handleToggle = (key: DisplayKey) => {
         <ToolIcon name="moreactions" className="filter-trigger-dropdown !h-[10px] !w-[10px] opacity-60" />
       </button>
 
-      <PopupMenu
-        isOpen={isOpen}
-        toggle={toggleMenu}
-        target={buttonId}
-        className="outliner-filter-popup !max-w-[180px]"
-      >
-        <div className="outliner-filter-content w-[120.25px] py-2">
+      {isOpen && (
+        <div
+          className="outliner-filter-popup absolute right-0 top-full z-30 mt-1"
+          role="menu"
+          aria-label="Outliner Filter Menu"
+        >
+          <div className="outliner-filter-content w-[120.25px] rounded-[6px] border border-solid border-[#191919] bg-editor-primary py-2 shadow-[0_10px_26px_rgba(0,0,0,0.5)]">
           <div className="outliner-filter-header mb-1 box-border h-[29.5px] border-b border-solid border-[#191919] px-[12px] pb-2 pt-1 text-[11px] font-semibold uppercase leading-[16.5px] tracking-[0.5px] text-editor-text-secondary">
             Show Objects
           </div>
@@ -99,6 +125,8 @@ const handleToggle = (key: DisplayKey) => {
                 { active: display[key] }
               )}
               onClick={() => handleToggle(key)}
+              role="menuitemcheckbox"
+              aria-checked={display[key]}
             >
               <span className="filter-item-check flex h-4 w-4 items-center justify-center">
                 {display[key] && <ToolIcon name="check" className="check-icon !h-3 !w-3" />}
@@ -113,8 +141,9 @@ const handleToggle = (key: DisplayKey) => {
               <span className="filter-item-label flex-1 text-[13px]">{label}</span>
             </button>
           ))}
+          </div>
         </div>
-      </PopupMenu>
+      )}
     </div>
   );
 };

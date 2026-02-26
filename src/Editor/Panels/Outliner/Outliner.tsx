@@ -596,7 +596,7 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
             <div
                 className={classNames(
                     "outliner-title-container",
-                    "relative z-0 flex items-center justify-between pr-2 shadow-[0px_2px_4px_black]"
+                    "relative z-20 flex items-center justify-between pr-2 shadow-[0px_2px_4px_black]"
                 )}
             >
                 <OutlinerTitle />

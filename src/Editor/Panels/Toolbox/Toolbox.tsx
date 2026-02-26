@@ -34,6 +34,7 @@ import CanvasActions, {
 import PopupMenu from "Editor/Util/PopupMenu/PopupMenu";
 import type { HotKeyMap } from "Editor/types/hotkeys";
 import type { ToolSettingRestrictions } from "Editor/types";
+import { createWickColor } from "Editor/Util/wickRuntime";
 
 const TOOL_NAMES = [
     "cursor",
@@ -53,12 +54,14 @@ type ToolName = typeof TOOL_NAMES[number];
 type ToolSettingValue = string | number | boolean | { rgba: string };
 
 function createToolColorValue(color: string): ToolSettingValue {
-    const wickGlobal = window.Wick as {
-        Color?: new (input: string) => { rgba: string };
-    };
+    const wickColor = createWickColor(color);
 
-    if (typeof wickGlobal.Color === "function") {
-        return new wickGlobal.Color(color);
+    if (typeof wickColor === "string") {
+        return wickColor;
+    }
+
+    if (typeof wickColor.rgba === "string") {
+        return { rgba: wickColor.rgba };
     }
 
     return color;

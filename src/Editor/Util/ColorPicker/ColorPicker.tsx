@@ -21,6 +21,7 @@ import { useRef, useState } from 'react';
 import ModernColorPicker from 'Editor/Util/ColorPicker/ModernColorPicker';
 import classNames from "classnames";
 import WickPopover from "Editor/Util/WickPopover/WickPopover";
+import { createWickColor } from "Editor/Util/wickRuntime";
 
 export interface PickerColorRGB {
   r: number;
@@ -38,7 +39,6 @@ export type PickerColorValue =
   | string
   | {
       rgba?: string;
-      toString(): string;
     };
 
 interface ColorPickerProps {
@@ -58,15 +58,8 @@ type WickPopoverPosition = "left" | "right" | "top" | "bottom";
 type WickPopoverAlign = "start" | "center" | "end";
 
 function getDefaultPickerColor(): PickerColorValue {
-  const wickGlobal = window.Wick as {
-    Color?: new (value: string) => { rgba?: string; toString(): string };
-  };
-
-  if (typeof wickGlobal.Color === "function") {
-    return new wickGlobal.Color("#FFFFFF");
-  }
-
-  return "#FFFFFF";
+  const color = createWickColor("#FFFFFF");
+  return typeof color === "string" ? color : (color as { rgba?: string });
 }
 
 function mapPopoverPlacement(
@@ -102,7 +95,7 @@ export default function ColorPicker (props: ColorPickerProps): JSX.Element {
   };
 
   const color = props.color ?? getDefaultPickerColor();
-  const colorString = typeof color === "string" ? color : color.rgba ?? color.toString();
+  const colorString = typeof color === "string" ? color : color.rgba ?? String(color);
   let itemID = props.id;
   let popoverID = itemID+'-popover';
   const placement = mapPopoverPlacement(props.placement);

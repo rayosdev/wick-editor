@@ -40,6 +40,7 @@ import MobileInspectorCheckbox from "./MobileInspectorRow/MobileInspectorRowType
 import MobileInspectorColor from "./MobileInspectorRow/MobileInspectorRowTypes/MobileInspectorColor";
 
 import MobileInspectorTabbedInterface from "./MobileInpsectorTabbedInterface/MobileInspectorTabbedInterface";
+import { getWickTweenEasingTypes } from "Editor/Util/wickRuntime";
 
 import transformIcon from "resources/mobile-inspector-icons/transform-icon.svg";
 import transformIconActive from "resources/mobile-inspector-icons/transform-icon-active.svg";
@@ -131,16 +132,6 @@ const MOBILE_INSPECTOR_TITLE_PREFIX_CLASSES =
     "mobile-inspector-title-prefix mr-2 text-[#666666]";
 const MOBILE_INSPECTOR_UNKNOWN_SELECTION_CLASSES =
     "mobile-inspector-unknown-selection h-full w-full pt-[12px] text-center text-[32px] text-white";
-
-const getTweenEasingTypes = (): string[] => {
-    const wickGlobal = window.Wick as { Tween?: { VALID_EASING_TYPES?: unknown } };
-    const easingTypes = wickGlobal.Tween?.VALID_EASING_TYPES;
-    if (!Array.isArray(easingTypes)) {
-        return [];
-    }
-
-    return easingTypes.filter((option): option is string => typeof option === "string");
-};
 
 const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
     const actionRules: Record<string, string[]> = {
@@ -723,7 +714,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
     };
 
     const renderTweenEasingType = (): JSX.Element => {
-        const options = getTweenEasingTypes();
+        const options = getWickTweenEasingTypes();
         const optionLabels = options.map((option: string) => ({
             label: option,
             value: option,

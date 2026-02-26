@@ -45,12 +45,24 @@
 
 .settings-numeric-input {
     display: flex;
-    flex: 1;
-    width: 40px;
+    flex: 0 0 auto;
+    min-inline-size: 2.7rem;
+    inline-size: clamp(2.7rem, 3.4ch + 0.8rem, 3.3rem);
+    max-inline-size: 3.3rem;
     text-align: center;
 }
 
 .settings-numeric-input.mobile {
-    width: 34px !important;
+    min-inline-size: 2.35rem !important;
+    inline-size: clamp(2.35rem, 3ch + 0.65rem, 2.85rem) !important;
+    max-inline-size: 2.85rem !important;
     flex: none;
+}
+
+.settings-numeric-input.wick-input {
+    padding-inline: 0.35rem !important;
+    padding-block: 0.18rem !important;
+    border-radius: 4px !important;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
 }

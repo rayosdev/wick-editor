@@ -65,7 +65,13 @@ import type {
   EditorState,
   ResizeProps,
 } from "./types/editor.types";
-import type { WickProject as WickProjectEngine } from "./types/engine.types";
+import type { ProjectDidChangeOptions } from "./types";
+import type {
+  WickProject as WickProjectEngine,
+  WickBase as WickBaseEngine,
+  WickNamespace,
+  WickToolName,
+} from "./types/engine.types";
 
 const { version } = pkg;
 
@@ -123,7 +129,7 @@ class Editor extends EditorCore {
 
   canvasComponent: unknown = null;
   timelineComponent: unknown = null;
-  lastUsedTool: string = "cursor";
+  lastUsedTool: WickToolName = "cursor";
   builtinPreviews: Record<string, BuiltinPreviewEntry> = {};
 
   customHotKeysKey: string = "wickEditorcustomHotKeys";
@@ -137,10 +143,39 @@ class Editor extends EditorCore {
   // TypeScript requires we define state type
   state: EditorState;
 
+  private getWickNamespace = (): Partial<WickNamespace> | null => {
+    const wickGlobal = window.Wick as Partial<WickNamespace> | undefined;
+    if (!wickGlobal || typeof wickGlobal !== "object") {
+      return null;
+    }
+
+    return wickGlobal;
+  };
+
+  private getFileAssetAcceptExtensions = (): string => {
+    const extensions = this.getWickNamespace()?.FileAsset?.getValidExtensions?.();
+    if (!Array.isArray(extensions)) {
+      return "";
+    }
+
+    return extensions.join(", ");
+  };
+
+  private getHistoryVisibleObjectsStateType = (): string | null => {
+    return this.getWickNamespace()?.History?.StateType?.ONLY_VISIBLE_OBJECTS ?? null;
+  };
+
+  private getWickObjectByUUID = (uuid: string): WickBaseEngine | null => {
+    return this.getWickNamespace()?.ObjectCache?.getObjectByUUID?.(uuid) ?? null;
+  };
+
   constructor(props: Record<string, never>) {
     super(props);
     // Set path for engine dependencies
-    window.Wick.resourcepath = "corelibs/wick-engine/";
+    const wickGlobal = this.getWickNamespace();
+    if (wickGlobal) {
+      wickGlobal.resourcepath = "corelibs/wick-engine/";
+    }
 
     // "Live" editor states
     this.project = null;
@@ -277,7 +312,7 @@ class Editor extends EditorCore {
 
     // Wick file input
     this.openAssetFileFromClient = window.createFileInput({
-      accept: window.Wick.FileAsset.getValidExtensions().join(", "),
+      accept: this.getFileAssetAcceptExtensions(),
       onChange: this.handleAssetFileImport,
       multiple: true,
     });
@@ -330,7 +365,8 @@ class Editor extends EditorCore {
   UNSAFE_componentWillMount = () => {
     document.title = `Wick Editor ${this.editorVersion}`;
     // Initialize "live" engine state
-    this.project = new window.Wick.Project();
+    const projectConstructor = this.getWickNamespace()?.Project;
+    this.project = projectConstructor ? new projectConstructor() : null;
     this.attachErrorHandlers();
     this.paper = window.paper;
 
@@ -996,16 +1032,21 @@ class Editor extends EditorCore {
    * Show code errors in the code editor by popping it up.
    * @param  {object[]} errors Array of error objects.
    */
-  showCodeErrors = (errors) => {
+  showCodeErrors = (errors: Array<{ uuid?: string }> = []) => {
     this.setState({
       codeEditorOpen: errors === undefined ? this.state.codeEditorOpen : true,
     });
 
-    if (errors.length > 0) {
-      let uuid = errors[0].uuid;
-      let obj = window.Wick.ObjectCache.getObjectByUUID(uuid);
-      this.setFocusObject(obj.parentClip);
-      this.selectObject(obj);
+    if (errors.length > 0 && errors[0]?.uuid) {
+      const obj = this.getWickObjectByUUID(errors[0].uuid as string) as
+        | { parentClip?: unknown }
+        | null;
+      if (obj?.parentClip) {
+        this.setFocusObject(obj.parentClip);
+      }
+      if (obj) {
+        this.selectObject(obj);
+      }
       this.projectDidChange({ actionName: "Show Code Errors" });
     }
   };
@@ -1033,22 +1074,22 @@ class Editor extends EditorCore {
    * @param {string} actionName - Name of the action committed, to save to the history stack.
    * @param {boolean} skipReactRender - If set to true, will not force react to rerender. Use sparingly.
    */
-  projectDidChange = (options) => {
+  projectDidChange = (options?: ProjectDidChangeOptions) => {
     if (!options) options = {};
-
-    if (!options.actionName) {
-      options.name = "Unknown Action";
-    }
+    const actionName = options.actionName || "Unknown Action";
 
     // Request an autosave, so a save will happen sometime later.
     this.requestAutosave();
 
     // Save state to history if needed
     if (!options.skipHistory) {
-      this.project.history.pushState(
-        window.Wick.History.StateType.ONLY_VISIBLE_OBJECTS,
-        options.actionName
-      );
+      const stateType = this.getHistoryVisibleObjectsStateType();
+      if (stateType) {
+        this.project.history.pushState(
+          stateType,
+          actionName
+        );
+      }
     }
 
     // Render engine

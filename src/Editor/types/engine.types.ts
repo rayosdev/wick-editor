@@ -501,12 +501,16 @@ export interface WickNamespace {
   version: string;
   resourcepath: string;
   Project: new (args?: unknown) => WickProject;
-  Clip: new (args?: unknown) => WickClip;
+  Clip: (new (args?: unknown) => WickClip) & {
+    animationTypes?: Record<string, string>;
+  };
   Frame: new (args?: unknown) => WickFrame;
   Layer: new (args?: unknown) => WickLayer;
   Timeline: new (args?: unknown) => WickTimeline;
   Path: new (args?: unknown) => WickPath;
-  Tween: new (args?: unknown) => WickTween;
+  Tween: (new (args?: unknown) => WickTween) & {
+    VALID_EASING_TYPES?: string[];
+  };
   Asset: new (args?: unknown) => WickAsset;
   Selection: new () => WickSelection;
   Clipboard: new () => WickClipboard;
@@ -567,6 +571,9 @@ export interface WickNamespace {
       project: WickProject,
       onFinish: (gifAsset: WickAsset) => void,
     ): void;
+  };
+  FileAsset?: {
+    getValidExtensions(): string[];
   };
   History: {
     new (): WickHistory;
