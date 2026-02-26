@@ -1,0 +1,474 @@
+/*
+ * Copyright 2020 WICKLETS LLC
+ *
+ * This file is part of Wick Editor.
+ *
+ * Wick Editor is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Wick Editor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
+ */
+/*
+ * Copyright 2020 WICKLETS LLC
+ *
+ * This file is part of Wick Editor.
+ *
+ * Wick Editor is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Wick Editor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
+ */
+a:link {
+  color: #1EE29A;
+}
+
+a:hover {
+  color: #19C284;
+}
+
+a {
+  color: #1EE29A;
+}
+
+a:hover {
+  color: #19C284;
+}
+
+.ReactModal__Overlay {
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.ReactModal__Overlay--after-open {
+  opacity: 1;
+}
+
+.ReactModal__Overlay--before-close {
+  opacity: 0;
+}
+
+.modal-body {
+  border-radius: 4px;
+  background-color: #383434;
+  margin: 0;
+  position: absolute;
+  z-index: 3001;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: "Nunito Sans";
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.modal-overlay {
+  position: fixed;
+  z-index: 3000;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.mobile-menu-overlay {
+  background-color: rgba(48, 48, 48, 0.95);
+}
+
+.wick-brand-arrow {
+  border: solid #1EE29A;
+  border-width: 0 3px 3px 0;
+  border-radius: 2px;
+  display: inline-block;
+  padding: 3px;
+  margin: 4px;
+}
+
+.arrow-right {
+  transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+}
+
+.arrow-left {
+  transform: rotate(135deg);
+  -webkit-transform: rotate(135deg);
+}
+
+.arrow-up {
+  transform: rotate(-135deg);
+  -webkit-transform: rotate(-135deg);
+}
+
+.arrow-down {
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+}
+
+/*button-variant($background, $border, $hover-background: darken($background, 7.5%), $hover-border: darken($border, 10%), $active-background: darken($background, 10%), $active-border: darken($border, 12.5%))*/
+.btn-wick-warning {
+  background: #E6460E;
+  border: #E6460E;
+  color: #000;
+}
+
+.btn-wick-warning:hover {
+  background: rgb(193.9446721311, 59.0266393443, 11.8053278689);
+  border: rgb(193.9446721311, 59.0266393443, 11.8053278689);
+}
+
+.btn-wick-warning:active {
+  background: rgb(169.9077868852, 51.7110655738, 10.3422131148);
+  border: rgb(169.9077868852, 51.7110655738, 10.3422131148);
+}
+
+.btn-wick-accept {
+  background: #01C094;
+  border: #01C094;
+  color: #000;
+}
+
+.btn-wick-accept:hover {
+  background: rgb(0.8018134715, 153.9481865285, 118.6683937824);
+  border: rgb(0.8018134715, 153.9481865285, 118.6683937824);
+}
+
+.btn-wick-accept:active {
+  background: rgb(0.6696891192, 128.5803108808, 99.1139896373);
+  border: rgb(0.6696891192, 128.5803108808, 99.1139896373);
+}
+
+:export {
+  editorCanvasBorder: #6A6A6A;
+}
+
+button:focus, input:focus {
+  outline: 2px solid #FF7867;
+}
+
+.popover.mobile .arrow {
+  display: none;
+  height: 0;
+}
+
+.mobile.bs-popover-bottom {
+  margin-top: 2px;
+  margin-left: 2px;
+}
+
+body {
+  overflow: hidden;
+  text-rendering: optimizeLegibility;
+}
+
+.toolbox-container {
+  height: 40px;
+  transition-timing-function: ease-in-out;
+  transition: width 0.5s, height 0.5s;
+}
+
+.toolbox-container-medium {
+  height: 80px;
+}
+
+.toolbox-container-small {
+  height: 80px;
+}
+
+.editor-canvas-timeline-panel {
+  height: calc(100% - 40px);
+  transition-timing-function: ease-in-out;
+  transition: width 0.5s, height 0.5s;
+}
+
+.editor-canvas-timeline-panel-medium {
+  height: calc(100% - 80px);
+}
+
+.editor-canvas-timeline-panel-small {
+  height: calc(100% - 80px);
+}
+
+#editor {
+  width: 100%;
+  height: 100%;
+  background-color: red;
+}
+
+#menu-bar-container {
+  width: 100%;
+  height: 40px;
+  background-color: green;
+}
+
+#editor-body {
+  width: 100%;
+  height: calc(100% - 40px);
+  background-color: blue;
+  overflow: hidden;
+}
+
+#flexible-container {
+  height: calc(100% - 40px);
+  width: 100%;
+  background-color: #AAA;
+  display: inline-block;
+  position: absolute;
+  top: 40px;
+}
+
+.center-container {
+  background-color: #ffaabb;
+}
+
+.right-container {
+  background-color: #aabbcc;
+}
+
+.right-reflex-container {
+  height: 100%;
+  background-color: #aabbcc;
+}
+
+.Toastify__toast-container {
+  --toastify-toast-width: 320px;
+  --toastify-toast-min-height: 32px;
+}
+
+.Toastify__toast {
+  font-family: "Nunito Sans";
+  font-weight: 600;
+  font-size: 12px;
+  padding: 6px 12px !important;
+  min-height: 32px !important;
+  border-radius: 4px;
+  max-width: 360px;
+}
+
+.Toastify__toast-body {
+  padding: 0;
+}
+
+.Toastify__toast button {
+  font-family: "Nunito Sans";
+  font-weight: 600;
+  font-size: 12px;
+  padding: 2px 6px;
+}
+
+.info-toast-background {
+  background-color: #383434;
+}
+
+.info-toast-background button {
+  color: #FFFFFF;
+}
+
+.info-toast-body {
+  color: #FFFFFF;
+}
+
+.error-toast-background {
+  background-color: #AC1706;
+}
+
+.error-toast-background button {
+  color: #FFFFFF;
+}
+
+.error-toast-body {
+  color: #FFFFFF;
+}
+
+.warning-toast-background {
+  background-color: #FFE243;
+}
+
+.warning-toast-background button {
+  color: #000000;
+}
+
+.warning-toast-body {
+  color: #000000;
+}
+
+.success-toast-background {
+  background-color: #29F1A3;
+}
+
+.success-toast-background button {
+  color: #000000;
+}
+
+.success-toast-body {
+  color: #000000;
+}
+
+.mobile-editor-body {
+  border-right-width: calc(3px * 2);
+  border-right-style: solid;
+  border-right-color: #191919 !important;
+}
+
+/* Basic re-flex panel/splitter styling */
+.reflex-container {
+  justify-content: flex-start;
+  /* align items in Main Axis */
+  align-items: stretch;
+  /* align items in Cross Axis */
+  align-content: stretch;
+  /* OLD - iOS 6-, Safari 3.1-6 */
+  /* OLD - Firefox 19- (buggy but mostly works) */
+  /* TWEENER - IE 10 */
+  /* NEW - Chrome */
+  display: flex;
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.reflex-container.horizontal {
+  flex-direction: column;
+}
+
+.reflex-container.vertical {
+  flex-direction: row;
+}
+
+.reflex-container > .reflex-element {
+  position: relative;
+  overflow: auto;
+  height: 100%;
+  width: 100%;
+}
+
+.reflex-container.reflex-resizing > .reflex-element {
+  pointer-events: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.reflex-container > .reflex-element > .reflex-size-aware {
+  height: 100%;
+  width: 100%;
+}
+
+.reflex-container > .reflex-splitter {
+  background-color: #191919;
+  z-index: 0;
+}
+
+.reflex-container > .reflex-splitter.active,
+.reflex-container > .reflex-splitter:hover {
+  background-color: white;
+  transition: all 1s ease;
+}
+
+.horizontal > .reflex-splitter {
+  border-bottom: 3px solid #191919 !important;
+  border-top: 3px solid #191919 !important;
+  cursor: row-resize;
+  width: 100%;
+  height: 3px;
+}
+
+.reflex-element.horizontal .reflex-handle {
+  cursor: row-resize;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.reflex-container.horizontal > .reflex-splitter:hover,
+.reflex-container.horizontal > .reflex-splitter.active {
+  border-bottom: 3px solid white !important;
+  border-top: 3px solid white !important;
+}
+
+.reflex-container.vertical > .reflex-splitter {
+  border-right: 3px solid #191919 !important;
+  border-left: 3px solid #191919 !important;
+  cursor: col-resize;
+  height: 100%;
+  width: 3px;
+}
+
+.reflex-element.vertical .reflex-handle {
+  cursor: col-resize;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.reflex-container.vertical > .reflex-splitter:hover,
+.reflex-container.vertical > .reflex-splitter.active {
+  border-right: 3px solid white !important;
+  border-left: 3px solid white !important;
+}
+
+.reflex-container > .reflex-splitter.reflex-thin {
+  box-sizing: border-box;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding;
+  background-clip: padding-box;
+  opacity: 0.2;
+  z-index: 0;
+}
+
+.reflex-container > .reflex-splitter.reflex-thin.active .reflex-container > .reflex-splitter.reflex-thin:hover {
+  transition: all 1.5s ease;
+  opacity: 0.5;
+}
+
+.reflex-container.horizontal > .reflex-splitter.reflex-thin {
+  border-bottom: 3px solid #191919 !important;
+  border-top: 3px solid #191919 !important;
+  height: 3px;
+  cursor: row-resize;
+  margin: -3px 0;
+  width: 100%;
+}
+
+.reflex-container.horizontal > .reflex-splitter.reflex-thin.active,
+.reflex-container.horizontal > .reflex-splitter.reflex-thin:hover {
+  border-bottom: 3px solid white !important;
+  border-top: 3px solid white !important;
+}
+
+.reflex-container.vertical > .reflex-splitter.reflex-thin {
+  border-right: 3px solid #191919 !important;
+  border-left: 3px solid #191919 !important;
+  width: 3px !important;
+  cursor: col-resize;
+  margin: 0 -3px;
+  height: 100%;
+}
+
+.reflex-container.vertical > .reflex-splitter.reflex-thin.active,
+.reflex-container.vertical > .reflex-splitter.reflex-thin:hover {
+  border-right: 3px solid white !important;
+  border-left: 3px solid white !important;
+}
+
+.mobile-reflex-splitter {
+  height: 15px !important;
+  border: 3px solid black !important;
+}

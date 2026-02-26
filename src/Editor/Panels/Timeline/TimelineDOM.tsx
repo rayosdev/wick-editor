@@ -10,7 +10,7 @@ import {
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 
-import "./_timeline.scss";
+import "./timeline-legacy.css";
 
 import iconLock from "resources/timeline-icons/locked.png";
 import iconUnlock from "resources/timeline-icons/unlocked.png";
@@ -82,6 +82,8 @@ type SelectionBox = {
   endRow: number;
 };
 
+type DoubleClickMenuMode = "frame-strip" | "tween-strip";
+
 type SoundHoverDetail = {
   x: number;
   y: number;
@@ -93,6 +95,8 @@ const MIN_FRAME_RATE = 1;
 const MAX_FRAME_RATE = 60;
 const LONG_PRESS_MS = 450;
 const LONG_PRESS_CANCEL_DISTANCE_PX = 12;
+const DOUBLE_TAP_MAX_DELAY_MS = 320;
+const DOUBLE_TAP_MAX_DISTANCE_PX = 18;
 const TOUCH_AXIS_LOCK_THRESHOLD_PX = 14;
 const FRAME_MOVE_INTENT_THRESHOLD_PX = 8;
 const FRAME_VERTICAL_INTENT_THRESHOLD_PX = 10;
@@ -114,8 +118,64 @@ const DEFAULT_MARKER_COLORS = [
 const VIRTUALIZATION_LAYER_THRESHOLD = 80;
 const VIRTUALIZATION_FRAME_THRESHOLD = 260;
 const VIRTUALIZATION_LAYER_OVERSCAN = 4;
+
+function createTimelineLayer(): TimelineLayerLike | null {
+  const wickGlobal = window.Wick as {
+    Layer?: new () => TimelineLayerLike;
+  };
+
+  if (typeof wickGlobal.Layer !== "function") {
+    return null;
+  }
+
+  return new wickGlobal.Layer();
+}
 const VIRTUALIZATION_FRAME_OVERSCAN = 10;
 const LAYER_PANEL_WIDTH_PX = 210;
+
+const getKeyDisplayLabel = (rawKey: string): string => {
+  const key = rawKey.trim();
+  if (!key) {
+    return "";
+  }
+
+  if (key === " ") return "Space";
+  if (key === "ArrowLeft") return "Left";
+  if (key === "ArrowRight") return "Right";
+  if (key === "ArrowUp") return "Up";
+  if (key === "ArrowDown") return "Down";
+  if (key === "Escape") return "Esc";
+  if (key === "Control") return "Ctrl";
+  if (key === "Meta") return "Cmd";
+
+  if (key.length === 1) {
+    return key.toUpperCase();
+  }
+
+  return key;
+};
+
+const formatShortcutIndicator = (
+  keyboardEvent: Pick<KeyboardEvent, "key" | "metaKey" | "ctrlKey" | "altKey" | "shiftKey">,
+): string => {
+  if (["Shift", "Control", "Alt", "Meta"].includes(keyboardEvent.key)) {
+    return "";
+  }
+
+  const parts: string[] = [];
+  if (keyboardEvent.metaKey) parts.push("Cmd");
+  if (keyboardEvent.ctrlKey) parts.push("Ctrl");
+  if (keyboardEvent.altKey) parts.push("Alt");
+  if (keyboardEvent.shiftKey) parts.push("Shift");
+
+  const keyLabel = getKeyDisplayLabel(keyboardEvent.key);
+  if (!keyLabel) {
+    return "";
+  }
+
+  parts.push(keyLabel);
+  return parts.join("+");
+};
 
 const getFrameSizeMode = (): TimelineFrameSizeMode => {
   const guiElement = window?.Wick?.GUIElement;
@@ -269,6 +329,7 @@ const clampContextMenuPosition = (
 };
 
 const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
+  const timelineRootRef = useRef<HTMLDivElement>(null);
   const workspaceRef = useRef<HTMLDivElement>(null);
   const unifiedGridCanvasRef = useRef<HTMLCanvasElement>(null);
   const unifiedNumberLineCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -279,8 +340,16 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   const layerReorderPreviewRef = useRef<number | null>(null);
   const workAreaDirtyRef = useRef(false);
   const longPressTimerRef = useRef<number | null>(null);
+  const keyPressIndicatorTimerRef = useRef<number | null>(null);
   const longPressStartRef = useRef<{ x: number; y: number } | null>(null);
   const longPressTriggeredRef = useRef(false);
+  const lastTouchTapRef = useRef<{
+    time: number;
+    x: number;
+    y: number;
+    layerIndex: number;
+    playheadPosition: number;
+  } | null>(null);
   const [renderTick, setRenderTick] = useState(0);
   const [frameInputValue, setFrameInputValue] = useState("1");
   const [fpsInputValue, setFpsInputValue] = useState(DEFAULT_FRAME_RATE.toFixed(1));
@@ -288,7 +357,12 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   const [contextMenuPosition, setContextMenuPosition] =
     useState<TimelineContextMenuPosition | null>(null);
   const [contextMenuTarget, setContextMenuTarget] = useState<TimelineContextTarget | null>(null);
-  const [doubleClickMenuContext, setDoubleClickMenuContext] = useState<{ layer: TimelineLayerLike; playheadPosition: number; label: string } | null>(null);
+  const [doubleClickMenuContext, setDoubleClickMenuContext] = useState<{
+    layer: TimelineLayerLike;
+    playheadPosition: number;
+    label: string;
+    mode: DoubleClickMenuMode;
+  } | null>(null);
   const [dragPreview, setDragPreview] = useState<{ moveCols: number; moveRows: number } | null>(
     null,
   );
@@ -298,6 +372,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   const [layerReorderPreview, setLayerReorderPreview] = useState<number | null>(null);
   const [dragCollisionMode, setDragCollisionMode] = useState<"overwrite" | "push" | null>(null);
   const [pressFeedback, setPressFeedback] = useState<{ x: number; y: number } | null>(null);
+  const [keyPressIndicator, setKeyPressIndicator] = useState<string | null>(null);
   const [gridViewportHeight, setGridViewportHeight] = useState(0);
   const [gridViewport, setGridViewport] = useState({
     width: 0,
@@ -392,6 +467,20 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     visibleLayerEnd >= visibleLayerStart
       ? layers.slice(visibleLayerStart, visibleLayerEnd + 1)
       : [];
+  const activeLayerIndex = clampNumber(
+    Number(activeTimeline?.activeLayerIndex ?? 0),
+    0,
+    Math.max(0, layers.length - 1),
+  );
+  const activeLayer = layers[activeLayerIndex] ?? null;
+  const selectedFrameAtPlayhead =
+    activeLayer && project?.selection?.isObjectSelected
+      ? (getFrameAtPlayhead(activeLayer, playheadPosition) as TimelineFrameLike | null)
+      : null;
+  const showSelectedFrameCellIndicator = Boolean(
+    selectedFrameAtPlayhead &&
+    project?.selection?.isObjectSelected?.(selectedFrameAtPlayhead),
+  );
   const layerTopSpacerHeight = shouldVirtualizeLayerRows ? visibleLayerStart * cellHeight : 0;
   const layerBottomSpacerHeight =
     shouldVirtualizeLayerRows && visibleLayerEnd >= visibleLayerStart
@@ -465,19 +554,21 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     return { start, end };
   };
 
+  type TimelineMetadata = {
+    editorUi?: {
+      timelineUi?: {
+        markers?: TimelineMarker[];
+        workArea?: TimelineWorkArea;
+      };
+    };
+  };
+
+  type TimelineProject = {
+    metadata?: TimelineMetadata;
+  };
+
   const readTimelineUiState = (): { markers: TimelineMarker[]; workArea: TimelineWorkArea } => {
-    const metadata = (
-      project as {
-        metadata?: {
-          editorUi?: {
-            timelineUi?: {
-              markers?: TimelineMarker[];
-              workArea?: TimelineWorkArea;
-            };
-          };
-        };
-      } | null
-    )?.metadata;
+    const metadata = (project as TimelineProject | null)?.metadata;
 
     const timelineUi = metadata?.editorUi?.timelineUi;
     return {
@@ -495,22 +586,14 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       return;
     }
 
-    const currentProject = project as {
-      metadata?: {
-        editorUi?: {
-          timelineUi?: {
-            markers?: TimelineMarker[];
-            workArea?: TimelineWorkArea;
-          };
-        };
-        [key: string]: unknown;
-      };
-    };
+    const currentProject = project as TimelineProject;
     const metadata = currentProject.metadata && typeof currentProject.metadata === "object"
       ? currentProject.metadata
-      : {};
+      : ({} as TimelineMetadata);
     const editorUi =
-      metadata.editorUi && typeof metadata.editorUi === "object" ? metadata.editorUi : {};
+      metadata.editorUi && typeof metadata.editorUi === "object"
+        ? metadata.editorUi
+        : {};
 
     currentProject.metadata = {
       ...metadata,
@@ -751,7 +834,12 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
   const selectFrame = (
     frame: TimelineFrameLike,
-    options: { append?: boolean; toggle?: boolean; setAnchor?: boolean } = {},
+    options: {
+      append?: boolean;
+      toggle?: boolean;
+      setAnchor?: boolean;
+      playheadPosition?: number;
+    } = {},
   ): void => {
     const selection = project?.selection;
     if (!selection) {
@@ -769,14 +857,18 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     }
 
     frame.parentLayer?.activate?.();
+    const targetPlayhead = Math.max(
+      1,
+      Number(options.playheadPosition ?? frame.start ?? playheadPosition),
+    );
     if (options.setAnchor !== false) {
       const anchorLayer = frame.parentLayer as TimelineLayerLike | undefined;
       selectionAnchorRef.current = {
         layerIndex: anchorLayer ? getLayerIndex(layers, anchorLayer) : Number(activeTimeline?.activeLayerIndex ?? 0),
-        playheadPosition: Math.max(1, Number(frame.start ?? playheadPosition)),
+        playheadPosition: targetPlayhead,
       };
     }
-    setPlayhead(Number(frame.start ?? playheadPosition));
+    setPlayhead(targetPlayhead);
     requestRender();
   };
 
@@ -821,6 +913,22 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       window.clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
     }
+  };
+
+  const showShortcutIndicator = (label: string): void => {
+    if (!label) {
+      return;
+    }
+
+    setKeyPressIndicator(label);
+    if (keyPressIndicatorTimerRef.current !== null) {
+      window.clearTimeout(keyPressIndicatorTimerRef.current);
+    }
+
+    keyPressIndicatorTimerRef.current = window.setTimeout(() => {
+      setKeyPressIndicator(null);
+      keyPressIndicatorTimerRef.current = null;
+    }, 900);
   };
 
   const resetInteraction = (): void => {
@@ -1313,6 +1421,40 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   useEffect(() => {
     return () => {
       clearLongPressTimer();
+      if (keyPressIndicatorTimerRef.current !== null) {
+        window.clearTimeout(keyPressIndicatorTimerRef.current);
+        keyPressIndicatorTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const onWindowKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const tagName = target?.tagName?.toLowerCase();
+      if (tagName === "input" || tagName === "textarea" || target?.isContentEditable) {
+        return;
+      }
+
+      const timelineRoot = timelineRootRef.current;
+      if (!timelineRoot) {
+        return;
+      }
+
+      const activeElement = document.activeElement as HTMLElement | null;
+      const eventInsideTimeline = target ? timelineRoot.contains(target) : false;
+      const focusInsideTimeline = activeElement ? timelineRoot.contains(activeElement) : false;
+      if (!eventInsideTimeline && !focusInsideTimeline && !interactionRef.current) {
+        return;
+      }
+
+      const label = formatShortcutIndicator(event);
+      showShortcutIndicator(label);
+    };
+
+    window.addEventListener("keydown", onWindowKeyDown, true);
+    return () => {
+      window.removeEventListener("keydown", onWindowKeyDown, true);
     };
   }, []);
 
@@ -1661,6 +1803,106 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
   const setInsertMode = (mode: TimelineInsertMode): void => {
     setGapFillMode(mode === "ripple" ? "auto_extend" : "blank_frames");
+  };
+
+  const insertBlankKeyframeAt = (
+    layer: TimelineLayerLike,
+    targetPlayheadPosition: number,
+  ): void => {
+    layer.activate?.();
+    setPlayhead(targetPlayheadPosition, { respectSnap: false });
+    const newFrame = layer.insertBlankFrame?.(targetPlayheadPosition);
+    if (!newFrame) {
+      return;
+    }
+    project?.selection?.clear?.();
+    project?.selection?.select?.(newFrame);
+    commitProjectChange("Insert Blank Frame");
+    requestRender();
+  };
+
+  const insertKeyframeAt = (
+    layer: TimelineLayerLike,
+    targetPlayheadPosition: number,
+    options: { fallbackToBlank?: boolean } = {},
+  ): void => {
+    layer.activate?.();
+    setPlayhead(targetPlayheadPosition, { respectSnap: false });
+
+    const frameAtTarget = getFrameAtPlayhead(layer, targetPlayheadPosition);
+    if (frameAtTarget) {
+      project?.selection?.clear?.();
+      project?.selection?.select?.(frameAtTarget);
+      frameAtTarget.parentLayer?.activate?.();
+      props.cutFrame();
+      requestRender();
+      return;
+    }
+
+    if (options.fallbackToBlank) {
+      insertBlankKeyframeAt(layer, targetPlayheadPosition);
+    }
+  };
+
+  const handleInsertMenuActivation = (
+    location: { layerIndex: number; playheadPosition: number },
+    clientX: number,
+    clientY: number,
+  ): void => {
+    if (!activeTimeline || layers.length === 0) {
+      return;
+    }
+
+    const fallbackLayerIndex = clampNumber(
+      Number(activeTimeline.activeLayerIndex ?? 0),
+      0,
+      Math.max(0, layers.length - 1),
+    );
+    const targetLayerIndex = clampNumber(
+      location.layerIndex,
+      0,
+      Math.max(0, layers.length - 1),
+    );
+    const layer = layers[targetLayerIndex] ?? layers[fallbackLayerIndex];
+    if (!layer) {
+      return;
+    }
+
+    const resolvedLayerIndex = Math.max(
+      0,
+      layers.indexOf(layer),
+    );
+    activeTimeline.activeLayerIndex = resolvedLayerIndex;
+
+    const frame = getFrameAtPlayhead(layer, location.playheadPosition);
+    if (frame) {
+      insertKeyframeAt(layer, location.playheadPosition);
+      return;
+    }
+
+    layer.activate?.();
+    setPlayhead(location.playheadPosition, { respectSnap: false });
+
+    const leftFrames = layer.frames.filter(
+      (candidateFrame) => Number(candidateFrame.start) < location.playheadPosition,
+    );
+    const closestLeftFrame = leftFrames
+      .sort((a, b) => Number(b.start) - Number(a.start))
+      [0];
+
+    const hasLeftTween = Boolean(
+      closestLeftFrame &&
+      Array.isArray(closestLeftFrame.tweens) &&
+      closestLeftFrame.tweens.length > 0,
+    );
+
+    setDoubleClickMenuContext({
+      layer,
+      playheadPosition: location.playheadPosition,
+      label: `Keyframe at ${location.playheadPosition}`,
+      mode: hasLeftTween ? "tween-strip" : "frame-strip",
+    });
+    setContextMenuPosition(clampContextMenuPosition(clientX, clientY));
   };
 
   const handleAddMarker = (): void => {
@@ -2054,49 +2296,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       if (!location) {
         return;
       }
-
-      const layer = layers[location.layerIndex];
-      if (!layer) {
-        return;
-      }
-      const frame = getFrameAtPlayhead(layer, location.playheadPosition);
-
-      if (!frame) {
-        layer.activate?.();
-        setPlayhead(location.playheadPosition);
-
-        const leftFrames = layer.frames.filter(
-          (f) => Number(f.start) < location.playheadPosition
-        );
-        let closestLeftFrame = null;
-        if (leftFrames.length > 0) {
-          leftFrames.sort((a, b) => Number(b.start) - Number(a.start));
-          closestLeftFrame = leftFrames[0];
-        }
-
-        const hasLeftTween =
-          closestLeftFrame &&
-          Array.isArray(closestLeftFrame.tweens) &&
-          closestLeftFrame.tweens.length > 0;
-
-        if (hasLeftTween) {
-          setDoubleClickMenuContext({
-            layer,
-            playheadPosition: location.playheadPosition,
-            label: `Create Keyframe at ${location.playheadPosition}`
-          });
-          setContextMenuPosition(clampContextMenuPosition(event.clientX, event.clientY));
-          return;
-        }
-
-        const newFrame = layer.insertBlankFrame?.(location.playheadPosition);
-        if (newFrame) {
-          project?.selection?.clear?.();
-          project?.selection?.select?.(newFrame);
-          commitProjectChange("Insert Blank Frame");
-          requestRender();
-        }
-      }
+      handleInsertMenuActivation(location, event.clientX, event.clientY);
     } catch (error) {
       reportRendererError(error);
     }
@@ -2118,7 +2318,40 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         return;
       }
 
+      const location = resolveGridLocation(event.clientX, event.clientY);
+      if (!location) {
+        return;
+      }
+
       if (event.pointerType === "touch") {
+        const now = Date.now();
+        const lastTap = lastTouchTapRef.current;
+        const isDoubleTap = Boolean(
+          lastTap &&
+          now - lastTap.time <= DOUBLE_TAP_MAX_DELAY_MS &&
+          Math.abs(lastTap.x - event.clientX) <= DOUBLE_TAP_MAX_DISTANCE_PX &&
+          Math.abs(lastTap.y - event.clientY) <= DOUBLE_TAP_MAX_DISTANCE_PX &&
+          lastTap.layerIndex === location.layerIndex &&
+          Math.abs(lastTap.playheadPosition - location.playheadPosition) <= 1,
+        );
+
+        lastTouchTapRef.current = {
+          time: now,
+          x: event.clientX,
+          y: event.clientY,
+          layerIndex: location.layerIndex,
+          playheadPosition: location.playheadPosition,
+        };
+
+        if (isDoubleTap) {
+          clearLongPressTimer();
+          longPressTriggeredRef.current = false;
+          longPressStartRef.current = null;
+          setPressFeedback(null);
+          handleInsertMenuActivation(location, event.clientX, event.clientY);
+          return;
+        }
+
         clearLongPressTimer();
         longPressTriggeredRef.current = false;
         longPressStartRef.current = { x: event.clientX, y: event.clientY };
@@ -2131,17 +2364,18 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
           openContextMenu(event.clientX, event.clientY);
         }, LONG_PRESS_MS);
       }
-
-      const location = resolveGridLocation(event.clientX, event.clientY);
-      if (!location) {
-        return;
-      }
       safeSetPointerCapture(event.currentTarget, event.pointerId);
 
-      const layer = layers[location.layerIndex];
+      const fallbackLayerIndex = clampNumber(
+        Number(activeTimeline.activeLayerIndex ?? 0),
+        0,
+        Math.max(0, layers.length - 1),
+      );
+      const layer = layers[location.layerIndex] ?? layers[fallbackLayerIndex];
       if (!layer) {
         return;
       }
+      const resolvedLayerIndex = Math.max(0, layers.indexOf(layer));
       const frame = getFrameAtPlayhead(layer, location.playheadPosition);
 
       if (!frame) {
@@ -2162,7 +2396,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
           startClientY: event.clientY,
           startCol: location.col,
           startRow: location.row,
-          startLayerIndex: location.layerIndex,
+          startLayerIndex: resolvedLayerIndex,
           startPlayhead: playheadPosition,
           axisLock: null,
           moveCols: 0,
@@ -2195,7 +2429,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       const nearRight = frameRightPx - pointerLocalX <= handleWidth;
 
       if (event.shiftKey) {
-        selectFrameRangeFromAnchor(frame, location.layerIndex);
+        selectFrameRangeFromAnchor(frame, resolvedLayerIndex);
         return;
       }
 
@@ -2205,6 +2439,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
           append: true,
           toggle: true,
           setAnchor: true,
+          playheadPosition: location.playheadPosition,
         });
         return;
       }
@@ -2214,13 +2449,15 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         selectedFrames.length > 0 && isFrameSelected(frame) ? selectedFrames : [frame];
 
       if (!isFrameSelected(frame)) {
-        selectFrame(frame);
+        selectFrame(frame, {
+          playheadPosition: location.playheadPosition,
+        });
       } else {
         selectionAnchorRef.current = {
-          layerIndex: location.layerIndex,
-          playheadPosition: frameStart,
+          layerIndex: resolvedLayerIndex,
+          playheadPosition: location.playheadPosition,
         };
-        setPlayhead(frameStart);
+        setPlayhead(location.playheadPosition);
       }
 
       const mode: InteractionMode = nearLeft
@@ -2244,7 +2481,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         startClientY: event.clientY,
         startCol: location.col,
         startRow: location.row,
-        startLayerIndex: location.layerIndex,
+        startLayerIndex: resolvedLayerIndex,
         startPlayhead: playheadPosition,
         axisLock: null,
         moveCols: 0,
@@ -2272,14 +2509,24 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       safeSetPointerCapture(event.currentTarget, event.pointerId);
 
       const selectedTweens = getSelectedTweens();
+      const parentFrame = tween.parentFrame as TimelineFrameLike | undefined;
       const isToggleSelection = event.metaKey || event.ctrlKey;
       if (isToggleSelection) {
         if (selectedTweens.includes(tween)) {
           project?.selection?.deselect?.(tween);
+          if (parentFrame) {
+            project?.selection?.deselect?.(parentFrame);
+          }
         } else {
+          if (parentFrame) {
+            project?.selection?.select(parentFrame);
+          }
           project?.selection?.select(tween);
-          tween.parentLayer?.activate?.();
         }
+        tween.parentLayer?.activate?.();
+        setPlayhead(Number(tween.playheadPosition ?? parentFrame?.start ?? playheadPosition), {
+          respectSnap: false,
+        });
         requestRender();
         return;
       }
@@ -2288,10 +2535,16 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         project?.selection?.clear();
       }
 
+      if (parentFrame) {
+        project?.selection?.select(parentFrame);
+      }
       if (!selectedTweens.includes(tween)) {
         project?.selection?.select(tween);
       }
       tween.parentLayer?.activate?.();
+      setPlayhead(Number(tween.playheadPosition ?? parentFrame?.start ?? playheadPosition), {
+        respectSnap: false,
+      });
       requestRender();
 
       const activeTweens = getSelectedTweens();
@@ -2394,7 +2647,10 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
   const handleAddLayer = (): void => {
     try {
-      const newLayer = new window.Wick.Layer();
+      const newLayer = createTimelineLayer();
+      if (!newLayer) {
+        return;
+      }
       activeTimeline?.addLayer?.(newLayer as TimelineLayerLike);
       newLayer.activate?.();
       project?.selection?.clear();
@@ -2593,48 +2849,60 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   }, [contextMenuPosition]);
 
   const contextMenuItems: TimelineContextMenuItem[] = doubleClickMenuContext
-    ? [
-        {
-          id: "insert-blank-double-click",
-          label: "Insert Blank Keyframe",
-          icon: "create",
-          action: () => {
-            closeContextMenu();
-            const { layer, playheadPosition } = doubleClickMenuContext;
-            layer.activate?.();
-            setPlayhead(playheadPosition);
-            const newFrame = layer.insertBlankFrame?.(playheadPosition);
-            if (newFrame) {
-              project?.selection?.clear?.();
-              project?.selection?.select?.(newFrame);
-              commitProjectChange("Insert Blank Frame");
-              requestRender();
-            }
-          },
-        },
-        {
-          id: "insert-tween-double-click",
-          label: "Insert Tween Keyframe",
-          icon: "layerTween",
-          action: () => {
-            closeContextMenu();
-            const { layer, playheadPosition } = doubleClickMenuContext;
-            layer.activate?.();
-            setPlayhead(playheadPosition);
-            const newFrame = layer.insertBlankFrame?.(playheadPosition);
-            if (newFrame) {
-              project?.selection?.clear?.();
-              project?.selection?.select?.(newFrame);
-              props.addTweenKeyframe();
-              requestRender();
-            }
-          },
-        },
-      ]
+    ? (
+        doubleClickMenuContext.mode === "tween-strip"
+          ? [
+              {
+                id: "insert-blank-double-click",
+                label: "Insert Blank Keyframe",
+                icon: "create",
+                action: () => {
+                  closeContextMenu();
+                  const { layer, playheadPosition } = doubleClickMenuContext;
+                  insertBlankKeyframeAt(layer, playheadPosition);
+                },
+              },
+              {
+                id: "insert-tween-double-click",
+                label: "Insert Tween Keyframe",
+                icon: "layerTween",
+                action: () => {
+                  closeContextMenu();
+                  const { layer, playheadPosition } = doubleClickMenuContext;
+                  insertBlankKeyframeAt(layer, playheadPosition);
+                  props.addTweenKeyframe();
+                  requestRender();
+                },
+              },
+            ]
+          : [
+              {
+                id: "insert-key-double-click",
+                label: "Insert Keyframe (Duplicate Left)",
+                icon: "split",
+                action: () => {
+                  closeContextMenu();
+                  const { layer, playheadPosition } = doubleClickMenuContext;
+                  insertKeyframeAt(layer, playheadPosition, { fallbackToBlank: true });
+                },
+              },
+              {
+                id: "insert-blank-double-click",
+                label: "Insert Blank Keyframe",
+                icon: "create",
+                action: () => {
+                  closeContextMenu();
+                  const { layer, playheadPosition } = doubleClickMenuContext;
+                  insertBlankKeyframeAt(layer, playheadPosition);
+                },
+              },
+            ]
+      )
     : timelineContextMenuItems;
 
   return (
     <div
+      ref={timelineRootRef}
       id="animation-timeline-container"
       aria-label="Timeline"
       data-timeline-renderer-mode="dom"
@@ -3015,6 +3283,19 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 className="timeline-dom-playhead"
                 style={{ left: `${(playheadPosition - 1) * cellWidth + cellWidth / 2 - 1}px` }}
               />
+
+              {showSelectedFrameCellIndicator && (
+                <div
+                  className="timeline-dom-playhead-frame-cell-selected"
+                  style={{
+                    left: `${(playheadPosition - 1) * cellWidth}px`,
+                    top: `${activeLayerIndex * cellHeight}px`,
+                    width: `${cellWidth}px`,
+                    height: `${cellHeight}px`,
+                  }}
+                  aria-hidden
+                />
+              )}
 
               {selectionBox && (
                 <div
@@ -3665,6 +3946,12 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               : "Wick Keys: Shift+. Extend, Shift+X Keyframe, Shift+8 Blank, Shift+, Shrink"}
           </div>
         </div>
+
+        {keyPressIndicator && (
+          <div className="timeline-dom-keypress-indicator" aria-live="polite">
+            {keyPressIndicator}
+          </div>
+        )}
 
         {pressFeedback && (
           <div

@@ -39,14 +39,8 @@ interface WickTimeline {
     playheadPosition: number;
     getChildren: () => WickNode[];
 }
-type DisplayOptions = {
-    path: boolean;
-    button: boolean;
-    clip: boolean;
-    text: boolean;
-    image: boolean;
-    [key: string]: boolean;
-};
+type DisplayKey = "path" | "button" | "clip" | "text" | "image";
+type DisplayOptions = Record<DisplayKey, boolean>;
 type OutlinerToggleProperty = "select" | "dropdown" | "locked" | "hidden";
 
 interface OutlinerProps {
@@ -78,6 +72,19 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
         image: true,
     });
     const [collapsedUUIDs, setCollapsedUUIDs] = useState<Record<string, boolean>>({});
+
+    const toDisplayKey = (value: string): DisplayKey | null => {
+        switch (value.toLowerCase()) {
+            case "path":
+            case "button":
+            case "clip":
+            case "text":
+            case "image":
+                return value.toLowerCase() as DisplayKey;
+            default:
+                return null;
+        }
+    };
 
     const getDepth = (object: WickNode): number => {
         let depth = 0;
@@ -204,12 +211,16 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
         }
 
         if (object.classname === "Path") {
-            const pathKey = typeof object.pathType === "string" ? object.pathType : "path";
-            return Boolean(display[pathKey] ?? false);
+            const pathKey = toDisplayKey(
+                typeof object.pathType === "string" ? object.pathType : "path"
+            ) ?? "path";
+            return display[pathKey];
         }
 
-        const key = typeof object.classname === "string" ? object.classname.toLowerCase() : "";
-        return Boolean(display[key] ?? false);
+        const key = toDisplayKey(
+            typeof object.classname === "string" ? object.classname : ""
+        );
+        return key ? display[key] : false;
     };
 
     const setActiveLayerFromObject = (object: WickNode): void => {
@@ -421,4 +432,4 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
 
 export default Outliner;
 
-export type { WickNode, WickTimeline, DisplayOptions };
+export type { WickNode, WickTimeline, DisplayKey, DisplayOptions };

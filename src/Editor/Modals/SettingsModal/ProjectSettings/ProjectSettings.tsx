@@ -39,6 +39,20 @@ interface ProjectSettingsProps {
   lastColorsUsed?: string[];
 }
 
+function createProjectBackgroundColor(
+  color: string,
+): string | { rgba: string } {
+  const wickGlobal = window.Wick as {
+    Color?: new (input: string) => { rgba: string };
+  };
+
+  if (typeof wickGlobal.Color === "function") {
+    return new wickGlobal.Color(color);
+  }
+
+  return color;
+}
+
 const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
   const defaultName = "New Project";
 
@@ -176,7 +190,7 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
       name: name === "" ? defaultName : name,
       width: width,
       height: height,
-      backgroundColor: new window.Wick.Color(backgroundColor),
+      backgroundColor: createProjectBackgroundColor(backgroundColor),
       framerate: framerate,
     };
 

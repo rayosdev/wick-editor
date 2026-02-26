@@ -21,7 +21,7 @@ const OutlinerDropdown: React.FC<OutlinerDropdownProps> = ({
     <img
       className={classNames(
         "outliner-dropdown-icon empty",
-        "relative z-[-1] ml-1 inline-block h-[15px] w-[15px] align-middle p-[4.5px]",
+        "relative z-[-1] ml-1 inline-block h-[12px] w-[12px] align-middle p-[3px]",
         "transition-colors duration-150 ease-in-out has-hover:bg-transparent"
       )}
       alt="dropdown-icon"
@@ -33,7 +33,7 @@ const OutlinerDropdown: React.FC<OutlinerDropdownProps> = ({
       className={classNames(
         "outliner-dropdown-icon",
         collapsedClass,
-        "relative z-0 ml-1 h-[15px] w-[15px] align-middle",
+        "relative z-0 ml-1 h-[12px] w-[12px] align-middle",
         "transition-colors duration-150 ease-in-out has-hover:bg-white/20",
         !collapsed && "animate-outliner-dropdown-rotate"
       )}

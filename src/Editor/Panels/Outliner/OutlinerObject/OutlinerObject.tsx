@@ -243,7 +243,7 @@ export const OutlinerObject = ({
                 ref={ref}
                 className={classNames(
                     "outliner-object-container",
-                    "relative h-full w-full",
+                    "relative mt-[2px] w-full first:mt-0",
                     hoverLocation !== "hover-middle" && isOverCurrent && hoverLocation,
                     hoverLocation === "hover-top" &&
                         isOverCurrent &&
@@ -256,7 +256,7 @@ export const OutlinerObject = ({
                 <div
                     className={classNames(
                         "outliner-object",
-                        "relative z-0 box-border flex h-[20px] items-center border-y border-solid border-y-editor-primary bg-editor-secondary leading-[20px] has-hover:cursor-pointer has-hover:bg-editor-tertiary",
+                        "relative z-0 box-border flex h-[24px] items-center border-y border-solid border-y-editor-primary bg-editor-secondary leading-[24px] has-hover:cursor-pointer has-hover:bg-editor-tertiary",
                         { "object-selected": data.isSelected && !focused },
                         { "!border !border-solid !border-wick-green": data.isSelected && !focused },
                         { "object-dragging": isDraggingSelection },
@@ -272,7 +272,7 @@ export const OutlinerObject = ({
                     <button
                         aria-label="select outliner object"
                         ref={drag}
-                        className="outliner-object-selector absolute left-0 top-0 h-[20px] w-full border-none bg-transparent"
+                        className="outliner-object-selector absolute left-0 top-0 h-[24px] w-full border-none bg-transparent"
                         onClick={(event: ReactMouseEvent<Element>) => {
                             toggle(event, [], "select");
                         }}
@@ -291,7 +291,7 @@ export const OutlinerObject = ({
                     />
 
                     <img
-                        className="row-icon relative z-[-1] ml-1 w-[14px]"
+                        className="row-icon relative z-[-1] ml-1 h-[12px] w-[12px]"
                         src={typeIcon}
                         alt={data.classname}
                     />
@@ -334,7 +334,7 @@ export const OutlinerObject = ({
                         )}
                         {Boolean(data.sound) && (
                             <img
-                                className="outliner-sound-icon mr-1 mt-0 h-5 align-top"
+                                className="outliner-sound-icon mr-1 mt-0 h-[12px] align-top"
                                 src={soundIcon}
                                 alt="sound"
                             />
@@ -342,7 +342,7 @@ export const OutlinerObject = ({
                         {data.hasContentfulScripts && (
                             <input
                                 type="image"
-                                className="outliner-script-icon mt-0 h-[14px]"
+                                className="outliner-script-icon mt-0 h-[12px]"
                                 src={scriptIcon}
                                 alt="script"
                                 onClick={() => {
@@ -364,7 +364,7 @@ export const OutlinerObject = ({
                 </div>
 
                 {!empty && !collapsedUUIDs[data.uuid] && (
-                    <div className="indentation origin-top animate-outliner-expand pl-5">
+                    <div className="indentation mt-[2px] origin-top animate-outliner-expand pl-3">
                         {children.map((child: WickNode, index: number) => {
                             const object =
                                 data.classname === "Frame"

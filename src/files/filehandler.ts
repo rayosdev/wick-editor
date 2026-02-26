@@ -32,11 +32,10 @@
 
 import { saveAs } from "file-saver";
 import timeStamp from "../Editor/Util/DataFunctions/timestamp";
+import type { LocalFileEntry } from "../Editor/types";
 
-interface FileEntry {
-  name: string;
-  [key: string]: unknown;
-}
+type FileEntry = Pick<LocalFileEntry, "name"> &
+  Partial<Pick<LocalFileEntry, "handle" | "lastModified">>;
 
 interface WarningModalArgs {
   title: string;

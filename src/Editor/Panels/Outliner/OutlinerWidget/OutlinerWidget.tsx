@@ -20,7 +20,7 @@ const OutlinerLayerButtons: React.FC<OutlinerLayerButtonsProps> = ({
     <ActionButton
       color="tool"
       id={`${tooltip}widget`}
-      className="widget !mr-1 !h-[18px] !w-[18px] max-h-[18px] max-w-[18px] rounded-[3px] border-0 bg-transparent p-0 transition-colors duration-150 ease-in-out"
+      className="widget !mr-1 !h-[14px] !w-[14px] max-h-[14px] max-w-[14px] rounded-[3px] border-0 bg-transparent p-0 transition-colors duration-150 ease-in-out"
       action={() => {
         //e.stopPropagation();
         onClick();
@@ -31,7 +31,7 @@ const OutlinerLayerButtons: React.FC<OutlinerLayerButtonsProps> = ({
       icon={icon}
       iconClassName={classNames(
         on === undefined || on ? "widget-on opacity-100" : "widget-off opacity-25",
-        "!h-[18px] !max-h-[18px] align-top"
+        "!h-[14px] !max-h-[14px] align-top"
       )}
     />
   );

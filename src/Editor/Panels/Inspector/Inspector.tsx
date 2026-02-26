@@ -19,7 +19,7 @@
 
 import React, { type ComponentProps, type InputHTMLAttributes } from "react";
 
-import "./_inspectorselector.scss";
+import "./inspectorselector-legacy.css";
 
 import type { Script as ScriptType, ScriptWindowScriptInfoInterface } from "Editor/types";
 

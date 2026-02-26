@@ -6,6 +6,9 @@ const SRC_DIR = path.join(ROOT, "src");
 const SOURCE_EXTENSIONS = new Set([".js", ".jsx", ".ts", ".tsx"]);
 
 const DISALLOWED_SCSS_FILES = new Set([
+  "src/Editor/brand.scss",
+  "src/Editor/_editor.scss",
+  "src/Editor/_wickbrand.module.scss",
   "src/Editor/Util/ActionButton/_actionbutton.scss",
   "src/Editor/Util/WickInput/_wickinput.scss",
   "src/Editor/Modals/WickModal/_wickmodal.scss",
@@ -52,6 +55,7 @@ const DISALLOWED_SCSS_FILES = new Set([
   "src/Editor/Panels/Inspector/InspectorTitle/_inspectortitle.scss",
   "src/Editor/Panels/Inspector/InspectorPreview/_inspectorpreview.scss",
   "src/Editor/Panels/Inspector/_inspector.scss",
+  "src/Editor/Panels/Inspector/_inspectorselector.scss",
   "src/Editor/Panels/Inspector/inspector.scss",
   "src/Editor/Panels/Inspector/inspector-shim.scss",
   "src/Editor/Panels/Inspector/InspectorScriptWindow/_inspectorscriptwindow.scss",
@@ -84,6 +88,7 @@ const DISALLOWED_SCSS_FILES = new Set([
   "src/Editor/Panels/MobileContainer/MobileInspector/MobileInspectorRow/mobileinspectorrow-shim.scss",
   "src/Editor/Panels/MobileContainer/MobileInspector/MobileInspectorRow/MobileInspectorInput/_mobileinspectorinput.scss",
   "src/Editor/Panels/MobileContainer/MobileInspector/MobileInpsectorTabbedInterface/_mobileinspectortabbedinterface.scss",
+  "src/Editor/Panels/Timeline/_timeline.scss",
 ]);
 
 const ALLOWLIST_PATTERNS = [

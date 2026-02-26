@@ -8,6 +8,17 @@ interface GIFImportArgs {
   onProgress?: (percent: number) => void;
 }
 
+type WickGifRuntime = {
+  ImageAsset?: new (args: { filename: string; src: string }) => WickAsset;
+  GIFAsset?: {
+    fromImages?: (
+      imageAssets: WickAsset[],
+      project: WickProject,
+      callback: (gifAsset: WickAsset) => void,
+    ) => void;
+  };
+};
+
 class GIFImport {
   static importGIFIntoProject(args: GIFImportArgs): void {
     const { gifFile, project, onFinish, onProgress } = args;
@@ -35,10 +46,20 @@ class GIFImport {
             dataURLs.push(tempCanvas.toDataURL());
           });
 
+          const wickRuntime = window.Wick as WickGifRuntime;
+          const ImageAssetCtor = wickRuntime.ImageAsset;
+          const fromImages = wickRuntime.GIFAsset?.fromImages;
+          if (
+            typeof ImageAssetCtor !== "function" ||
+            typeof fromImages !== "function"
+          ) {
+            return;
+          }
+
           const imageAssets: WickAsset[] = [];
-          dataURLs.forEach((dataURL) => {
-            const imageAsset = new window.Wick.ImageAsset({
-              filename: gifFile.name + "_" + dataURLs.indexOf(dataURL) + ".png",
+          dataURLs.forEach((dataURL, index) => {
+            const imageAsset = new ImageAssetCtor({
+              filename: `${gifFile.name}_${index}.png`,
               src: dataURL,
             });
             project.addAsset(imageAsset);
@@ -47,7 +68,7 @@ class GIFImport {
           onProgress?.(75);
 
           project.loadAssets(() => {
-            window.Wick.GIFAsset.fromImages(
+            fromImages(
               imageAssets,
               project,
               (gifAsset: WickAsset) => {

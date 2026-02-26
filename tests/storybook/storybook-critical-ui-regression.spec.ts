@@ -54,7 +54,15 @@ async function clickIfVisible(locator: ReturnType<Page["locator"]>): Promise<boo
     return false;
   }
 
-  await first.click({ force: true });
+  try {
+    await first.click({ force: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("outside of the viewport")) {
+      return false;
+    }
+    throw error;
+  }
   return true;
 }
 
@@ -167,6 +175,64 @@ test.describe("Critical Storybook UI regressions", () => {
 
     await page.locator("button.mobile-asset-tab").click();
     await expect(page.getByLabel("Asset Library")).toHaveCount(1);
+
+    await runtime.assertNone();
+  });
+
+  test("Editor toolbox settings keep legacy compact visuals", async ({ page }) => {
+    const runtime = trackRuntimeErrors(page);
+    await gotoStory(page, "editor-editor--default");
+
+    const toolboxItems = page.locator(".tool-box .toolbox-item");
+    await expect(toolboxItems.first()).toBeVisible();
+
+    const candidateToolIndexes = [3, 4, 5];
+    let foundSettingsState = false;
+
+    for (const index of candidateToolIndexes) {
+      const count = await toolboxItems.count();
+      if (count <= index) {
+        continue;
+      }
+
+      await toolboxItems.nth(index).click({ force: true });
+      await page.waitForTimeout(250);
+
+      const numericCount = await page
+        .locator(".tool-box input.settings-numeric-input, .tool-box .settings-numeric-input")
+        .count();
+      if (numericCount > 0) {
+        foundSettingsState = true;
+        break;
+      }
+    }
+
+    expect(foundSettingsState).toBeTruthy();
+
+    await expect(page.locator(".tool-box .wick-input-v2-field")).toHaveCount(0);
+    await expect(page.locator(".tool-box #tool-box-fill-color:visible").first()).toBeVisible();
+    await expect(
+      page.locator(".tool-box #tool-box-stroke-color:visible").first()
+    ).toBeVisible();
+
+    await runtime.assertNone();
+  });
+
+  test("Editor canvas actions menu keeps full boolean actions visible", async ({
+    page,
+  }) => {
+    const runtime = trackRuntimeErrors(page);
+    await gotoStory(page, "editor-editor--default");
+
+    await page
+      .locator("#more-canvas-actions-popover-button button")
+      .first()
+      .click({ force: true });
+
+    await expect(page.getByText("Boolean", { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Unite" }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Subtract" }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Intersect" }).first()).toBeVisible();
 
     await runtime.assertNone();
   });

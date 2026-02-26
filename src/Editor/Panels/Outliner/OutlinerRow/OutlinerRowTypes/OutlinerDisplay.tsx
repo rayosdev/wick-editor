@@ -20,30 +20,23 @@
 import React from 'react';
 
 import OutlinerWidget from '../../OutlinerWidget/OutlinerWidget';
-
-interface DisplaySettings {
-  path: boolean;
-  button: boolean;
-  clip: boolean;
-  text: boolean;
-  image: boolean;
-  [key: string]: boolean;
-}
+import type { DisplayKey, DisplayOptions } from '../../Outliner';
 
 interface OutlinerDisplayProps {
   tooltip: string;
-  display: DisplaySettings;
-  onChange: (display: DisplaySettings) => void;
+  display: DisplayOptions;
+  onChange: (display: DisplayOptions) => void;
 }
 
 const OutlinerDisplay: React.FC<OutlinerDisplayProps> = ({ tooltip, display, onChange }) => {
-  const items: Record<string, string> = {
+  const items: Record<DisplayKey, string> = {
     path: "path-object",
     button: "button-object",
     clip: "clip-object",
     text: "text-object",
     image: "image-object"
   };
+  const itemKeys = Object.keys(items) as DisplayKey[];
 
   return (
     <div className="outliner-row mb-0 flex h-[26px] w-full items-center">
@@ -53,7 +46,7 @@ const OutlinerDisplay: React.FC<OutlinerDisplayProps> = ({ tooltip, display, onC
       </span>
       {/* Input */}
       <span className="outliner-input-container ml-1 flex h-[90%] w-[70%] items-center">
-        {Object.keys(items).map((item) => {
+        {itemKeys.map((item) => {
           return (
             <OutlinerWidget
               tooltip={`${display[item] ? "Hide " : "Show "}${item.charAt(0).toUpperCase()}${item.slice(1)} Objects`}

@@ -52,6 +52,18 @@ const TOOL_NAMES = [
 type ToolName = typeof TOOL_NAMES[number];
 type ToolSettingValue = string | number | boolean | { rgba: string };
 
+function createToolColorValue(color: string): ToolSettingValue {
+    const wickGlobal = window.Wick as {
+        Color?: new (input: string) => { rgba: string };
+    };
+
+    if (typeof wickGlobal.Color === "function") {
+        return new wickGlobal.Color(color);
+    }
+
+    return color;
+}
+
 const TOOL_TITLES: Record<ToolName, string> = {
     cursor: "Cursor",
     brush: "Brush",
@@ -445,7 +457,7 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                         onChange={(color: string) => {
                             props.setToolSetting(
                                 "fillColor",
-                                new window.Wick.Color(color)
+                                createToolColorValue(color)
                             );
                         }}
                         id="tool-box-fill-color"
@@ -468,7 +480,7 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                         onChange={(color: string) => {
                             props.setToolSetting(
                                 "strokeColor",
-                                new window.Wick.Color(color)
+                                createToolColorValue(color)
                             );
                         }}
                         id="tool-box-stroke-color"

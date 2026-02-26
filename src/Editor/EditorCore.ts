@@ -191,7 +191,6 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     {
       blob?: Blob;
       src?: string;
-      [key: string]: unknown;
     }
   >;
   declare _onEyedropperPickedColor: (color: string) => void;
@@ -379,14 +378,21 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * @returns {Object[]} - Animation types listed as objects with label and value keys.
    */
   getClipAnimationTypes = (): Array<{ label: string; value: string }> => {
-    let outputTypes: Array<{ label: string; value: string }> = [];
-    Object.keys(window.Wick.Clip.animationTypes).forEach((key) => {
-      outputTypes.push({
-        label: window.Wick.Clip.animationTypes[key],
-        value: key,
-      });
-    });
-    return outputTypes;
+    const wickGlobal = window.Wick as {
+      Clip?: {
+        animationTypes?: Record<string, string>;
+      };
+    };
+    const animationTypes = wickGlobal.Clip?.animationTypes;
+
+    if (!animationTypes || typeof animationTypes !== "object") {
+      return [];
+    }
+
+    return Object.entries(animationTypes).map(([value, label]) => ({
+      label,
+      value,
+    }));
   };
 
   /**

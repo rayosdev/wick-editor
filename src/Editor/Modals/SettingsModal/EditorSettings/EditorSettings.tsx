@@ -29,6 +29,18 @@ interface WickColor {
   rgba: string;
 }
 
+function createWickColor(value: string): WickColor | string {
+  const wickGlobal = window.Wick as {
+    Color?: new (input: string) => WickColor;
+  };
+
+  if (typeof wickGlobal.Color === "function") {
+    return new wickGlobal.Color(value);
+  }
+
+  return value;
+}
+
 interface EditorSettingsProps {
   getToolSetting: (setting: string) => string | number | boolean | WickColor;
   setToolSetting: (setting: string, value: string | number | boolean | WickColor) => void;
@@ -90,7 +102,7 @@ const EditorSettings: React.FC<EditorSettingsProps> = (props) => {
                   disableAlpha={true}
                   placement={'bottom'}
                   color={(props.getToolSetting('backwardOnionSkinTint') as WickColor).rgba}
-                  onChange={(color: string) => { props.setToolSetting('backwardOnionSkinTint', new window.Wick.Color(color)) }}
+                  onChange={(color: string) => { props.setToolSetting('backwardOnionSkinTint', createWickColor(color)) }}
                   colorPickerType={props.colorPickerType}
                   changeColorPickerType={props.changeColorPickerType}
                   updateLastColors={props.updateLastColors}
@@ -111,7 +123,7 @@ const EditorSettings: React.FC<EditorSettingsProps> = (props) => {
                   disableAlpha={true}
                   placement={'bottom'}
                   color={(props.getToolSetting('forwardOnionSkinTint') as WickColor).rgba}
-                  onChange={(color: string) => { props.setToolSetting('forwardOnionSkinTint', new window.Wick.Color(color)) }}
+                  onChange={(color: string) => { props.setToolSetting('forwardOnionSkinTint', createWickColor(color)) }}
                   colorPickerType={props.colorPickerType}
                   changeColorPickerType={props.changeColorPickerType}
                   updateLastColors={props.updateLastColors}

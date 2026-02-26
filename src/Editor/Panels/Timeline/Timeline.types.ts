@@ -4,6 +4,7 @@ import type {
   WickClip,
   TimelineObject,
   OnionSkinOptions,
+  ProjectDidChangeOptions,
   ToastType,
   ToastOptions,
 } from "Editor/types";
@@ -132,7 +133,7 @@ export type TimelineProject = {
 
 export interface TimelineOwnProps {
   project: TimelineProject | null;
-  projectDidChange: (options: { actionName: string; [key: string]: unknown }) => void;
+  projectDidChange: (options: ProjectDidChangeOptions) => void;
   projectData: WickProject;
   getSelectedTimelineObjects: () => TimelineObject[];
   setOnionSkinOptions: (options: OnionSkinOptions) => void;

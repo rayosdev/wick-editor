@@ -27,8 +27,6 @@ import {
 import type { XYCoord } from "react-dnd";
 import DragDropTypes from "Editor/DragDropTypes";
 
-import styles from "../../_wickbrand.module.scss";
-
 type CanvasEventHandler = (...args: unknown[]) => void;
 
 type CanvasViewLike = {
@@ -80,6 +78,7 @@ const CANVAS_CONTAINER_CLASSES =
     "relative h-full w-full bg-[#bbb] [&_canvas[resize]]:h-full [&_canvas[resize]]:w-full";
 const CANVAS_DRAG_DROP_OVERLAY_CLASSES =
     "drag-drop-overlay absolute left-0 top-0 z-[1] h-full w-full bg-[#EAEAEA] opacity-20";
+const EDITOR_CANVAS_BORDER_COLOR = "#6A6A6A";
 
 const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
     const canvasContainer = useRef<HTMLDivElement>(null);
@@ -96,10 +95,7 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
         currentAttachedProject.current = project;
         const view = project.view;
 
-        const borderColor = styles.editorCanvasBorder;
-        if (borderColor) {
-            view.canvasBGColor = borderColor;
-        }
+        view.canvasBGColor = EDITOR_CANVAS_BORDER_COLOR;
         view.canvasContainer = canvasContainer.current;
         view.resize();
 

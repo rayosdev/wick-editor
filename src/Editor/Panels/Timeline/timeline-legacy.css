@@ -16,15 +16,162 @@
  * You should have received a copy of the GNU General Public License
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
+/*
+ * Copyright 2020 WICKLETS LLC
+ *
+ * This file is part of Wick Editor.
+ *
+ * Wick Editor is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Wick Editor is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
+ */
+a:link {
+  color: #1EE29A;
+}
 
-@use "sass:math";
-@use "Editor/brand" as *;
+a:hover {
+  color: #19C284;
+}
 
-$timeline-grid-lines: $editor-primary-outline;
-$timeline-grid-bg: $editor-secondary;
+a {
+  color: #1EE29A;
+}
+
+a:hover {
+  color: #19C284;
+}
+
+.ReactModal__Overlay {
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.ReactModal__Overlay--after-open {
+  opacity: 1;
+}
+
+.ReactModal__Overlay--before-close {
+  opacity: 0;
+}
+
+.modal-body {
+  border-radius: 4px;
+  background-color: #383434;
+  margin: 0;
+  position: absolute;
+  z-index: 3001;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: "Nunito Sans";
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.modal-overlay {
+  position: fixed;
+  z-index: 3000;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.mobile-menu-overlay {
+  background-color: rgba(48, 48, 48, 0.95);
+}
+
+.wick-brand-arrow {
+  border: solid #1EE29A;
+  border-width: 0 3px 3px 0;
+  border-radius: 2px;
+  display: inline-block;
+  padding: 3px;
+  margin: 4px;
+}
+
+.arrow-right {
+  transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+}
+
+.arrow-left {
+  transform: rotate(135deg);
+  -webkit-transform: rotate(135deg);
+}
+
+.arrow-up {
+  transform: rotate(-135deg);
+  -webkit-transform: rotate(-135deg);
+}
+
+.arrow-down {
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+}
+
+/*button-variant($background, $border, $hover-background: darken($background, 7.5%), $hover-border: darken($border, 10%), $active-background: darken($background, 10%), $active-border: darken($border, 12.5%))*/
+.btn-wick-warning {
+  background: #E6460E;
+  border: #E6460E;
+  color: #000;
+}
+
+.btn-wick-warning:hover {
+  background: rgb(193.9446721311, 59.0266393443, 11.8053278689);
+  border: rgb(193.9446721311, 59.0266393443, 11.8053278689);
+}
+
+.btn-wick-warning:active {
+  background: rgb(169.9077868852, 51.7110655738, 10.3422131148);
+  border: rgb(169.9077868852, 51.7110655738, 10.3422131148);
+}
+
+.btn-wick-accept {
+  background: #01C094;
+  border: #01C094;
+  color: #000;
+}
+
+.btn-wick-accept:hover {
+  background: rgb(0.8018134715, 153.9481865285, 118.6683937824);
+  border: rgb(0.8018134715, 153.9481865285, 118.6683937824);
+}
+
+.btn-wick-accept:active {
+  background: rgb(0.6696891192, 128.5803108808, 99.1139896373);
+  border: rgb(0.6696891192, 128.5803108808, 99.1139896373);
+}
+
+:export {
+  editorCanvasBorder: #6A6A6A;
+}
+
+button:focus, input:focus {
+  outline: 2px solid #FF7867;
+}
+
+.popover.mobile .arrow {
+  display: none;
+  height: 0;
+}
+
+.mobile.bs-popover-bottom {
+  margin-top: 2px;
+  margin-left: 2px;
+}
 
 .timeline {
-  background-color: $flame-dark;
+  background-color: #E6460E;
 }
 
 .timeline-drop-target-root {
@@ -36,20 +183,19 @@ $timeline-grid-bg: $editor-secondary;
 
 #animation-timeline-container {
   flex: 1 1 auto;
-  height: math.floor(100%);
+  height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: $editor-secondary;
+  background-color: #3B3B3B;
   /* overflow: hidden; Removed to fix potential clipping issues (e.g. popovers) */
   min-height: 0;
   position: relative;
   -webkit-user-select: none;
   user-select: none;
   -webkit-user-drag: none;
-
-  img {
-    -webkit-user-drag: none;
-  }
+}
+#animation-timeline-container img {
+  -webkit-user-drag: none;
 }
 
 .timeline-flash-shell {
@@ -58,7 +204,7 @@ $timeline-grid-bg: $editor-secondary;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  background-color: $editor-secondary;
+  background-color: #3B3B3B;
   /* overflow: hidden; Removed to fix potential clipping issues */
 }
 
@@ -67,9 +213,9 @@ $timeline-grid-bg: $editor-secondary;
   align-items: center;
   gap: 10px;
   padding: 6px 10px;
-  border-bottom: 1px solid $editor-primary-outline;
-  background: linear-gradient(to bottom, $editor-primary, $editor-secondary);
-  color: $editor-primary-text;
+  border-bottom: 1px solid #191919;
+  background: linear-gradient(to bottom, #303030, #3B3B3B);
+  color: white;
   font-family: "Nunito Sans", sans-serif;
   font-size: 12px;
   overflow-x: auto;
@@ -82,7 +228,7 @@ $timeline-grid-bg: $editor-secondary;
 }
 
 .timeline-flash-header::-webkit-scrollbar-thumb {
-  background-color: $editor-modal-gray-secondary;
+  background-color: #525252;
   border-radius: 999px;
 }
 
@@ -108,14 +254,14 @@ $timeline-grid-bg: $editor-secondary;
 }
 
 .timeline-flash-scene-label {
-  color: $editor-secondary-text;
+  color: #BDBDBD;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   font-weight: 700;
 }
 
 .timeline-flash-scene-name {
-  color: $editor-primary-text;
+  color: white;
   font-weight: 700;
   max-width: 260px;
   overflow: hidden;
@@ -124,7 +270,7 @@ $timeline-grid-bg: $editor-secondary;
 }
 
 .timeline-flash-meta {
-  color: $editor-secondary-text;
+  color: #BDBDBD;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
@@ -134,8 +280,8 @@ $timeline-grid-bg: $editor-secondary;
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
-  border-bottom: 1px solid $editor-primary-outline;
-  background-color: $editor-primary;
+  border-bottom: 1px solid #191919;
+  background-color: #303030;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
@@ -146,7 +292,7 @@ $timeline-grid-bg: $editor-secondary;
 }
 
 .timeline-flash-actions::-webkit-scrollbar-thumb {
-  background-color: $editor-modal-gray-secondary;
+  background-color: #525252;
   border-radius: 4px;
 }
 
@@ -179,9 +325,9 @@ $timeline-grid-bg: $editor-secondary;
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  border-top: 1px solid $editor-primary-outline;
+  border-top: 1px solid #191919;
   box-shadow: 0 -6px 12px rgba(0, 0, 0, 0.22);
-  background-color: $editor-primary;
+  background-color: #303030;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
@@ -192,7 +338,7 @@ $timeline-grid-bg: $editor-secondary;
 }
 
 .timeline-flash-footer::-webkit-scrollbar-thumb {
-  background-color: $editor-modal-gray-secondary;
+  background-color: #525252;
   border-radius: 4px;
 }
 
@@ -213,7 +359,7 @@ $timeline-grid-bg: $editor-secondary;
 }
 
 .timeline-flash-footer-label {
-  color: $editor-secondary-text;
+  color: #BDBDBD;
   font-family: "Nunito Sans", sans-serif;
   font-size: 10px;
   font-weight: 700;
@@ -236,10 +382,10 @@ $timeline-grid-bg: $editor-secondary;
 .timeline-flash-footer-input {
   width: 62px;
   height: 28px;
-  border: 1px solid $editor-primary-outline;
+  border: 1px solid #191919;
   border-radius: 4px;
-  background-color: $editor-modal-gray;
-  color: $editor-primary-text;
+  background-color: #383434;
+  color: white;
   font-family: "Nunito Sans", sans-serif;
   font-size: 12px;
   font-weight: 700;
@@ -259,7 +405,7 @@ $timeline-grid-bg: $editor-secondary;
 }
 
 .timeline-flash-footer-readout {
-  color: $editor-primary-text;
+  color: white;
   font-family: "Nunito Sans", sans-serif;
   font-size: 11px;
   font-weight: 700;
@@ -271,8 +417,8 @@ $timeline-grid-bg: $editor-secondary;
   height: 28px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 4px;
-  background-color: $editor-modal-gray;
-  color: $editor-primary-text;
+  background-color: #383434;
+  color: white;
   font-family: "Nunito Sans", sans-serif;
   font-size: 12px;
   font-weight: 800;
@@ -280,11 +426,11 @@ $timeline-grid-bg: $editor-secondary;
 }
 
 body.hasHover .timeline-flash-footer-button:hover {
-  background-color: $editor-tertiary;
+  background-color: #4A4A4A;
 }
 
 .timeline-flash-footer-button:active {
-  background-color: $editor-modal-gray-secondary;
+  background-color: #525252;
 }
 
 .timeline-flash-footer-choice {
@@ -292,8 +438,8 @@ body.hasHover .timeline-flash-footer-button:hover {
   height: 28px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 4px;
-  background-color: $editor-modal-gray;
-  color: $editor-primary-text;
+  background-color: #383434;
+  color: white;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -310,21 +456,21 @@ body.hasHover .timeline-flash-footer-button:hover {
 }
 
 body.hasHover .timeline-flash-footer-choice:hover {
-  background-color: $editor-tertiary;
+  background-color: #4A4A4A;
 }
 
 .timeline-flash-footer-choice:active {
-  background-color: $editor-modal-gray-secondary;
+  background-color: #525252;
 }
 
 .timeline-flash-footer-choice.active {
-  background-color: $editor-tertiary;
+  background-color: #4A4A4A;
   border-color: rgba(255, 255, 255, 0.24);
 }
 
 .timeline-flash-footer-hint {
   margin-left: auto;
-  color: $editor-secondary-text;
+  color: #BDBDBD;
   font-family: "Nunito Sans", sans-serif;
   font-size: 10px;
   white-space: nowrap;
@@ -337,17 +483,17 @@ body.hasHover .timeline-flash-footer-choice:hover {
   display: flex;
   flex-direction: column;
   padding: 6px;
-  border: 1px solid $editor-primary-outline;
+  border: 1px solid #191919;
   border-radius: 6px;
-  background-color: $editor-primary;
+  background-color: #303030;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
 }
 
 .timeline-context-menu-target {
   margin: 0 0 4px;
   padding: 4px 8px 6px;
-  border-bottom: 1px solid $editor-primary-outline;
-  color: $editor-secondary-text;
+  border-bottom: 1px solid #191919;
+  color: #BDBDBD;
   font-family: "Nunito Sans", sans-serif;
   font-size: 10px;
   font-weight: 700;
@@ -360,7 +506,7 @@ body.hasHover .timeline-flash-footer-choice:hover {
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: $editor-primary-text;
+  color: white;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -376,11 +522,11 @@ body.hasHover .timeline-flash-footer-choice:hover {
 }
 
 body.hasHover .timeline-context-menu-item:hover:not(:disabled) {
-  background-color: $editor-tertiary;
+  background-color: #4A4A4A;
 }
 
 .timeline-context-menu-item:active:not(:disabled) {
-  background-color: $editor-modal-gray;
+  background-color: #383434;
 }
 
 .timeline-context-menu-item-icon {
@@ -408,19 +554,19 @@ body.hasHover .timeline-context-menu-item:hover:not(:disabled) {
 .timeline-context-menu-hint {
   margin-top: 6px;
   padding: 6px 8px 2px;
-  border-top: 1px solid $editor-primary-outline;
-  color: $editor-secondary-text;
+  border-top: 1px solid #191919;
+  color: #BDBDBD;
   font-family: "Nunito Sans", sans-serif;
   font-size: 10px;
 }
 
 #animation-timeline {
-  width: math.floor(100%);
+  width: 100%;
   flex: 1 1 auto;
   min-height: 0;
-  border-left: $editor-outline-padding solid $editor-primary-outline;
-  border-bottom: $editor-outline-padding solid $editor-primary-outline;
-  background-color: $editor-primary;
+  border-left: 4px solid #191919;
+  border-bottom: 4px solid #191919;
+  background-color: #303030;
 }
 
 .animation-timeline-add-keyframe-button {
@@ -471,10 +617,10 @@ body.hasHover .timeline-context-menu-item:hover:not(:disabled) {
 .timeline-header-options-button {
   min-width: 92px;
   height: 26px;
-  border: 1px solid $editor-primary-outline;
+  border: 1px solid #191919;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.02);
-  color: $editor-secondary-text;
+  color: #BDBDBD;
   font-family: "Nunito Sans", sans-serif;
   font-size: 11px;
   font-weight: 800;
@@ -485,7 +631,7 @@ body.hasHover .timeline-context-menu-item:hover:not(:disabled) {
 
 .timeline-header-options-button.active {
   background-color: rgba(118, 189, 255, 0.18);
-  color: $editor-primary-text;
+  color: white;
 }
 
 body.hasHover .timeline-header-options-button:hover {
@@ -495,19 +641,19 @@ body.hasHover .timeline-header-options-button:hover {
 .timeline-renderer-toggle {
   display: inline-flex;
   align-items: center;
-  border: 1px solid $editor-primary-outline;
+  border: 1px solid #191919;
   border-radius: 6px;
   overflow: hidden;
-  background-color: $editor-modal-gray;
+  background-color: #383434;
 }
 
 .timeline-shortcut-toggle {
   display: inline-flex;
   align-items: center;
-  border: 1px solid $editor-primary-outline;
+  border: 1px solid #191919;
   border-radius: 6px;
   overflow: hidden;
-  background-color: $editor-modal-gray;
+  background-color: #383434;
 }
 
 .timeline-shortcut-toggle-button {
@@ -515,7 +661,7 @@ body.hasHover .timeline-header-options-button:hover {
   height: 26px;
   border: none;
   background: transparent;
-  color: $editor-secondary-text;
+  color: #BDBDBD;
   font-family: "Nunito Sans", sans-serif;
   font-size: 11px;
   font-weight: 800;
@@ -526,7 +672,7 @@ body.hasHover .timeline-header-options-button:hover {
 
 .timeline-shortcut-toggle-button.active {
   background-color: rgba(118, 189, 255, 0.24);
-  color: $editor-primary-text;
+  color: white;
 }
 
 body.hasHover .timeline-shortcut-toggle-button:hover {
@@ -538,7 +684,7 @@ body.hasHover .timeline-shortcut-toggle-button:hover {
   height: 26px;
   border: none;
   background: transparent;
-  color: $editor-secondary-text;
+  color: #BDBDBD;
   font-family: "Nunito Sans", sans-serif;
   font-size: 11px;
   font-weight: 800;
@@ -548,8 +694,8 @@ body.hasHover .timeline-shortcut-toggle-button:hover {
 }
 
 .timeline-renderer-toggle-button.active {
-  background-color: $editor-tertiary;
-  color: $editor-primary-text;
+  background-color: #4A4A4A;
+  color: white;
 }
 
 body.hasHover .timeline-renderer-toggle-button:hover {
@@ -578,8 +724,8 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   min-height: 0;
   display: flex;
   overflow: hidden;
-  border-top: 1px solid $editor-primary-outline;
-  border-bottom: 1px solid $editor-primary-outline;
+  border-top: 1px solid #191919;
+  border-bottom: 1px solid #191919;
 }
 
 .timeline-dom-layers-panel {
@@ -587,8 +733,8 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   width: 210px;
   min-width: 190px;
   min-height: 0;
-  border-right: 1px solid $editor-primary-outline;
-  background-color: $editor-primary;
+  border-right: 1px solid #191919;
+  background-color: #303030;
   display: flex;
   flex-direction: column;
 }
@@ -598,8 +744,8 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   display: flex;
   align-items: center;
   padding: 0 10px;
-  border-bottom: 1px solid $editor-primary-outline;
-  color: $editor-secondary-text;
+  border-bottom: 1px solid #191919;
+  color: #BDBDBD;
   font-family: "Nunito Sans", sans-serif;
   font-size: 11px;
   font-weight: 800;
@@ -608,14 +754,14 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   position: sticky;
   top: 0;
   z-index: 3;
-  background-color: $editor-primary;
+  background-color: #303030;
 }
 
 .timeline-dom-layers-subheader {
   height: 34px;
   flex: 0 0 34px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* Matches numberline */
-  background-color: $editor-primary;
+  background-color: #303030;
   z-index: 3;
   display: flex;
   align-items: center;
@@ -633,11 +779,7 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 .timeline-dom-layer-filler {
   width: 100%;
   pointer-events: none;
-  background-image: linear-gradient(
-    to top,
-    rgba(255, 255, 255, 0.06) 1px,
-    transparent 1px
-  );
+  background-image: linear-gradient(to top, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
   background-size: 100% var(--timeline-cell-height, 42px);
   /* background-position: 0 -1px; Remove this, to top starts at bottom */
 }
@@ -665,7 +807,7 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   border: 1px solid transparent;
   border-radius: 4px;
   background: transparent;
-  color: $editor-primary-text;
+  color: white;
   text-align: left;
   padding: 0 8px;
   display: inline-flex;
@@ -685,10 +827,10 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 .timeline-dom-layer-name-input {
   width: 100%;
   height: 28px;
-  border: 1px solid $editor-primary-outline;
+  border: 1px solid #191919;
   border-radius: 4px;
-  background: $editor-modal-gray;
-  color: $editor-primary-text;
+  background: #383434;
+  color: white;
   font-family: "Nunito Sans", sans-serif;
   font-size: 12px;
   padding: 0 8px;
@@ -700,7 +842,7 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   height: 28px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 4px;
-  background: $editor-modal-gray;
+  background: #383434;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -717,9 +859,9 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   width: 100%;
   min-height: calc(var(--timeline-cell-height) - 4px);
   border: none;
-  border-top: 1px solid $editor-primary-outline;
+  border-top: 1px solid #191919;
   background: rgba(255, 255, 255, 0.03);
-  color: $editor-primary-text;
+  color: white;
   font-family: "Nunito Sans", sans-serif;
   font-size: 12px;
   font-weight: 800;
@@ -733,19 +875,15 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background-color: $editor-primary;
+  background-color: #303030;
 }
 
 .timeline-dom-marker-row {
   height: 34px;
-  border-bottom: 1px solid $editor-primary-outline;
+  border-bottom: 1px solid #191919;
   display: flex;
   align-items: stretch;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.06),
-    rgba(255, 255, 255, 0.02)
-  );
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
   overflow: hidden;
 }
 
@@ -816,8 +954,8 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   position: sticky;
   top: 0;
   z-index: 2;
-  border-bottom: 1px solid $editor-primary-outline;
-  background-color: $editor-primary;
+  border-bottom: 1px solid #191919;
+  background-color: #303030;
   overflow: hidden;
 }
 
@@ -843,8 +981,8 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   min-height: 0;
   overflow: auto;
   position: relative;
-  border-left: 1px solid $editor-primary-outline;
-  border-bottom: 1px solid $editor-primary-outline;
+  border-left: 1px solid #191919;
+  border-bottom: 1px solid #191919;
   overscroll-behavior: contain;
   touch-action: pan-x pan-y;
 }
@@ -856,9 +994,7 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 .timeline-dom-grid-canvas {
   position: relative;
   min-height: 100%;
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
   background-size: var(--timeline-cell-width) var(--timeline-cell-height);
 }
 
@@ -885,23 +1021,21 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.05);
-  color: $editor-primary-text;
+  color: white;
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
   padding: 0 8px;
   overflow: visible;
   text-align: left;
-  transition:
-    background-color 0.12s ease,
-    border-color 0.12s ease;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
 }
 
 .timeline-dom-frame::before {
   content: "";
   position: absolute;
   box-sizing: border-box;
-  left: calc((var(--timeline-cell-width) / 2) - 1px);
+  left: calc(var(--timeline-cell-width) / 2 - 1px);
   top: 50%;
   width: var(--timeline-keyframe-glyph-size);
   height: var(--timeline-keyframe-glyph-size);
@@ -920,22 +1054,22 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   background: rgba(255, 255, 255, 0.04);
 }
 
-.timeline-dom-frame[data-frame-state="keyframe-content"] {
+.timeline-dom-frame[data-frame-state=keyframe-content] {
   background: rgba(118, 189, 255, 0.24);
   border-color: rgba(118, 189, 255, 0.55);
 }
 
-.timeline-dom-frame[data-frame-state="keyframe-content"]::before {
+.timeline-dom-frame[data-frame-state=keyframe-content]::before {
   background: rgba(211, 235, 255, 0.95);
   border: 1px solid rgba(211, 235, 255, 0.95);
 }
 
-.timeline-dom-frame[data-frame-state="keyframe-blank"] {
+.timeline-dom-frame[data-frame-state=keyframe-blank] {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.28);
 }
 
-.timeline-dom-frame[data-frame-state="keyframe-blank"]::before {
+.timeline-dom-frame[data-frame-state=keyframe-blank]::before {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.82);
 }
@@ -944,32 +1078,24 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   display: none !important;
 }
 
-.timeline-dom-frame[data-frame-state="span-content"] {
+.timeline-dom-frame[data-frame-state=span-content] {
   border-style: solid;
   border-color: rgba(118, 189, 255, 0.4);
-  background: linear-gradient(
-    to right,
-    rgba(118, 189, 255, 0.34) 0 calc(var(--timeline-cell-width) - 1px),
-    rgba(118, 189, 255, 0.14) calc(var(--timeline-cell-width) - 1px) 100%
-  );
+  background: linear-gradient(to right, rgba(118, 189, 255, 0.34) 0 calc(var(--timeline-cell-width) - 1px), rgba(118, 189, 255, 0.14) calc(var(--timeline-cell-width) - 1px) 100%);
 }
 
-.timeline-dom-frame[data-frame-state="span-content"]::before {
+.timeline-dom-frame[data-frame-state=span-content]::before {
   background: rgba(211, 235, 255, 0.95);
   border: 1px solid rgba(211, 235, 255, 0.95);
 }
 
-.timeline-dom-frame[data-frame-state="span-blank"] {
+.timeline-dom-frame[data-frame-state=span-blank] {
   border-style: dashed;
   border-color: rgba(255, 255, 255, 0.28);
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0.14) 0 calc(var(--timeline-cell-width) - 1px),
-    rgba(255, 255, 255, 0.05) calc(var(--timeline-cell-width) - 1px) 100%
-  );
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.14) 0 calc(var(--timeline-cell-width) - 1px), rgba(255, 255, 255, 0.05) calc(var(--timeline-cell-width) - 1px) 100%);
 }
 
-.timeline-dom-frame[data-frame-state="span-blank"]::before {
+.timeline-dom-frame[data-frame-state=span-blank]::before {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.82);
 }
@@ -985,9 +1111,18 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 }
 
 .timeline-dom-frame.selected {
-  box-shadow:
-    inset 0 0 0 1px #fff,
-    0 0 0 1px rgba(255, 255, 255, 0.25);
+  outline: 1px solid rgba(228, 244, 255, 0.62);
+  outline-offset: -1px;
+  box-shadow: inset 0 0 0 1px rgba(232, 246, 255, 0.58), 0 0 0 1px rgba(200, 231, 255, 0.2);
+}
+
+.timeline-dom-frame.selected::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border: 1px solid rgba(214, 238, 255, 0.32);
+  border-radius: 3px;
+  pointer-events: none;
 }
 
 .timeline-dom-frame.dragging {
@@ -995,23 +1130,11 @@ body.hasHover .timeline-renderer-toggle-button:hover {
 }
 
 .timeline-dom-frame.drag-collision-overwrite {
-  background-image: repeating-linear-gradient(
-    -55deg,
-    rgba(255, 113, 113, 0.24),
-    rgba(255, 113, 113, 0.24) 8px,
-    transparent 8px,
-    transparent 16px
-  );
+  background-image: repeating-linear-gradient(-55deg, rgba(255, 113, 113, 0.24), rgba(255, 113, 113, 0.24) 8px, transparent 8px, transparent 16px);
 }
 
 .timeline-dom-frame.drag-collision-push {
-  background-image: repeating-linear-gradient(
-    -55deg,
-    rgba(123, 201, 255, 0.24),
-    rgba(123, 201, 255, 0.24) 8px,
-    transparent 8px,
-    transparent 16px
-  );
+  background-image: repeating-linear-gradient(-55deg, rgba(123, 201, 255, 0.24), rgba(123, 201, 255, 0.24) 8px, transparent 8px, transparent 16px);
 }
 
 .timeline-dom-frame-resize-left,
@@ -1090,7 +1213,7 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   inset: -9px;
 }
 
-.timeline-dom-tween[data-tween-state="tween-span"] {
+.timeline-dom-tween[data-tween-state=tween-span] {
   border-color: rgba(152, 214, 255, 0.76);
   background: rgba(152, 214, 255, 0.26);
 }
@@ -1111,6 +1234,15 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   background: rgba(255, 255, 255, 0.12);
   pointer-events: none;
   z-index: 7;
+}
+
+.timeline-dom-playhead-frame-cell-selected {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px dashed rgba(236, 246, 255, 0.9);
+  background: rgba(255, 255, 255, 0.04);
+  pointer-events: none;
+  z-index: 5;
 }
 
 .timeline-dom-layer-reorder-line {
@@ -1154,6 +1286,25 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   border-color: rgba(184, 228, 255, 0.45);
 }
 
+.timeline-dom-keypress-indicator {
+  position: absolute;
+  right: 12px;
+  bottom: 58px;
+  z-index: 45;
+  min-height: 24px;
+  padding: 4px 10px;
+  border: 1px solid rgba(174, 216, 248, 0.42);
+  border-radius: 999px;
+  background: rgba(14, 20, 30, 0.9);
+  color: rgba(232, 245, 255, 0.96);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  pointer-events: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
 .timeline-dom-press-feedback {
   position: fixed;
   z-index: 2200;
@@ -1194,22 +1345,20 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   align-items: center;
   pointer-events: none;
   z-index: 1;
-
-  .line {
-    flex: 1;
-    height: 1px;
-    background-color: rgba(152, 214, 255, 0.35);
-  }
-
-  .head {
-    width: 0;
-    height: 0;
-    border-top: 3.5px solid transparent;
-    border-bottom: 3.5px solid transparent;
-    border-left: 5px solid rgba(152, 214, 255, 0.35);
-    margin-left: -1px;
-    border-radius: 1px;
-  }
+}
+.timeline-dom-tween-arrow .line {
+  flex: 1;
+  height: 1px;
+  background-color: rgba(152, 214, 255, 0.35);
+}
+.timeline-dom-tween-arrow .head {
+  width: 0;
+  height: 0;
+  border-top: 3.5px solid transparent;
+  border-bottom: 3.5px solid transparent;
+  border-left: 5px solid rgba(152, 214, 255, 0.35);
+  margin-left: -1px;
+  border-radius: 1px;
 }
 
 .timeline-dom-sound-hover {
@@ -1241,210 +1390,168 @@ body.hasHover .timeline-renderer-toggle-button:hover {
     padding: 4px 8px;
     gap: 8px;
   }
-
   .timeline-flash-action-button {
     width: 24px;
     height: 24px;
     min-width: 24px;
   }
-
   .timeline-shortcut-toggle-button {
     min-width: 52px;
     height: 24px;
     font-size: 10px;
     padding: 0 8px;
   }
-
   .timeline-header-options-button {
     min-width: 82px;
     height: 24px;
     font-size: 10px;
     padding: 0 8px;
   }
-
   .timeline-renderer-toggle-button {
     min-width: 60px;
     height: 24px;
     font-size: 10px;
     padding: 0 8px;
   }
-
   .timeline-dom-layers-header,
   .timeline-dom-layers-subheader,
   .timeline-dom-marker-row,
   .timeline-dom-numberline {
     height: 30px;
   }
-
   .timeline-flash-footer {
     padding: 4px 8px;
     gap: 6px;
   }
-
   .timeline-flash-footer-group {
     padding: 1px 3px;
   }
-
   .timeline-flash-footer-input,
   .timeline-flash-footer-button,
   .timeline-flash-footer-choice {
     height: 24px;
     font-size: 11px;
   }
-
   .timeline-flash-footer-hint {
     display: none;
   }
 }
-
 @media (max-width: 800px) {
   .timeline-flash-header {
     flex-wrap: wrap;
     align-items: flex-start;
     gap: 4px 10px;
   }
-
   .timeline-flash-meta {
     width: 100%;
   }
-
   .timeline-flash-header-right {
     width: 100%;
     align-items: stretch;
   }
-
   .timeline-flash-header-right-primary,
   .timeline-flash-header-right-advanced {
     justify-content: flex-start;
   }
-
   .timeline-flash-header-right-primary .timeline-flash-meta {
     margin-right: 0;
   }
-
   .timeline-flash-action-button {
     width: 40px;
     height: 40px;
     min-width: 40px;
   }
-
   .timeline-flash-footer {
     gap: 6px;
     padding: 8px 10px;
   }
-
   .timeline-flash-footer-group {
     min-height: 42px;
   }
-
   .timeline-flash-footer-input {
     height: 34px;
     font-size: 13px;
   }
-
   .timeline-flash-footer-button,
   .timeline-flash-footer-choice {
     height: 34px;
     min-width: 36px;
     font-size: 12px;
   }
-
   .timeline-flash-footer-hint {
     font-size: 11px;
   }
-
   .timeline-flash-scene-name {
     max-width: 180px;
   }
-
   .timeline-context-menu-item {
     min-height: 42px;
     font-size: 13px;
   }
-
   .timeline-renderer-toggle-button {
     min-width: 74px;
     height: 34px;
     font-size: 12px;
   }
-
   .timeline-shortcut-toggle-button {
     min-width: 74px;
     height: 34px;
     font-size: 12px;
   }
-
   .timeline-header-options-button {
     min-width: 96px;
     height: 34px;
     font-size: 12px;
   }
-
   .timeline-dom-workspace {
     flex-direction: column;
   }
-
   .timeline-dom-layers-panel {
     width: 100%;
     min-width: 0;
     border-right: none;
-    border-bottom: 1px solid $editor-primary-outline;
+    border-bottom: 1px solid #191919;
   }
-
   .timeline-dom-layer-row {
     grid-template-columns: 1fr 38px 38px 38px;
     padding: 6px;
   }
-
   .timeline-dom-layer-main {
     min-height: 38px;
   }
-
   .timeline-dom-layer-icon-button,
   .timeline-dom-layer-delete-button {
     width: 36px;
     height: 36px;
   }
-
   .timeline-dom-numberline,
   .timeline-dom-layers-subheader {
     height: 40px;
     flex: 0 0 40px;
   }
-
   .timeline-dom-marker-row {
     min-height: 40px;
   }
-
   .timeline-unified-numberline-canvas {
     /* layout configuration */
   }
-
   .timeline-dom-frame {
     min-height: 38px;
     padding: 0 10px;
   }
-
   .timeline-dom-tween {
     width: 18px;
     height: 18px;
   }
-
   .timeline-dom-tween::after {
     inset: -12px;
   }
-
   .timeline-dom-drop-mode {
     top: 6px;
     right: 8px;
     font-size: 11px;
   }
-
 }
-
-// Unified Timeline Layout
-// -----------------------------------------------------------------------------
-
 .timeline-unified-workspace {
   display: flex;
   flex-direction: column;
@@ -1452,7 +1559,7 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   height: 100%;
   width: 100%;
   position: relative;
-  background-color: $editor-secondary;
+  background-color: #3B3B3B;
 }
 
 .timeline-unified-header {
@@ -1461,9 +1568,9 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   position: sticky;
   top: 0;
   z-index: 20;
-  background-color: $editor-secondary;
+  background-color: #3B3B3B;
   min-width: fit-content;
-  border-bottom: 1px solid $timeline-grid-lines;
+  border-bottom: 1px solid #191919;
 }
 
 .timeline-unified-corner {
@@ -1472,8 +1579,8 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   position: sticky;
   left: 0;
   z-index: 25;
-  background-color: $editor-secondary;
-  border-right: 1px solid $timeline-grid-lines;
+  background-color: #3B3B3B;
+  border-right: 1px solid #191919;
   display: flex;
   flex-direction: column;
 }
@@ -1520,9 +1627,7 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   z-index: 7;
   pointer-events: none;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background:
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.24)),
-    $editor-secondary;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.24)), #3B3B3B;
 }
 
 .timeline-unified-row {
@@ -1540,8 +1645,8 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   position: sticky;
   left: 0;
   z-index: 10;
-  background-color: $editor-secondary;
-  border-right: 1px solid $timeline-grid-lines;
+  background-color: #3B3B3B;
+  border-right: 1px solid #191919;
   display: flex;
   align-items: center;
 }

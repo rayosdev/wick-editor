@@ -126,6 +126,7 @@ export type {
 
   // Action History
   ActionOptions,
+  ProjectDidChangeOptions,
 } from "./editor.types";
 
 // Export type guards from editor.types

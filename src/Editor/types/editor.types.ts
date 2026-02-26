@@ -344,7 +344,6 @@ export interface ScriptWindowScriptInfoInterface {
 
 export interface ActionOptions {
   actionName: string;
-  [key: string]: unknown;
 }
 
 // ============================================================================
@@ -381,7 +380,6 @@ export interface OnionSkinningColors {
 export interface LocalSavedFile {
   name: string;
   lastModified: number;
-  [key: string]: unknown;
 }
 
 /**
@@ -471,7 +469,7 @@ export interface EditorState {
  * Options for projectDidChange method
  */
 export interface ProjectDidChangeOptions {
-  actionName?: string;
+  actionName: string;
   skipHistory?: boolean;
   skipReactRender?: boolean;
 }

@@ -15,7 +15,10 @@ async function gotoStory(page: Page, storyId: string) {
   await page.goto(`/iframe.html?id=${storyId}&viewMode=story`, {
     waitUntil: "domcontentloaded",
   });
+  await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => undefined);
   await waitForStorybookCanvas(page);
+  const rootChildCount = await page.locator("#storybook-root > *, #root > *").count();
+  expect(rootChildCount).toBeGreaterThan(0);
   await expect(page.locator("#storybook-root, #root").first()).toBeVisible({
     timeout: 15000,
   });

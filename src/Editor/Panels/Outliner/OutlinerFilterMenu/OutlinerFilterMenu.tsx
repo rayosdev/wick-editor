@@ -21,25 +21,17 @@ import React, { useState } from 'react';
 import PopupMenu from 'Editor/Util/PopupMenu/PopupMenu';
 import ToolIcon from 'Editor/Util/ToolIcon/ToolIcon';
 import classNames from 'classnames';
-
-interface DisplaySettings {
-  path: boolean;
-  button: boolean;
-  clip: boolean;
-  text: boolean;
-  image: boolean;
-  [key: string]: boolean;
-}
+import type { DisplayKey, DisplayOptions } from '../Outliner';
 
 interface FilterItem {
-  key: string;
+  key: DisplayKey;
   label: string;
   icon: string;
 }
 
 interface OutlinerFilterMenuProps {
-  display: DisplaySettings;
-  onChange: (display: DisplaySettings) => void;
+  display: DisplayOptions;
+  onChange: (display: DisplayOptions) => void;
 }
 
 const filterItems: FilterItem[] = [
@@ -56,7 +48,7 @@ const OutlinerFilterMenu: React.FC<OutlinerFilterMenuProps> = ({ display, onChan
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  const handleToggle = (key: string) => {
+const handleToggle = (key: DisplayKey) => {
     const newDisplay = { ...display };
     newDisplay[key] = !newDisplay[key];
     onChange(newDisplay);

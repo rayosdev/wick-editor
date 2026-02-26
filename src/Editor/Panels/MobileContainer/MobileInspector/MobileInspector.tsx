@@ -19,7 +19,7 @@
 
 import { Fragment, type ComponentProps } from "react";
 
-import "../../Inspector/_inspectorselector.scss";
+import "../../Inspector/inspectorselector-legacy.css";
 
 import type {
     Script,

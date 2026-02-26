@@ -50,6 +50,24 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
   const isToolSettings = classTokens.has("tool-settings-menu-popover");
   const isToolSettingsPresets = classTokens.has("tool-settings-presets-menu-popover");
   const isCanvasActions = classTokens.has("canvas-actions-menu-popover");
+  const canvasActionsAlign =
+    !mobile && isCanvasActions
+      ? (() => {
+          const targetElement = typeof document !== "undefined"
+            ? document.getElementById(target)
+            : null;
+          if (!targetElement || typeof window === "undefined") {
+            return "start" as const;
+          }
+
+          const rect = targetElement.getBoundingClientRect();
+          return rect.left > window.innerWidth / 2 ? ("end" as const) : ("start" as const);
+        })()
+      : "start";
+  const popoverAlign = canvasActionsAlign;
+  const popoverPositions = !mobile && isCanvasActions
+    ? (["bottom", "top", "left", "right"] as const)
+    : (["bottom", "top"] as const);
 
   const handleClickOutside = (event: MouseEvent) => {
     const clickNode = event.target as Node | null;
@@ -80,8 +98,8 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
     <WickPopover
       isOpen={isOpen}
       targetId={target}
-      positions={["bottom", "top"]}
-      align="start"
+      positions={[...popoverPositions]}
+      align={popoverAlign}
       onClickOutside={handleClickOutside}
       content={
         <div className={popoverClassName}>
