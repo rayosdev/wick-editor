@@ -42,7 +42,7 @@ export interface SelectOption {
   value: unknown;
 }
 
-type WickInputDynamicValue = ReturnType<typeof JSON.parse>;
+type WickInputDynamicValue = unknown;
 type WickInputType =
   | "numeric"
   | "text"
@@ -52,6 +52,9 @@ type WickInputType =
   | "checkbox"
   | "radio"
   | "button";
+type WickInputChangeHandler = {
+  bivarianceHack(value: WickInputDynamicValue): void;
+}["bivarianceHack"];
 
 type WickNativeInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -63,6 +66,40 @@ const INPUT_BASE_CLASSES =
 const INPUT_STATE_CLASSES =
   "[&.invalid]:!border-l-[3px] [&.invalid]:!border-l-[#F86868] [&.wick-input-updating]:!border-[3px] [&.wick-input-updating]:!border-[#FFC835] [&.read-only]:bg-gray-500";
 
+function toTextInputValue(value: WickInputDynamicValue): string | number {
+  if (typeof value === "string" || typeof value === "number") {
+    return value;
+  }
+
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value);
+}
+
+function toNumericInputValue(value: WickInputDynamicValue): string | number {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return "";
+}
+
+function toSliderInputValue(
+  value: WickInputDynamicValue
+): string | number | undefined {
+  if (typeof value === "number" || typeof value === "string") {
+    return value;
+  }
+
+  return undefined;
+}
+
 interface WickInputProps {
   type?: WickInputType;
   className?: string;
@@ -71,7 +108,7 @@ interface WickInputProps {
   tooltipID?: string;
   tooltipPlace?: "top" | "bottom" | "left" | "right";
   value?: WickInputDynamicValue;
-  onChange?: (value: WickInputDynamicValue) => void;
+  onChange?: WickInputChangeHandler;
   readOnly?: boolean;
   min?: number;
   max?: number;
@@ -192,7 +229,7 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
     return (
       <WickTextInput
         {...rest}
-        value={props.value || ""}
+        value={toNumericInputValue(props.value)}
         onChange={wrappedOnChange}
         className={classNames(
           INPUT_BASE_CLASSES,
@@ -245,7 +282,7 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
           { "read-only": props.readOnly },
           props.className
         )}
-        value={props.value ? props.value : ""}
+        value={toTextInputValue(props.value)}
       />
     );
   };
@@ -289,6 +326,7 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
           "wick-slider mt-auto flex h-full w-full items-center rounded-[5px]",
           props.className
         )}
+        value={toSliderInputValue(props.value)}
         type="range"
         onChange={props.onChange ? wrappedOnChange : undefined}
       />
@@ -331,8 +369,8 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
   };
 
   const renderSelect = (): JSX.Element => {
-    let value = props.options?.find(
-      (obj: SelectOption) => obj.value === props.value
+    let value = props.options?.find((obj: SelectOption) =>
+      Object.is(obj.value, props.value)
     );
 
     if (value === undefined) {
@@ -415,11 +453,13 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
               onTouch,
               isSearchable,
               onChange,
+              value,
               ...inputProps
             } = props;
             return inputProps;
           })()}
           type="checkbox"
+          checked={typeof props.checked === "boolean" ? props.checked : Boolean(props.value)}
           onChange={
             props.onChange
               ? (event: React.ChangeEvent<HTMLInputElement>) => {

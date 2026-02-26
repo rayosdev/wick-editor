@@ -21,7 +21,6 @@ const doubleUnknownCastAllowlist = new Set<string>([]);
 const tsExpectErrorAllowlist = new Set<string>([]);
 const jsonParseReturnTypeAllowlist = new Set([
   path.normalize("types/globals.d.ts"),
-  path.normalize("src/Editor/Util/WickInput/WickInput.tsx"),
 ]);
 const singleUnknownCastAllowlist = new Set<string>([]);
 

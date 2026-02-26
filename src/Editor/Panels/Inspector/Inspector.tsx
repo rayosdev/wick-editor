@@ -86,6 +86,25 @@ const INSPECTOR_BODY_CLASSES =
 const INSPECTOR_ITEM_CLASSES =
     "inspector-item flex flex-col items-center border-b-2 [border-bottom-style:solid] border-b-[#191919] px-[10px] py-[5px]";
 
+const toWickColor = (color: string): unknown => {
+    const wickGlobal = window.Wick as { Color?: new (value: string) => unknown };
+    if (typeof wickGlobal.Color === "function") {
+        return new wickGlobal.Color(color);
+    }
+
+    return color;
+};
+
+const getTweenEasingTypes = (): string[] => {
+    const wickGlobal = window.Wick as { Tween?: { VALID_EASING_TYPES?: unknown } };
+    const easingTypes = wickGlobal.Tween?.VALID_EASING_TYPES;
+    if (!Array.isArray(easingTypes)) {
+        return [];
+    }
+
+    return easingTypes.filter((option): option is string => typeof option === "string");
+};
+
 const Inspector: React.FC<InspectorProps> = (props) => {
     const getSelectionAttribute = <T = unknown>(attribute: string): T => {
         return props.getAllSelectionAttributes()[attribute] as T;
@@ -169,7 +188,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
                 <InspectorColorNumericInput
                     tooltip1="Fill"
                     val1={typeof fillColor === "string" ? fillColor : fillColor?.toCSS?.() ?? "#000000"}
-                    onChange1={(col) => setSelectionAttribute("fillColor", new window.Wick.Color(col))}
+                    onChange1={(col) => setSelectionAttribute("fillColor", toWickColor(col))}
                     id={"inspector-selection-fill-color"}
                     divider={false}
                     colorPickerType={props.colorPickerType}
@@ -181,7 +200,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
                     tooltip1="Stroke"
                     tooltip2="Weight"
                     val1={typeof strokeColor === "string" ? strokeColor : strokeColor?.toCSS?.() ?? "#000000"}
-                    onChange1={(col) => setSelectionAttribute("strokeColor", new window.Wick.Color(col))}
+                    onChange1={(col) => setSelectionAttribute("strokeColor", toWickColor(col))}
                     id={"inspector-selection-stroke-color"}
                     stroke={true}
                     val2={getSelectionAttribute("strokeWidth")}
@@ -598,7 +617,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
     };
 
     const renderTweenEasingType = (): JSX.Element => {
-        const options = window.Wick.Tween.VALID_EASING_TYPES;
+        const options = getTweenEasingTypes();
         const optionLabels: Array<{ label: string; value: string }> = [];
         options.forEach((option: string) => {
             optionLabels.push({ label: option, value: option });

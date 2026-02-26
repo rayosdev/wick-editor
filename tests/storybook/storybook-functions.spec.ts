@@ -95,6 +95,25 @@ test.describe("Storybook functional checks", () => {
     await expect(summary).toContainText("Applied: 1");
   });
 
+  test("WickField workbench updates state with the new API", async ({ page }) => {
+    await gotoStory(page, "editor-util-wickinputv2-wickfield--workbench");
+
+    await page.getByLabel("Project Name").fill("Phase One QA");
+    await page.getByLabel("Frame Rate").fill("30");
+    await page.getByLabel("Preview Quality").selectOption("ultra");
+    await page.getByLabel("Snap To Grid").uncheck();
+    await page.getByLabel("Accent Color").fill("#ff6633");
+    await page.getByRole("button", { name: "Apply Field Preset" }).click();
+
+    const summary = page.getByTestId("wick-field-workbench-summary");
+    await expect(summary).toContainText("Project: Phase One QA");
+    await expect(summary).toContainText("FPS: 30");
+    await expect(summary).toContainText("Quality: ultra");
+    await expect(summary).toContainText("Snap: off");
+    await expect(summary).toContainText("Accent: #ff6633");
+    await expect(summary).toContainText("Applied: 1");
+  });
+
   test("WickInputV2 legacy adapter preserves WickInput-style behavior", async ({
     page,
   }) => {
@@ -155,8 +174,11 @@ test.describe("Storybook functional checks", () => {
       "editor-util-wickinputv2-wickinputv2legacyadapter--legacy-advanced-color-picker-parity"
     );
 
-    await page.getByLabel("Accent Advanced").click();
-    await page.locator('[data-color-hex="#ff0000"]').first().click();
+    await page.locator(".wick-input-v2-control--color").click();
+    await page
+      .locator('[data-color-hex="#ff0000"]')
+      .first()
+      .evaluate((node) => (node as HTMLButtonElement).click());
 
     const summary = page.getByTestId(
       "wick-input-v2-legacy-advanced-color-summary"

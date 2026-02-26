@@ -43,7 +43,6 @@ type SharedAdapterProps = {
   onTouch?: (event?: MouseEvent<HTMLElement>) => void;
   buttonProps?: ButtonHTMLAttributes<HTMLButtonElement>;
   secondaryAction?: () => void;
-  [key: string]: unknown;
 };
 
 type TextAdapterProps = SharedAdapterProps & {

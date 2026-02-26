@@ -132,6 +132,16 @@ const MOBILE_INSPECTOR_TITLE_PREFIX_CLASSES =
 const MOBILE_INSPECTOR_UNKNOWN_SELECTION_CLASSES =
     "mobile-inspector-unknown-selection h-full w-full pt-[12px] text-center text-[32px] text-white";
 
+const getTweenEasingTypes = (): string[] => {
+    const wickGlobal = window.Wick as { Tween?: { VALID_EASING_TYPES?: unknown } };
+    const easingTypes = wickGlobal.Tween?.VALID_EASING_TYPES;
+    if (!Array.isArray(easingTypes)) {
+        return [];
+    }
+
+    return easingTypes.filter((option): option is string => typeof option === "string");
+};
+
 const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
     const actionRules: Record<string, string[]> = {
         breakApart: ["clip", "button"],
@@ -713,7 +723,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
     };
 
     const renderTweenEasingType = (): JSX.Element => {
-        const options = window.Wick.Tween.VALID_EASING_TYPES;
+        const options = getTweenEasingTypes();
         const optionLabels = options.map((option: string) => ({
             label: option,
             value: option,

@@ -27,7 +27,6 @@ type WickInputType = NonNullable<React.ComponentProps<typeof WickInput>["type"]>
 interface InspectorSelectorOption {
   value: unknown;
   label: string;
-  [key: string]: unknown;
 }
 
 interface InspectorSelectorProps {

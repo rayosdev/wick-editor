@@ -33,7 +33,6 @@ export type MobileInspectorSelectorOption = {
   value: unknown;
   label: string;
   className?: string;
-  [key: string]: unknown;
 };
 
 interface MobileInspectorSelectorProps {
