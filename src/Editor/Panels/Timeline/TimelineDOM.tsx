@@ -3058,6 +3058,22 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                   frameInRange(frame, visibleFrameStart, visibleFrameEnd),
                 )
                 : layer.frames;
+              const lastLayerFrameEnd = layer.frames.reduce((maxEnd, frame) => {
+                const frameEnd = Number(frame.end ?? frame.start ?? 1);
+                if (!Number.isFinite(frameEnd)) {
+                  return maxEnd;
+                }
+                return Math.max(maxEnd, Math.round(frameEnd));
+              }, 0);
+              const trailingSpanStart = Math.max(1, lastLayerFrameEnd + 1);
+              const trailingSpanVisibleStart = Math.max(trailingSpanStart, visibleFrameStart);
+              const trailingSpanVisibleEnd = Math.min(timelineLength, visibleFrameEnd);
+              const showTrailingSpan = trailingSpanVisibleEnd >= trailingSpanVisibleStart;
+              const trailingSpanLeft = (trailingSpanVisibleStart - 1) * cellWidth;
+              const trailingSpanWidth = Math.max(
+                0,
+                (trailingSpanVisibleEnd - trailingSpanVisibleStart + 1) * cellWidth - 1,
+              );
 
               return (
                 <div
@@ -3162,6 +3178,20 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                         width: '100%'
                       }}
                     >
+                      {showTrailingSpan && trailingSpanWidth > 0 && (
+                        <div
+                          className="timeline-dom-frame timeline-dom-frame-implicit-tail"
+                          data-frame-state="span-blank"
+                          aria-hidden
+                          style={{
+                            left: `${trailingSpanLeft}px`,
+                            top: "0px",
+                            width: `${trailingSpanWidth}px`,
+                            height: `${cellHeight - 2}px`,
+                          }}
+                        />
+                      )}
+
                       {renderedFrames.map((frame) => {
                         const frameStart = Number(frame.start ?? 1);
                         const frameLength = normalizeFrameLength(frame);

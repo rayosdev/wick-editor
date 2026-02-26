@@ -974,6 +974,16 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   border: 1px solid rgba(255, 255, 255, 0.82);
 }
 
+.timeline-dom-frame-implicit-tail {
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.58;
+}
+
+.timeline-dom-frame-implicit-tail::before {
+  display: none;
+}
+
 .timeline-dom-frame.selected {
   box-shadow:
     inset 0 0 0 1px #fff,
