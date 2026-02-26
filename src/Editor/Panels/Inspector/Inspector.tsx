@@ -19,7 +19,6 @@
 
 import React, { type ComponentProps, type InputHTMLAttributes } from "react";
 
-import "./_inspector.scss";
 import "./_inspectorselector.scss";
 
 import type { Script as ScriptType, ScriptWindowScriptInfoInterface } from "Editor/types";
@@ -79,6 +78,13 @@ interface InspectorProps {
     editScript?: (name: string) => void;
     scriptInfoInterface?: ScriptWindowScriptInfoInterface;
 }
+
+const INSPECTOR_PANEL_CLASSES =
+    "docked-pane inspector box-border h-full w-full overflow-hidden border-r-[4px] [border-right-style:solid] border-r-[#191919] bg-editor-primary font-['Nunito_Sans']";
+const INSPECTOR_BODY_CLASSES =
+    "inspector-body h-[calc(100%_-_36px)] w-full overflow-hidden has-hover:overflow-y-auto";
+const INSPECTOR_ITEM_CLASSES =
+    "inspector-item flex flex-col items-center border-b-2 [border-bottom-style:solid] border-b-[#191919] px-[10px] py-[5px]";
 
 const Inspector: React.FC<InspectorProps> = (props) => {
     const getSelectionAttribute = <T = unknown>(attribute: string): T => {
@@ -159,7 +165,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
         const strokeColor = getSelectionAttribute<{ toCSS?: () => string } | undefined>("strokeColor");
 
         return (
-            <div className="inspector-item">
+            <div className={INSPECTOR_ITEM_CLASSES}>
                 <InspectorColorNumericInput
                     tooltip1="Fill"
                     val1={typeof fillColor === "string" ? fillColor : fillColor?.toCSS?.() ?? "#000000"}
@@ -309,7 +315,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
 
     const renderName = (): JSX.Element => {
         return (
-            <div className="inspector-item">
+            <div className={INSPECTOR_ITEM_CLASSES}>
                 <InspectorTextInput
                     tooltip="Name"
                     val={getSelectionAttribute("name")}
@@ -325,7 +331,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
 
     const renderIdentifier = (): JSX.Element => {
         return (
-            <div className="inspector-item">
+            <div className={INSPECTOR_ITEM_CLASSES}>
                 <InspectorTextInput
                     tooltip="Name"
                     val={getSelectionAttribute("identifier")}
@@ -341,7 +347,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
 
     const renderFilename = (): JSX.Element => {
         return (
-            <div className="inspector-item">
+            <div className={INSPECTOR_ITEM_CLASSES}>
                 <InspectorTextInput
                     tooltip="File"
                     val={getSelectionAttribute("filename")}
@@ -375,7 +381,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
 
     const renderFrameLength = (): JSX.Element => {
         return (
-            <div className="inspector-item">
+            <div className={INSPECTOR_ITEM_CLASSES}>
                 <InspectorNumericInput
                     tooltip="Length"
                     val={getSelectionAttribute("frameLength")}
@@ -468,7 +474,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
 
     const renderSelectionTransformProperties = (): JSX.Element => {
         return (
-            <div className="inspector-item">
+            <div className={INSPECTOR_ITEM_CLASSES}>
                 {renderPosition()}
                 {renderOrigin()}
                 {renderSize()}
@@ -547,7 +553,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
     const renderSoundContent = (): JSX.Element => {
         const hasSound = Boolean(getSelectionAttribute("sound"));
         return (
-            <div className="inspector-item">
+            <div className={INSPECTOR_ITEM_CLASSES}>
                 {renderSelectionSoundAsset()}
                 {hasSound && renderSelectionSoundVolume()}
                 {hasSound && renderSelectionSoundStart()}
@@ -557,7 +563,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
 
     const renderAnimationType = (): JSX.Element => {
         return (
-            <div className="inspector-item">
+            <div className={INSPECTOR_ITEM_CLASSES}>
                 <InspectorSelector
                     tooltip="Animation"
                     type="select"
@@ -598,7 +604,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
             optionLabels.push({ label: option, value: option });
         });
         return (
-            <div className="inspector-item">
+            <div className={INSPECTOR_ITEM_CLASSES}>
                 <InspectorSelector
                     tooltip="Easing Type"
                     type="select"
@@ -615,7 +621,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
 
     const renderTweenFullRotations = (): JSX.Element => {
         return (
-            <div className="inspector-item">
+            <div className={INSPECTOR_ITEM_CLASSES}>
                 <InspectorNumericInput
                     tooltip="Full Rotations"
                     val={getSelectionAttribute("fullRotations")}
@@ -700,7 +706,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
 
     const renderFontContent = (): JSX.Element => {
         return (
-            <div className="inspector-item">
+            <div className={INSPECTOR_ITEM_CLASSES}>
                 {renderFontFamily()}
                 {renderFontStyle()}
                 {renderFontWeight()}
@@ -817,7 +823,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
 
     const renderActionButton = (action: InspectorAction, i: number): JSX.Element => {
         return (
-            <div key={i} className="inspector-item">
+            <div key={i} className={INSPECTOR_ITEM_CLASSES}>
                 <InspectorActionButton action={action} />
             </div>
         );
@@ -848,7 +854,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
         };
 
         return (
-            <div className="inspector-item">
+            <div className={INSPECTOR_ITEM_CLASSES}>
                 <InspectorScriptWindow
                     script={props.script ?? { scripts: [] }}
                     deleteScript={
@@ -882,9 +888,9 @@ const Inspector: React.FC<InspectorProps> = (props) => {
 
     const selectionType = props.getSelectionType();
     return (
-        <div className="docked-pane inspector" aria-label="Inspector Panel">
+        <div className={INSPECTOR_PANEL_CLASSES} aria-label="Inspector Panel">
             {renderTitle(selectionType)}
-            <div className="inspector-body">
+            <div className={INSPECTOR_BODY_CLASSES}>
                 {renderDisplay(selectionType)}
                 {renderActions()}
                 {props.selectionIsScriptable() && renderScripts()}

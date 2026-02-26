@@ -254,6 +254,10 @@ $timeline-grid-bg: $editor-secondary;
   width: 86px;
 }
 
+.timeline-flash-footer-input-range {
+  width: 58px;
+}
+
 .timeline-flash-footer-readout {
   color: $editor-primary-text;
   font-family: "Nunito Sans", sans-serif;
@@ -803,16 +807,6 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   font-weight: 800;
   line-height: 1;
   pointer-events: none;
-}
-
-.timeline-dom-marker-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0 6px;
-  border-left: 1px solid $editor-primary-outline;
-  background: rgba(0, 0, 0, 0.12);
-  flex-shrink: 0;
 }
 
 .timeline-dom-numberline {
@@ -1436,10 +1430,6 @@ body.hasHover .timeline-renderer-toggle-button:hover {
     font-size: 11px;
   }
 
-  .timeline-dom-marker-actions {
-    gap: 6px;
-    padding: 0 8px;
-  }
 }
 
 // Unified Timeline Layout

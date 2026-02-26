@@ -317,6 +317,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   const [gridContrastMode, setGridContrastMode] = useState<"soft" | "strong">("soft");
   const [jumpFrameValue, setJumpFrameValue] = useState("");
   const [jumpLayerValue, setJumpLayerValue] = useState("");
+  const [workAreaStartInput, setWorkAreaStartInput] = useState("1");
+  const [workAreaEndInput, setWorkAreaEndInput] = useState("120");
 
   const project = props.project;
   const activeTimeline = project?.activeTimeline;
@@ -1354,6 +1356,11 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   }, [project]);
 
   useEffect(() => {
+    setWorkAreaStartInput(String(workArea.start));
+    setWorkAreaEndInput(String(workArea.end));
+  }, [workArea.start, workArea.end]);
+
+  useEffect(() => {
     setWorkArea((current) => {
       const next = normalizeWorkArea(current);
       if (next.end < timelineLength) {
@@ -1781,6 +1788,26 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     activeTimeline.activeLayerIndex = nextLayerIndex;
     layers[nextLayerIndex]?.activate?.();
     softRender();
+  };
+
+  const commitWorkAreaRange = (): void => {
+    const parsedStart = Number.parseInt(workAreaStartInput, 10);
+    const parsedEnd = Number.parseInt(workAreaEndInput, 10);
+    if (!Number.isFinite(parsedStart) || !Number.isFinite(parsedEnd)) {
+      return;
+    }
+
+    const clampedStart = clampNumber(Math.round(parsedStart), 1, timelineLength);
+    const clampedEnd = clampNumber(Math.round(parsedEnd), 1, timelineLength);
+    const nextWorkArea = normalizeWorkArea({
+      start: Math.min(clampedStart, clampedEnd),
+      end: Math.max(clampedStart, clampedEnd),
+    });
+
+    setWorkArea(nextWorkArea);
+    persistTimelineUiState(markers, nextWorkArea, "Set Timeline Work Area");
+    setWorkAreaStartInput(String(nextWorkArea.start));
+    setWorkAreaEndInput(String(nextWorkArea.end));
   };
 
   const applyContextTarget = (
@@ -2954,43 +2981,6 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     </button>
                   ))}
                 </div>
-                <div className="timeline-dom-marker-actions">
-                  <button
-                    type="button"
-                    className="timeline-flash-footer-button"
-                    onClick={handleAddMarker}
-                    aria-label="Add marker at playhead"
-                    title="Add marker at playhead"
-                  >
-                    + Marker
-                  </button>
-                  <button
-                    type="button"
-                    className="timeline-flash-footer-button"
-                    onClick={() => jumpToMarker("previous")}
-                    aria-label="Jump to previous marker"
-                    title="Jump to previous marker"
-                  >
-                    Prev Marker
-                  </button>
-                  <button
-                    type="button"
-                    className="timeline-flash-footer-button"
-                    onClick={() => jumpToMarker("next")}
-                    aria-label="Jump to next marker"
-                    title="Jump to next marker"
-                  >
-                    Next Marker
-                  </button>
-                  <button
-                    type="button"
-                    className={`timeline-flash-footer-choice ${loopWorkArea ? "active" : ""}`}
-                    onClick={() => setLoopWorkArea((current) => !current)}
-                    aria-pressed={loopWorkArea}
-                  >
-                    Loop Work Area
-                  </button>
-                </div>
               </div>
               <div className="timeline-dom-numberline" onPointerDown={handleNumberLinePointerDown}>
                 <canvas
@@ -3543,6 +3533,91 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             <span className="timeline-flash-footer-readout">
               {workArea.start}-{workArea.end}
             </span>
+          </div>
+
+          <div className="timeline-flash-footer-group timeline-flash-footer-field">
+            <span className="timeline-flash-footer-label">Range</span>
+            <input
+              className="timeline-flash-footer-input timeline-flash-footer-input-range"
+              type="number"
+              min={1}
+              step={1}
+              value={workAreaStartInput}
+              onChange={(event) => setWorkAreaStartInput(event.target.value)}
+              onBlur={commitWorkAreaRange}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  commitWorkAreaRange();
+                }
+              }}
+              aria-label="Work area start frame"
+              title="Work area start frame"
+            />
+            <span className="timeline-flash-footer-label">to</span>
+            <input
+              className="timeline-flash-footer-input timeline-flash-footer-input-range"
+              type="number"
+              min={1}
+              step={1}
+              value={workAreaEndInput}
+              onChange={(event) => setWorkAreaEndInput(event.target.value)}
+              onBlur={commitWorkAreaRange}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  commitWorkAreaRange();
+                }
+              }}
+              aria-label="Work area end frame"
+              title="Work area end frame"
+            />
+            <button
+              type="button"
+              className="timeline-flash-footer-button"
+              onClick={commitWorkAreaRange}
+              aria-label="Set work area range"
+              title="Set work area range"
+            >
+              Set
+            </button>
+          </div>
+
+          <div className="timeline-flash-footer-group">
+            <span className="timeline-flash-footer-label">Markers</span>
+            <button
+              type="button"
+              className="timeline-flash-footer-button"
+              onClick={handleAddMarker}
+              aria-label="Add marker at playhead"
+              title="Add marker at playhead"
+            >
+              + Marker
+            </button>
+            <button
+              type="button"
+              className="timeline-flash-footer-button"
+              onClick={() => jumpToMarker("previous")}
+              aria-label="Jump to previous marker"
+              title="Jump to previous marker"
+            >
+              Prev
+            </button>
+            <button
+              type="button"
+              className="timeline-flash-footer-button"
+              onClick={() => jumpToMarker("next")}
+              aria-label="Jump to next marker"
+              title="Jump to next marker"
+            >
+              Next
+            </button>
+            <button
+              type="button"
+              className={`timeline-flash-footer-choice ${loopWorkArea ? "active" : ""}`}
+              onClick={() => setLoopWorkArea((current) => !current)}
+              aria-pressed={loopWorkArea}
+            >
+              Loop
+            </button>
           </div>
 
           <div className="timeline-flash-footer-hint">

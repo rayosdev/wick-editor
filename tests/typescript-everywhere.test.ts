@@ -33,6 +33,7 @@ const tsExpectErrorPattern = /@ts-expect-error\b/;
 const doubleUnknownCastPattern = /\bas unknown as\b/;
 const singleUnknownCastPattern = /\bas unknown\b/;
 const jsonParseReturnTypePattern = /\bReturnType<typeof JSON\.parse>\b/;
+const directWindowEditorAccessPattern = /\bwindow\.editor\.[A-Za-z_$]/;
 const FILE_SCAN_TEST_TIMEOUT_MS = 20_000;
 
 function collectFiles(rootDir: string): string[] {
@@ -243,6 +244,23 @@ describe("TypeScript everywhere guards", () => {
             ({ line }: { line: string }) =>
               singleUnknownCastPattern.test(line) &&
               !doubleUnknownCastPattern.test(line),
+          )
+          .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
+      },
+    );
+
+    expect(offending).toEqual([]);
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
+
+  it("does not directly access window.editor members in app source", () => {
+    const offending = tsAppHygieneFiles.flatMap(
+      (repoRelative) => {
+        const lines = getFileLines(repoRelative);
+        return lines
+          .map((line: string, index: number) => ({ line, index: index + 1 }))
+          .filter(
+            ({ line }: { line: string }) =>
+              directWindowEditorAccessPattern.test(line),
           )
           .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
       },

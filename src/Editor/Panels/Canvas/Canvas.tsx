@@ -27,7 +27,6 @@ import {
 import type { XYCoord } from "react-dnd";
 import DragDropTypes from "Editor/DragDropTypes";
 
-import "./_canvas.scss";
 import styles from "../../_wickbrand.module.scss";
 
 type CanvasEventHandler = (...args: unknown[]) => void;
@@ -74,6 +73,13 @@ type CanvasProps = CanvasExternalProps & CanvasCollectedProps;
 export interface CanvasHandle {
     // Empty for now - methods can be exposed here if needed
 }
+
+const CANVAS_WRAPPER_CLASSES =
+    "h-full w-full border-l-[4px] [border-left-style:solid] border-l-[#191919]";
+const CANVAS_CONTAINER_CLASSES =
+    "relative h-full w-full bg-[#bbb] [&_canvas[resize]]:h-full [&_canvas[resize]]:w-full";
+const CANVAS_DRAG_DROP_OVERLAY_CLASSES =
+    "drag-drop-overlay absolute left-0 top-0 z-[1] h-full w-full bg-[#EAEAEA] opacity-20";
 
 const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
     const canvasContainer = useRef<HTMLDivElement>(null);
@@ -130,11 +136,15 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
     const renderNode = (
         <div
             id="canvas-container-wrapper"
-            style={{ width: "100%", height: "100%" }}
+            className={CANVAS_WRAPPER_CLASSES}
             aria-label="Canvas"
         >
-            {props.isOver && <div className="drag-drop-overlay" />}
-            <div id="wick-canvas-container" ref={canvasContainer}></div>
+            {props.isOver && <div className={CANVAS_DRAG_DROP_OVERLAY_CLASSES} />}
+            <div
+                id="wick-canvas-container"
+                className={CANVAS_CONTAINER_CLASSES}
+                ref={canvasContainer}
+            ></div>
         </div>
     );
 

@@ -84,7 +84,7 @@ type ColorAdapterProps = SharedAdapterProps & {
   stroke?: boolean;
   placement?: string;
   colorPickerType?: string;
-  changeColorPickerType?: (type: any) => void;
+  changeColorPickerType?: (type: "swatches" | "spectrum") => void;
   disableAlpha?: boolean;
   lastColorsUsed?: string[];
   updateLastColors?: (color: string) => void;
@@ -271,24 +271,46 @@ export default function WickInputV2LegacyAdapter(
       );
 
     case "color":
+      if (
+        props.placement !== undefined ||
+        props.colorPickerType !== undefined ||
+        props.changeColorPickerType !== undefined ||
+        props.disableAlpha !== undefined ||
+        props.stroke !== undefined ||
+        props.updateLastColors !== undefined ||
+        props.lastColorsUsed !== undefined ||
+        props.tooltip !== undefined ||
+        props.tooltipID !== undefined ||
+        props.tooltipPlace !== undefined
+      ) {
+        return (
+          <LegacyWickInput
+            id={props.id}
+            type="color"
+            className={props.className}
+            containerclassname={props.containerclassname}
+            tooltip={props.tooltip}
+            tooltipID={props.tooltipID}
+            tooltipPlace={props.tooltipPlace}
+            color={props.color ?? toSafeString(props.value, "#4fa3ff")}
+            stroke={props.stroke}
+            placement={props.placement}
+            colorPickerType={props.colorPickerType}
+            changeColorPickerType={props.changeColorPickerType}
+            disableAlpha={props.disableAlpha}
+            lastColorsUsed={props.lastColorsUsed}
+            updateLastColors={props.updateLastColors}
+            onChange={(value: unknown) => props.onChange?.(toSafeString(value))}
+          />
+        );
+      }
+
       return (
-        <LegacyWickInput
-          id={props.id}
-          type="color"
-          className={props.className}
-          containerclassname={props.containerclassname}
-          tooltip={props.tooltip}
-          tooltipID={props.tooltipID}
-          tooltipPlace={props.tooltipPlace}
-          color={props.color ?? toSafeString(props.value, "#4fa3ff")}
-          stroke={props.stroke}
-          placement={props.placement}
-          colorPickerType={props.colorPickerType}
-          changeColorPickerType={props.changeColorPickerType}
-          disableAlpha={props.disableAlpha}
-          lastColorsUsed={props.lastColorsUsed}
-          updateLastColors={props.updateLastColors}
-          onChange={(value: unknown) => props.onChange?.(toSafeString(value))}
+        <WickInputV2
+          {...sharedProps}
+          kind="color"
+          value={toSafeString(props.color ?? props.value, "#4fa3ff")}
+          onChange={(value) => props.onChange?.(value)}
         />
       );
 

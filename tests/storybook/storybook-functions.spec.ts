@@ -105,7 +105,7 @@ test.describe("Storybook functional checks", () => {
 
     await page.getByLabel("Project Name").fill("Legacy QA");
     await page.getByLabel("Frame Rate").fill("30");
-    await page.getByLabel("Renderer").selectOption("gpu");
+    await page.getByLabel("Renderer").selectOption({ label: "WebGL" });
     await page.getByLabel("Loop Playback").check();
     await page.getByLabel("Accent").fill("#ff7711");
     await page.getByRole("button", { name: "Apply Legacy Preset" }).click();

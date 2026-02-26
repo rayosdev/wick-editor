@@ -19,7 +19,6 @@
 
 import { Fragment, type ComponentProps } from "react";
 
-import "./_mobileinspector.scss";
 import "../../Inspector/_inspectorselector.scss";
 
 import type {
@@ -113,6 +112,25 @@ interface MobileInspectorProps {
     deleteScript?: (script: Script, name: string) => void;
     editScript?: (name: string) => void;
 }
+
+const MOBILE_INSPECTOR_CLASSES =
+    "mobile-inspector m-0 box-border h-full w-full overflow-hidden border-r-[4px] [border-right-style:solid] border-r-[#191919] bg-[#191919] font-['Nunito_Sans'] " +
+    "[&_#mobile-inspector-selection-stroke-color]:h-10 [&_#mobile-inspector-selection-stroke-color]:w-10 [&_#mobile-inspector-selection-stroke-color]:rounded-[10px] " +
+    "[&_#mobile-inspector-selection-fill-color]:h-10 [&_#mobile-inspector-selection-fill-color]:w-10 [&_#mobile-inspector-selection-fill-color]:rounded-[10px]";
+const MOBILE_INSPECTOR_ITEM_CLASSES =
+    "mobile-inspector-item flex flex-col items-center border-b-2 [border-bottom-style:solid] border-b-[#191919] px-[10px] pb-[5px] pt-[10px]";
+const MOBILE_INSPECTOR_NAME_ITEM_CLASSES =
+    "mobile-inspector-item mobile-inspector-name ml-auto h-[80%] w-1/2 !border-0 !px-0 !pb-0 !pt-0";
+const MOBILE_INSPECTOR_STYLE_ITEM_CLASSES =
+    "mobile-inspector-item mobile-inspector-item-style flex-row";
+const MOBILE_INSPECTOR_COL_LEFT_CLASSES = "mobile-inspector-col-left w-2/5";
+const MOBILE_INSPECTOR_COL_RIGHT_CLASSES = "mobile-inspector-col-right w-3/5";
+const MOBILE_INSPECTOR_TITLE_CLASSES =
+    "mobile-inspector-title mr-auto flex items-center pl-2 text-[20px] text-white";
+const MOBILE_INSPECTOR_TITLE_PREFIX_CLASSES =
+    "mobile-inspector-title-prefix mr-2 text-[#666666]";
+const MOBILE_INSPECTOR_UNKNOWN_SELECTION_CLASSES =
+    "mobile-inspector-unknown-selection h-full w-full pt-[12px] text-center text-[32px] text-white";
 
 const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
     const actionRules: Record<string, string[]> = {
@@ -251,8 +269,8 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
         const fillColor = getSelectionAttribute<{ toCSS?: () => string } | undefined>("fillColor");
 
         return (
-            <div className="mobile-inspector-item mobile-inspector-item-style">
-                <div className="mobile-inspector-col-left">
+            <div className={MOBILE_INSPECTOR_STYLE_ITEM_CLASSES}>
+                <div className={MOBILE_INSPECTOR_COL_LEFT_CLASSES}>
                     <MobileInspectorColor
                         tooltip="Stroke"
                         val={strokeColor?.toCSS?.() ?? "#000000"}
@@ -277,7 +295,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
                     />
                 </div>
 
-                <div className="mobile-inspector-col-right">
+                <div className={MOBILE_INSPECTOR_COL_RIGHT_CLASSES}>
                     <MobileInspectorNumericInput
                         tooltip="Stroke Weight"
                         icon={strokeIcon}
@@ -411,7 +429,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
 
     const renderName = (): JSX.Element => {
         return (
-            <div className="mobile-inspector-item mobile-inspector-name">
+            <div className={MOBILE_INSPECTOR_NAME_ITEM_CLASSES}>
                 <MobileInspectorTextInput
                     tooltip="Name"
                     val={getSelectionAttribute("name")}
@@ -428,7 +446,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
 
     const renderIdentifier = (): JSX.Element => {
         return (
-            <div className="mobile-inspector-item mobile-inspector-name">
+            <div className={MOBILE_INSPECTOR_NAME_ITEM_CLASSES}>
                 <MobileInspectorTextInput
                     tooltip="Name"
                     val={getSelectionAttribute("identifier")}
@@ -445,7 +463,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
 
     const renderFilename = (): JSX.Element => {
         return (
-            <div className="mobile-inspector-item">
+            <div className={MOBILE_INSPECTOR_ITEM_CLASSES}>
                 <MobileInspectorTextInput
                     tooltip="File"
                     val={getSelectionAttribute("filename")}
@@ -478,7 +496,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
 
     const renderFrameLength = (): JSX.Element => {
         return (
-            <div className="mobile-inspector-item">
+            <div className={MOBILE_INSPECTOR_ITEM_CLASSES}>
                 <MobileInspectorNumericInput
                     tooltip="Length"
                     val={getSelectionAttribute("frameLength")}
@@ -572,7 +590,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
 
     const renderSelectionTransformProperties = (): JSX.Element => {
         return (
-            <div className="mobile-inspector-item">
+            <div className={MOBILE_INSPECTOR_ITEM_CLASSES}>
                 {renderPosition()}
                 {renderSize()}
                 {renderScale()}
@@ -648,7 +666,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
     const renderSoundContent = (): JSX.Element => {
         const hasSound = Boolean(getSelectionAttribute("sound"));
         return (
-            <div className="mobile-inspector-item">
+            <div className={MOBILE_INSPECTOR_ITEM_CLASSES}>
                 {renderSelectionSoundAsset()}
                 {hasSound && renderSelectionSoundVolume()}
                 {hasSound && renderSelectionSoundStart()}
@@ -658,7 +676,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
 
     const renderAnimationType = (): JSX.Element => {
         return (
-            <div className="mobile-inspector-item">
+            <div className={MOBILE_INSPECTOR_ITEM_CLASSES}>
                 <MobileInspectorSelector
                     tooltip="Animation"
                     type="select"
@@ -701,7 +719,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
             value: option,
         }));
         return (
-            <div className="mobile-inspector-item">
+            <div className={MOBILE_INSPECTOR_ITEM_CLASSES}>
                 <MobileInspectorSelector
                     tooltip="Easing Type"
                     type="select"
@@ -718,7 +736,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
 
     const renderTweenFullRotations = (): JSX.Element => {
         return (
-            <div className="mobile-inspector-item">
+            <div className={MOBILE_INSPECTOR_ITEM_CLASSES}>
                 <MobileInspectorNumericInput
                     tooltip="Full Rotations"
                     val={getSelectionAttribute("fullRotations")}
@@ -751,7 +769,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
 
     const renderFontContent = (): JSX.Element => {
         return (
-            <div className="mobile-inspector-item">
+            <div className={MOBILE_INSPECTOR_ITEM_CLASSES}>
                 {renderFontFamily()}
                 {renderFontStyle()}
                 {renderFontWeight()}
@@ -780,7 +798,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
 
     const renderActionButton = (action: InspectorAction, i: number): JSX.Element => {
         return (
-            <div key={i} className="mobile-inspector-item">
+            <div key={i} className={MOBILE_INSPECTOR_ITEM_CLASSES}>
                 <InspectorActionButton action={action} />
             </div>
         );
@@ -837,9 +855,9 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
     }
 
     return (
-        <div className="mobile-inspector" aria-label="Inspector Panel">
-            <div className="mobile-inspector-title">
-                <span className="mobile-inspector-title-prefix">
+        <div className={MOBILE_INSPECTOR_CLASSES} aria-label="Inspector Panel">
+            <div className={MOBILE_INSPECTOR_TITLE_CLASSES}>
+                <span className={MOBILE_INSPECTOR_TITLE_PREFIX_CLASSES}>
                     Inspect:
                 </span>
                 {inspectorTitles[selectionType]}
@@ -851,7 +869,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
                         : undefined}
             </div>
             {selectionType === "unknown" && (
-                <div className="mobile-inspector-unknown-selection">
+                <div className={MOBILE_INSPECTOR_UNKNOWN_SELECTION_CLASSES}>
                     Unknown Selection
                 </div>
             )}
