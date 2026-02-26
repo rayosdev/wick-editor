@@ -20,8 +20,11 @@
 import React from 'react';
 
 import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
-
-import '../_mobileinspectorrow.scss';
+import {
+  MOBILE_INSPECTOR_LARGE_INPUT_CONTAINER_CLASSES,
+  MOBILE_INSPECTOR_ROW_CLASSES,
+  MOBILE_INSPECTOR_ROW_IDENTIFIER_CLASSES,
+} from '../mobileInspectorRowClasses';
 
 interface MobileInspectorTextInputProps {
   tooltip: string;
@@ -46,14 +49,14 @@ const MobileInspectorTextInput: React.FC<MobileInspectorTextInputProps> = ({
   const handleChange = onChange ?? (() => { });
 
   return (
-    <div className="mobile-inspector-row">
+    <div className={MOBILE_INSPECTOR_ROW_CLASSES}>
       {/* Identifier */}
-      <label htmlFor={`${idLabel}-input-mobile`} className="mobile-inspector-row-identifier">
+      <label htmlFor={`${idLabel}-input-mobile`} className={MOBILE_INSPECTOR_ROW_IDENTIFIER_CLASSES}>
         {tooltip}
       </label>
 
       {/* Input */}
-      <div className="mobile-inspector-large-input-container">
+      <div className={MOBILE_INSPECTOR_LARGE_INPUT_CONTAINER_CLASSES}>
         <MobileInspectorInput
           inputProps={{ id: inputId }}
           input={{

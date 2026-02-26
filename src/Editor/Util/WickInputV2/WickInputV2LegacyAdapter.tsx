@@ -1,7 +1,14 @@
-import { type ReactNode } from "react";
+import {
+  type ButtonHTMLAttributes,
+  type FocusEvent,
+  type MouseEvent,
+  type ReactNode,
+  type SyntheticEvent,
+} from "react";
+import LegacyWickInput from "Editor/Util/WickInput/WickInput";
 import WickInputV2, { type WickInputV2Option } from "./WickInputV2";
 
-type LegacyValue = string | number | boolean;
+type LegacyValue = string | number | boolean | object | null;
 
 export type WickInputV2LegacySelectOption = {
   label: string;
@@ -9,33 +16,96 @@ export type WickInputV2LegacySelectOption = {
   disabled?: boolean;
 };
 
-export type WickInputV2LegacyAdapterProps = {
-  type?:
-    | "numeric"
-    | "text"
-    | "slider"
-    | "select"
-    | "color"
-    | "checkbox"
-    | "button";
+type SharedAdapterProps = {
   id?: string;
+  name?: string;
   label?: string;
   hint?: string;
   error?: string;
   className?: string;
+  containerclassname?: string;
+  tooltip?: string;
+  tooltipID?: string;
+  tooltipPlace?: "top" | "bottom" | "left" | "right";
   disabled?: boolean;
   readOnly?: boolean;
   required?: boolean;
-  value?: LegacyValue;
+  placeholder?: string;
+  maxLength?: number;
+  onFocus?: (event: FocusEvent<HTMLElement>) => void;
+  onBlur?: (event: FocusEvent<HTMLElement>) => void;
   min?: number;
   max?: number;
   step?: number;
-  options?: WickInputV2LegacySelectOption[];
-  children?: ReactNode;
-  onChange?: (value: LegacyValue) => void;
-  onClick?: () => void;
+  "aria-label"?: string;
+  "data-testid"?: string;
+  onClick?: (event?: MouseEvent<HTMLElement>) => void;
+  onTouch?: (event?: MouseEvent<HTMLElement>) => void;
+  buttonProps?: ButtonHTMLAttributes<HTMLButtonElement>;
+  secondaryAction?: () => void;
   [key: string]: unknown;
 };
+
+type TextAdapterProps = SharedAdapterProps & {
+  type?: "text";
+  value?: string;
+  onChange?: (value: string) => void;
+};
+
+type NumericAdapterProps = SharedAdapterProps & {
+  type: "numeric";
+  value?: number;
+  onChange?: (value: number) => void;
+};
+
+type SliderAdapterProps = SharedAdapterProps & {
+  type: "slider";
+  value?: number;
+  onChange?: (value: number) => void;
+};
+
+type SelectAdapterProps = SharedAdapterProps & {
+  type: "select";
+  value?: LegacyValue;
+  options?: WickInputV2LegacySelectOption[];
+  onChange?: (value: unknown) => void;
+};
+
+type CheckboxAdapterProps = SharedAdapterProps & {
+  type: "checkbox";
+  checked?: boolean;
+  value?: boolean;
+  onChange?: (value: boolean) => void;
+};
+
+type ColorAdapterProps = SharedAdapterProps & {
+  type: "color";
+  color?: string;
+  stroke?: boolean;
+  placement?: string;
+  colorPickerType?: string;
+  changeColorPickerType?: (type: any) => void;
+  disableAlpha?: boolean;
+  lastColorsUsed?: string[];
+  updateLastColors?: (color: string) => void;
+  value?: string;
+  onChange?: (value: string) => void;
+};
+
+type ButtonAdapterProps = SharedAdapterProps & {
+  type: "button";
+  children?: ReactNode;
+  onClick?: (event?: MouseEvent<HTMLElement>) => void;
+};
+
+export type WickInputV2LegacyAdapterProps =
+  | TextAdapterProps
+  | NumericAdapterProps
+  | SliderAdapterProps
+  | SelectAdapterProps
+  | CheckboxAdapterProps
+  | ColorAdapterProps
+  | ButtonAdapterProps;
 
 function toSafeString(value: unknown, fallback = ""): string {
   if (typeof value === "string") {
@@ -80,28 +150,27 @@ function toSafeBoolean(value: unknown): boolean {
   return false;
 }
 
-function toSelectOptions(
-  options: WickInputV2LegacySelectOption[]
-): WickInputV2Option[] {
-  return options.map((option) => ({
-    label: option.label,
-    value: String(option.value),
-    disabled: option.disabled,
-  }));
-}
-
 export default function WickInputV2LegacyAdapter(
   props: WickInputV2LegacyAdapterProps
 ): JSX.Element {
   const sharedProps = {
     id: props.id,
+    name: props.name,
     label: props.label,
     hint: props.hint,
     error: props.error,
-    className: props.className,
+    className: props.containerclassname,
+    controlClassName: props.className,
     disabled: props.disabled,
     readOnly: props.readOnly,
     required: props.required,
+    placeholder: props.placeholder,
+    maxLength: props.maxLength,
+    onFocus: props.onFocus,
+    onBlur: props.onBlur,
+    onClick: props.onClick,
+    "aria-label": props["aria-label"],
+    "data-testid": props["data-testid"],
   };
 
   switch (props.type) {
@@ -133,21 +202,38 @@ export default function WickInputV2LegacyAdapter(
 
     case "select": {
       const legacyOptions = props.options ?? [];
-      const optionByStringValue = new Map<string, LegacyValue>(
-        legacyOptions.map((option) => [String(option.value), option.value])
+      const tokenizedOptions = legacyOptions.map((option, index) => ({
+        token: `wick-opt-${index}`,
+        option,
+      }));
+      const selectedToken =
+        tokenizedOptions.find(({ option }) => Object.is(option.value, props.value))
+          ?.token ??
+        tokenizedOptions.find(
+          ({ option }) => String(option.value) === String(props.value)
+        )?.token ??
+        tokenizedOptions[0]?.token ??
+        "";
+      const selectOptions: WickInputV2Option[] = tokenizedOptions.map(
+        ({ token, option }) => ({
+          label: option.label,
+          value: token,
+          disabled: option.disabled,
+        })
       );
 
       return (
         <WickInputV2
           {...sharedProps}
           kind="select"
-          value={toSafeString(props.value)}
-          options={toSelectOptions(legacyOptions)}
-          onChange={(selectedValue) =>
-            props.onChange?.(
-              optionByStringValue.get(selectedValue) ?? selectedValue
-            )
-          }
+          value={selectedToken}
+          options={selectOptions}
+          onChange={(selectedValue) => {
+            const matchedOption = tokenizedOptions.find(
+              ({ token }) => token === selectedValue
+            )?.option;
+            props.onChange?.(matchedOption?.value ?? selectedValue);
+          }}
         />
       );
     }
@@ -157,29 +243,52 @@ export default function WickInputV2LegacyAdapter(
         <WickInputV2
           {...sharedProps}
           kind="checkbox"
-          checked={toSafeBoolean(props.value)}
+          checked={toSafeBoolean(props.checked ?? props.value)}
           onChange={(checked) => props.onChange?.(checked)}
         />
       );
 
     case "button":
       return (
-        <WickInputV2
-          {...sharedProps}
-          kind="action"
-          onClick={() => props.onClick?.()}
+        <LegacyWickInput
+          type="button"
+          className={props.className}
+          containerclassname={props.containerclassname}
+          tooltip={props.tooltip}
+          tooltipID={props.tooltipID}
+          tooltipPlace={props.tooltipPlace}
+          onClick={(event: SyntheticEvent) =>
+            props.onClick?.(event as MouseEvent<HTMLElement>)
+          }
+          onTouch={(event: SyntheticEvent) =>
+            props.onTouch?.(event as MouseEvent<HTMLElement>)
+          }
+          buttonProps={props.buttonProps}
+          secondaryAction={props.secondaryAction}
         >
           {props.children ?? props.label ?? "Action"}
-        </WickInputV2>
+        </LegacyWickInput>
       );
 
     case "color":
       return (
-        <WickInputV2
-          {...sharedProps}
-          kind="color"
-          value={toSafeString(props.value, "#4fa3ff")}
-          onChange={(value) => props.onChange?.(value)}
+        <LegacyWickInput
+          id={props.id}
+          type="color"
+          className={props.className}
+          containerclassname={props.containerclassname}
+          tooltip={props.tooltip}
+          tooltipID={props.tooltipID}
+          tooltipPlace={props.tooltipPlace}
+          color={props.color ?? toSafeString(props.value, "#4fa3ff")}
+          stroke={props.stroke}
+          placement={props.placement}
+          colorPickerType={props.colorPickerType}
+          changeColorPickerType={props.changeColorPickerType}
+          disableAlpha={props.disableAlpha}
+          lastColorsUsed={props.lastColorsUsed}
+          updateLastColors={props.updateLastColors}
+          onChange={(value: unknown) => props.onChange?.(toSafeString(value))}
         />
       );
 

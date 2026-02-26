@@ -1513,6 +1513,18 @@ body.hasHover .timeline-renderer-toggle-button:hover {
   pointer-events: none;
 }
 
+.timeline-unified-empty-cover {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 7;
+  pointer-events: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.24)),
+    $editor-secondary;
+}
+
 .timeline-unified-row {
   position: relative;
   z-index: 2;

@@ -83,7 +83,9 @@ describe.skip("Engine API (Node.js - Optional)", () => {
           height: 600,
         });
 
-        return canvasElement as unknown as HTMLElement;
+        const htmlCanvas = originalCreateElement(tagName);
+        Object.assign(htmlCanvas, canvasElement);
+        return htmlCanvas;
       }
 
       return originalCreateElement(tagName);

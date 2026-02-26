@@ -682,7 +682,7 @@ function createMockKeyMap(): StoryArgs {
   return {
     "preview-play-toggle": {
       name: "Preview Play",
-      sequences: ["k"],
+      sequences: ["space"],
     },
     "activate-pan": {
       name: "Pan",

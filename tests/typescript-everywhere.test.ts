@@ -12,17 +12,28 @@ const authoredAllowlist = new Set([
 
 const tsHygieneRoots = ["src", "tests", "types"] as const;
 const tsAppHygieneRoots = ["src"] as const;
+const tsTestsHygieneRoots = ["tests"] as const;
 const tsHygieneSelfFile = path.normalize("tests/typescript-everywhere.test.ts");
 const tsSuppressionAllowlist = new Set([
   path.normalize("src/Editor/Editor.tsx"),
 ]);
+const doubleUnknownCastAllowlist = new Set<string>([]);
 const tsExpectErrorAllowlist = new Set<string>([]);
+const jsonParseReturnTypeAllowlist = new Set([
+  path.normalize("types/globals.d.ts"),
+  path.normalize("src/Editor/EditorCore.ts"),
+  path.normalize("src/Editor/Util/WickInput/WickInput.tsx"),
+]);
+const singleUnknownCastAllowlist = new Set<string>([]);
 
 const explicitAnyPattern = /(:\s*any\b|<any\b|as any\b|\bany\[\])/;
 const tsIgnorePattern = /@ts-ignore\b/;
 const tsNocheckPattern = /@ts-nocheck\b/;
 const tsExpectErrorPattern = /@ts-expect-error\b/;
 const doubleUnknownCastPattern = /\bas unknown as\b/;
+const singleUnknownCastPattern = /\bas unknown\b/;
+const jsonParseReturnTypePattern = /\bReturnType<typeof JSON\.parse>\b/;
+const FILE_SCAN_TEST_TIMEOUT_MS = 20_000;
 
 function collectFiles(rootDir: string): string[] {
   if (!fs.existsSync(rootDir)) return [];
@@ -55,6 +66,37 @@ function collectTypeScriptFiles(roots: readonly string[]): string[] {
     .sort();
 }
 
+const typeScriptFilesCache = new Map<string, string[]>();
+const fileLinesCache = new Map<string, string[]>();
+
+function getTypeScriptFiles(roots: readonly string[]): string[] {
+  const cacheKey = roots.join("|");
+  const cached = typeScriptFilesCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const files = collectTypeScriptFiles(roots);
+  typeScriptFilesCache.set(cacheKey, files);
+  return files;
+}
+
+function getFileLines(repoRelative: string): string[] {
+  const cached = fileLinesCache.get(repoRelative);
+  if (cached) {
+    return cached;
+  }
+
+  const absolutePath = path.join(repoRoot, repoRelative);
+  const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
+  fileLinesCache.set(repoRelative, lines);
+  return lines;
+}
+
+const tsHygieneFiles = getTypeScriptFiles(tsHygieneRoots);
+const tsAppHygieneFiles = getTypeScriptFiles(tsAppHygieneRoots);
+const tsTestsHygieneFiles = getTypeScriptFiles(tsTestsHygieneRoots);
+
 describe("TypeScript everywhere guards", () => {
   it("has no authored JavaScript sources left", () => {
     const jsFiles = authoredRoots
@@ -65,7 +107,7 @@ describe("TypeScript everywhere guards", () => {
       .sort();
 
     expect(jsFiles).toEqual([]);
-  });
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
 
   it("has no JavaScript unit tests left in Vitest suite", () => {
     const legacyVitestTests = collectFiles(path.join(repoRoot, "tests"))
@@ -76,13 +118,12 @@ describe("TypeScript everywhere guards", () => {
       .sort();
 
     expect(legacyVitestTests).toEqual([]);
-  });
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
 
   it("has no explicit any in authored TypeScript", () => {
-    const offending = collectTypeScriptFiles(tsHygieneRoots).flatMap(
+    const offending = tsHygieneFiles.flatMap(
       (repoRelative) => {
-        const absolutePath = path.join(repoRoot, repoRelative);
-        const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
+        const lines = getFileLines(repoRelative);
         return lines
           .map((line: string, index: number) => ({ line, index: index + 1 }))
           .filter(({ line }: { line: string }) => explicitAnyPattern.test(line))
@@ -91,17 +132,16 @@ describe("TypeScript everywhere guards", () => {
     );
 
     expect(offending).toEqual([]);
-  });
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
 
   it("does not use @ts-ignore or @ts-nocheck outside allowlist", () => {
-    const offending = collectTypeScriptFiles(tsHygieneRoots).flatMap(
+    const offending = tsHygieneFiles.flatMap(
       (repoRelative) => {
         if (tsSuppressionAllowlist.has(repoRelative)) {
           return [];
         }
 
-        const absolutePath = path.join(repoRoot, repoRelative);
-        const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
+        const lines = getFileLines(repoRelative);
         return lines
           .map((line: string, index: number) => ({ line, index: index + 1 }))
           .filter(
@@ -112,17 +152,16 @@ describe("TypeScript everywhere guards", () => {
     );
 
     expect(offending).toEqual([]);
-  });
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
 
   it("does not use @ts-expect-error outside allowlist", () => {
-    const offending = collectTypeScriptFiles(tsHygieneRoots).flatMap(
+    const offending = tsHygieneFiles.flatMap(
       (repoRelative) => {
         if (tsExpectErrorAllowlist.has(repoRelative)) {
           return [];
         }
 
-        const absolutePath = path.join(repoRoot, repoRelative);
-        const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
+        const lines = getFileLines(repoRelative);
         return lines
           .map((line: string, index: number) => ({ line, index: index + 1 }))
           .filter(({ line }: { line: string }) => tsExpectErrorPattern.test(line))
@@ -131,13 +170,12 @@ describe("TypeScript everywhere guards", () => {
     );
 
     expect(offending).toEqual([]);
-  });
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
 
   it("does not use double unknown casts in app source", () => {
-    const offending = collectTypeScriptFiles(tsAppHygieneRoots).flatMap(
+    const offending = tsAppHygieneFiles.flatMap(
       (repoRelative) => {
-        const absolutePath = path.join(repoRoot, repoRelative);
-        const lines = fs.readFileSync(absolutePath, "utf8").split(/\r?\n/);
+        const lines = getFileLines(repoRelative);
         return lines
           .map((line: string, index: number) => ({ line, index: index + 1 }))
           .filter(
@@ -148,5 +186,68 @@ describe("TypeScript everywhere guards", () => {
     );
 
     expect(offending).toEqual([]);
-  });
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
+
+  it("does not use double unknown casts in tests outside allowlist", () => {
+    const offending = tsTestsHygieneFiles.flatMap(
+      (repoRelative) => {
+        if (doubleUnknownCastAllowlist.has(repoRelative)) {
+          return [];
+        }
+
+        const lines = getFileLines(repoRelative);
+        return lines
+          .map((line: string, index: number) => ({ line, index: index + 1 }))
+          .filter(
+            ({ line }: { line: string }) => doubleUnknownCastPattern.test(line),
+          )
+          .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
+      },
+    );
+
+    expect(offending).toEqual([]);
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
+
+  it("does not add new JSON.parse ReturnType bridges outside allowlist", () => {
+    const offending = tsHygieneFiles.flatMap(
+      (repoRelative) => {
+        if (jsonParseReturnTypeAllowlist.has(repoRelative)) {
+          return [];
+        }
+
+        const lines = getFileLines(repoRelative);
+        return lines
+          .map((line: string, index: number) => ({ line, index: index + 1 }))
+          .filter(
+            ({ line }: { line: string }) =>
+              jsonParseReturnTypePattern.test(line),
+          )
+          .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
+      },
+    );
+
+    expect(offending).toEqual([]);
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
+
+  it("does not add new single unknown casts outside allowlist", () => {
+    const offending = tsHygieneFiles.flatMap(
+      (repoRelative) => {
+        if (singleUnknownCastAllowlist.has(repoRelative)) {
+          return [];
+        }
+
+        const lines = getFileLines(repoRelative);
+        return lines
+          .map((line: string, index: number) => ({ line, index: index + 1 }))
+          .filter(
+            ({ line }: { line: string }) =>
+              singleUnknownCastPattern.test(line) &&
+              !doubleUnknownCastPattern.test(line),
+          )
+          .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
+      },
+    );
+
+    expect(offending).toEqual([]);
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
 });

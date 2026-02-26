@@ -1372,7 +1372,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       return;
     }
 
-    const cssWidth = Math.max(1, unifiedBodyMinWidth);
+    const cssWidth = Math.max(1, unifiedGridWidth);
     const cssHeight = Math.max(1, unifiedGridHeight);
     const dpr = Math.max(1, window.devicePixelRatio || 1);
 
@@ -1382,9 +1382,10 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
       canvas.width = nextWidth;
       canvas.height = nextHeight;
-      canvas.style.width = `${cssWidth}px`;
-      canvas.style.height = `${cssHeight}px`;
     }
+    canvas.style.width = `${cssWidth}px`;
+    canvas.style.height = `${cssHeight}px`;
+    canvas.style.left = `${LAYER_PANEL_WIDTH_PX}px`;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) {
@@ -1394,8 +1395,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, cssWidth, cssHeight);
 
-    const trackStartX = LAYER_PANEL_WIDTH_PX;
-    const trackEndX = trackStartX + unifiedGridWidth;
+    const trackStartX = 0;
+    const trackEndX = unifiedGridWidth;
     const isStrongGrid = gridContrastMode === "strong";
     const gridColor = isStrongGrid ? "rgba(255, 255, 255, 0.09)" : "rgba(255, 255, 255, 0.06)";
     const mediumGridColor = isStrongGrid ? "rgba(255, 255, 255, 0.16)" : "rgba(255, 255, 255, 0.10)";
@@ -1446,7 +1447,6 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     cellWidth,
     timelineLength,
     totalUnifiedRows,
-    unifiedBodyMinWidth,
     gridContrastMode,
     unifiedGridHeight,
     unifiedGridWidth,
@@ -1830,9 +1830,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
           didSoftUpdate = true;
         }
       } else if (options.clearSelectionWithoutFrame && project?.selection) {
-        const selectedTimelineObjects =
-          (project.selection.getSelectedObjects?.("Timeline") ?? []) as unknown[];
-        if (selectedTimelineObjects.length > 0) {
+        const selectedTimelineObjects = project.selection.getSelectedObjects?.("Timeline");
+        if (Array.isArray(selectedTimelineObjects) && selectedTimelineObjects.length > 0) {
           project.selection.clear();
           didSoftUpdate = true;
         }
@@ -3325,6 +3324,17 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
             {layerBottomSpacerHeight > 0 && (
               <div style={{ height: `${layerBottomSpacerHeight}px` }} aria-hidden />
+            )}
+
+            {layerFillerHeight > 0 && (
+              <div
+                className="timeline-unified-empty-cover"
+                style={{
+                  top: `${currentLayersHeight}px`,
+                  height: `${layerFillerHeight}px`,
+                }}
+                aria-hidden
+              />
             )}
 
             <div className="timeline-unified-row">

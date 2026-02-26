@@ -23,7 +23,7 @@ import classNames from "classnames";
 import "./_toolbox.scss";
 
 import HotKeyInterface from "Editor/hotKeyMap";
-import WickInput from "Editor/Util/WickInput/WickInput";
+import WickInputV2LegacyAdapter from "Editor/Util/WickInputV2/WickInputV2LegacyAdapter";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 import ToolboxBreak from "./ToolboxBreak/ToolboxBreak";
 import ToolButton, { ToolButtonProps } from "./ToolButton/ToolButton";
@@ -394,7 +394,7 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                     className="color-container toolbox-item"
                     id="fill-color-picker-container"
                 >
-                    <WickInput
+                    <WickInputV2LegacyAdapter
                         type="color"
                         color={fillColor}
                         onChange={(color: string) => {
@@ -417,7 +417,7 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
                     className="color-container toolbox-item"
                     id="stroke-color-picker-container"
                 >
-                    <WickInput
+                    <WickInputV2LegacyAdapter
                         type="color"
                         color={strokeColor}
                         onChange={(color: string) => {

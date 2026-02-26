@@ -19,7 +19,7 @@
 
 import React from 'react';
 
-import WickInput, { SelectOption } from 'Editor/Util/WickInput/WickInput';
+import WickInputV2LegacyAdapter from 'Editor/Util/WickInputV2/WickInputV2LegacyAdapter';
 import type { ColorPickerType, ToolSettingRestrictions } from 'Editor/types';
 
 import iconBackwards from 'resources/timeline-icons/backwards.svg';
@@ -63,15 +63,13 @@ const EditorSettings: React.FC<EditorSettingsProps> = (props) => {
           Onion Skinning
         </label>
         Style:
-        <WickInput
+        <WickInputV2LegacyAdapter
           type="select"
           id="onion-skin-style"
-          value={props.getToolSetting('onionSkinStyle')}
+          value={String(props.getToolSetting('onionSkinStyle'))}
           options={optionsLabels}
-          onChange={(val: SelectOption) => {
-            if (typeof val.value === "string") {
-              props.setToolSetting('onionSkinStyle', val.value)
-            }
+          onChange={(value) => {
+            props.setToolSetting('onionSkinStyle', String(value));
           }}
         />
         {
@@ -86,7 +84,7 @@ const EditorSettings: React.FC<EditorSettingsProps> = (props) => {
                   src={iconBackwards}
                 />
 
-                <WickInput
+                <WickInputV2LegacyAdapter
                   type="color"
                   id="editor-settings-backward-color-picker"
                   disableAlpha={true}
@@ -96,7 +94,8 @@ const EditorSettings: React.FC<EditorSettingsProps> = (props) => {
                   colorPickerType={props.colorPickerType}
                   changeColorPickerType={props.changeColorPickerType}
                   updateLastColors={props.updateLastColors}
-                  lastColorsUsed={props.lastColorsUsed} />
+                  lastColorsUsed={props.lastColorsUsed}
+                />
               </div>
 
               <div className="editor-settings-color-container mb-1 ml-1 flex h-full w-1/2 flex-row items-center text-editor-modal-text">
@@ -106,7 +105,7 @@ const EditorSettings: React.FC<EditorSettingsProps> = (props) => {
                   src={iconForwards}
                 />
 
-                <WickInput
+                <WickInputV2LegacyAdapter
                   type="color"
                   id="editor-settings-forward-color-picker"
                   disableAlpha={true}
@@ -116,7 +115,8 @@ const EditorSettings: React.FC<EditorSettingsProps> = (props) => {
                   colorPickerType={props.colorPickerType}
                   changeColorPickerType={props.changeColorPickerType}
                   updateLastColors={props.updateLastColors}
-                  lastColorsUsed={props.lastColorsUsed} />
+                  lastColorsUsed={props.lastColorsUsed}
+                />
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Popover } from "react-tiny-popover";
 
-import WickInput from "Editor/Util/WickInput/WickInput";
+import WickInputV2LegacyAdapter from "Editor/Util/WickInputV2/WickInputV2LegacyAdapter";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 
 import "Editor/styles/Panels/Toolbox/settingsnumericslider.css";
@@ -33,7 +33,7 @@ export default function SettingsNumericSlider(props: SettingsNumericSliderProps)
         positions={["bottom", "top", "right", "left"]}
         content={
           <div className="settings-numeric-slider-container">
-            <WickInput
+            <WickInputV2LegacyAdapter
               type="slider"
               containerclassname="settings-slider-wick-input-container"
               className="settings-numeric-slider"
@@ -47,7 +47,7 @@ export default function SettingsNumericSlider(props: SettingsNumericSliderProps)
           setSliderOn(false);
         }}
       >
-        <WickInput
+        <WickInputV2LegacyAdapter
           type="numeric"
           className={classNames("settings-numeric-input", {
             mobile: props.isMobile,

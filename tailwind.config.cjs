@@ -41,9 +41,14 @@ module.exports = {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(90deg)" },
         },
+        "outliner-expand": {
+          "0%": { transform: "scaleY(0)" },
+          "100%": { transform: "scaleY(1)" },
+        },
       },
       animation: {
         "outliner-dropdown-rotate": "outliner-dropdown-rotate 75ms ease-in forwards",
+        "outliner-expand": "outliner-expand 75ms ease-in forwards",
       },
     },
   },

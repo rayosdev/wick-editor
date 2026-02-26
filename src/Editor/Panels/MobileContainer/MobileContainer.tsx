@@ -19,8 +19,6 @@
 
 import { Fragment, type ComponentProps } from "react";
 
-import "./_mobilecontainer.scss";
-
 import MobileTabbedInterface from "../../Util/MobileTabbedInterface/MobileTabbedInterface";
 import Timeline from "../Timeline/Timeline";
 import MobileInspector from "./MobileInspector/MobileInspector";

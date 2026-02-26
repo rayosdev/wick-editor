@@ -82,32 +82,10 @@ interface InspectorProps {
 
 const Inspector: React.FC<InspectorProps> = (props) => {
     const getSelectionAttribute = <T = unknown>(attribute: string): T => {
-        if (attribute === "fillColorOpacity") {
-            return getSelectionFillColorOpacity() as T;
-        }
-
         return props.getAllSelectionAttributes()[attribute] as T;
     };
 
-    const getSelectionFillColorOpacity = (): number => {
-        const fillColor = getSelectionAttribute("fillColor") as { alpha?: number } | undefined;
-        return fillColor?.alpha ?? 1;
-    };
-
-    const setSelectionFillColorOpacity = (value: number): void => {
-        const color = getSelectionAttribute("fillColor") as { alpha?: number } | undefined;
-        if (!color) {
-            return;
-        }
-        color.alpha = value;
-        setSelectionAttribute("fillColor", color);
-    };
-
     const setSelectionAttribute = (attribute: string, newValue: unknown): void => {
-        if (attribute === "fillColorOpacity") {
-            setSelectionFillColorOpacity(Number(newValue));
-            return;
-        }
         props.setSelectionAttribute(attribute, newValue);
     };
 
@@ -184,18 +162,9 @@ const Inspector: React.FC<InspectorProps> = (props) => {
             <div className="inspector-item">
                 <InspectorColorNumericInput
                     tooltip1="Fill"
-                    tooltip2="Opacity"
                     val1={typeof fillColor === "string" ? fillColor : fillColor?.toCSS?.() ?? "#000000"}
                     onChange1={(col) => setSelectionAttribute("fillColor", new window.Wick.Color(col))}
                     id={"inspector-selection-fill-color"}
-                    val2={typeof fillColor === "string" ? 100 : Math.round((fillColor?.a ?? 1) * 100)}
-                    onChange2={(val) => {
-                        let c = typeof fillColor === "string" ? new window.Wick.Color(fillColor) : fillColor;
-                        if (c) {
-                            c.a = (val as number) / 100;
-                            setSelectionAttribute("fillColor", c);
-                        }
-                    }}
                     divider={false}
                     colorPickerType={props.colorPickerType}
                     changeColorPickerType={props.changeColorPickerType}

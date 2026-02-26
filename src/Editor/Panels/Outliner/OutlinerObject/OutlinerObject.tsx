@@ -13,8 +13,6 @@ import {
     type DragObjectWithType,
 } from "react-dnd";
 
-import "../_outliner.scss";
-
 import DragDropTypes from "Editor/DragDropTypes";
 
 import OutlinerDropdown from "./OutlinerDropdown/OutlinerDropdown";
@@ -230,6 +228,11 @@ export const OutlinerObject = ({
     const iconKey = data.classname === "Path" ? (data.pathType ?? "path") : data.classname.toLowerCase();
     const typeIcon = icons[iconKey] ?? icons.path;
     const typeDragImage = (images[iconKey] ?? images.path) ?? "";
+    const isDraggingSelection =
+        dragging &&
+        (data.isSelected ||
+            data.parent?.isSelected ||
+            (data.parent && "parent" in data.parent && (data.parent as WickNode).parent?.isSelected));
 
     drop(ref);
 
@@ -240,28 +243,36 @@ export const OutlinerObject = ({
                 ref={ref}
                 className={classNames(
                     "outliner-object-container",
-                    hoverLocation !== "hover-middle" && isOverCurrent && hoverLocation
+                    "relative h-full w-full",
+                    hoverLocation !== "hover-middle" && isOverCurrent && hoverLocation,
+                    hoverLocation === "hover-top" &&
+                        isOverCurrent &&
+                        "border-t-2 border-solid border-[#00ADEF]",
+                    hoverLocation === "hover-bottom" &&
+                        isOverCurrent &&
+                        "border-b-2 border-solid border-[#00ADEF]"
                 )}
             >
                 <div
                     className={classNames(
                         "outliner-object",
+                        "relative z-0 box-border flex h-[20px] items-center border-y border-solid border-y-editor-primary bg-editor-secondary leading-[20px] has-hover:cursor-pointer has-hover:bg-editor-tertiary",
                         { "object-selected": data.isSelected && !focused },
-                        {
-                            "object-dragging":
-                                dragging &&
-                                (data.isSelected ||
-                                    data.parent?.isSelected ||
-                                    (data.parent && "parent" in data.parent && (data.parent as WickNode).parent?.isSelected)),
-                        },
+                        { "!border !border-solid !border-wick-green": data.isSelected && !focused },
+                        { "object-dragging": isDraggingSelection },
                         { highlighted: highlighted === data },
-                        hoverLocation === "hover-middle" && isOverCurrent && hoverLocation
+                        { "opacity-50": isDraggingSelection },
+                        { "bg-editor-tertiary": highlighted === data },
+                        hoverLocation === "hover-middle" && isOverCurrent && hoverLocation,
+                        hoverLocation === "hover-middle" &&
+                            isOverCurrent &&
+                            "bg-[#00ADEF]"
                     )}
                 >
                     <button
                         aria-label="select outliner object"
                         ref={drag}
-                        className="outliner-object-selector"
+                        className="outliner-object-selector absolute left-0 top-0 h-[20px] w-full border-none bg-transparent"
                         onClick={(event: ReactMouseEvent<Element>) => {
                             toggle(event, [], "select");
                         }}
@@ -279,11 +290,19 @@ export const OutlinerObject = ({
                         toggle={() => toggle({} as ToggleEvent, [], "dropdown")}
                     />
 
-                    <img className="row-icon" src={typeIcon} alt={data.classname} />
+                    <img
+                        className="row-icon relative z-[-1] ml-1 w-[14px]"
+                        src={typeIcon}
+                        alt={data.classname}
+                    />
 
-                    {objectName && <span className="outliner-name">{objectName}</span>}
+                    {objectName && (
+                        <span className="outliner-name relative z-[-1] ml-2 text-[14px] text-editor-text-primary">
+                            {objectName}
+                        </span>
+                    )}
 
-                    <span className="outliner-buttons-container">
+                    <span className="outliner-buttons-container relative z-0 ml-auto flex h-full flex-row items-center">
                         {data.classname === "Layer" && (
                             <OutlinerWidget
                                 onClick={() => {
@@ -313,11 +332,17 @@ export const OutlinerObject = ({
                                 tooltip="Edit Timeline"
                             />
                         )}
-                        {Boolean(data.sound) && <img className="outliner-sound-icon" src={soundIcon} alt="sound" />}
+                        {Boolean(data.sound) && (
+                            <img
+                                className="outliner-sound-icon mr-1 mt-0 h-5 align-top"
+                                src={soundIcon}
+                                alt="sound"
+                            />
+                        )}
                         {data.hasContentfulScripts && (
                             <input
                                 type="image"
-                                className="outliner-script-icon"
+                                className="outliner-script-icon mt-0 h-[14px]"
                                 src={scriptIcon}
                                 alt="script"
                                 onClick={() => {
@@ -339,7 +364,7 @@ export const OutlinerObject = ({
                 </div>
 
                 {!empty && !collapsedUUIDs[data.uuid] && (
-                    <div className="indentation">
+                    <div className="indentation origin-top animate-outliner-expand pl-5">
                         {children.map((child: WickNode, index: number) => {
                             const object =
                                 data.classname === "Frame"

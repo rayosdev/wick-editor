@@ -82,7 +82,11 @@ export function parseCachedProjectData(input: unknown): CachedProjectData {
   return CachedProjectDataSchema.parse(input);
 }
 
+function parseJsonUnknown(input: string): unknown {
+  return JSON.parse(input);
+}
+
 export function parseCachedProjectString(input: string): CachedProjectData {
-  const parsed = JSON.parse(input) as unknown;
+  const parsed = parseJsonUnknown(input);
   return parseCachedProjectData(parsed);
 }

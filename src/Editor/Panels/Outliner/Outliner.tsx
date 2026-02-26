@@ -5,8 +5,6 @@ import { OutlinerObject } from "./OutlinerObject/OutlinerObject";
 import OutlinerTitle from "./OutlinerTitle/OutlinerTitle";
 import OutlinerFilterMenu from "./OutlinerFilterMenu/OutlinerFilterMenu";
 
-import "./_outliner.scss";
-
 type WickScriptEntry = {
     name?: string;
 };
@@ -348,7 +346,13 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
     const timelineChildren = project.activeTimeline.getChildren();
 
     return (
-        <div className={classNames("docked-pane outliner", className)} aria-label="Outliner">
+        <div
+            className={classNames(
+                "docked-pane outliner box-border h-full w-full overflow-hidden border-r-[4px] border-solid border-[#191919] bg-editor-primary font-['Nunito_Sans'] [&.popout-outliner]:border-r-0",
+                className
+            )}
+            aria-label="Outliner"
+        >
             <div
                 className={classNames(
                     "outliner-title-container",
@@ -364,8 +368,8 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
                 />
             </div>
 
-            <div className="outliner-body">
-                <div className="outliner-item">
+            <div className="outliner-body h-[calc(100%-28px)] w-full overflow-hidden text-editor-text-primary has-hover:overflow-y-auto">
+                <div className="outliner-item flex flex-col border-b border-solid border-[#191919] px-[6px] py-[3px]">
                     {timelineChildren.map((layer: WickNode, index: number) => (
                         <OutlinerObject
                             key={layer.uuid}

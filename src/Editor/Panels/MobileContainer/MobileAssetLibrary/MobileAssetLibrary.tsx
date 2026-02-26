@@ -26,11 +26,9 @@ import type {
   CreateImageFromAssetFn,
 } from './Asset/Asset';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
-import WickInput from 'Editor/Util/WickInput/WickInput';
+import WickInputV2LegacyAdapter from 'Editor/Util/WickInputV2/WickInputV2LegacyAdapter';
 import ToolIcon from 'Editor/Util/ToolIcon/ToolIcon';
 import type { ToastType, ToastOptions, WickProject } from 'Editor/types';
-
-import './_mobileassetlibrary.scss';
 
 interface MobileAssetLibraryProps {
   assets: AssetData[];
@@ -106,20 +104,21 @@ const MobileAssetLibrary: React.FC<MobileAssetLibraryProps> = (props) => {
 
   const renderLeftSection = (): JSX.Element => {
     return (
-      <div className="mobile-asset-library-left-container">
-        <div className="mobile-asset-library-filter">
-          <div className="mobile-asset-library-filter-icon">
+      <div className="mobile-asset-library-left-container order-1 mt-[6px] mr-[10px] flex w-1/2 flex-col justify-start">
+        <div className="mobile-asset-library-filter mb-[10px] flex h-10 max-h-10 w-full items-center bg-editor-secondary">
+          <div className="mobile-asset-library-filter-icon mx-1 h-5 w-5">
             <ToolIcon name="search" />
           </div>
-          <WickInput
+          <WickInputV2LegacyAdapter
             id="mobile-asset-library-filter-input"
+            className="!h-full !w-full !border-0 !bg-transparent !text-[#CFCFCF] placeholder:!text-[#CFCFCF]"
             aria-label="filter"
             placeholder="filter..."
             type="text"
             onChange={updateFilter}
             value={filterText} />
         </div>
-        <div className="mobile-btn-asset-builtin">
+        <div className="mobile-btn-asset-builtin mb-[5px] h-[35px] w-full">
           <ActionButton
             color="green"
             action={openBuiltinAssetLibrary}
@@ -129,7 +128,7 @@ const MobileAssetLibrary: React.FC<MobileAssetLibraryProps> = (props) => {
             text="Add Builtin"
             tooltip="Add Builtin" />
         </div>
-        <div className="mobile-btn-asset-upload">
+        <div className="mobile-btn-asset-upload h-[35px] w-full">
           <ActionButton
             color="inspector"
             action={openFileDialog}
@@ -147,10 +146,13 @@ const MobileAssetLibrary: React.FC<MobileAssetLibraryProps> = (props) => {
   const sortedFilteredAssets = sortAssets(filteredAssets);
 
   return (
-    <div className="docked-pane mobile-asset-library" aria-label="Asset Library">
+    <div
+      className="docked-pane mobile-asset-library mb-[10px] flex h-full w-full flex-row overflow-hidden border-b-[4px] border-r-[4px] border-solid border-[#191919] bg-editor-primary px-[10px]"
+      aria-label="Asset Library"
+    >
       {renderLeftSection()}
-      <div className="mobile-asset-library-right-container">
-        <div className="mobile-asset-library-asset-container">
+      <div className="mobile-asset-library-right-container order-2 mt-[6px] mb-[10px] block w-1/2 overflow-hidden rounded-[4px] bg-editor-tertiary">
+        <div className="mobile-asset-library-asset-container h-full overflow-hidden has-hover:overflow-y-auto">
           {sortedFilteredAssets.map(makeNode)}
         </div>
       </div>

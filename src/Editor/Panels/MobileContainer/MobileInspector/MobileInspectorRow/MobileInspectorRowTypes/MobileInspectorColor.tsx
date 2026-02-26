@@ -18,10 +18,15 @@
  */
 
 import React from 'react';
+import classNames from 'classnames';
 
 import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
-
-import '../_mobileinspectorrow.scss';
+import {
+  MOBILE_INSPECTOR_ROW_CLASSES,
+  MOBILE_INSPECTOR_ROW_IDENTIFIER_CLASSES,
+  MOBILE_INSPECTOR_ROW_IDENTIFIER_COLOR_CLASSES,
+  MOBILE_INSPECTOR_SMALL_INPUT_CONTAINER_CLASSES,
+} from '../mobileInspectorRowClasses';
 
 interface MobileInspectorColorProps {
   tooltip: string;
@@ -50,14 +55,20 @@ const MobileInspectorColor: React.FC<MobileInspectorColorProps> = ({
   const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
 
   return (
-    <div className="mobile-inspector-row">
+    <div className={MOBILE_INSPECTOR_ROW_CLASSES}>
       {/* Identifier */}
-      <label htmlFor={`${idLabel}-input-mobile`} className="mobile-inspector-row-identifier mobile-inspector-row-identifier-color">
+      <label
+        htmlFor={`${idLabel}-input-mobile`}
+        className={classNames(
+          MOBILE_INSPECTOR_ROW_IDENTIFIER_CLASSES,
+          MOBILE_INSPECTOR_ROW_IDENTIFIER_COLOR_CLASSES
+        )}
+      >
         {tooltip}
       </label>
 
       {/* Input */}
-      <div className="mobile-inspector-small-input-container">
+      <div className={MOBILE_INSPECTOR_SMALL_INPUT_CONTAINER_CLASSES}>
         <MobileInspectorInput
           inputProps={{ id: `${idLabel}-input-mobile` }}
           input={{

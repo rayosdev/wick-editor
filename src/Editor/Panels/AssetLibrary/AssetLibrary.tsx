@@ -22,11 +22,9 @@ import { useState } from "react";
 import Asset from "./Asset/Asset";
 import type { AssetData } from "./Asset/Asset";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
-import WickInput from "Editor/Util/WickInput/WickInput";
+import WickInputV2LegacyAdapter from "Editor/Util/WickInputV2/WickInputV2LegacyAdapter";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 import type { WickProject, ToastType, ToastOptions } from "Editor/types";
-
-import "./_assetlibrary.scss";
 
 type AssetLibraryItem = AssetData & {
     isGifImage?: boolean;
@@ -125,9 +123,11 @@ const AssetLibrary: React.FC<AssetLibraryProps> = (props) => {
 
     const renderTitle = (): JSX.Element => {
         return (
-            <div className="asset-library-title-container">
-                <div className="asset-library-title-text">Asset Library</div>
-                <div className="btn-asset-upload">
+            <div className="asset-library-title-container mt-[6px] flex items-center">
+                <div className="asset-library-title-text inline-flex w-[200px] items-center text-[12px] font-bold uppercase tracking-[0.03em] text-white">
+                    Asset Library
+                </div>
+                <div className="btn-asset-upload mr-[5px] h-[25px] w-[25px]">
                     <ActionButton
                         color="upload"
                         action={openBuiltinAssetLibrary}
@@ -136,7 +136,7 @@ const AssetLibrary: React.FC<AssetLibraryProps> = (props) => {
                         tooltip="Add Builtin Asset"
                     />
                 </div>
-                <div className="btn-asset-builtin">
+                <div className="btn-asset-builtin h-[25px] w-[25px]">
                     <ActionButton
                         color="upload"
                         action={openFileDialog}
@@ -157,15 +157,19 @@ const AssetLibrary: React.FC<AssetLibraryProps> = (props) => {
     const sortedFilteredAssets = sortAssets(filteredAssets);
 
     return (
-        <div className="docked-pane asset-library" aria-label="Asset Library">
+        <div
+            className="docked-pane asset-library mb-[10px] flex h-full w-full flex-col overflow-hidden border-b-[4px] border-r-[4px] border-solid border-[#191919] bg-editor-primary px-[10px]"
+            aria-label="Asset Library"
+        >
             {renderTitle()}
-            <div className="asset-library-body">
-                <div className="asset-library-filter">
-                    <div className="asset-library-filter-icon">
+            <div className="asset-library-body mb-[10px] mt-[6px] flex h-full flex-col overflow-hidden rounded-[4px] bg-editor-tertiary">
+                <div className="asset-library-filter flex h-10 max-h-10 w-full items-center bg-editor-secondary">
+                    <div className="asset-library-filter-icon mx-1 h-5 w-5">
                         <ToolIcon name="search" />
                     </div>
-                    <WickInput
+                    <WickInputV2LegacyAdapter
                         id="asset-library-filter-input"
+                        className="!h-full !w-full !border-0 !bg-transparent !text-[#CFCFCF] placeholder:!text-[#CFCFCF]"
                         aria-label="filter"
                         placeholder="filter..."
                         type="text"
@@ -173,7 +177,7 @@ const AssetLibrary: React.FC<AssetLibraryProps> = (props) => {
                         value={filterText}
                     />
                 </div>
-                <div className="asset-library-asset-container">
+                <div className="asset-library-asset-container h-full overflow-hidden has-hover:overflow-y-auto">
                     {sortedFilteredAssets.map(makeNode)}
                 </div>
             </div>

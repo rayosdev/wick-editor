@@ -1,6 +1,7 @@
 import React, { CSSProperties } from "react";
 import tinycolor from "tinycolor2";
 import type { PickerColorChange, PickerColorValue } from "./ColorPicker";
+import { activateEditorEyedropper } from "./editorEyedropperBridge";
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
@@ -184,8 +185,7 @@ const WickColorPicker: React.FC<WickColorPickerProps> = (props) => {
   };
 
   const openEyedropper = (): void => {
-    window.editor.setActiveTool("eyedropper");
-    window.editor._onEyedropperPickedColor = props.onChange;
+    activateEditorEyedropper(props.onChange);
   };
 
   const renderSpectrum = (): JSX.Element => {

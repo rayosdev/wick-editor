@@ -62,7 +62,6 @@ import scaleHIcon from "resources/mobile-inspector-icons/scaleH-icon.svg";
 import rotateIcon from "resources/mobile-inspector-icons/rotate-icon.svg";
 import strokeIcon from "resources/mobile-inspector-icons/strokewidth-icon.svg";
 import opacityIcon from "resources/mobile-inspector-icons/opacity-icon.svg";
-import fillOpacityIcon from "resources/mobile-inspector-icons/fillopacity-icon.svg";
 
 import type { WickAsset } from "Editor/types";
 
@@ -212,26 +211,8 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
     };
 
     const getSelectionAttribute = <T = unknown>(attribute: string): T => {
-        if (attribute === "fillColorOpacity") {
-            return getSelectionFillColorOpacity() as T;
-        }
-
         const attributes = props.getAllSelectionAttributes?.() ?? {};
         return (attributes as SelectionAttributes)[attribute] as T;
-    };
-
-    const getSelectionFillColorOpacity = (): number => {
-        const fillColor = getSelectionAttribute("fillColor") as { alpha?: number } | undefined;
-        return fillColor?.alpha ?? 1;
-    };
-
-    const setSelectionFillColorOpacity = (value: number): void => {
-        const color = getSelectionAttribute("fillColor") as { alpha?: number } | undefined;
-        if (!color) {
-            return;
-        }
-        color.alpha = value;
-        props.setSelectionAttribute("fillColor", color);
     };
 
     const inspectorTabs: Record<string, string[]> = {
@@ -262,10 +243,6 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
     };
 
     const setSelectionAttribute = (attribute: string, newValue: unknown): void => {
-        if (attribute === "fillColorOpacity") {
-            setSelectionFillColorOpacity(Number(newValue));
-            return;
-        }
         props.setSelectionAttribute(attribute, newValue);
     };
 
@@ -310,16 +287,6 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
                     />
 
                     {renderOpacity()}
-
-                    <MobileInspectorNumericSlider
-                        tooltip="Fill Opacity"
-                        icon={fillOpacityIcon}
-                        val={getSelectionAttribute("fillColorOpacity") as number}
-                        onChange={(val) =>
-                            setSelectionAttribute("fillColorOpacity", val)
-                        }
-                        inputProps={{ min: 0, max: 1, step: 0.01 }}
-                    />
                 </div>
             </div>
         );

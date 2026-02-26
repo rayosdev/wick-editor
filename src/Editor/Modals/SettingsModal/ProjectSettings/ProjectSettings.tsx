@@ -19,7 +19,7 @@
 
 import React, { useState, useEffect } from "react";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
-import WickInput, { SelectOption } from "Editor/Util/WickInput/WickInput";
+import WickInputV2LegacyAdapter from "Editor/Util/WickInputV2/WickInputV2LegacyAdapter";
 import type {
   ColorPickerType,
   ProjectSettings as ProjectSettingsType,
@@ -204,7 +204,7 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
           Name
         </label>
         <div className="project-settings-property-container flex h-[30px] flex-row">
-          <WickInput
+          <WickInputV2LegacyAdapter
             id="project name"
             type="text"
             value={name}
@@ -231,7 +231,7 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
           Framerate (FPS)
         </label>
         <div className="project-settings-property-container flex h-[30px] flex-row">
-          <WickInput
+          <WickInputV2LegacyAdapter
             id="project framerate"
             type="numeric"
             min={projectMinFramerate}
@@ -253,7 +253,7 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
           >
             Width (px)
           </label>
-          <WickInput
+          <WickInputV2LegacyAdapter
             id="projectWidth"
             type="numeric"
             min={projectMinWidth}
@@ -269,7 +269,7 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
           >
             Height (px)
           </label>
-          <WickInput
+          <WickInputV2LegacyAdapter
             id="projectHeight"
             type="numeric"
             min={projectMinHeight}
@@ -297,7 +297,7 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
           Background Color
         </label>
         <div className="project-settings-property-container flex h-[30px] flex-row">
-          <WickInput
+          <WickInputV2LegacyAdapter
             type="color"
             id="project-background-color-picker"
             disableAlpha={true}
@@ -380,11 +380,13 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
       <div className="project-setting-element project-settings-presets-container mt-[15px] mr-0 h-[50px] w-full">
         <div className="project-settings-property-label mb-0 text-editor-modal-text">Presets</div>
         <div className="project-settings-presets-body-container flex flex-row">
-          <WickInput
+          <WickInputV2LegacyAdapter
             type="select"
             value={preset}
-            onChange={(option: SelectOption) => {
-              const foundPreset = presets.find((preset) => option.value === preset.name);
+            onChange={(selectedPreset) => {
+              const foundPreset = presets.find(
+                (presetItem) => String(selectedPreset) === presetItem.name
+              );
               if (foundPreset) {
                 selectPreset(foundPreset);
               }
@@ -412,7 +414,7 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
             >
               Width (px)
             </label>
-            <WickInput
+            <WickInputV2LegacyAdapter
               id="project width"
               type="numeric"
               min={projectMinWidth}
@@ -431,7 +433,7 @@ const ProjectSettings: React.FC<ProjectSettingsProps> = (props) => {
             >
               Height (px)
             </label>
-            <WickInput
+            <WickInputV2LegacyAdapter
               id="project height"
               type="numeric"
               min={projectMinHeight}

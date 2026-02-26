@@ -24,7 +24,6 @@ import PopupMenu from "Editor/Util/PopupMenu/PopupMenu";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
-import "./_toolsettings.scss";
 import classNames from "classnames";
 
 interface ToolSettingsProps {
@@ -52,6 +51,11 @@ type ToolPresetMenuData = {
     subtitle: string;
     items: ToolPresetItem[];
 };
+
+const SETTINGS_INPUT_CONTAINER_CLASSES =
+    "settings-input-container flex items-center justify-center";
+const TOOL_SETTINGS_MENU_ITEM_CLASSES =
+    "min-h-[34px] rounded-[4px] border-0 bg-transparent px-2 py-[6px] text-left font-nunito text-[12px] font-bold text-editor-text-primary has-hover:bg-editor-tertiary active:bg-editor-modal-gray max-[800px]:min-h-10 max-[800px]:text-[13px]";
 
 const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
     const {
@@ -85,7 +89,7 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
     };
 
     const renderCursorSettings = (): JSX.Element => {
-        return <div className="settings-input-container" />;
+        return <div className={SETTINGS_INPUT_CONTAINER_CLASSES} />;
     };
 
     const renderEnablePressure = (): JSX.Element => {
@@ -156,8 +160,8 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                     target="brush-modes-popover-button"
                     className="tool-settings-menu-popover"
                 >
-                    <div className="brush-modes-widget">
-                        <div className="brush-modes-menu-list">
+                    <div className="brush-modes-widget flex min-w-[180px] flex-col gap-[6px] bg-editor-primary p-[6px]">
+                        <div className="brush-modes-menu-list flex flex-col gap-1">
                             {brushModes.map((mode) => {
                                 const active =
                                     mode.value === "behind"
@@ -168,18 +172,22 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                                         key={mode.value}
                                         type="button"
                                         className={classNames(
-                                            "brush-modes-menu-item",
-                                            { active }
+                                            "brush-modes-menu-item flex w-full items-center gap-2",
+                                            TOOL_SETTINGS_MENU_ITEM_CLASSES,
+                                            {
+                                                active,
+                                                "!bg-editor-tertiary": active,
+                                            }
                                         )}
                                         onClick={() =>
                                             setToolSettingProp("brushMode", mode.value)
                                         }
                                     >
                                         <ToolIcon
-                                            className="brush-modes-menu-item-icon"
+                                            className="brush-modes-menu-item-icon !h-4 !w-4 shrink-0"
                                             name={mode.icon}
                                         />
-                                        <span className="brush-modes-menu-item-label">
+                                        <span className="brush-modes-menu-item-label flex-1">
                                             {mode.label}
                                         </span>
                                     </button>
@@ -292,7 +300,7 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
 
     const renderBrushSettings = (): JSX.Element => {
         return (
-            <div className="settings-input-container">
+            <div className={SETTINGS_INPUT_CONTAINER_CLASSES}>
                 {renderBrushSize()}
                 {renderBrushSmoothing()}
                 {renderEnablePressure()}
@@ -304,7 +312,7 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
 
     const renderPencilSettings = (): JSX.Element => {
         return (
-            <div className="settings-input-container">
+            <div className={SETTINGS_INPUT_CONTAINER_CLASSES}>
                 {renderStrokeWidth()}
             </div>
         );
@@ -312,7 +320,7 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
 
     const renderEraserSettings = (): JSX.Element => {
         return (
-            <div className="settings-input-container">
+            <div className={SETTINGS_INPUT_CONTAINER_CLASSES}>
                 {renderEraserSize()}
             </div>
         );
@@ -320,7 +328,7 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
 
     const renderRectangleSettings = (): JSX.Element => {
         return (
-            <div className="settings-input-container">
+            <div className={SETTINGS_INPUT_CONTAINER_CLASSES}>
                 {renderStrokeWidth()}
                 {renderCornerRadius()}
             </div>
@@ -329,7 +337,7 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
 
     const renderEllipseSettings = (): JSX.Element => {
         return (
-            <div className="settings-input-container">
+            <div className={SETTINGS_INPUT_CONTAINER_CLASSES}>
                 {renderStrokeWidth()}
             </div>
         );
@@ -337,19 +345,19 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
 
     const renderLineSettings = (): JSX.Element => {
         return (
-            <div className="settings-input-container">
+            <div className={SETTINGS_INPUT_CONTAINER_CLASSES}>
                 {renderStrokeWidth()}
             </div>
         );
     };
 
     const renderTextSettings = (): JSX.Element => {
-        return <div className="settings-input-container" />;
+        return <div className={SETTINGS_INPUT_CONTAINER_CLASSES} />;
     };
 
     const renderFillbucketSettings = (): JSX.Element => {
         return (
-            <div className="settings-input-container">
+            <div className={SETTINGS_INPUT_CONTAINER_CLASSES}>
                 {renderGapFillAmount()}
             </div>
         );
@@ -580,14 +588,14 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
         return (
             <div
                 id="tool-settings-presets-popover-button"
-                className="tool-settings-presets-anchor"
+                className="tool-settings-presets-anchor ml-1 flex items-center"
             >
                 <ActionButton
                     id="tool-settings-presets-toggle"
                     icon="settings"
                     color="tool"
                     tooltip={presetMenuData.title}
-                    className="tool-settings-presets-toggle"
+                    className="tool-settings-presets-toggle !h-[30px] !w-[30px]"
                     action={toggleToolPresets}
                     isActive={() => showToolPresets}
                 />
@@ -598,15 +606,19 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                     target="tool-settings-presets-popover-button"
                     className="tool-settings-menu-popover tool-settings-presets-menu-popover"
                 >
-                    <div className="tool-settings-presets-widget">
-                        <div className="tool-settings-presets-list">
+                    <div className="tool-settings-presets-widget flex min-w-[220px] flex-col gap-[6px] bg-editor-primary p-[6px]">
+                        <div className="tool-settings-presets-list flex flex-col gap-1">
                             {presetMenuData.items.map((item) => (
                                 <button
                                     key={item.id}
                                     type="button"
                                     className={classNames(
-                                        "tool-settings-presets-item",
-                                        { active: item.active }
+                                        "tool-settings-presets-item flex w-full items-center gap-2",
+                                        TOOL_SETTINGS_MENU_ITEM_CLASSES,
+                                        {
+                                            active: item.active,
+                                            "!bg-editor-tertiary": item.active,
+                                        }
                                     )}
                                     onClick={() => {
                                         item.apply();
@@ -614,10 +626,10 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
                                     }}
                                 >
                                     <ToolIcon
-                                        className="tool-settings-presets-item-icon"
+                                        className="tool-settings-presets-item-icon !h-4 !w-4 shrink-0"
                                         name={item.icon}
                                     />
-                                    <span className="tool-settings-presets-item-label">
+                                    <span className="tool-settings-presets-item-label flex-1">
                                         {item.label}
                                     </span>
                                 </button>
@@ -651,7 +663,10 @@ const ToolSettings: React.FC<ToolSettingsProps> = (props) => {
     };
 
     return (
-        <div id="settings-panel-container">
+        <div
+            id="settings-panel-container"
+            className="flex items-center justify-center bg-transparent"
+        >
             {renderSettings()}
             {renderToolPresetMenu()}
         </div>

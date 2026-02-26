@@ -20,7 +20,7 @@
 import React, { useState } from 'react';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
-import WickInput from 'Editor/Util/WickInput/WickInput';
+import WickInputV2LegacyAdapter from 'Editor/Util/WickInputV2/WickInputV2LegacyAdapter';
 import ObjectInfo from '../Util/ObjectInfo/ObjectInfo';
 
 interface MakeAnimatedProps {
@@ -71,7 +71,7 @@ const MakeAnimated: React.FC<MakeAnimatedProps> = ({
           Make Animated
         </div>
         <div id="make-animated-modal-name-input" className="mt-[10px]">
-          <WickInput
+          <WickInputV2LegacyAdapter
             type="text"
             value={name}
             onChange={updateClipName}

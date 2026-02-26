@@ -1,4 +1,4 @@
-import { type ReactNode, useId } from "react";
+import { type FocusEvent, type MouseEvent, type ReactNode, useId } from "react";
 import classNames from "classnames";
 import "./WickInputV2.css";
 
@@ -10,6 +10,7 @@ export type WickInputV2Option = {
 
 type SharedProps = {
   id?: string;
+  name?: string;
   label?: string;
   hint?: string;
   error?: string;
@@ -18,6 +19,12 @@ type SharedProps = {
   disabled?: boolean;
   required?: boolean;
   readOnly?: boolean;
+  placeholder?: string;
+  maxLength?: number;
+  onFocus?: (event: FocusEvent<HTMLElement>) => void;
+  onBlur?: (event: FocusEvent<HTMLElement>) => void;
+  onClick?: (event: MouseEvent<HTMLElement>) => void;
+  "aria-label"?: string;
   "data-testid"?: string;
 };
 
@@ -25,8 +32,6 @@ type TextInputProps = SharedProps & {
   kind?: "text";
   value: string;
   onChange: (value: string) => void;
-  placeholder?: string;
-  maxLength?: number;
 };
 
 type NumberInputProps = SharedProps & {
@@ -69,7 +74,7 @@ type ColorInputProps = SharedProps & {
 
 type ActionInputProps = SharedProps & {
   kind: "action";
-  onClick: () => void;
+  onClick: (event: MouseEvent<HTMLButtonElement>) => void;
   intent?: "neutral" | "primary" | "danger";
   children: ReactNode;
 };
@@ -140,6 +145,7 @@ function renderControl(
           min={props.min}
           max={props.max}
           step={props.step}
+          name={props.name}
           onChange={(event) => {
             const parsed = Number(event.currentTarget.value);
             if (Number.isNaN(parsed)) {
@@ -152,8 +158,12 @@ function renderControl(
           disabled={props.disabled}
           readOnly={props.readOnly}
           required={props.required}
+          aria-label={props["aria-label"]}
           aria-invalid={a11y.invalid || undefined}
           aria-describedby={a11y.describedBy}
+          onFocus={props.onFocus}
+          onBlur={props.onBlur}
+          onClick={props.onClick}
         />
       );
 
@@ -163,11 +173,16 @@ function renderControl(
           id={controlId}
           className={classNames(baseControlClass, "wick-input-v2-control--select")}
           value={props.value}
+          name={props.name}
           onChange={(event) => props.onChange(event.currentTarget.value)}
           disabled={props.disabled}
           required={props.required}
+          aria-label={props["aria-label"]}
           aria-invalid={a11y.invalid || undefined}
           aria-describedby={a11y.describedBy}
+          onFocus={props.onFocus}
+          onBlur={props.onBlur}
+          onClick={props.onClick}
         >
           {props.options.map((option: WickInputV2Option) => (
             <option key={option.value} value={option.value} disabled={option.disabled}>
@@ -187,12 +202,17 @@ function renderControl(
             id={controlId}
             type="checkbox"
             className="wick-input-v2-checkbox"
+            name={props.name}
             checked={props.checked}
             onChange={(event) => props.onChange(event.currentTarget.checked)}
             disabled={props.disabled}
             required={props.required}
+            aria-label={props["aria-label"]}
             aria-invalid={a11y.invalid || undefined}
             aria-describedby={a11y.describedBy}
+            onFocus={props.onFocus}
+            onBlur={props.onBlur}
+            onClick={props.onClick}
           />
           <span className="wick-input-v2-checkbox-label">{props.label ?? "Enabled"}</span>
         </label>
@@ -208,6 +228,7 @@ function renderControl(
           min={props.min ?? DEFAULT_RANGE_MIN}
           max={props.max ?? DEFAULT_RANGE_MAX}
           step={props.step ?? DEFAULT_RANGE_STEP}
+          name={props.name}
           onChange={(event) => {
             const next = Number(event.currentTarget.value);
             if (!Number.isNaN(next)) {
@@ -217,8 +238,12 @@ function renderControl(
           disabled={props.disabled}
           readOnly={props.readOnly}
           required={props.required}
+          aria-label={props["aria-label"]}
           aria-invalid={a11y.invalid || undefined}
           aria-describedby={a11y.describedBy}
+          onFocus={props.onFocus}
+          onBlur={props.onBlur}
+          onClick={props.onClick}
         />
       );
 
@@ -229,12 +254,17 @@ function renderControl(
           type="color"
           className={classNames(baseControlClass, "wick-input-v2-control--color")}
           value={normalizeColor(props.value)}
+          name={props.name}
           onChange={(event) => props.onChange(event.currentTarget.value)}
           disabled={props.disabled}
           readOnly={props.readOnly}
           required={props.required}
+          aria-label={props["aria-label"]}
           aria-invalid={a11y.invalid || undefined}
           aria-describedby={a11y.describedBy}
+          onFocus={props.onFocus}
+          onBlur={props.onBlur}
+          onClick={props.onClick}
         />
       );
 
@@ -248,9 +278,13 @@ function renderControl(
             "wick-input-v2-control--action",
             `wick-input-v2-control--${props.intent ?? "neutral"}`
           )}
+          name={props.name}
           onClick={props.onClick}
           disabled={props.disabled}
+          aria-label={props["aria-label"]}
           aria-describedby={a11y.describedBy}
+          onFocus={props.onFocus}
+          onBlur={props.onBlur}
         >
           {props.children}
         </button>
@@ -266,14 +300,19 @@ function renderControl(
           type="text"
           className={classNames(baseControlClass, "wick-input-v2-control--text")}
           value={textProps.value}
+          name={textProps.name}
           onChange={(event) => textProps.onChange(event.currentTarget.value)}
           placeholder={textProps.placeholder}
           maxLength={textProps.maxLength}
           disabled={textProps.disabled}
           readOnly={textProps.readOnly}
           required={textProps.required}
+          aria-label={textProps["aria-label"]}
           aria-invalid={a11y.invalid || undefined}
           aria-describedby={a11y.describedBy}
+          onFocus={textProps.onFocus}
+          onBlur={textProps.onBlur}
+          onClick={textProps.onClick}
         />
       );
     }
@@ -289,12 +328,14 @@ export default function WickInputV2(props: WickInputV2Props): JSX.Element {
   const kind = props.kind ?? "text";
   const showTopLabel =
     Boolean(props.label) && kind !== "checkbox" && kind !== "action";
+  const compactLegacyLayout = !showTopLabel && !props.hint && !props.error;
 
   return (
     <div
       className={classNames("wick-input-v2-field", props.className, {
         "wick-input-v2-field--error": Boolean(props.error),
         "wick-input-v2-field--disabled": props.disabled,
+        "wick-input-v2-field--compact": compactLegacyLayout,
       })}
       data-testid={props["data-testid"]}
     >

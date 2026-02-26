@@ -20,7 +20,7 @@
 import React, { useState } from 'react';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
-import WickInput from 'Editor/Util/WickInput/WickInput';
+import WickInputV2LegacyAdapter from 'Editor/Util/WickInputV2/WickInputV2LegacyAdapter';
 import ObjectInfo from '../Util/ObjectInfo/ObjectInfo';
 
 interface MakeInteractiveProps {
@@ -84,7 +84,7 @@ const MakeInteractive: React.FC<MakeInteractiveProps> = ({
           id="make-interactive-modal-name-input"
           className="mt-[10px] w-full"
         >
-          <WickInput
+          <WickInputV2LegacyAdapter
             type="text"
             value={name}
             onChange={updateClipName}

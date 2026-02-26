@@ -18,8 +18,7 @@
  */
 
 import React from 'react';
-
-import '../_mobileinspectorrow.scss';
+import { MOBILE_INSPECTOR_INPUT_ELEMENT_CLASSES } from '../mobileInspectorRowClasses';
 
 import WickInput from 'Editor/Util/WickInput/WickInput';
 import WickInputV2LegacyAdapter from 'Editor/Util/WickInputV2/WickInputV2LegacyAdapter';
@@ -37,8 +36,8 @@ const V2_SUPPORTED_TYPES = new Set<
   "numeric",
   "slider",
   "select",
-  "color",
   "checkbox",
+  "color",
   "button",
 ]);
 
@@ -51,7 +50,7 @@ const MobileInspectorInput: React.FC<MobileInspectorInputProps> = ({ inputProps,
   const mergedInputProps: Partial<WickInputProps> = { ...inputProps, ...input };
   if (V2_SUPPORTED_TYPES.has(mergedInputProps.type)) {
     return (
-      <div className="inspector-input-element">
+      <div className={MOBILE_INSPECTOR_INPUT_ELEMENT_CLASSES}>
         <WickInputV2LegacyAdapter
           {...(mergedInputProps as WickInputV2LegacyAdapterProps)}
         />
@@ -60,7 +59,7 @@ const MobileInspectorInput: React.FC<MobileInspectorInputProps> = ({ inputProps,
   }
 
   return (
-    <div className="inspector-input-element">
+    <div className={MOBILE_INSPECTOR_INPUT_ELEMENT_CLASSES}>
       <WickInput {...mergedInputProps} />
     </div>
   );

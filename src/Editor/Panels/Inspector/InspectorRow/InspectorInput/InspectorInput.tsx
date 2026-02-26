@@ -35,8 +35,8 @@ const V2_SUPPORTED_TYPES = new Set<
   "numeric",
   "slider",
   "select",
-  "color",
   "checkbox",
+  "color",
   "button",
 ]);
 

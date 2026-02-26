@@ -18,7 +18,7 @@
  */
 
 import { useRef, useState } from 'react';
-import WickColorPicker  from 'Editor/Util/ColorPicker/WickColorPicker';
+import ModernColorPicker from 'Editor/Util/ColorPicker/ModernColorPicker';
 import classNames from "classnames";
 import WickPopover from "Editor/Util/WickPopover/WickPopover";
 
@@ -134,7 +134,7 @@ export default function ColorPicker (props: ColorPickerProps): JSX.Element {
         content={
           <div tabIndex={-1} id={popoverID} className="popover wick-color-picker-popover">
             <div className="popover-body">
-              <WickColorPicker
+              <ModernColorPicker
                 toggle={toggle}
                 colorPickerType={normalizedPickerType}
                 changeColorPickerType={handlePickerTypeChange}

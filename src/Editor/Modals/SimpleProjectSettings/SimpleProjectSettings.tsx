@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
-import WickInput from 'Editor/Util/WickInput/WickInput';
+import WickInputV2LegacyAdapter from 'Editor/Util/WickInputV2/WickInputV2LegacyAdapter';
 
 import ActionButton from '../../Util/ActionButton/ActionButton';
 
@@ -67,7 +67,7 @@ export default function SimpleProjectSettings(props: SimpleProjectSettingsProps)
       <div className="simple-settings-modal-body flex flex-col">
         <div className="simple-settings-form-row mb-2 w-full">
           <label htmlFor="name" className="simple-settings-input-label mb-0 flex items-baseline text-white">Name</label>
-          <WickInput
+          <WickInputV2LegacyAdapter
             className="simple-settings-input h-8 w-full rounded"
             name="name"
             type="text"
@@ -77,7 +77,7 @@ export default function SimpleProjectSettings(props: SimpleProjectSettingsProps)
 
         <div className="simple-settings-form-row mb-2 w-full">
           <label htmlFor="name" className="simple-settings-input-label mb-0 flex items-baseline text-white">Framerate (FPS)</label>
-          <WickInput
+          <WickInputV2LegacyAdapter
             className="simple-settings-input h-8 w-full rounded"
             name="framerate"
             type="numeric"
@@ -88,7 +88,7 @@ export default function SimpleProjectSettings(props: SimpleProjectSettingsProps)
         <div className="simple-settings-dual-form-row flex justify-between">
           <div className="simple-settings-dual-input w-[45%]">
             <label htmlFor="width" className="simple-settings-input-label mb-0 flex items-baseline text-white">Width</label>
-            <WickInput
+            <WickInputV2LegacyAdapter
               className="simple-settings-input h-8 w-full rounded"
               name="width"
               type="numeric"
@@ -99,7 +99,7 @@ export default function SimpleProjectSettings(props: SimpleProjectSettingsProps)
           </div>
           <div className="simple-settings-dual-input w-[45%]">
             <label htmlFor="height" className="simple-settings-input-label mb-0 flex items-baseline text-white">Height</label>
-            <WickInput
+            <WickInputV2LegacyAdapter
               className="simple-settings-input h-8 w-full rounded"
               name="height"
               type="numeric"

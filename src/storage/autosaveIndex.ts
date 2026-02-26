@@ -100,6 +100,10 @@ function sanitizeAutosavesTable(input: Record<string, unknown>): AutosavesTable 
   return sanitized;
 }
 
+function parseJsonUnknown(input: string): unknown {
+  return JSON.parse(input);
+}
+
 function hydrateFromLocalStorageIfNeeded(): void {
   if (didHydrateFromStorage) {
     return;
@@ -116,7 +120,7 @@ function hydrateFromLocalStorageIfNeeded(): void {
       return;
     }
 
-    const parsed = JSON.parse(raw) as unknown;
+    const parsed = parseJsonUnknown(raw);
     if (!Array.isArray(parsed) || parsed.length === 0 || !isRecord(parsed[0])) {
       return;
     }

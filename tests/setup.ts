@@ -1,23 +1,5 @@
 import { vi } from "vitest";
 
-type CanvasGlobal = {
-  HTMLCanvasElement: typeof MockCanvasElement;
-};
-
-type PaperGlobal = {
-  paper: {
-    Point: typeof MockPoint;
-    View: typeof MockView;
-    PaperScope: typeof MockPaperScope;
-    setup: () => MockPaperScope;
-  };
-};
-
-type AnimationFrameGlobal = {
-  requestAnimationFrame: (callback: FrameRequestCallback) => ReturnType<typeof setTimeout>;
-  cancelAnimationFrame: (id: ReturnType<typeof setTimeout>) => void;
-};
-
 class MockCanvasElement {
   width: number;
   height: number;
@@ -67,8 +49,7 @@ class MockCanvasElement {
   removeEventListener() {}
 }
 
-const canvasGlobal = globalThis as unknown as CanvasGlobal;
-canvasGlobal.HTMLCanvasElement = MockCanvasElement;
+Object.assign(globalThis, { HTMLCanvasElement: MockCanvasElement });
 
 class MockPoint {
   x: number;
@@ -125,21 +106,41 @@ class MockPaperScope {
   }
 }
 
-const paperGlobal = globalThis as unknown as PaperGlobal;
-paperGlobal.paper = {
+Object.assign(globalThis, {
+  paper: {
   Point: MockPoint,
   View: MockView,
   PaperScope: MockPaperScope,
   setup() {
     return new MockPaperScope();
   },
-};
-
-const animationFrameGlobal = globalThis as unknown as AnimationFrameGlobal;
-animationFrameGlobal.requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
-  return setTimeout(() => callback(performance.now()), 16);
+  },
 });
 
-animationFrameGlobal.cancelAnimationFrame = vi.fn((id: ReturnType<typeof setTimeout>) => {
-  clearTimeout(id);
+let nextAnimationFrameId = 0;
+const animationFrameTimeouts = new Map<number, ReturnType<typeof setTimeout>>();
+
+const requestAnimationFrameMock = vi.fn((callback: FrameRequestCallback) => {
+  nextAnimationFrameId += 1;
+  const animationFrameId = nextAnimationFrameId;
+  const timeoutHandle = setTimeout(() => {
+    animationFrameTimeouts.delete(animationFrameId);
+    callback(performance.now());
+  }, 16);
+
+  animationFrameTimeouts.set(animationFrameId, timeoutHandle);
+  return animationFrameId;
+});
+
+const cancelAnimationFrameMock = vi.fn((id: number) => {
+  const timeoutHandle = animationFrameTimeouts.get(id);
+  if (timeoutHandle) {
+    clearTimeout(timeoutHandle);
+    animationFrameTimeouts.delete(id);
+  }
+});
+
+Object.assign(globalThis, {
+  requestAnimationFrame: requestAnimationFrameMock,
+  cancelAnimationFrame: cancelAnimationFrameMock,
 });

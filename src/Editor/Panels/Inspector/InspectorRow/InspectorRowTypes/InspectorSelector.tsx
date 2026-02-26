@@ -63,7 +63,17 @@ const InspectorSelector: React.FC<InspectorSelectorProps> = ({
           input={{
             type: "select",
             value: value,
-            onChange: onChange,
+            onChange: (selectedValue: unknown) => {
+              const matchedOption =
+                options.find((option) => Object.is(option.value, selectedValue)) ??
+                options.find(
+                  (option) => String(option.value) === String(selectedValue)
+                ) ?? {
+                  value: selectedValue,
+                  label: String(selectedValue ?? ""),
+                };
+              onChange(matchedOption);
+            },
             options: options,
             className: className,
           }}

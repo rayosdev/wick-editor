@@ -19,7 +19,7 @@
 
 import { ReactNode } from "react";
 
-import WickInput from "Editor/Util/WickInput/WickInput";
+import WickInputV2LegacyAdapter from "Editor/Util/WickInputV2/WickInputV2LegacyAdapter";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 
 import classNames from "classnames";
@@ -260,7 +260,7 @@ export default function ActionButton(props: ActionButtonProps): JSX.Element {
   }
 
   return (
-    <WickInput
+    <WickInputV2LegacyAdapter
       containerclassname={props.containerClassName}
       buttonProps={props.buttonProps}
       tooltip={getTooltip()}
@@ -273,6 +273,6 @@ export default function ActionButton(props: ActionButtonProps): JSX.Element {
       onTouch={runAction}
     >
       {renderContent()}
-    </WickInput>
+    </WickInputV2LegacyAdapter>
   );
 }

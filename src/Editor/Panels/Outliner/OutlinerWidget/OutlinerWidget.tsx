@@ -1,8 +1,6 @@
 import React from "react";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 
-import "../_outliner.scss";
-
 import classNames from "classnames";
 
 interface OutlinerLayerButtonsProps {
@@ -22,7 +20,7 @@ const OutlinerLayerButtons: React.FC<OutlinerLayerButtonsProps> = ({
     <ActionButton
       color="tool"
       id={`${tooltip}widget`}
-      className="widget"
+      className="widget !mr-1 !h-[18px] !w-[18px] max-h-[18px] max-w-[18px] rounded-[3px] border-0 bg-transparent p-0 transition-colors duration-150 ease-in-out"
       action={() => {
         //e.stopPropagation();
         onClick();
@@ -32,7 +30,8 @@ const OutlinerLayerButtons: React.FC<OutlinerLayerButtonsProps> = ({
       buttonClassName="no-bg"
       icon={icon}
       iconClassName={classNames(
-        on === undefined || on ? "widget-on" : "widget-off"
+        on === undefined || on ? "widget-on opacity-100" : "widget-off opacity-25",
+        "!h-[18px] !max-h-[18px] align-top"
       )}
     />
   );

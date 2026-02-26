@@ -20,8 +20,11 @@
 import React from 'react';
 
 import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
-
-import '../_mobileinspectorrow.scss';
+import {
+  MOBILE_INSPECTOR_ROW_CLASSES,
+  MOBILE_INSPECTOR_ROW_IDENTIFIER_CLASSES,
+  MOBILE_INSPECTOR_SMALL_INPUT_CONTAINER_CLASSES,
+} from '../mobileInspectorRowClasses';
 
 interface MobileInspectorCheckboxProps {
   tooltip: string;
@@ -37,14 +40,14 @@ const InspectorCheckbox: React.FC<MobileInspectorCheckboxProps> = ({
   const idLabel = tooltip.replace(/\s+/g, '-').toLowerCase();
 
   return (
-    <div className="mobile-inspector-row">
+    <div className={MOBILE_INSPECTOR_ROW_CLASSES}>
       {/* Identifier */}
-      <label htmlFor={`${idLabel}-input-mobile`} className="mobile-inspector-row-identifier">
+      <label htmlFor={`${idLabel}-input-mobile`} className={MOBILE_INSPECTOR_ROW_IDENTIFIER_CLASSES}>
         {tooltip}
       </label>
 
       {/* Checkbox */}
-      <div className="mobile-inspector-small-input-container">
+      <div className={MOBILE_INSPECTOR_SMALL_INPUT_CONTAINER_CLASSES}>
         <MobileInspectorInput
           inputProps={{ id: `${idLabel}-input-mobile` }}
           input={{

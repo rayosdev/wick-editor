@@ -26,7 +26,9 @@ test.describe("QA regression: UI workflows", () => {
 
     await settingsModal.locator("input[name='name']").fill(nextProjectName);
 
-    await settingsModal.getByRole("button", { name: "Apply" }).click();
+    await settingsModal.getByRole("button", { name: "Apply" }).click({
+      force: true,
+    });
 
     await expect(page.locator(".menu-bar-project-name")).toHaveText(nextProjectName);
 

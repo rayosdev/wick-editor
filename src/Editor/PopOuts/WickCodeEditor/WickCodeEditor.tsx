@@ -24,7 +24,7 @@ import AceEditor from "react-ace";
 import type { Ace } from "ace-builds";
 import type { IMarker, IAnnotation } from "react-ace/lib/types";
 
-import WickInput from "Editor/Util/WickInput/WickInput";
+import WickInputV2LegacyAdapter from "Editor/Util/WickInputV2/WickInputV2LegacyAdapter";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import AddScriptPanel from "./AddScriptPanel/AddScriptPanel";
 import ConsolePanel, { type ConsoleEntry } from "./ConsolePanel";
@@ -302,15 +302,14 @@ const WickCodeEditor = ({
                         <tr>
                             <td>Font Size</td>
                             <td>
-                                <WickInput
+                                <WickInputV2LegacyAdapter
                                     className="code-editor-option-input"
                                     id="code-editor-font"
                                     type="numeric"
                                     value={codeEditorWindowProperties.fontSize}
-                                    onChange={(value: string | number) => {
-                                        const nextValue = typeof value === "number" ? value : Number(value);
-                                        if (!Number.isNaN(nextValue)) {
-                                            updateCodeEditorWindowProperties({ fontSize: nextValue });
+                                    onChange={(value: number) => {
+                                        if (!Number.isNaN(value)) {
+                                            updateCodeEditorWindowProperties({ fontSize: value });
                                         }
                                     }}
                                 />

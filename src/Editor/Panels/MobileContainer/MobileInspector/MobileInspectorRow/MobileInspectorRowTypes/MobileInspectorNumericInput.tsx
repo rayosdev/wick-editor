@@ -20,8 +20,12 @@
 import React from 'react';
 
 import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
-
-import '../_mobileinspectorrow.scss';
+import {
+  MOBILE_INSPECTOR_ROW_CLASSES,
+  MOBILE_INSPECTOR_ROW_IDENTIFIER_CLASSES,
+  MOBILE_INSPECTOR_ROW_ICON_CLASSES,
+  MOBILE_INSPECTOR_SMALL_INPUT_CONTAINER_CLASSES,
+} from '../mobileInspectorRowClasses';
 
 interface MobileInspectorNumericInputProps {
   tooltip: string;
@@ -48,20 +52,20 @@ const MobileInspectorNumericInput: React.FC<MobileInspectorNumericInputProps> = 
   const inputType = type ?? "numeric";
 
   const renderIdentifier = icon ? (
-    <img src={icon} alt={iconAlt} className="mobile-inspector-row-icon" />
+    <img src={icon} alt={iconAlt} className={MOBILE_INSPECTOR_ROW_ICON_CLASSES} />
   ) : (
-    <label htmlFor={`${idLabel}-input-mobile`} className="mobile-inspector-row-identifier">
+    <label htmlFor={`${idLabel}-input-mobile`} className={MOBILE_INSPECTOR_ROW_IDENTIFIER_CLASSES}>
       {tooltip}
     </label>
   );
 
   return (
-    <div className="mobile-inspector-row">
+    <div className={MOBILE_INSPECTOR_ROW_CLASSES}>
       {/* Identifier */}
       {renderIdentifier}
 
       {/* Input */}
-      <div className="mobile-inspector-small-input-container">
+      <div className={MOBILE_INSPECTOR_SMALL_INPUT_CONTAINER_CLASSES}>
         <MobileInspectorInput
           inputProps={{ id: inputId }}
           input={{

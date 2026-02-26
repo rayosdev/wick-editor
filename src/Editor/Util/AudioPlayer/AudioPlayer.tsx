@@ -19,7 +19,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 
-import WickInput from 'Editor/Util/WickInput/WickInput';
+import WickInputV2LegacyAdapter from 'Editor/Util/WickInputV2/WickInputV2LegacyAdapter';
 import ActionButton from 'Editor/Util/ActionButton/ActionButton';
 
 import ClipLoader from "react-spinners/ClipLoader";
@@ -132,7 +132,7 @@ export const AudioPlayer = ({src, loadSrc}: AudioPlayerProps): JSX.Element => {
             <span className="controls inline-flex h-[90%] w-[calc(100%-40px)] flex-col align-top">
                 <div className="info-text overflow-hidden text-center text-white">{get_time_string()}</div>
                 <div className="control mx-auto w-[90%]">
-                    <WickInput
+                    <WickInputV2LegacyAdapter
                     type="slider"
                     containerclassname="time-slider-container"
                     className="time-slider"

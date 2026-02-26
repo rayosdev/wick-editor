@@ -19,7 +19,6 @@
 
 import React from "react";
 import { DragSource, ConnectDragSource } from "react-dnd";
-import "./_asset.scss";
 import DragDropTypes from "Editor/DragDropTypes";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
@@ -139,24 +138,31 @@ const Asset: React.FC<MobileAssetProps> = (props) => {
 
   return connectDragSource(
     <div
-      className={classNames("asset-item", {
-        "asset-selected": props.isSelected,
-      })}
+      className={classNames(
+        "asset-item mt-1 ml-1 mr-1 w-[calc(100%-8px)] overflow-hidden rounded-[2px] border-0 bg-editor-secondary px-1 text-left align-middle leading-7 text-white transition-[background-color,color,margin,border] duration-200 has-hover:cursor-grab has-hover:bg-editor-primary has-hover:text-white",
+        {
+          "asset-selected !m-[2px] !border-2 !border-solid !border-wick-green !bg-editor-primary !text-white":
+            props.isSelected,
+        }
+      )}
     >
-      <button className="select" onClick={props.onClick}>
-        <div className="asset-name-text">
+      <button
+        className="select w-full border-none bg-transparent pl-0 text-left text-inherit"
+        onClick={props.onClick}
+      >
+        <div className="asset-name-text ml-1 h-full overflow-hidden whitespace-nowrap">
           <span>
-            <ToolIcon className="asset-icon" name={icon} />
+            <ToolIcon className="asset-icon mr-[5px] inline-flex h-[22.4px] w-[22.4px]" name={icon} />
           </span>
           <span>{props.asset.name}</span>
         </div>
       </button>
       {props.isSelected && (
-        <div className="asset-buttons-container">
+        <div className="asset-buttons-container my-1 flex flex-1 flex-row items-center justify-center">
           {props.asset.classname === "SoundAsset" && (
-            <span className="asset-button add">
+            <span className="asset-button add mr-1 h-7 w-[calc(100%-33px)]">
               <ActionButton
-                className="add"
+                className="add !h-7 !w-[calc(100%-33px)]"
                 color="green"
                 text="Add"
                 action={() =>
@@ -166,18 +172,18 @@ const Asset: React.FC<MobileAssetProps> = (props) => {
             </span>
           )}
           {props.asset.classname !== "SoundAsset" && (
-            <span className="asset-button add">
+            <span className="asset-button add mr-1 h-7 w-[calc(100%-33px)]">
               <ActionButton
-                className="add"
+                className="add !h-7 !w-[calc(100%-33px)]"
                 color="green"
                 text="Add"
                 action={addToCanvas}
               />
             </span>
           )}
-          <span className="asset-button delete">
+          <span className="asset-button delete h-7 w-[25px]">
             <ActionButton
-              className="delete"
+              className="delete !h-7 !w-[25px] !p-0"
               color="red"
               icon="delete-black"
               action={() => {

@@ -20,7 +20,7 @@
 import React, { useState, useEffect } from "react";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import WickModal from "Editor/Modals/WickModal/WickModal";
-import WickInput from "Editor/Util/WickInput/WickInput";
+import WickInputV2LegacyAdapter from "Editor/Util/WickInputV2/WickInputV2LegacyAdapter";
 import ObjectInfo from "../Util/ObjectInfo/ObjectInfo";
 import TabbedInterface from "Editor/Util/TabbedInterface/TabbedInterface";
 
@@ -135,10 +135,6 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
     setSubTab(tabName);
   };
 
-  const toggleAdvancedOptionsCheckbox = (): void => {
-    setUseAdvanced(!useAdvanced);
-  };
-
   const updateExportSize = (width: number, height: number): void => {
     let res = customSizeTag;
 
@@ -154,8 +150,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
     setExportHeight(height);
   };
 
-  const updateExportResolutionType = (val: { value: string }): void => {
-    const value = val.value;
+  const updateExportResolutionType = (value: string): void => {
 
     if (value === customSizeTag) {
       resetCustomSize();
@@ -186,10 +181,10 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
     return (
       <div className="export-modal-advanced-options flex flex-col">
         <div className="export-modal-advanced-checkbox-container mt-2 ml-auto flex">
-          <WickInput
+          <WickInputV2LegacyAdapter
             type="checkbox"
-            checked={useAdvanced}
-            onChange={toggleAdvancedOptionsCheckbox}
+            value={useAdvanced}
+            onChange={(nextValue) => setUseAdvanced(Boolean(nextValue))}
             label="Resolution Options"
           />
         </div>
@@ -234,23 +229,22 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
 
                 <tr>
                   <td className="border-l-0 pl-1 text-white">
-                    <WickInput
+                    <WickInputV2LegacyAdapter
                       id="advanced-resolution-dropdown"
-                      inputProps={{ id: "resolution" }}
                       type="select"
                       value={exportResolution}
                       className="mr-2 w-[100px]"
                       options={options}
-                      onChange={(val: unknown) => {
-                        const selection = val as { value?: string } | null | undefined;
-                        if (selection?.value) {
-                          updateExportResolutionType({ value: selection.value });
+                      onChange={(selectedValue) => {
+                        const resolution = String(selectedValue);
+                        if (resolution) {
+                          updateExportResolutionType(resolution);
                         }
                       }}
                     />
                   </td>
                   <td className="border-l-0 pl-1 text-white">
-                    <WickInput
+                    <WickInputV2LegacyAdapter
                       id="export-width"
                       type="numeric"
                       value={exportWidth}
@@ -260,7 +254,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
                     />
                   </td>
                   <td className="border-l-0 pl-1 text-white">
-                    <WickInput
+                    <WickInputV2LegacyAdapter
                       id="export-height"
                       type="numeric"
                       value={exportHeight}
@@ -555,7 +549,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
             Export
           </div>
           <div id="export-modal-name-input" className="mt-[10px] w-full">
-            <WickInput
+            <WickInputV2LegacyAdapter
               type="text"
               value={name}
               onChange={updateExportName}
@@ -608,7 +602,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
             Export
           </div>
           <div id="export-modal-name-input" className="mt-[10px] w-full">
-            <WickInput
+            <WickInputV2LegacyAdapter
               type="text"
               value={name}
               onChange={updateExportName}

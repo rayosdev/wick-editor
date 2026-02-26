@@ -212,7 +212,7 @@ class HotKeyInterface extends Object {
       },
       'preview-play-toggle': {
         name: "Preview Play",
-        sequences: ['k'],
+        sequences: ['space'],
       },
       'preview-play-from-start': {
         name: "Preview Play from Start",

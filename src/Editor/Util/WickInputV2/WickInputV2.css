@@ -11,6 +11,10 @@
   width: 100%;
 }
 
+.wick-input-v2-field--compact {
+  gap: 0;
+}
+
 .wick-input-v2-label {
   color: #d9e7ff;
   font-size: 0.68rem;
@@ -120,6 +124,25 @@
   cursor: pointer;
 }
 
+.wick-input-v2-control--number {
+  padding-right: 1.45rem;
+}
+
+.wick-input-v2-control--number::-webkit-inner-spin-button,
+.wick-input-v2-control--number::-webkit-outer-spin-button {
+  margin: 0;
+  opacity: 0.38;
+  filter: saturate(0) brightness(1.2);
+  transition: opacity 120ms ease;
+}
+
+.wick-input-v2-control--number:hover::-webkit-inner-spin-button,
+.wick-input-v2-control--number:hover::-webkit-outer-spin-button,
+.wick-input-v2-control--number:focus-visible::-webkit-inner-spin-button,
+.wick-input-v2-control--number:focus-visible::-webkit-outer-spin-button {
+  opacity: 0.56;
+}
+
 .wick-input-v2-control--action {
   cursor: pointer;
   font-weight: 700;
@@ -154,4 +177,8 @@
 
 .wick-input-v2-field--disabled {
   opacity: 0.75;
+}
+
+.wick-input-v2-field--compact .wick-input-v2-control {
+  min-height: 2rem;
 }

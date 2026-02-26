@@ -21,8 +21,12 @@ import React from 'react';
 
 //import InspectorRow from '../InspectorRow';
 import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
-
-import '../_mobileinspectorrow.scss';
+import {
+  MOBILE_INSPECTOR_ROW_CLASSES,
+  MOBILE_INSPECTOR_ROW_IDENTIFIER_CLASSES,
+  MOBILE_INSPECTOR_ROW_ICON_CLASSES,
+  MOBILE_INSPECTOR_SMALL_INPUT_CONTAINER_CLASSES,
+} from '../mobileInspectorRowClasses';
 
 interface MobileInspectorDualNumericInputProps {
   tooltip1: string;
@@ -62,28 +66,28 @@ const MobileInspectorDualNumericInput: React.FC<MobileInspectorDualNumericInputP
   const inputId2 = id2 ?? id ?? `${idLabel2}-input-mobile`;
 
   const render1Identifier = icon1 ? (
-    <img src={icon1} alt={iconAlt1} className="mobile-inspector-row-icon" />
+    <img src={icon1} alt={iconAlt1} className={MOBILE_INSPECTOR_ROW_ICON_CLASSES} />
   ) : (
-    <label htmlFor={`${idLabel1}-input-mobile`} className="mobile-inspector-row-identifier">
+    <label htmlFor={`${idLabel1}-input-mobile`} className={MOBILE_INSPECTOR_ROW_IDENTIFIER_CLASSES}>
       {tooltip1}
     </label>
   );
 
   const render2Identifier = icon2 ? (
-    <img src={icon2} alt={iconAlt2} className="mobile-inspector-row-icon" />
+    <img src={icon2} alt={iconAlt2} className={MOBILE_INSPECTOR_ROW_ICON_CLASSES} />
   ) : (
-    <label htmlFor={`${idLabel2}-input-mobile`} className="mobile-inspector-row-identifier">
+    <label htmlFor={`${idLabel2}-input-mobile`} className={MOBILE_INSPECTOR_ROW_IDENTIFIER_CLASSES}>
       {tooltip2}
     </label>
   );
 
   return (
-    <div className="mobile-inspector-row">
+    <div className={MOBILE_INSPECTOR_ROW_CLASSES}>
       {/* Identifier1 */}
       {render1Identifier}
 
       {/* Input1 */}
-      <div className="mobile-inspector-small-input-container">
+      <div className={MOBILE_INSPECTOR_SMALL_INPUT_CONTAINER_CLASSES}>
         <MobileInspectorInput
           inputProps={{ id: inputId1 }}
           input={{
@@ -98,7 +102,7 @@ const MobileInspectorDualNumericInput: React.FC<MobileInspectorDualNumericInputP
       {render2Identifier}
 
       {/* Input2 */}
-      <div className="mobile-inspector-small-input-container">
+      <div className={MOBILE_INSPECTOR_SMALL_INPUT_CONTAINER_CLASSES}>
         <MobileInspectorInput
           inputProps={{ id: inputId2 }}
           input={{
