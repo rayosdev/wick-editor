@@ -1,10 +1,10 @@
 .wick-input-v2-field {
-  --wick-input-v2-border: #3c4658;
-  --wick-input-v2-focus: #5cb2ff;
-  --wick-input-v2-bg-top: #2f3849;
-  --wick-input-v2-bg-bottom: #252d3b;
-  --wick-input-v2-text: #f7fbff;
-  --wick-input-v2-muted: #9fb0cd;
+  --wick-input-v2-border: #4a5363;
+  --wick-input-v2-focus: #68c4ff;
+  --wick-input-v2-bg: #2a2f38;
+  --wick-input-v2-bg-compact: #252a33;
+  --wick-input-v2-text: #edf2fa;
+  --wick-input-v2-muted: #97a2b8;
   --wick-input-v2-danger: #ff8c8c;
   display: grid;
   gap: 0.35rem;
@@ -31,16 +31,14 @@
 .wick-input-v2-control {
   box-sizing: border-box;
   width: 100%;
-  min-height: 2.1rem;
+  min-height: 1.95rem;
   border: 1px solid var(--wick-input-v2-border);
-  border-radius: 0.6rem;
-  background: linear-gradient(
-    180deg,
-    var(--wick-input-v2-bg-top) 0%,
-    var(--wick-input-v2-bg-bottom) 100%
-  );
+  border-radius: 0.45rem;
+  background-color: var(--wick-input-v2-bg);
+  background-image: none;
   color: var(--wick-input-v2-text);
-  padding: 0.45rem 0.65rem;
+  padding: 0.35rem 0.55rem;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 4%);
   transition:
     border-color 120ms ease,
     box-shadow 120ms ease,
@@ -54,7 +52,9 @@
 .wick-input-v2-control:focus-visible {
   outline: none;
   border-color: var(--wick-input-v2-focus);
-  box-shadow: 0 0 0 3px rgb(92 178 255 / 22%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 4%),
+    0 0 0 2px rgb(104 196 255 / 22%);
 }
 
 .wick-input-v2-control:disabled {
@@ -180,5 +180,27 @@
 }
 
 .wick-input-v2-field--compact .wick-input-v2-control {
-  min-height: 2rem;
+  min-height: 1.8rem;
+  border-radius: 0.38rem;
+  background-color: var(--wick-input-v2-bg-compact);
+  padding: 0.25rem 0.5rem;
+}
+
+.wick-input-v2-control[class*="!bg-transparent"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+.asset-library-filter .wick-input-v2-control,
+.mobile-asset-library-filter .wick-input-v2-control {
+  min-height: 1.7rem;
+  border-radius: 0.35rem;
+  padding: 0.2rem 0.4rem;
+}
+
+.inspector-content .wick-input-v2-field--compact .wick-input-v2-control,
+.mobile-inspector .wick-input-v2-field--compact .wick-input-v2-control {
+  border-color: #414853;
+  background-color: #242932;
 }

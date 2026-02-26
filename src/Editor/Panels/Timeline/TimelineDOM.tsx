@@ -9,6 +9,35 @@ import {
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
+import {
+  TIMELINE_CONTEXT_MENU_CLASSES,
+  TIMELINE_CONTEXT_MENU_HINT_CLASSES,
+  TIMELINE_CONTEXT_MENU_ICON_CLASSES,
+  TIMELINE_CONTEXT_MENU_ITEM_CLASSES,
+  TIMELINE_CONTEXT_MENU_GLYPH_CLASSES,
+  TIMELINE_CONTEXT_MENU_LABEL_CLASSES,
+  TIMELINE_CONTEXT_MENU_TARGET_CLASSES,
+} from "./timelineContextMenuClasses";
+import {
+  getTimelineFooterChoiceClasses,
+  getTimelineHeaderOptionsButtonClasses,
+  getTimelineRendererToggleButtonClasses,
+  getTimelineShortcutToggleButtonClasses,
+  TIMELINE_FOOTER_BUTTON_CLASSES,
+  TIMELINE_FOOTER_CHOICE_ICON_CLASSES,
+  TIMELINE_FOOTER_FIELD_GROUP_CLASSES,
+  TIMELINE_FOOTER_GROUP_CLASSES,
+  TIMELINE_FOOTER_ICON_CLASSES,
+  TIMELINE_FOOTER_ICON_LABEL_CLASSES,
+  TIMELINE_FOOTER_INPUT_CLASSES,
+  TIMELINE_FOOTER_INPUT_FPS_CLASSES,
+  TIMELINE_FOOTER_INPUT_JUMP_CLASSES,
+  TIMELINE_FOOTER_INPUT_RANGE_CLASSES,
+  TIMELINE_FOOTER_LABEL_CLASSES,
+  TIMELINE_FOOTER_READOUT_CLASSES,
+  TIMELINE_RENDERER_TOGGLE_CLASSES,
+  TIMELINE_SHORTCUT_TOGGLE_CLASSES,
+} from "./timelineControlClasses";
 
 import "./timeline-legacy.css";
 
@@ -2939,10 +2968,16 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
           <div className="timeline-flash-header-right">
             <div className="timeline-flash-header-right-primary">
               <div className="timeline-flash-meta">{timelineMeta}</div>
-              <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline shortcut preset">
+              <div
+                className={TIMELINE_SHORTCUT_TOGGLE_CLASSES}
+                role="group"
+                aria-label="Timeline shortcut preset"
+              >
                 <button
                   type="button"
-                  className={`timeline-shortcut-toggle-button ${props.timelineShortcutPreset === "wick" ? "active" : ""}`}
+                  className={getTimelineShortcutToggleButtonClasses(
+                    props.timelineShortcutPreset === "wick"
+                  )}
                   aria-pressed={props.timelineShortcutPreset === "wick"}
                   onClick={() => handleShortcutPresetSwitch("wick")}
                 >
@@ -2950,17 +2985,25 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 </button>
                 <button
                   type="button"
-                  className={`timeline-shortcut-toggle-button ${props.timelineShortcutPreset === "flash" ? "active" : ""}`}
+                  className={getTimelineShortcutToggleButtonClasses(
+                    props.timelineShortcutPreset === "flash"
+                  )}
                   aria-pressed={props.timelineShortcutPreset === "flash"}
                   onClick={() => handleShortcutPresetSwitch("flash")}
                 >
                   Flash
                 </button>
               </div>
-              <div className="timeline-renderer-toggle" role="group" aria-label="Timeline renderer">
+              <div
+                className={TIMELINE_RENDERER_TOGGLE_CLASSES}
+                role="group"
+                aria-label="Timeline renderer"
+              >
                 <button
                   type="button"
-                  className={`timeline-renderer-toggle-button ${props.timelineRendererMode === "dom" ? "active" : ""}`}
+                  className={getTimelineRendererToggleButtonClasses(
+                    props.timelineRendererMode === "dom"
+                  )}
                   aria-pressed={props.timelineRendererMode === "dom"}
                   onClick={() => handleModeSwitch("dom")}
                 >
@@ -2968,7 +3011,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 </button>
                 <button
                   type="button"
-                  className={`timeline-renderer-toggle-button ${props.timelineRendererMode === "classic" ? "active" : ""}`}
+                  className={getTimelineRendererToggleButtonClasses(
+                    props.timelineRendererMode === "classic"
+                  )}
                   aria-pressed={props.timelineRendererMode === "classic"}
                   onClick={() => handleModeSwitch("classic")}
                 >
@@ -2977,7 +3022,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               </div>
               <button
                 type="button"
-                className={`timeline-header-options-button ${showHeaderOptions ? "active" : ""}`}
+                className={getTimelineHeaderOptionsButtonClasses(showHeaderOptions)}
                 aria-expanded={showHeaderOptions}
                 aria-controls="timeline-header-options-panel"
                 onClick={() => setShowHeaderOptions((current) => !current)}
@@ -2990,11 +3035,16 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               className={`timeline-flash-header-right-advanced ${showHeaderOptions ? "open" : ""}`}
               hidden={!showHeaderOptions}
             >
-              <div className="timeline-shortcut-toggle" role="group" aria-label="Playhead follow mode">
+              <div
+                className={TIMELINE_SHORTCUT_TOGGLE_CLASSES}
+                role="group"
+                aria-label="Playhead follow mode"
+              >
                 <button
                   type="button"
-                  className={`timeline-shortcut-toggle-button ${props.timelinePlaybackFollowMode === "follow-playhead" ? "active" : ""
-                    }`}
+                  className={getTimelineShortcutToggleButtonClasses(
+                    props.timelinePlaybackFollowMode === "follow-playhead"
+                  )}
                   aria-pressed={props.timelinePlaybackFollowMode === "follow-playhead"}
                   onClick={() => handlePlaybackFollowModeSwitch("follow-playhead")}
                 >
@@ -3002,19 +3052,25 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 </button>
                 <button
                   type="button"
-                  className={`timeline-shortcut-toggle-button ${props.timelinePlaybackFollowMode === "off" ? "active" : ""
-                    }`}
+                  className={getTimelineShortcutToggleButtonClasses(
+                    props.timelinePlaybackFollowMode === "off"
+                  )}
                   aria-pressed={props.timelinePlaybackFollowMode === "off"}
                   onClick={() => handlePlaybackFollowModeSwitch("off")}
                 >
                   Free
                 </button>
               </div>
-              <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline snap mode">
+              <div
+                className={TIMELINE_SHORTCUT_TOGGLE_CLASSES}
+                role="group"
+                aria-label="Timeline snap mode"
+              >
                 <button
                   type="button"
-                  className={`timeline-shortcut-toggle-button ${props.timelineSnapMode === "none" ? "active" : ""
-                    }`}
+                  className={getTimelineShortcutToggleButtonClasses(
+                    props.timelineSnapMode === "none"
+                  )}
                   aria-pressed={props.timelineSnapMode === "none"}
                   onClick={() => handleSnapModeSwitch("none")}
                 >
@@ -3022,8 +3078,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 </button>
                 <button
                   type="button"
-                  className={`timeline-shortcut-toggle-button ${props.timelineSnapMode === "frames" ? "active" : ""
-                    }`}
+                  className={getTimelineShortcutToggleButtonClasses(
+                    props.timelineSnapMode === "frames"
+                  )}
                   aria-pressed={props.timelineSnapMode === "frames"}
                   onClick={() => handleSnapModeSwitch("frames")}
                 >
@@ -3031,19 +3088,25 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 </button>
                 <button
                   type="button"
-                  className={`timeline-shortcut-toggle-button ${props.timelineSnapMode === "markers" ? "active" : ""
-                    }`}
+                  className={getTimelineShortcutToggleButtonClasses(
+                    props.timelineSnapMode === "markers"
+                  )}
                   aria-pressed={props.timelineSnapMode === "markers"}
                   onClick={() => handleSnapModeSwitch("markers")}
                 >
                   Markers
                 </button>
               </div>
-              <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline density mode">
+              <div
+                className={TIMELINE_SHORTCUT_TOGGLE_CLASSES}
+                role="group"
+                aria-label="Timeline density mode"
+              >
                 <button
                   type="button"
-                  className={`timeline-shortcut-toggle-button ${props.timelineDensityMode === "compact" ? "active" : ""
-                    }`}
+                  className={getTimelineShortcutToggleButtonClasses(
+                    props.timelineDensityMode === "compact"
+                  )}
                   aria-pressed={props.timelineDensityMode === "compact"}
                   onClick={() => handleDensityModeSwitch("compact")}
                 >
@@ -3051,18 +3114,25 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 </button>
                 <button
                   type="button"
-                  className={`timeline-shortcut-toggle-button ${props.timelineDensityMode === "standard" ? "active" : ""
-                    }`}
+                  className={getTimelineShortcutToggleButtonClasses(
+                    props.timelineDensityMode === "standard"
+                  )}
                   aria-pressed={props.timelineDensityMode === "standard"}
                   onClick={() => handleDensityModeSwitch("standard")}
                 >
                   Standard
                 </button>
               </div>
-              <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline insert mode">
+              <div
+                className={TIMELINE_SHORTCUT_TOGGLE_CLASSES}
+                role="group"
+                aria-label="Timeline insert mode"
+              >
                 <button
                   type="button"
-                  className={`timeline-shortcut-toggle-button ${insertMode === "overwrite" ? "active" : ""}`}
+                  className={getTimelineShortcutToggleButtonClasses(
+                    insertMode === "overwrite"
+                  )}
                   aria-pressed={insertMode === "overwrite"}
                   onClick={() => setInsertMode("overwrite")}
                 >
@@ -3070,17 +3140,25 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 </button>
                 <button
                   type="button"
-                  className={`timeline-shortcut-toggle-button ${insertMode === "ripple" ? "active" : ""}`}
+                  className={getTimelineShortcutToggleButtonClasses(
+                    insertMode === "ripple"
+                  )}
                   aria-pressed={insertMode === "ripple"}
                   onClick={() => setInsertMode("ripple")}
                 >
                   Ripple
                 </button>
               </div>
-              <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline grid contrast">
+              <div
+                className={TIMELINE_SHORTCUT_TOGGLE_CLASSES}
+                role="group"
+                aria-label="Timeline grid contrast"
+              >
                 <button
                   type="button"
-                  className={`timeline-shortcut-toggle-button ${gridContrastMode === "soft" ? "active" : ""}`}
+                  className={getTimelineShortcutToggleButtonClasses(
+                    gridContrastMode === "soft"
+                  )}
                   aria-pressed={gridContrastMode === "soft"}
                   onClick={() => setGridContrastMode("soft")}
                 >
@@ -3088,7 +3166,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 </button>
                 <button
                   type="button"
-                  className={`timeline-shortcut-toggle-button ${gridContrastMode === "strong" ? "active" : ""}`}
+                  className={getTimelineShortcutToggleButtonClasses(
+                    gridContrastMode === "strong"
+                  )}
                   aria-pressed={gridContrastMode === "strong"}
                   onClick={() => setGridContrastMode("strong")}
                 >
@@ -3676,10 +3756,10 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         </div>
 
         <div className="timeline-flash-footer" role="toolbar" aria-label="Timeline Quick Controls">
-          <div className="timeline-flash-footer-group timeline-flash-footer-field">
-            <span className="timeline-flash-footer-label">Frame</span>
+          <div className={`${TIMELINE_FOOTER_GROUP_CLASSES} ${TIMELINE_FOOTER_FIELD_GROUP_CLASSES}`}>
+            <span className={TIMELINE_FOOTER_LABEL_CLASSES}>Frame</span>
             <input
-              className="timeline-flash-footer-input"
+              className={TIMELINE_FOOTER_INPUT_CLASSES}
               type="number"
               min={1}
               step={1}
@@ -3693,16 +3773,16 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               }}
               aria-label="Current Frame Number"
             />
-            <button type="button" className="timeline-flash-footer-button" onClick={commitFrameInput}>
+            <button type="button" className={TIMELINE_FOOTER_BUTTON_CLASSES} onClick={commitFrameInput}>
               Go
             </button>
           </div>
 
-          <div className="timeline-flash-footer-group timeline-flash-footer-field">
-            <span className="timeline-flash-footer-label">FPS</span>
+          <div className={`${TIMELINE_FOOTER_GROUP_CLASSES} ${TIMELINE_FOOTER_FIELD_GROUP_CLASSES}`}>
+            <span className={TIMELINE_FOOTER_LABEL_CLASSES}>FPS</span>
             <button
               type="button"
-              className="timeline-flash-footer-button"
+              className={TIMELINE_FOOTER_BUTTON_CLASSES}
               onClick={() => nudgeFps(-1)}
               aria-label="Decrease Framerate"
               title="Decrease Framerate"
@@ -3710,7 +3790,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               -
             </button>
             <input
-              className="timeline-flash-footer-input timeline-flash-footer-input-fps"
+              className={`${TIMELINE_FOOTER_INPUT_CLASSES} ${TIMELINE_FOOTER_INPUT_FPS_CLASSES}`}
               type="number"
               min={MIN_FRAME_RATE}
               max={MAX_FRAME_RATE}
@@ -3727,7 +3807,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             />
             <button
               type="button"
-              className="timeline-flash-footer-button"
+              className={TIMELINE_FOOTER_BUTTON_CLASSES}
               onClick={() => nudgeFps(1)}
               aria-label="Increase Framerate"
               title="Increase Framerate"
@@ -3736,48 +3816,48 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             </button>
           </div>
 
-          <div className="timeline-flash-footer-group">
-            <span className="timeline-flash-footer-label timeline-flash-footer-icon-label">
-              <img src={iconFrameSizeMenu} alt="" className="timeline-flash-footer-icon" />
+          <div className={TIMELINE_FOOTER_GROUP_CLASSES}>
+            <span className={`${TIMELINE_FOOTER_LABEL_CLASSES} ${TIMELINE_FOOTER_ICON_LABEL_CLASSES}`}>
+              <img src={iconFrameSizeMenu} alt="" className={TIMELINE_FOOTER_ICON_CLASSES} />
               Frames
             </span>
             <button
               type="button"
-              className={`timeline-flash-footer-choice ${frameSizeMode === "small" ? "active" : ""}`}
+              className={getTimelineFooterChoiceClasses(frameSizeMode === "small")}
               onClick={() => {
                 setFrameSizeMode("small");
                 softRender();
               }}
               aria-pressed={frameSizeMode === "small"}
             >
-              <img src={iconSmallFrames} alt="" className="timeline-flash-footer-choice-icon" />S
+              <img src={iconSmallFrames} alt="" className={TIMELINE_FOOTER_CHOICE_ICON_CLASSES} />S
             </button>
             <button
               type="button"
-              className={`timeline-flash-footer-choice ${frameSizeMode === "normal" ? "active" : ""}`}
+              className={getTimelineFooterChoiceClasses(frameSizeMode === "normal")}
               onClick={() => {
                 setFrameSizeMode("normal");
                 softRender();
               }}
               aria-pressed={frameSizeMode === "normal"}
             >
-              <img src={iconNormalFrames} alt="" className="timeline-flash-footer-choice-icon" />M
+              <img src={iconNormalFrames} alt="" className={TIMELINE_FOOTER_CHOICE_ICON_CLASSES} />M
             </button>
             <button
               type="button"
-              className={`timeline-flash-footer-choice ${frameSizeMode === "large" ? "active" : ""}`}
+              className={getTimelineFooterChoiceClasses(frameSizeMode === "large")}
               onClick={() => {
                 setFrameSizeMode("large");
                 softRender();
               }}
               aria-pressed={frameSizeMode === "large"}
             >
-              <img src={iconLargeFrames} alt="" className="timeline-flash-footer-choice-icon" />L
+              <img src={iconLargeFrames} alt="" className={TIMELINE_FOOTER_CHOICE_ICON_CLASSES} />L
             </button>
           </div>
 
-          <div className="timeline-flash-footer-group">
-            <span className="timeline-flash-footer-label timeline-flash-footer-icon-label">
+          <div className={TIMELINE_FOOTER_GROUP_CLASSES}>
+            <span className={`${TIMELINE_FOOTER_LABEL_CLASSES} ${TIMELINE_FOOTER_ICON_LABEL_CLASSES}`}>
               <img
                 src={
                   insertMode === "ripple"
@@ -3785,34 +3865,42 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     : iconGapFillMenuBlankFrames
                 }
                 alt=""
-                className="timeline-flash-footer-icon"
+                className={TIMELINE_FOOTER_ICON_CLASSES}
               />
               Insert
             </span>
             <button
               type="button"
-              className={`timeline-flash-footer-choice ${insertMode === "overwrite" ? "active" : ""}`}
+              className={getTimelineFooterChoiceClasses(insertMode === "overwrite")}
               onClick={() => setInsertMode("overwrite")}
               aria-pressed={insertMode === "overwrite"}
             >
-              <img src={iconGapFillBlankFrames} alt="" className="timeline-flash-footer-choice-icon" />
+              <img
+                src={iconGapFillBlankFrames}
+                alt=""
+                className={TIMELINE_FOOTER_CHOICE_ICON_CLASSES}
+              />
               Overwrite
             </button>
             <button
               type="button"
-              className={`timeline-flash-footer-choice ${insertMode === "ripple" ? "active" : ""}`}
+              className={getTimelineFooterChoiceClasses(insertMode === "ripple")}
               onClick={() => setInsertMode("ripple")}
               aria-pressed={insertMode === "ripple"}
             >
-              <img src={iconGapFillExtendFrames} alt="" className="timeline-flash-footer-choice-icon" />
+              <img
+                src={iconGapFillExtendFrames}
+                alt=""
+                className={TIMELINE_FOOTER_CHOICE_ICON_CLASSES}
+              />
               Ripple
             </button>
           </div>
 
-          <div className="timeline-flash-footer-group timeline-flash-footer-field">
-            <span className="timeline-flash-footer-label">Jump</span>
+          <div className={`${TIMELINE_FOOTER_GROUP_CLASSES} ${TIMELINE_FOOTER_FIELD_GROUP_CLASSES}`}>
+            <span className={TIMELINE_FOOTER_LABEL_CLASSES}>Jump</span>
             <input
-              className="timeline-flash-footer-input timeline-flash-footer-input-jump"
+              className={`${TIMELINE_FOOTER_INPUT_CLASSES} ${TIMELINE_FOOTER_INPUT_JUMP_CLASSES}`}
               type="number"
               min={1}
               step={1}
@@ -3829,7 +3917,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               title="Jump to frame"
             />
             <input
-              className="timeline-flash-footer-input timeline-flash-footer-input-jump"
+              className={`${TIMELINE_FOOTER_INPUT_CLASSES} ${TIMELINE_FOOTER_INPUT_JUMP_CLASSES}`}
               type="text"
               value={jumpLayerValue}
               onChange={(event) => setJumpLayerValue(event.target.value)}
@@ -3845,17 +3933,17 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             />
           </div>
 
-          <div className="timeline-flash-footer-group">
-            <span className="timeline-flash-footer-label">Work Area</span>
-            <span className="timeline-flash-footer-readout">
+          <div className={TIMELINE_FOOTER_GROUP_CLASSES}>
+            <span className={TIMELINE_FOOTER_LABEL_CLASSES}>Work Area</span>
+            <span className={TIMELINE_FOOTER_READOUT_CLASSES}>
               {workArea.start}-{workArea.end}
             </span>
           </div>
 
-          <div className="timeline-flash-footer-group timeline-flash-footer-field">
-            <span className="timeline-flash-footer-label">Range</span>
+          <div className={`${TIMELINE_FOOTER_GROUP_CLASSES} ${TIMELINE_FOOTER_FIELD_GROUP_CLASSES}`}>
+            <span className={TIMELINE_FOOTER_LABEL_CLASSES}>Range</span>
             <input
-              className="timeline-flash-footer-input timeline-flash-footer-input-range"
+              className={`${TIMELINE_FOOTER_INPUT_CLASSES} ${TIMELINE_FOOTER_INPUT_RANGE_CLASSES}`}
               type="number"
               min={1}
               step={1}
@@ -3870,9 +3958,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               aria-label="Work area start frame"
               title="Work area start frame"
             />
-            <span className="timeline-flash-footer-label">to</span>
+            <span className={TIMELINE_FOOTER_LABEL_CLASSES}>to</span>
             <input
-              className="timeline-flash-footer-input timeline-flash-footer-input-range"
+              className={`${TIMELINE_FOOTER_INPUT_CLASSES} ${TIMELINE_FOOTER_INPUT_RANGE_CLASSES}`}
               type="number"
               min={1}
               step={1}
@@ -3889,7 +3977,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             />
             <button
               type="button"
-              className="timeline-flash-footer-button"
+              className={TIMELINE_FOOTER_BUTTON_CLASSES}
               onClick={commitWorkAreaRange}
               aria-label="Set work area range"
               title="Set work area range"
@@ -3898,11 +3986,11 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             </button>
           </div>
 
-          <div className="timeline-flash-footer-group">
-            <span className="timeline-flash-footer-label">Markers</span>
+          <div className={TIMELINE_FOOTER_GROUP_CLASSES}>
+            <span className={TIMELINE_FOOTER_LABEL_CLASSES}>Markers</span>
             <button
               type="button"
-              className="timeline-flash-footer-button"
+              className={TIMELINE_FOOTER_BUTTON_CLASSES}
               onClick={handleAddMarker}
               aria-label="Add marker at playhead"
               title="Add marker at playhead"
@@ -3911,7 +3999,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             </button>
             <button
               type="button"
-              className="timeline-flash-footer-button"
+              className={TIMELINE_FOOTER_BUTTON_CLASSES}
               onClick={() => jumpToMarker("previous")}
               aria-label="Jump to previous marker"
               title="Jump to previous marker"
@@ -3920,7 +4008,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             </button>
             <button
               type="button"
-              className="timeline-flash-footer-button"
+              className={TIMELINE_FOOTER_BUTTON_CLASSES}
               onClick={() => jumpToMarker("next")}
               aria-label="Jump to next marker"
               title="Jump to next marker"
@@ -3929,7 +4017,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             </button>
             <button
               type="button"
-              className={`timeline-flash-footer-choice ${loopWorkArea ? "active" : ""}`}
+              className={getTimelineFooterChoiceClasses(loopWorkArea)}
               onClick={() => setLoopWorkArea((current) => !current)}
               aria-pressed={loopWorkArea}
             >
@@ -3970,7 +4058,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         {contextMenuPosition && (
           <div
             ref={contextMenuRef}
-            className="timeline-context-menu"
+            className={TIMELINE_CONTEXT_MENU_CLASSES}
             role="menu"
             aria-label="Timeline frame actions"
             style={{
@@ -3978,27 +4066,27 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               top: `${contextMenuPosition.y}px`,
             }}
           >
-            <div className="timeline-context-menu-target">
+            <div className={TIMELINE_CONTEXT_MENU_TARGET_CLASSES}>
               {doubleClickMenuContext ? doubleClickMenuContext.label : (contextMenuTarget?.label ?? "Current Selection")}
             </div>
             {contextMenuItems.map((item) => (
               <button
                 key={item.id}
                 type="button"
-                className="timeline-context-menu-item"
+                className={TIMELINE_CONTEXT_MENU_ITEM_CLASSES}
                 role="menuitem"
                 onClick={() => runMenuAction(item.action)}
                 disabled={item.disabled}
               >
                 {item.icon ? (
-                  <ToolIcon className="timeline-context-menu-item-icon" name={item.icon} />
+                  <ToolIcon className={TIMELINE_CONTEXT_MENU_ICON_CLASSES} name={item.icon} />
                 ) : (
-                  <span className="timeline-context-menu-item-glyph">{item.glyph}</span>
+                  <span className={TIMELINE_CONTEXT_MENU_GLYPH_CLASSES}>{item.glyph}</span>
                 )}
-                <span className="timeline-context-menu-item-label">{item.label}</span>
+                <span className={TIMELINE_CONTEXT_MENU_LABEL_CLASSES}>{item.label}</span>
               </button>
             ))}
-            <div className="timeline-context-menu-hint">
+            <div className={TIMELINE_CONTEXT_MENU_HINT_CLASSES}>
               Context actions for selected timeline location
             </div>
           </div>

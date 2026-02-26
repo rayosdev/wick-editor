@@ -1,4 +1,10 @@
-import React, { useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from "react";
+import React, {
+    useEffect,
+    useMemo,
+    useState,
+    type KeyboardEvent as ReactKeyboardEvent,
+    type MouseEvent as ReactMouseEvent,
+} from "react";
 import classNames from "classnames";
 
 import { OutlinerObject } from "./OutlinerObject/OutlinerObject";
@@ -42,6 +48,13 @@ interface WickTimeline {
 type DisplayKey = "path" | "button" | "clip" | "text" | "image";
 type DisplayOptions = Record<DisplayKey, boolean>;
 type OutlinerToggleProperty = "select" | "dropdown" | "locked" | "hidden";
+type VisibleOutlinerEntry = {
+    object: WickNode;
+    indices: number[];
+    depth: number;
+    parent: WickNode | WickTimeline | null;
+    hasVisibleChildren: boolean;
+};
 
 interface OutlinerProps {
     project: { activeTimeline: WickTimeline };
@@ -64,6 +77,7 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
 
     const [dragging, setDragging] = useState<boolean>(false);
     const [highlighted, setHighlighted] = useState<WickNode | null>(null);
+    const [isPointerInsideOutliner, setIsPointerInsideOutliner] = useState<boolean>(false);
     const [display, setDisplay] = useState<DisplayOptions>({
         path: true,
         button: true,
@@ -72,6 +86,8 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
         image: true,
     });
     const [collapsedUUIDs, setCollapsedUUIDs] = useState<Record<string, boolean>>({});
+    const { project, className } = props;
+    const timelineChildren = project.activeTimeline.getChildren();
 
     const toDisplayKey = (value: string): DisplayKey | null => {
         switch (value.toLowerCase()) {
@@ -235,6 +251,28 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
         }
     };
 
+    const selectSingleObject = (object: WickNode): void => {
+        props.clearSelection();
+        props.selectObjects([object]);
+        setHighlighted(object);
+        setActiveLayerFromObject(object);
+    };
+
+    const getDisplayOrderedChildren = (parent: WickNode | WickTimeline): WickNode[] => {
+        const children = parent.getChildren();
+        if (parent.classname === "Frame") {
+            return children.slice().reverse();
+        }
+        return children;
+    };
+
+    const getVisibleChildren = (parent: WickNode, depth: number): WickNode[] => {
+        if (depth >= maxDepth) {
+            return [];
+        }
+        return getDisplayOrderedChildren(parent).filter((child) => isActive(child));
+    };
+
     const select = (event: ToggleEvent, indices: number[]): void => {
         if (!indices.length) {
             return;
@@ -351,9 +389,201 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
         });
     };
 
-    const { project, className } = props;
+    const visibleEntries = useMemo<VisibleOutlinerEntry[]>(() => {
+        const entries: VisibleOutlinerEntry[] = [];
+        const traverse = (
+            object: WickNode,
+            indices: number[],
+            depth: number,
+            parent: WickNode | WickTimeline | null
+        ): void => {
+            if (!isActive(object)) {
+                return;
+            }
 
-    const timelineChildren = project.activeTimeline.getChildren();
+            const visibleChildren = getVisibleChildren(object, depth);
+            entries.push({
+                object,
+                indices,
+                depth,
+                parent,
+                hasVisibleChildren: visibleChildren.length > 0,
+            });
+
+            if (collapsedUUIDs[object.uuid]) {
+                return;
+            }
+
+            visibleChildren.forEach((child, childIndex) => {
+                traverse(child, [...indices, childIndex], depth + 1, object);
+            });
+        };
+
+        timelineChildren.forEach((layer, layerIndex) => {
+            traverse(layer, [layerIndex], 1, project.activeTimeline);
+        });
+
+        return entries;
+    }, [collapsedUUIDs, timelineChildren, project.activeTimeline, isActive]);
+
+    useEffect(() => {
+        if (!isPointerInsideOutliner) {
+            return;
+        }
+
+        const isTextInputTarget = (target: EventTarget | null): boolean => {
+            if (!(target instanceof HTMLElement)) {
+                return false;
+            }
+
+            const tagName = target.tagName;
+            return (
+                tagName === "INPUT" ||
+                tagName === "TEXTAREA" ||
+                tagName === "SELECT" ||
+                target.isContentEditable
+            );
+        };
+
+        const handleKeyDown = (event: KeyboardEvent): void => {
+            if (isTextInputTarget(event.target)) {
+                return;
+            }
+
+            const key = event.key;
+            const navKeys = new Set([
+                "ArrowUp",
+                "ArrowDown",
+                "ArrowLeft",
+                "ArrowRight",
+                "Home",
+                "End",
+                "Enter",
+                " ",
+                "Spacebar",
+            ]);
+
+            if (!navKeys.has(key)) {
+                return;
+            }
+
+            if (visibleEntries.length === 0) {
+                return;
+            }
+
+            const currentIndex = visibleEntries.findIndex(
+                (entry) =>
+                    entry.object.uuid === highlighted?.uuid ||
+                    Boolean(entry.object.isSelected)
+            );
+            const fallbackIndex = currentIndex >= 0 ? currentIndex : 0;
+            const currentEntry = visibleEntries[fallbackIndex];
+            if (!currentEntry) {
+                return;
+            }
+
+            const selectEntry = (entry: VisibleOutlinerEntry): void => {
+                select(
+                    {
+                        shiftKey: event.shiftKey,
+                        ctrlKey: event.ctrlKey || event.metaKey,
+                    } as ToggleEvent,
+                    [...entry.indices]
+                );
+            };
+
+            if (key === "ArrowUp") {
+                const nextIndex = Math.max(0, fallbackIndex - 1);
+                const entry = visibleEntries[nextIndex];
+                if (entry) {
+                    selectEntry(entry);
+                }
+            } else if (key === "ArrowDown") {
+                const nextIndex = Math.min(visibleEntries.length - 1, fallbackIndex + 1);
+                const entry = visibleEntries[nextIndex];
+                if (entry) {
+                    selectEntry(entry);
+                }
+            } else if (key === "Home") {
+                const entry = visibleEntries[0];
+                if (entry) {
+                    selectEntry(entry);
+                }
+            } else if (key === "End") {
+                const entry = visibleEntries[visibleEntries.length - 1];
+                if (entry) {
+                    selectEntry(entry);
+                }
+            } else if (key === "ArrowRight") {
+                if (currentEntry.hasVisibleChildren) {
+                    if (collapsedUUIDs[currentEntry.object.uuid]) {
+                        setCollapsedUUIDs((prev) => {
+                            const next = { ...prev };
+                            delete next[currentEntry.object.uuid];
+                            return next;
+                        });
+                    } else {
+                        const childEntry = visibleEntries[fallbackIndex + 1];
+                        if (
+                            childEntry &&
+                            childEntry.parent &&
+                            "uuid" in childEntry.parent &&
+                            childEntry.parent.uuid === currentEntry.object.uuid
+                        ) {
+                            selectSingleObject(childEntry.object);
+                        }
+                    }
+                }
+            } else if (key === "ArrowLeft") {
+                if (currentEntry.hasVisibleChildren && !collapsedUUIDs[currentEntry.object.uuid]) {
+                    setCollapsedUUIDs((prev) => ({
+                        ...prev,
+                        [currentEntry.object.uuid]: true,
+                    }));
+                } else if (currentEntry.parent && "uuid" in currentEntry.parent) {
+                    const parent = currentEntry.parent as WickNode;
+                    if (isActive(parent)) {
+                        selectSingleObject(parent);
+                    }
+                }
+            } else if (key === "Enter" || key === " ") {
+                if (key === " " && currentEntry.hasVisibleChildren) {
+                    if (collapsedUUIDs[currentEntry.object.uuid]) {
+                        setCollapsedUUIDs((prev) => {
+                            const next = { ...prev };
+                            delete next[currentEntry.object.uuid];
+                            return next;
+                        });
+                    } else {
+                        setCollapsedUUIDs((prev) => ({
+                            ...prev,
+                            [currentEntry.object.uuid]: true,
+                        }));
+                    }
+                } else {
+                    selectSingleObject(currentEntry.object);
+                }
+            } else {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+        };
+
+        window.addEventListener("keydown", handleKeyDown, { capture: true });
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown, { capture: true });
+        };
+    }, [
+        collapsedUUIDs,
+        highlighted?.uuid,
+        isPointerInsideOutliner,
+        isActive,
+        select,
+        selectSingleObject,
+        visibleEntries,
+    ]);
 
     return (
         <div
@@ -379,51 +609,57 @@ const Outliner: React.FC<OutlinerProps> = (props) => {
             </div>
 
             <div className="outliner-body h-[calc(100%-28px)] w-full overflow-hidden text-editor-text-primary has-hover:overflow-y-auto">
-                <div className="outliner-item flex flex-col border-b border-solid border-[#191919] px-[6px] py-[3px]">
-                    {timelineChildren.map((layer: WickNode, index: number) => (
-                        <OutlinerObject
-                            key={layer.uuid}
-                            clearSelection={props.clearSelection}
-                            selectObjects={props.selectObjects}
-                            editScript={props.editScript}
-                            playhead={project.activeTimeline.playheadPosition}
-                            depth={1}
-                            maxDepth={maxDepth}
-                            display={display}
-                            highlighted={highlighted}
-                            toggle={(toggleEvent: ToggleEvent, indices: number[], property: OutlinerToggleProperty) => {
-                                indices.unshift(index);
-                                if (property === "select") {
-                                    select(toggleEvent, indices);
-                                } else if (property === "dropdown") {
-                                    toggleDropdown(toggleEvent, indices);
-                                } else if (property === "locked" || property === "hidden") {
-                                    const target = getObjectAtIndices(
-                                        project.activeTimeline,
-                                        indices,
-                                        indices.length
-                                    );
-                                    if (target) {
-                                        if (property === "locked") {
-                                            props.toggleLocked(target);
-                                        } else {
-                                            props.toggleHidden(target);
+                <div
+                    className="h-full w-full"
+                    onPointerEnter={() => setIsPointerInsideOutliner(true)}
+                    onPointerLeave={() => setIsPointerInsideOutliner(false)}
+                >
+                    <div className="outliner-item flex flex-col border-b border-solid border-[#191919] px-[6px] py-[3px]">
+                        {timelineChildren.map((layer: WickNode, index: number) => (
+                            <OutlinerObject
+                                key={layer.uuid}
+                                clearSelection={props.clearSelection}
+                                selectObjects={props.selectObjects}
+                                editScript={props.editScript}
+                                playhead={project.activeTimeline.playheadPosition}
+                                depth={1}
+                                maxDepth={maxDepth}
+                                display={display}
+                                highlighted={highlighted}
+                                toggle={(toggleEvent: ToggleEvent, indices: number[], property: OutlinerToggleProperty) => {
+                                    indices.unshift(index);
+                                    if (property === "select") {
+                                        select(toggleEvent, indices);
+                                    } else if (property === "dropdown") {
+                                        toggleDropdown(toggleEvent, indices);
+                                    } else if (property === "locked" || property === "hidden") {
+                                        const target = getObjectAtIndices(
+                                            project.activeTimeline,
+                                            indices,
+                                            indices.length
+                                        );
+                                        if (target) {
+                                            if (property === "locked") {
+                                                props.toggleLocked(target);
+                                            } else {
+                                                props.toggleHidden(target);
+                                            }
                                         }
                                     }
-                                }
-                            }}
-                            data={layer}
-                            isActive={isActive}
-                            collapsedUUIDs={collapsedUUIDs}
-                            dragging={dragging}
-                            setDragging={(dragging: boolean) => {
-                                setDragging(dragging);
-                            }}
-                            setFocusObject={props.setFocusObject}
-                            setActiveLayerIndex={props.setActiveLayerIndex}
-                            moveSelection={props.moveSelection}
-                        />
-                    ))}
+                                }}
+                                data={layer}
+                                isActive={isActive}
+                                collapsedUUIDs={collapsedUUIDs}
+                                dragging={dragging}
+                                setDragging={(dragging: boolean) => {
+                                    setDragging(dragging);
+                                }}
+                                setFocusObject={props.setFocusObject}
+                                setActiveLayerIndex={props.setActiveLayerIndex}
+                                moveSelection={props.moveSelection}
+                            />
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

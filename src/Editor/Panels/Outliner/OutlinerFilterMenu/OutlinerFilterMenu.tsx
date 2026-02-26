@@ -17,7 +17,7 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useState } from 'react';
+import React, { useId, useMemo, useState } from 'react';
 import PopupMenu from 'Editor/Util/PopupMenu/PopupMenu';
 import ToolIcon from 'Editor/Util/ToolIcon/ToolIcon';
 import classNames from 'classnames';
@@ -44,7 +44,11 @@ const filterItems: FilterItem[] = [
 
 const OutlinerFilterMenu: React.FC<OutlinerFilterMenuProps> = ({ display, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const buttonId = 'outliner-filter-menu-btn';
+  const reactId = useId();
+  const buttonId = useMemo(
+    () => `outliner-filter-menu-btn-${reactId.replace(/[^a-zA-Z0-9_-]/g, "")}`,
+    [reactId]
+  );
 
   const toggleMenu = () => setIsOpen(!isOpen);
 

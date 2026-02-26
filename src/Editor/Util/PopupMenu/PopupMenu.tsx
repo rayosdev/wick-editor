@@ -50,6 +50,7 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
   const isToolSettings = classTokens.has("tool-settings-menu-popover");
   const isToolSettingsPresets = classTokens.has("tool-settings-presets-menu-popover");
   const isCanvasActions = classTokens.has("canvas-actions-menu-popover");
+  const isOutlinerFilter = classTokens.has("outliner-filter-popup");
   const canvasActionsAlign =
     !mobile && isCanvasActions
       ? (() => {
@@ -64,7 +65,7 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
           return rect.left > window.innerWidth / 2 ? ("end" as const) : ("start" as const);
         })()
       : "start";
-  const popoverAlign = canvasActionsAlign;
+  const popoverAlign = !mobile && isOutlinerFilter ? ("end" as const) : canvasActionsAlign;
   const popoverPositions = !mobile && isCanvasActions
     ? (["bottom", "top", "left", "right"] as const)
     : (["bottom", "top"] as const);

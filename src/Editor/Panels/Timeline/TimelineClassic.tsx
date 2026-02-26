@@ -31,6 +31,31 @@ import type {
 } from "./Timeline.types";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
+import {
+    TIMELINE_CONTEXT_MENU_CLASSES,
+    TIMELINE_CONTEXT_MENU_GLYPH_CLASSES,
+    TIMELINE_CONTEXT_MENU_HINT_CLASSES,
+    TIMELINE_CONTEXT_MENU_ICON_CLASSES,
+    TIMELINE_CONTEXT_MENU_ITEM_CLASSES,
+    TIMELINE_CONTEXT_MENU_LABEL_CLASSES,
+    TIMELINE_CONTEXT_MENU_TARGET_CLASSES,
+} from "./timelineContextMenuClasses";
+import {
+    getTimelineFooterChoiceClasses,
+    getTimelineRendererToggleButtonClasses,
+    getTimelineShortcutToggleButtonClasses,
+    TIMELINE_FOOTER_BUTTON_CLASSES,
+    TIMELINE_FOOTER_CHOICE_ICON_CLASSES,
+    TIMELINE_FOOTER_FIELD_GROUP_CLASSES,
+    TIMELINE_FOOTER_GROUP_CLASSES,
+    TIMELINE_FOOTER_ICON_CLASSES,
+    TIMELINE_FOOTER_ICON_LABEL_CLASSES,
+    TIMELINE_FOOTER_INPUT_CLASSES,
+    TIMELINE_FOOTER_INPUT_FPS_CLASSES,
+    TIMELINE_FOOTER_LABEL_CLASSES,
+    TIMELINE_RENDERER_TOGGLE_CLASSES,
+    TIMELINE_SHORTCUT_TOGGLE_CLASSES,
+} from "./timelineControlClasses";
 
 import "./timeline-legacy.css";
 
@@ -798,10 +823,16 @@ const TimelineClassic: React.FC<TimelineRendererProps> = (props) => {
                     </div>
                     <div className="timeline-flash-header-right">
                         <div className="timeline-flash-meta">{timelineMeta}</div>
-                        <div className="timeline-shortcut-toggle" role="group" aria-label="Timeline shortcut preset">
+                        <div
+                            className={TIMELINE_SHORTCUT_TOGGLE_CLASSES}
+                            role="group"
+                            aria-label="Timeline shortcut preset"
+                        >
                             <button
                                 type="button"
-                                className={`timeline-shortcut-toggle-button ${props.timelineShortcutPreset === "wick" ? "active" : ""}`}
+                                className={getTimelineShortcutToggleButtonClasses(
+                                    props.timelineShortcutPreset === "wick"
+                                )}
                                 aria-pressed={props.timelineShortcutPreset === "wick"}
                                 onClick={() => props.onTimelineShortcutPresetChange("wick")}
                             >
@@ -809,17 +840,25 @@ const TimelineClassic: React.FC<TimelineRendererProps> = (props) => {
                             </button>
                             <button
                                 type="button"
-                                className={`timeline-shortcut-toggle-button ${props.timelineShortcutPreset === "flash" ? "active" : ""}`}
+                                className={getTimelineShortcutToggleButtonClasses(
+                                    props.timelineShortcutPreset === "flash"
+                                )}
                                 aria-pressed={props.timelineShortcutPreset === "flash"}
                                 onClick={() => props.onTimelineShortcutPresetChange("flash")}
                             >
                                 Flash
                             </button>
                         </div>
-                        <div className="timeline-renderer-toggle" role="group" aria-label="Timeline renderer">
+                        <div
+                            className={TIMELINE_RENDERER_TOGGLE_CLASSES}
+                            role="group"
+                            aria-label="Timeline renderer"
+                        >
                             <button
                                 type="button"
-                                className={`timeline-renderer-toggle-button ${props.timelineRendererMode === "dom" ? "active" : ""}`}
+                                className={getTimelineRendererToggleButtonClasses(
+                                    props.timelineRendererMode === "dom"
+                                )}
                                 aria-pressed={props.timelineRendererMode === "dom"}
                                 onClick={() => props.onTimelineRendererModeChange("dom")}
                             >
@@ -827,7 +866,9 @@ const TimelineClassic: React.FC<TimelineRendererProps> = (props) => {
                             </button>
                             <button
                                 type="button"
-                                className={`timeline-renderer-toggle-button ${props.timelineRendererMode === "classic" ? "active" : ""}`}
+                                className={getTimelineRendererToggleButtonClasses(
+                                    props.timelineRendererMode === "classic"
+                                )}
                                 aria-pressed={props.timelineRendererMode === "classic"}
                                 onClick={() => props.onTimelineRendererModeChange("classic")}
                             >
@@ -915,10 +956,10 @@ const TimelineClassic: React.FC<TimelineRendererProps> = (props) => {
                 />
 
                 <div className="timeline-flash-footer" role="toolbar" aria-label="Timeline Quick Controls">
-                    <div className="timeline-flash-footer-group timeline-flash-footer-field">
-                        <span className="timeline-flash-footer-label">Frame</span>
+                    <div className={`${TIMELINE_FOOTER_GROUP_CLASSES} ${TIMELINE_FOOTER_FIELD_GROUP_CLASSES}`}>
+                        <span className={TIMELINE_FOOTER_LABEL_CLASSES}>Frame</span>
                         <input
-                            className="timeline-flash-footer-input"
+                            className={TIMELINE_FOOTER_INPUT_CLASSES}
                             type="number"
                             min={1}
                             step={1}
@@ -934,25 +975,25 @@ const TimelineClassic: React.FC<TimelineRendererProps> = (props) => {
                         />
                         <button
                             type="button"
-                            className="timeline-flash-footer-button"
+                            className={TIMELINE_FOOTER_BUTTON_CLASSES}
                             onClick={commitFrameInput}
                         >
                             Go
                         </button>
                     </div>
 
-                    <div className="timeline-flash-footer-group timeline-flash-footer-field">
-                        <span className="timeline-flash-footer-label">FPS</span>
+                    <div className={`${TIMELINE_FOOTER_GROUP_CLASSES} ${TIMELINE_FOOTER_FIELD_GROUP_CLASSES}`}>
+                        <span className={TIMELINE_FOOTER_LABEL_CLASSES}>FPS</span>
                         <button
                             type="button"
-                            className="timeline-flash-footer-button"
+                            className={TIMELINE_FOOTER_BUTTON_CLASSES}
                             onClick={() => nudgeFps(-1)}
                             aria-label="Decrease Framerate"
                         >
                             -
                         </button>
                         <input
-                            className="timeline-flash-footer-input timeline-flash-footer-input-fps"
+                            className={`${TIMELINE_FOOTER_INPUT_CLASSES} ${TIMELINE_FOOTER_INPUT_FPS_CLASSES}`}
                             type="number"
                             min={MIN_FRAME_RATE}
                             max={MAX_FRAME_RATE}
@@ -969,7 +1010,7 @@ const TimelineClassic: React.FC<TimelineRendererProps> = (props) => {
                         />
                         <button
                             type="button"
-                            className="timeline-flash-footer-button"
+                            className={TIMELINE_FOOTER_BUTTON_CLASSES}
                             onClick={() => nudgeFps(1)}
                             aria-label="Increase Framerate"
                         >
@@ -977,42 +1018,42 @@ const TimelineClassic: React.FC<TimelineRendererProps> = (props) => {
                         </button>
                     </div>
 
-                    <div className="timeline-flash-footer-group">
-                        <span className="timeline-flash-footer-label timeline-flash-footer-icon-label">
-                            <img src={iconFrameSizeMenu} alt="" className="timeline-flash-footer-icon" />
+                    <div className={TIMELINE_FOOTER_GROUP_CLASSES}>
+                        <span className={`${TIMELINE_FOOTER_LABEL_CLASSES} ${TIMELINE_FOOTER_ICON_LABEL_CLASSES}`}>
+                            <img src={iconFrameSizeMenu} alt="" className={TIMELINE_FOOTER_ICON_CLASSES} />
                             Frames
                         </span>
                         <button
                             type="button"
-                            className={`timeline-flash-footer-choice ${frameSizeMode === "small" ? "active" : ""}`}
+                            className={getTimelineFooterChoiceClasses(frameSizeMode === "small")}
                             onClick={() => setTimelineFrameSizeMode("small")}
                             aria-pressed={frameSizeMode === "small"}
                         >
-                            <img src={iconSmallFrames} alt="" className="timeline-flash-footer-choice-icon" />
+                            <img src={iconSmallFrames} alt="" className={TIMELINE_FOOTER_CHOICE_ICON_CLASSES} />
                             S
                         </button>
                         <button
                             type="button"
-                            className={`timeline-flash-footer-choice ${frameSizeMode === "normal" ? "active" : ""}`}
+                            className={getTimelineFooterChoiceClasses(frameSizeMode === "normal")}
                             onClick={() => setTimelineFrameSizeMode("normal")}
                             aria-pressed={frameSizeMode === "normal"}
                         >
-                            <img src={iconNormalFrames} alt="" className="timeline-flash-footer-choice-icon" />
+                            <img src={iconNormalFrames} alt="" className={TIMELINE_FOOTER_CHOICE_ICON_CLASSES} />
                             M
                         </button>
                         <button
                             type="button"
-                            className={`timeline-flash-footer-choice ${frameSizeMode === "large" ? "active" : ""}`}
+                            className={getTimelineFooterChoiceClasses(frameSizeMode === "large")}
                             onClick={() => setTimelineFrameSizeMode("large")}
                             aria-pressed={frameSizeMode === "large"}
                         >
-                            <img src={iconLargeFrames} alt="" className="timeline-flash-footer-choice-icon" />
+                            <img src={iconLargeFrames} alt="" className={TIMELINE_FOOTER_CHOICE_ICON_CLASSES} />
                             L
                         </button>
                     </div>
 
-                    <div className="timeline-flash-footer-group">
-                        <span className="timeline-flash-footer-label timeline-flash-footer-icon-label">
+                    <div className={TIMELINE_FOOTER_GROUP_CLASSES}>
+                        <span className={`${TIMELINE_FOOTER_LABEL_CLASSES} ${TIMELINE_FOOTER_ICON_LABEL_CLASSES}`}>
                             <img
                                 src={
                                     fillGapsMode === "auto_extend"
@@ -1020,33 +1061,33 @@ const TimelineClassic: React.FC<TimelineRendererProps> = (props) => {
                                         : iconGapFillMenuBlankFrames
                                 }
                                 alt=""
-                                className="timeline-flash-footer-icon"
+                                className={TIMELINE_FOOTER_ICON_CLASSES}
                             />
                             Gaps
                         </span>
                         <button
                             type="button"
-                            className={`timeline-flash-footer-choice ${fillGapsMode === "auto_extend" ? "active" : ""}`}
+                            className={getTimelineFooterChoiceClasses(fillGapsMode === "auto_extend")}
                             onClick={() => setTimelineGapFillMode("auto_extend")}
                             aria-pressed={fillGapsMode === "auto_extend"}
                         >
                             <img
                                 src={iconGapFillExtendFrames}
                                 alt=""
-                                className="timeline-flash-footer-choice-icon"
+                                className={TIMELINE_FOOTER_CHOICE_ICON_CLASSES}
                             />
                             Extend
                         </button>
                         <button
                             type="button"
-                            className={`timeline-flash-footer-choice ${fillGapsMode === "blank_frames" ? "active" : ""}`}
+                            className={getTimelineFooterChoiceClasses(fillGapsMode === "blank_frames")}
                             onClick={() => setTimelineGapFillMode("blank_frames")}
                             aria-pressed={fillGapsMode === "blank_frames"}
                         >
                             <img
                                 src={iconGapFillBlankFrames}
                                 alt=""
-                                className="timeline-flash-footer-choice-icon"
+                                className={TIMELINE_FOOTER_CHOICE_ICON_CLASSES}
                             />
                             Blank
                         </button>
@@ -1065,7 +1106,7 @@ const TimelineClassic: React.FC<TimelineRendererProps> = (props) => {
                 {contextMenuPosition && (
                     <div
                         ref={contextMenuRef}
-                        className="timeline-context-menu"
+                        className={TIMELINE_CONTEXT_MENU_CLASSES}
                         role="menu"
                         aria-label="Timeline frame actions"
                         style={{
@@ -1073,34 +1114,34 @@ const TimelineClassic: React.FC<TimelineRendererProps> = (props) => {
                             top: `${contextMenuPosition.y}px`,
                         }}
                     >
-                        <div className="timeline-context-menu-target">
+                        <div className={TIMELINE_CONTEXT_MENU_TARGET_CLASSES}>
                             {contextMenuTarget?.label ?? "Current Selection"}
                         </div>
                         {timelineContextMenuItems.map((item) => (
                             <button
                                 key={item.id}
                                 type="button"
-                                className="timeline-context-menu-item"
+                                className={TIMELINE_CONTEXT_MENU_ITEM_CLASSES}
                                 role="menuitem"
                                 onClick={() => runMenuAction(item.action)}
                                 disabled={item.disabled}
                             >
                                 {item.icon ? (
                                     <ToolIcon
-                                        className="timeline-context-menu-item-icon"
+                                        className={TIMELINE_CONTEXT_MENU_ICON_CLASSES}
                                         name={item.icon}
                                     />
                                 ) : (
-                                    <span className="timeline-context-menu-item-glyph">
+                                    <span className={TIMELINE_CONTEXT_MENU_GLYPH_CLASSES}>
                                         {item.glyph}
                                     </span>
                                 )}
-                                <span className="timeline-context-menu-item-label">
+                                <span className={TIMELINE_CONTEXT_MENU_LABEL_CLASSES}>
                                     {item.label}
                                 </span>
                             </button>
                         ))}
-                        <div className="timeline-context-menu-hint">
+                        <div className={TIMELINE_CONTEXT_MENU_HINT_CLASSES}>
                             Context actions for selected timeline location
                         </div>
                     </div>
