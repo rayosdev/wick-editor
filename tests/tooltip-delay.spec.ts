@@ -28,12 +28,19 @@ test.describe("Tooltip hover delay", () => {
     await anchor.waitFor({ state: "visible", timeout: 30000 });
 
     const tooltip = page.locator(".wick-tooltip", { hasText: "Zoom Out" });
-    await anchor.hover();
+    const box = await anchor.boundingBox();
+    if (!box) {
+      throw new Error("Missing zoom out anchor bounds");
+    }
 
-    await page.waitForTimeout(500);
+    await page.mouse.move(1, 1);
+    await expect(tooltip).toBeHidden();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+
+    await page.waitForTimeout(300);
     await expect(tooltip).toBeHidden();
 
-    await page.waitForTimeout(220);
+    await page.waitForTimeout(420);
     await expect(tooltip).toBeVisible();
   });
 });

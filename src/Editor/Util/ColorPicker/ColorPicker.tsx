@@ -137,7 +137,7 @@ export default function ColorPicker (props: ColorPickerProps): JSX.Element {
         onClickOutside={handleClickOutside}
         content={
           <div tabIndex={-1} id={popoverID} className="popover wick-color-picker-popover">
-            <div className="popover-body">
+            <div className="popover-body p-0">
               <ModernColorPicker
                 toggle={toggle}
                 colorPickerType={normalizedPickerType}

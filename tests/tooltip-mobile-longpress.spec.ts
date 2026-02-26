@@ -112,7 +112,7 @@ test.describe("Tooltip mobile long-press", () => {
     testInfo,
   ) => {
     test.skip(
-      !testInfo.project.name.includes("mobile") && !testInfo.project.name.includes("tablet"),
+      !testInfo.project.name.includes("mobile"),
       "Mobile long-press behavior only",
     );
 

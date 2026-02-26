@@ -17,7 +17,3 @@
   padding-bottom: 0 !important;
   color: var(--wick-editor-text-primary) !important;
 }
-
-.wick-color-picker-popover .popover-body {
-  padding: 0;
-}
