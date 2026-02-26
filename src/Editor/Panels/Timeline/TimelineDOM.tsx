@@ -20,15 +20,24 @@ import {
   TIMELINE_CONTEXT_MENU_TARGET_CLASSES,
 } from "./timelineContextMenuClasses";
 import {
+  getTimelineHeaderRightAdvancedClasses,
   getTimelineFooterChoiceClasses,
   getTimelineHeaderOptionsButtonClasses,
   getTimelineRendererToggleButtonClasses,
   getTimelineShortcutToggleButtonClasses,
+  TIMELINE_ACTION_BUTTON_CLASSES,
+  TIMELINE_BACK_BUTTON_CLASSES,
+  TIMELINE_BREADCRUMB_CLASSES,
+  TIMELINE_FOOTER_CLASSES,
   TIMELINE_FOOTER_BUTTON_CLASSES,
   TIMELINE_FOOTER_CHOICE_ICON_CLASSES,
   TIMELINE_FOOTER_FIELD_GROUP_CLASSES,
   TIMELINE_FOOTER_HINT_CLASSES,
   TIMELINE_FOOTER_GROUP_CLASSES,
+  TIMELINE_HEADER_ACTIONS_CLASSES,
+  TIMELINE_HEADER_CLASSES,
+  TIMELINE_HEADER_RIGHT_CLASSES,
+  TIMELINE_HEADER_RIGHT_PRIMARY_CLASSES,
   TIMELINE_FOOTER_ICON_CLASSES,
   TIMELINE_FOOTER_ICON_LABEL_CLASSES,
   TIMELINE_FOOTER_INPUT_CLASSES,
@@ -42,7 +51,9 @@ import {
   TIMELINE_RENDERER_TOGGLE_CLASSES,
   TIMELINE_SCENE_LABEL_CLASSES,
   TIMELINE_SCENE_NAME_CLASSES,
+  TIMELINE_SHELL_CLASSES,
   TIMELINE_SHORTCUT_TOGGLE_CLASSES,
+  TIMELINE_TEXT_ACTION_CLASSES,
 } from "./timelineControlClasses";
 
 import "./timeline-legacy.css";
@@ -2948,14 +2959,14 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     >
       {props.isOver && <div className="drag-drop-overlay" />}
       <div
-        className={`timeline-flash-shell timeline-dom-shell timeline-density-${props.timelineDensityMode}`}
+        className={`${TIMELINE_SHELL_CLASSES} timeline-dom-shell timeline-density-${props.timelineDensityMode}`}
         style={{
           ["--timeline-cell-width" as string]: `${cellWidth}px`,
           ["--timeline-cell-height" as string]: `${cellHeight}px`,
         }}
       >
-        <div className="timeline-flash-header">
-          <div className="timeline-flash-breadcrumb">
+        <div className={TIMELINE_HEADER_CLASSES}>
+          <div className={TIMELINE_BREADCRUMB_CLASSES}>
             {isNestedTimeline && (
               <ActionButton
                 id="timeline-focus-parent"
@@ -2963,15 +2974,15 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 color="tool"
                 tooltip="Back to Parent Timeline"
                 tooltipPlace="top"
-                className="timeline-flash-action-button timeline-flash-back-button"
+                className={`${TIMELINE_ACTION_BUTTON_CLASSES} ${TIMELINE_BACK_BUTTON_CLASSES}`}
                 action={props.focusTimelineOfParentClip}
               />
             )}
             <span className={TIMELINE_SCENE_LABEL_CLASSES}>Scene</span>
             <span className={TIMELINE_SCENE_NAME_CLASSES}>{focusLabel}</span>
           </div>
-          <div className="timeline-flash-header-right">
-            <div className="timeline-flash-header-right-primary">
+          <div className={TIMELINE_HEADER_RIGHT_CLASSES}>
+            <div className={TIMELINE_HEADER_RIGHT_PRIMARY_CLASSES}>
               <div className={TIMELINE_META_CLASSES}>{timelineMeta}</div>
               <div
                 className={TIMELINE_SHORTCUT_TOGGLE_CLASSES}
@@ -3037,7 +3048,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             </div>
             <div
               id="timeline-header-options-panel"
-              className={`timeline-flash-header-right-advanced ${showHeaderOptions ? "open" : ""}`}
+              className={getTimelineHeaderRightAdvancedClasses(showHeaderOptions)}
               hidden={!showHeaderOptions}
             >
               <div
@@ -3214,7 +3225,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             <div className="timeline-unified-corner">
               <div className="timeline-dom-layers-header">Layers</div>
               <div className="timeline-dom-layers-subheader">
-                <div className="timeline-flash-header-actions" role="toolbar" aria-label="Timeline Actions">
+                <div className={TIMELINE_HEADER_ACTIONS_CLASSES} role="toolbar" aria-label="Timeline Actions">
                   <ActionButton
                     id="timeline-step-backward"
                     text="<"
@@ -3222,7 +3233,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     tooltip="Previous Frame"
                     tooltipPlace="bottom"
                     hasLongPressAction
-                    className="timeline-flash-action-button timeline-flash-text-action"
+                    className={`${TIMELINE_ACTION_BUTTON_CLASSES} ${TIMELINE_TEXT_ACTION_CLASSES}`}
                     action={() => {
                       props.movePlayheadBackwards();
                       requestRender();
@@ -3235,7 +3246,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     tooltip="Next Frame"
                     tooltipPlace="bottom"
                     hasLongPressAction
-                    className="timeline-flash-action-button timeline-flash-text-action"
+                    className={`${TIMELINE_ACTION_BUTTON_CLASSES} ${TIMELINE_TEXT_ACTION_CLASSES}`}
                     action={() => {
                       props.movePlayheadForwards();
                       requestRender();
@@ -3247,7 +3258,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     color="tool"
                     tooltip="Insert Keyframe"
                     tooltipPlace="bottom"
-                    className="timeline-flash-action-button"
+                    className={TIMELINE_ACTION_BUTTON_CLASSES}
                     action={props.cutFrame}
                   />
                   <ActionButton
@@ -3256,7 +3267,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     color="tool"
                     tooltip="Insert Blank Keyframe"
                     tooltipPlace="bottom"
-                    className="timeline-flash-action-button"
+                    className={TIMELINE_ACTION_BUTTON_CLASSES}
                     action={props.insertBlankFrame}
                   />
                   <ActionButton
@@ -3265,7 +3276,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     color="tool"
                     tooltip="Add Tween Keyframe"
                     tooltipPlace="bottom"
-                    className="timeline-flash-action-button"
+                    className={TIMELINE_ACTION_BUTTON_CLASSES}
                     action={props.addTweenKeyframe}
                   />
                   <ActionButton
@@ -3274,7 +3285,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     color="tool"
                     tooltip="Create Tween"
                     tooltipPlace="bottom"
-                    className="timeline-flash-action-button"
+                    className={TIMELINE_ACTION_BUTTON_CLASSES}
                     action={props.createTween}
                   />
                   <ActionButton
@@ -3283,7 +3294,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     color="tool"
                     tooltip="Delete Selected Frames/Objects"
                     tooltipPlace="bottom"
-                    className="timeline-flash-action-button"
+                    className={TIMELINE_ACTION_BUTTON_CLASSES}
                     action={props.deleteSelectedObjects}
                   />
                 </div>
@@ -3762,7 +3773,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
           </div>
         </div>
 
-        <div className="timeline-flash-footer" role="toolbar" aria-label="Timeline Quick Controls">
+        <div className={TIMELINE_FOOTER_CLASSES} role="toolbar" aria-label="Timeline Quick Controls">
           <div className={`${TIMELINE_FOOTER_GROUP_CLASSES} ${TIMELINE_FOOTER_FIELD_GROUP_CLASSES}`}>
             <span className={TIMELINE_FOOTER_LABEL_CLASSES}>Frame</span>
             <input

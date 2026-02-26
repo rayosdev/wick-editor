@@ -37,6 +37,48 @@ export const getTimelineHeaderOptionsButtonClasses = (
     "active bg-[rgba(118,189,255,0.18)] text-white"
   );
 
+export const TIMELINE_SHELL_CLASSES =
+  "timeline-flash-shell flex min-h-0 w-full flex-1 flex-col bg-[#3B3B3B]";
+
+export const TIMELINE_HEADER_CLASSES =
+  "timeline-flash-header flex items-center gap-[10px] overflow-x-auto overflow-y-hidden border-b border-[#191919] bg-[linear-gradient(to_bottom,#303030,#3B3B3B)] px-[10px] py-[6px] font-nunito text-[12px] text-white [scrollbar-width:thin]";
+
+export const TIMELINE_BREADCRUMB_CLASSES =
+  "timeline-flash-breadcrumb flex min-w-0 shrink-0 items-center gap-2";
+
+export const TIMELINE_HEADER_ACTIONS_CLASSES =
+  "timeline-flash-header-actions inline-flex shrink-0 items-center justify-end gap-1";
+
+export const TIMELINE_ACTIONS_CLASSES =
+  "timeline-flash-actions flex items-center gap-[6px] overflow-x-auto overflow-y-hidden border-b border-[#191919] bg-[#303030] px-2 py-[6px] [scrollbar-width:thin]";
+
+export const TIMELINE_ACTION_BUTTON_CLASSES =
+  "timeline-flash-action-button h-[26px] w-[26px] min-w-[26px] rounded-[4px] border border-[rgba(255,255,255,0.08)]";
+
+export const TIMELINE_BACK_BUTTON_CLASSES =
+  "timeline-flash-back-button h-7 w-7";
+
+export const TIMELINE_TEXT_ACTION_CLASSES =
+  "timeline-flash-text-action text-[15px] font-extrabold [&_.action-button-text]:leading-none";
+
+export const TIMELINE_HEADER_RIGHT_CLASSES =
+  "timeline-flash-header-right flex min-w-0 flex-1 flex-col items-end gap-[6px]";
+
+export const TIMELINE_HEADER_RIGHT_PRIMARY_CLASSES =
+  "timeline-flash-header-right-primary inline-flex w-full flex-wrap items-center justify-end gap-2";
+
+export const getTimelineHeaderRightAdvancedClasses = (
+  open: boolean
+): string =>
+  withActiveClass(
+    "timeline-flash-header-right-advanced hidden w-full flex-wrap items-center justify-end gap-2 border-t border-t-[rgba(255,255,255,0.08)] pt-1",
+    open,
+    "open inline-flex"
+  );
+
+export const TIMELINE_FOOTER_CLASSES =
+  "timeline-flash-footer sticky bottom-0 left-0 z-40 mt-auto flex shrink-0 items-center gap-2 overflow-x-auto overflow-y-hidden border-t border-[#191919] bg-[#303030] px-2 py-[6px] shadow-[0_-6px_12px_rgba(0,0,0,0.22)] [scrollbar-width:thin]";
+
 export const TIMELINE_FOOTER_GROUP_CLASSES =
   "timeline-flash-footer-group inline-flex items-center gap-[6px] border-r border-r-[rgba(255,255,255,0.08)] px-1 py-[2px] last:border-r-0";
 

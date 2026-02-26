@@ -198,31 +198,6 @@ button:focus, input:focus {
   -webkit-user-drag: none;
 }
 
-.timeline-flash-shell {
-  min-height: 0;
-  width: 100%;
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  background-color: #3B3B3B;
-  /* overflow: hidden; Removed to fix potential clipping issues */
-}
-
-.timeline-flash-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
-  border-bottom: 1px solid #191919;
-  background: linear-gradient(to bottom, #303030, #3B3B3B);
-  color: white;
-  font-family: "Nunito Sans", sans-serif;
-  font-size: 12px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-}
-
 .timeline-flash-header::-webkit-scrollbar {
   height: 4px;
 }
@@ -232,39 +207,6 @@ button:focus, input:focus {
   border-radius: 999px;
 }
 
-.timeline-flash-header-actions {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.timeline-flash-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  flex-shrink: 0;
-}
-
-.timeline-flash-back-button {
-  width: 28px;
-  height: 28px;
-}
-
-.timeline-flash-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-  border-bottom: 1px solid #191919;
-  background-color: #303030;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-}
-
 .timeline-flash-actions::-webkit-scrollbar {
   height: 8px;
 }
@@ -272,43 +214,6 @@ button:focus, input:focus {
 .timeline-flash-actions::-webkit-scrollbar-thumb {
   background-color: #525252;
   border-radius: 4px;
-}
-
-.timeline-flash-action-button {
-  width: 26px;
-  height: 26px;
-  min-width: 26px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-}
-
-.timeline-flash-text-action {
-  font-family: "Nunito Sans", sans-serif;
-  font-weight: 800;
-  font-size: 15px;
-}
-
-.timeline-flash-text-action .action-button-text {
-  line-height: 1;
-}
-
-.timeline-flash-footer {
-  flex-shrink: 0;
-  margin-top: auto;
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-top: 1px solid #191919;
-  box-shadow: 0 -6px 12px rgba(0, 0, 0, 0.22);
-  background-color: #303030;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
 }
 
 .timeline-flash-footer::-webkit-scrollbar {
@@ -337,41 +242,8 @@ button:focus, input:focus {
   left: 170px;
 }
 
-.timeline-flash-header-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-.timeline-flash-header-right-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
 .timeline-flash-header-right-primary .timeline-flash-meta {
   margin-right: auto;
-}
-
-.timeline-flash-header-right-advanced {
-  display: none;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  padding-top: 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.timeline-flash-header-right-advanced.open {
-  display: inline-flex;
 }
 
 .timeline-dom-shell {
