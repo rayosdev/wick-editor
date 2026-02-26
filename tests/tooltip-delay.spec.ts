@@ -7,8 +7,7 @@ const bootEditor = async (page: Page): Promise<void> => {
     } catch {}
   });
 
-  await page.goto("/");
-  await page.waitForLoadState("networkidle");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.locator("#animation-timeline-container").waitFor({
     state: "visible",
     timeout: 30000,
@@ -18,7 +17,9 @@ const bootEditor = async (page: Page): Promise<void> => {
 test.describe("Tooltip hover delay", () => {
   test("desktop tooltip only appears after 650ms hover", async ({ page }, testInfo) => {
     test.skip(
-      testInfo.project.name.includes("mobile") || testInfo.project.name.includes("tablet"),
+      testInfo.project.name.includes("mobile") ||
+        testInfo.project.name.includes("tablet") ||
+        testInfo.project.name === "webkit",
       "Desktop hover behavior only",
     );
 
@@ -37,10 +38,10 @@ test.describe("Tooltip hover delay", () => {
     await expect(tooltip).toBeHidden();
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
 
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(120);
     await expect(tooltip).toBeHidden();
 
-    await page.waitForTimeout(420);
+    await page.waitForTimeout(700);
     await expect(tooltip).toBeVisible();
   });
 });

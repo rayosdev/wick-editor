@@ -67,6 +67,12 @@ export const TIMELINE_FOOTER_INPUT_RANGE_CLASSES =
 export const TIMELINE_FOOTER_READOUT_CLASSES =
   "timeline-flash-footer-readout min-w-[62px] font-nunito text-[11px] font-bold text-white";
 
+export const TIMELINE_FOOTER_HINT_CLASSES =
+  "timeline-flash-footer-hint ml-auto whitespace-nowrap font-nunito text-[10px] text-[#BDBDBD]";
+
+export const TIMELINE_FOOTER_SHORTCUT_HINT_CLASSES =
+  "timeline-flash-footer-shortcuts text-[rgba(174,216,248,0.95)]";
+
 export const TIMELINE_FOOTER_BUTTON_CLASSES =
   "timeline-flash-footer-button h-7 min-w-[32px] rounded border border-[rgba(255,255,255,0.12)] bg-[#383434] px-2 font-nunito text-xs font-extrabold text-white has-hover:bg-[#4A4A4A] enabled:active:bg-[#525252]";
 
@@ -79,3 +85,12 @@ export const getTimelineFooterChoiceClasses = (active: boolean): string =>
 
 export const TIMELINE_FOOTER_CHOICE_ICON_CLASSES =
   "timeline-flash-footer-choice-icon h-[13px] w-[13px]";
+
+export const TIMELINE_SCENE_LABEL_CLASSES =
+  "timeline-flash-scene-label text-[#BDBDBD] tracking-[0.04em] uppercase font-bold";
+
+export const TIMELINE_SCENE_NAME_CLASSES =
+  "timeline-flash-scene-name max-w-[260px] overflow-hidden text-ellipsis whitespace-nowrap font-bold text-white";
+
+export const TIMELINE_META_CLASSES =
+  "timeline-flash-meta whitespace-nowrap text-[#BDBDBD] [font-variant-numeric:tabular-nums]";

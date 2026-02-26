@@ -253,28 +253,6 @@ button:focus, input:focus {
   height: 28px;
 }
 
-.timeline-flash-scene-label {
-  color: #BDBDBD;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  font-weight: 700;
-}
-
-.timeline-flash-scene-name {
-  color: white;
-  font-weight: 700;
-  max-width: 260px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.timeline-flash-meta {
-  color: #BDBDBD;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-
 .timeline-flash-actions {
   display: flex;
   align-items: center;
@@ -340,14 +318,6 @@ button:focus, input:focus {
 .timeline-flash-footer::-webkit-scrollbar-thumb {
   background-color: #525252;
   border-radius: 4px;
-}
-
-.timeline-flash-footer-hint {
-  margin-left: auto;
-  color: #BDBDBD;
-  font-family: "Nunito Sans", sans-serif;
-  font-size: 10px;
-  white-space: nowrap;
 }
 
 #animation-timeline {
@@ -1081,10 +1051,6 @@ button:focus, input:focus {
 .timeline-dom-layer-icon-button,
 .timeline-dom-layer-delete-button {
   touch-action: none;
-}
-
-.timeline-flash-footer-shortcuts {
-  color: rgba(174, 216, 248, 0.95);
 }
 
 @media (max-height: 820px) {

@@ -27,6 +27,7 @@ import {
   TIMELINE_FOOTER_BUTTON_CLASSES,
   TIMELINE_FOOTER_CHOICE_ICON_CLASSES,
   TIMELINE_FOOTER_FIELD_GROUP_CLASSES,
+  TIMELINE_FOOTER_HINT_CLASSES,
   TIMELINE_FOOTER_GROUP_CLASSES,
   TIMELINE_FOOTER_ICON_CLASSES,
   TIMELINE_FOOTER_ICON_LABEL_CLASSES,
@@ -36,7 +37,11 @@ import {
   TIMELINE_FOOTER_INPUT_RANGE_CLASSES,
   TIMELINE_FOOTER_LABEL_CLASSES,
   TIMELINE_FOOTER_READOUT_CLASSES,
+  TIMELINE_FOOTER_SHORTCUT_HINT_CLASSES,
+  TIMELINE_META_CLASSES,
   TIMELINE_RENDERER_TOGGLE_CLASSES,
+  TIMELINE_SCENE_LABEL_CLASSES,
+  TIMELINE_SCENE_NAME_CLASSES,
   TIMELINE_SHORTCUT_TOGGLE_CLASSES,
 } from "./timelineControlClasses";
 
@@ -2962,12 +2967,12 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 action={props.focusTimelineOfParentClip}
               />
             )}
-            <span className="timeline-flash-scene-label">Scene</span>
-            <span className="timeline-flash-scene-name">{focusLabel}</span>
+            <span className={TIMELINE_SCENE_LABEL_CLASSES}>Scene</span>
+            <span className={TIMELINE_SCENE_NAME_CLASSES}>{focusLabel}</span>
           </div>
           <div className="timeline-flash-header-right">
             <div className="timeline-flash-header-right-primary">
-              <div className="timeline-flash-meta">{timelineMeta}</div>
+              <div className={TIMELINE_META_CLASSES}>{timelineMeta}</div>
               <div
                 className={TIMELINE_SHORTCUT_TOGGLE_CLASSES}
                 role="group"
@@ -4027,10 +4032,10 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             </button>
           </div>
 
-          <div className="timeline-flash-footer-hint">
+          <div className={TIMELINE_FOOTER_HINT_CLASSES}>
             Right-click or long-press any frame for contextual actions. Ctrl/Cmd-click removes marker.
           </div>
-          <div className="timeline-flash-footer-hint timeline-flash-footer-shortcuts">
+          <div className={`${TIMELINE_FOOTER_HINT_CLASSES} ${TIMELINE_FOOTER_SHORTCUT_HINT_CLASSES}`}>
             {props.timelineShortcutPreset === "flash"
               ? "Flash Keys: F5 Extend, F6 Keyframe, F7 Blank, Shift+F5 Shrink"
               : "Wick Keys: Shift+. Extend, Shift+X Keyframe, Shift+8 Blank, Shift+, Shrink"}
