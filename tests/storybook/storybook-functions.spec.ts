@@ -103,20 +103,66 @@ test.describe("Storybook functional checks", () => {
       "editor-util-wickinputv2-wickinputv2legacyadapter--legacy-parity-form"
     );
 
-    await page.getByLabel("Project Name").fill("Legacy QA");
-    await page.getByLabel("Frame Rate").fill("30");
+    const summary = page.getByTestId("wick-input-v2-legacy-summary");
+    await expect(summary).toContainText("Name: Legacy Scene");
+
+    const projectNameInput = page.getByLabel("Project Name");
+    const frameRateInput = page.getByLabel("Frame Rate");
+
+    await projectNameInput.fill("Legacy QA");
+    await expect(projectNameInput).toHaveValue("Legacy QA");
+
+    await frameRateInput.fill("30");
+    await expect(frameRateInput).toHaveValue("30");
+
     await page.getByLabel("Renderer").selectOption({ label: "WebGL" });
     await page.getByLabel("Loop Playback").check();
     await page.getByLabel("Accent").fill("#ff7711");
     await page.getByRole("button", { name: "Apply Legacy Preset" }).click();
 
-    const summary = page.getByTestId("wick-input-v2-legacy-summary");
     await expect(summary).toContainText("Name: Legacy QA");
     await expect(summary).toContainText("FPS: 30");
     await expect(summary).toContainText("Renderer: gpu");
     await expect(summary).toContainText("Loop: yes");
     await expect(summary).toContainText("Accent: #ff7711");
     await expect(summary).toContainText("Applied: 1");
+  });
+
+  test("WickInputV2 legacy adapter supports object-valued select options", async ({
+    page,
+  }) => {
+    await gotoStory(
+      page,
+      "editor-util-wickinputv2-wickinputv2legacyadapter--legacy-object-select-parity"
+    );
+
+    await page.getByLabel("Sound Asset").selectOption({ label: "Snare" });
+    await expect(
+      page.getByTestId("wick-input-v2-legacy-object-select-summary")
+    ).toContainText("asset-snare");
+
+    await page.getByLabel("Sound Asset").selectOption({ label: "No Sound" });
+    await expect(
+      page.getByTestId("wick-input-v2-legacy-object-select-summary")
+    ).toContainText("none");
+  });
+
+  test("WickInputV2 legacy adapter supports advanced color picker interactions", async ({
+    page,
+  }) => {
+    await gotoStory(
+      page,
+      "editor-util-wickinputv2-wickinputv2legacyadapter--legacy-advanced-color-picker-parity"
+    );
+
+    await page.getByLabel("Accent Advanced").click();
+    await page.locator('[data-color-hex="#ff0000"]').first().click();
+
+    const summary = page.getByTestId(
+      "wick-input-v2-legacy-advanced-color-summary"
+    );
+    await expect(summary).toContainText("Mode: swatches");
+    await expect(summary).toContainText("rgba(255,0,0,1)");
   });
 
   test("TabbedInterface switches tabs and updates selected state", async ({

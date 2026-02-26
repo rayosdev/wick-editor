@@ -131,3 +131,126 @@ export const LegacyParityForm: Story = {
     );
   },
 };
+
+type MockSoundAsset = {
+  uuid: string;
+  name: string;
+};
+
+type MockSoundSelection = MockSoundAsset | null;
+
+const SOUND_OPTIONS: Array<{ label: string; value: MockSoundSelection }> = [
+  { label: "No Sound", value: null },
+  { label: "Kick", value: { uuid: "asset-kick", name: "Kick Drum" } },
+  { label: "Snare", value: { uuid: "asset-snare", name: "Snare Drum" } },
+];
+
+export const LegacyObjectSelectParity: Story = {
+  render: () => {
+    const [selectedSound, setSelectedSound] = useState<MockSoundSelection>(
+      SOUND_OPTIONS[1]?.value ?? null
+    );
+
+    return (
+      <div
+        style={{
+          width: "min(520px, 100%)",
+          display: "grid",
+          gap: "0.8rem",
+          padding: "0.95rem",
+          borderRadius: "0.85rem",
+          border: "1px solid #30394b",
+          background:
+            "linear-gradient(165deg, rgba(18, 26, 38, 0.94) 0%, rgba(31, 41, 58, 0.94) 100%)",
+        }}
+      >
+        <WickInputV2LegacyAdapter
+          type="select"
+          label="Sound Asset"
+          value={selectedSound}
+          options={SOUND_OPTIONS}
+          onChange={(value) => setSelectedSound((value as MockSoundSelection) ?? null)}
+        />
+
+        <output
+          data-testid="wick-input-v2-legacy-object-select-summary"
+          style={{
+            borderRadius: "0.6rem",
+            padding: "0.55rem 0.65rem",
+            border: "1px solid #30435f",
+            color: "#d9ecff",
+            fontSize: "0.82rem",
+            background: "rgba(15, 23, 36, 0.75)",
+          }}
+        >
+          Selected:{" "}
+          {selectedSound
+            ? `${selectedSound.uuid} (${selectedSound.name})`
+            : "none"}
+        </output>
+      </div>
+    );
+  },
+};
+
+export const LegacyAdvancedColorPickerParity: Story = {
+  render: () => {
+    const [accent, setAccent] = useState("#2ca8ff");
+    const [pickerType, setPickerType] = useState<"swatches" | "spectrum">(
+      "swatches"
+    );
+    const [recentColors, setRecentColors] = useState<string[]>([
+      "#2ca8ff",
+      "#ffffff",
+      "#000000",
+      "#ff0000",
+      "#00ff00",
+      "#0000ff",
+      "#ffaa00",
+      "#ff00aa",
+    ]);
+
+    return (
+      <div
+        style={{
+          width: "min(520px, 100%)",
+          display: "grid",
+          gap: "0.8rem",
+          padding: "0.95rem",
+          borderRadius: "0.85rem",
+          border: "1px solid #30394b",
+          background:
+            "linear-gradient(165deg, rgba(18, 26, 38, 0.94) 0%, rgba(31, 41, 58, 0.94) 100%)",
+        }}
+      >
+        <WickInputV2LegacyAdapter
+          type="color"
+          label="Accent Advanced"
+          value={accent}
+          placement="bottom"
+          colorPickerType={pickerType}
+          changeColorPickerType={setPickerType}
+          lastColorsUsed={recentColors}
+          updateLastColors={(nextColor) => {
+            setRecentColors((previous) => [nextColor, ...previous].slice(0, 8));
+          }}
+          onChange={(nextColor) => setAccent(nextColor)}
+        />
+
+        <output
+          data-testid="wick-input-v2-legacy-advanced-color-summary"
+          style={{
+            borderRadius: "0.6rem",
+            padding: "0.55rem 0.65rem",
+            border: "1px solid #30435f",
+            color: "#d9ecff",
+            fontSize: "0.82rem",
+            background: "rgba(15, 23, 36, 0.75)",
+          }}
+        >
+          Color: {accent} | Mode: {pickerType}
+        </output>
+      </div>
+    );
+  },
+};

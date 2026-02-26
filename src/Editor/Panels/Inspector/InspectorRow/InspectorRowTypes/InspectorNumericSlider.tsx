@@ -63,7 +63,10 @@ const InspectorNumericSlider: React.FC<InspectorNumericSliderProps> = ({
       {/* Slider */}
       <div className="inspector-medium-input-container w-[calc(100%-30%-20%)] pl-[1.5%] pr-0">
         <InspectorInput
-          inputProps={{ ...inputProps, id: `${idLabel}-input` }}
+          inputProps={{
+            ...(inputProps as React.ComponentProps<typeof InspectorInput>["inputProps"]),
+            id: `${idLabel}-input`,
+          }}
           input={{
             type: "slider",
             value: val,

@@ -1,5 +1,8 @@
 import { type FocusEvent, type MouseEvent, type ReactNode, useId } from "react";
 import classNames from "classnames";
+import ColorPicker, {
+  type PickerColorChange,
+} from "Editor/Util/ColorPicker/ColorPicker";
 import "./WickInputV2.css";
 
 export type WickInputV2Option = {
@@ -70,6 +73,28 @@ type ColorInputProps = SharedProps & {
   kind: "color";
   value: string;
   onChange: (value: string) => void;
+  stroke?: boolean;
+  placement?:
+    | "auto"
+    | "auto-start"
+    | "auto-end"
+    | "top"
+    | "top-start"
+    | "top-end"
+    | "right"
+    | "right-start"
+    | "right-end"
+    | "bottom"
+    | "bottom-start"
+    | "bottom-end"
+    | "left"
+    | "left-start"
+    | "left-end";
+  colorPickerType?: "swatches" | "spectrum" | string;
+  changeColorPickerType?: (type: "swatches" | "spectrum") => void;
+  disableAlpha?: boolean;
+  lastColorsUsed?: string[];
+  updateLastColors?: (color: string) => void;
 };
 
 type ActionInputProps = SharedProps & {
@@ -123,6 +148,19 @@ function normalizeColor(value: string): string {
   const normalized = value.trim();
   if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(normalized)) {
     return normalized;
+  }
+
+  return "#4fa3ff";
+}
+
+function toColorString(color: PickerColorChange): string {
+  if (color.rgb) {
+    const { r, g, b, a } = color.rgb;
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  if (typeof color.hex === "string") {
+    return color.hex;
   }
 
   return "#4fa3ff";
@@ -248,6 +286,35 @@ function renderControl(
       );
 
     case "color":
+      if (
+        props.placement !== undefined ||
+        props.colorPickerType !== undefined ||
+        props.changeColorPickerType !== undefined ||
+        props.disableAlpha !== undefined ||
+        props.stroke !== undefined ||
+        props.updateLastColors !== undefined ||
+        props.lastColorsUsed !== undefined
+      ) {
+        return (
+          <ColorPicker
+            id={controlId}
+            className={classNames(baseControlClass, "wick-input-v2-control--color")}
+            color={props.value}
+            stroke={props.stroke}
+            placement={props.placement}
+            colorPickerType={props.colorPickerType}
+            changeColorPickerType={props.changeColorPickerType}
+            disableAlpha={props.disableAlpha}
+            lastColorsUsed={props.lastColorsUsed}
+            onChangeComplete={(color) => {
+              const nextColor = toColorString(color);
+              props.updateLastColors?.(nextColor);
+              props.onChange(nextColor);
+            }}
+          />
+        );
+      }
+
       return (
         <input
           id={controlId}

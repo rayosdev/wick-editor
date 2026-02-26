@@ -20,11 +20,14 @@
 import React from 'react';
 
 import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
+import WickInput from 'Editor/Util/WickInput/WickInput';
 import {
   MOBILE_INSPECTOR_LARGE_INPUT_CONTAINER_CLASSES,
   MOBILE_INSPECTOR_ROW_CLASSES,
   MOBILE_INSPECTOR_ROW_IDENTIFIER_CLASSES,
 } from '../mobileInspectorRowClasses';
+
+type WickInputType = NonNullable<React.ComponentProps<typeof WickInput>["type"]>;
 
 export type MobileInspectorSelectorOption = {
   value: unknown;
@@ -39,7 +42,7 @@ interface MobileInspectorSelectorProps {
   onChange: (value: MobileInspectorSelectorOption) => void;
   options: MobileInspectorSelectorOption[];
   className?: string;
-  type?: string;
+  type?: WickInputType;
   isSearchable?: boolean;
 }
 

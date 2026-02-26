@@ -43,6 +43,20 @@ export interface SelectOption {
 }
 
 type WickInputDynamicValue = ReturnType<typeof JSON.parse>;
+type WickInputType =
+  | "numeric"
+  | "text"
+  | "slider"
+  | "select"
+  | "color"
+  | "checkbox"
+  | "radio"
+  | "button";
+
+type WickNativeInputProps = Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "type" | "value" | "onChange" | "onClick" | "color"
+>;
 
 const INPUT_BASE_CLASSES =
   "wick-input h-full w-full rounded-[5px] border-0 bg-[#4F4F4F] py-[2px] pl-1 pr-[2px] text-white";
@@ -50,15 +64,7 @@ const INPUT_STATE_CLASSES =
   "[&.invalid]:!border-l-[3px] [&.invalid]:!border-l-[#F86868] [&.wick-input-updating]:!border-[3px] [&.wick-input-updating]:!border-[#FFC835] [&.read-only]:bg-gray-500";
 
 interface WickInputProps {
-  type?:
-    | "numeric"
-    | "text"
-    | "slider"
-    | "select"
-    | "color"
-    | "checkbox"
-    | "radio"
-    | "button";
+  type?: WickInputType;
   className?: string;
   containerclassname?: string;
   tooltip?: string;
@@ -86,8 +92,10 @@ interface WickInputProps {
   secondaryAction?: () => void;
   onClick?: (e?: React.SyntheticEvent) => void;
   onTouch?: (e?: React.SyntheticEvent) => void;
-  [key: string]: WickInputDynamicValue;
+  isSearchable?: boolean;
 }
+
+type WickInputPropsWithNative = WickInputProps & WickNativeInputProps;
 
 /**
  * WickInput - A versatile input component for the Wick Editor.
@@ -96,7 +104,8 @@ interface WickInputProps {
  * @param ref - Optional ref forwarded to the component
  * @returns JSX.Element
  */
-const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
+const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
+  (props, _ref) => {
   const renderTooltip = (tooltipID: string): JSX.Element => {
     return (
       <ReactTooltip
@@ -114,7 +123,33 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
   };
 
   const renderNumeric = (): JSX.Element => {
-    const { min, max, onChange, ...rest } = props;
+    const {
+      min,
+      max,
+      onChange,
+      type,
+      containerclassname,
+      tooltip,
+      tooltipID,
+      tooltipPlace,
+      options,
+      color,
+      stroke,
+      placement,
+      colorPickerType,
+      changeColorPickerType,
+      disableAlpha,
+      lastColorsUsed,
+      label,
+      children,
+      updateLastColors,
+      buttonProps,
+      secondaryAction,
+      onClick,
+      onTouch,
+      isSearchable,
+      ...rest
+    } = props;
 
     const isValid = (input: string | number): boolean => {
       let validNumber = !isNaN(Number(input)) && input !== "";
@@ -175,7 +210,35 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
   const renderText = (): JSX.Element => {
     return (
       <WickTextInput
-        {...props}
+        {...(() => {
+          const {
+            type,
+            containerclassname,
+            tooltip,
+            tooltipID,
+            tooltipPlace,
+            options,
+            color,
+            stroke,
+            placement,
+            colorPickerType,
+            changeColorPickerType,
+            disableAlpha,
+            lastColorsUsed,
+            label,
+            children,
+            updateLastColors,
+            buttonProps,
+            secondaryAction,
+            onClick,
+            onTouch,
+            isSearchable,
+            onChange,
+            ...textProps
+          } = props;
+          return textProps;
+        })()}
+        onChange={props.onChange ? (value: string) => props.onChange?.(value) : undefined}
         className={classNames(
           INPUT_BASE_CLASSES,
           INPUT_STATE_CLASSES,
@@ -194,7 +257,34 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
 
     return (
       <input
-        {...props}
+        {...(() => {
+          const {
+            type,
+            containerclassname,
+            tooltip,
+            tooltipID,
+            tooltipPlace,
+            options,
+            color,
+            stroke,
+            placement,
+            colorPickerType,
+            changeColorPickerType,
+            disableAlpha,
+            lastColorsUsed,
+            label,
+            children,
+            updateLastColors,
+            buttonProps,
+            secondaryAction,
+            onClick,
+            onTouch,
+            isSearchable,
+            onChange,
+            ...inputProps
+          } = props;
+          return inputProps;
+        })()}
         className={classNames(
           "wick-slider mt-auto flex h-full w-full items-center rounded-[5px]",
           props.className
@@ -301,8 +391,42 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
         <input
           id={props.label}
           className="wick-checkbox h-5 min-h-5 min-w-5 cursor-pointer"
-          {...props}
+          {...(() => {
+            const {
+              type,
+              containerclassname,
+              tooltip,
+              tooltipID,
+              tooltipPlace,
+              options,
+              color,
+              stroke,
+              placement,
+              colorPickerType,
+              changeColorPickerType,
+              disableAlpha,
+              lastColorsUsed,
+              label,
+              children,
+              updateLastColors,
+              buttonProps,
+              secondaryAction,
+              onClick,
+              onTouch,
+              isSearchable,
+              onChange,
+              ...inputProps
+            } = props;
+            return inputProps;
+          })()}
           type="checkbox"
+          onChange={
+            props.onChange
+              ? (event: React.ChangeEvent<HTMLInputElement>) => {
+                  props.onChange?.(event.currentTarget.checked);
+                }
+              : undefined
+          }
         />
       </div>
     );
@@ -322,6 +446,14 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
       buttonProps,
       secondaryAction,
       onTouch,
+      color,
+      stroke,
+      placement,
+      colorPickerType,
+      changeColorPickerType,
+      disableAlpha,
+      lastColorsUsed,
+      isSearchable,
       onChange,
       ...radioProps
     } = props;
@@ -404,7 +536,8 @@ const WickInput = forwardRef<HTMLElement, WickInputProps>((props, _ref) => {
   }
 
   return renderContent();
-});
+  }
+);
 
 WickInput.displayName = "WickInput";
 

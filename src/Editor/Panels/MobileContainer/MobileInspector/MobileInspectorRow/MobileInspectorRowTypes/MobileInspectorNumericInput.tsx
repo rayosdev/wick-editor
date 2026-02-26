@@ -20,12 +20,15 @@
 import React from 'react';
 
 import MobileInspectorInput from '../MobileInspectorInput/MobileInspectorInput';
+import WickInput from 'Editor/Util/WickInput/WickInput';
 import {
   MOBILE_INSPECTOR_ROW_CLASSES,
   MOBILE_INSPECTOR_ROW_IDENTIFIER_CLASSES,
   MOBILE_INSPECTOR_ROW_ICON_CLASSES,
   MOBILE_INSPECTOR_SMALL_INPUT_CONTAINER_CLASSES,
 } from '../mobileInspectorRowClasses';
+
+type WickInputType = NonNullable<React.ComponentProps<typeof WickInput>["type"]>;
 
 interface MobileInspectorNumericInputProps {
   tooltip: string;
@@ -34,7 +37,7 @@ interface MobileInspectorNumericInputProps {
   icon?: string;
   iconAlt?: string;
   id?: string;
-  type?: string;
+  type?: WickInputType;
   divider?: boolean;
 }
 

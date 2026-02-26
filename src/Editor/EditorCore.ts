@@ -91,7 +91,6 @@ type BrowserFileAPI = {
   getSavedWickFiles?: (callback: (files: unknown[]) => void) => void;
 };
 
-type EditorDynamicValue = ReturnType<typeof JSON.parse>;
 const AUTOSAVE_PERF_LOG_KEY = "wickEditor_autosave_perf";
 
 function toAutosaveData(input: {
@@ -184,8 +183,38 @@ function logAutosavePerf(
 }
 
 class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
-  [key: string]: EditorDynamicValue;
   project!: WickProjectEngine;
+  declare lastUsedTool: WickToolName;
+  declare builtinPreviews: Record<
+    string,
+    {
+      blob?: Blob;
+      src?: string;
+      [key: string]: unknown;
+    }
+  >;
+  declare _onEyedropperPickedColor: (color: string) => void;
+  declare _lastAutosave: number;
+  declare processingAction: boolean;
+
+  declare toggleBrushModes: (state?: boolean) => void;
+  declare projectDidChange: (options?: Record<string, unknown>) => void;
+  declare toast: (
+    message: string,
+    type?: string,
+    options?: Record<string, unknown>,
+  ) => number | string | void;
+  declare updateToast: (
+    id: unknown,
+    options?: Record<string, unknown>,
+  ) => void;
+  declare openWarningModal: (args: Record<string, unknown>) => void;
+  declare toggleCodeEditor: (state?: boolean) => void;
+  declare openModal: (name: string | null) => void;
+  declare queueModal: (name: string | null) => void;
+  declare showWaitOverlay: (message?: string) => void;
+  declare hideWaitOverlay: () => void;
+  declare resetEditorForLoad: () => void;
   protected notifyTimelineSoftRender?: () => void;
   protected _autosaveDebounceTimeoutID?: number;
 
@@ -1216,8 +1245,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     let reader = new FileReader();
 
     reader.onload = () => {
-      let dataURL = reader.result;
-      this.builtinPreviews[filename].src = dataURL;
+      const preview = this.builtinPreviews[filename];
+      const dataURL = reader.result;
+      if (preview && typeof dataURL === "string") {
+        preview.src = dataURL;
+      }
 
       this.projectDidChange({
         skipHistory: true,

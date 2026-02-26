@@ -26,10 +26,13 @@ type WickInputProps = React.ComponentProps<typeof WickInput>;
 type WickInputV2LegacyAdapterProps = React.ComponentProps<
   typeof WickInputV2LegacyAdapter
 >;
+type WickInputPassthroughProps = Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "type" | "value" | "onChange" | "onClick" | "color"
+> &
+  Partial<WickInputProps>;
 
-const V2_SUPPORTED_TYPES = new Set<
-  WickInputV2LegacyAdapterProps["type"] | undefined
->([
+const V2_SUPPORTED_TYPES: ReadonlySet<WickInputProps["type"] | undefined> = new Set([
   undefined,
   "text",
   "numeric",
@@ -41,7 +44,7 @@ const V2_SUPPORTED_TYPES = new Set<
 ]);
 
 interface InspectorInputProps {
-  inputProps?: Partial<WickInputProps>;
+  inputProps?: WickInputPassthroughProps;
   input?: Partial<WickInputProps>;
 }
 

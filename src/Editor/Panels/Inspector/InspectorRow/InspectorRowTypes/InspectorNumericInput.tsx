@@ -20,13 +20,16 @@
 import React from 'react';
 
 import InspectorInput from 'Editor/Panels/Inspector/InspectorRow/InspectorInput/InspectorInput';
+import WickInput from 'Editor/Util/WickInput/WickInput';
+
+type WickInputType = NonNullable<React.ComponentProps<typeof WickInput>["type"]>;
 
 interface InspectorNumericInputProps {
   tooltip: string;
   val: number | string | null | undefined;
   onChange: (value: unknown) => void;
   id?: string;
-  type?: string;
+  type?: WickInputType;
 }
 
 const InspectorNumericInput: React.FC<InspectorNumericInputProps> = ({

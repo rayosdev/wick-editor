@@ -20,6 +20,9 @@
 import React from 'react';
 
 import InspectorInput from 'Editor/Panels/Inspector/InspectorRow/InspectorInput/InspectorInput';
+import WickInput from 'Editor/Util/WickInput/WickInput';
+
+type WickInputType = NonNullable<React.ComponentProps<typeof WickInput>["type"]>;
 
 interface InspectorSelectorOption {
   value: unknown;
@@ -33,7 +36,7 @@ interface InspectorSelectorProps {
   onChange: (option: InspectorSelectorOption) => void;
   options: InspectorSelectorOption[];
   className?: string;
-  type?: string;
+  type?: WickInputType;
   isSearchable?: boolean;
 }
 
