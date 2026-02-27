@@ -1,13 +1,25 @@
-import React, { CSSProperties } from "react";
+import React, {
+  CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import tinycolor from "tinycolor2";
 import type { PickerColorChange, PickerColorValue } from "./ColorPicker";
 import { activateEditorEyedropper } from "./editorEyedropperBridge";
+import {
+  clamp,
+  hsvaToHex,
+  hsvaToPickerColor,
+  hsvaToRgb,
+  hsvaToRgbaString,
+  parseHexToPickerColor,
+  toHsva,
+  type HSVAColor,
+} from "./colorMath";
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
-
-import { CustomPicker } from "react-color";
-import { Saturation, Hue, Alpha } from "react-color/lib/components/common";
-import { SketchFields } from "react-color/lib/components/sketch/SketchFields";
 
 type ModernColorPickerProps = {
   color: PickerColorValue;
@@ -52,34 +64,73 @@ const CHECKERBOARD_STYLE: CSSProperties = {
   backgroundSize: "15px 15px",
 };
 
-const getColorString = (color: PickerColorValue): string =>
-  typeof color === "string" ? color : color.rgba ?? color.toString();
-
-const toPickerColor = (hex: string): PickerColorChange => {
-  const parsed = tinycolor(hex);
-  const rgb = parsed.toRgb();
-  return {
-    hex: parsed.toHexString(),
-    rgb: {
-      r: rgb.r,
-      g: rgb.g,
-      b: rgb.b,
-      a: rgb.a,
-    },
-  };
-};
+const buildHueGradient = (): string =>
+  "linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)";
 
 const ModernColorPicker: React.FC<ModernColorPickerProps> = (props) => {
-  const currentColor = getColorString(props.color);
-  const normalizedCurrentHex = tinycolor(currentColor).toHexString();
-  const lastColors = props.lastColorsUsed ?? Array.from({ length: 8 }, () => "#000000");
+  const [hsva, setHsva] = useState<HSVAColor>(() => toHsva(props.color));
+  const [hexInput, setHexInput] = useState<string>(() => hsvaToHex(toHsva(props.color)));
 
-  const emitColor = (hex: string): void => {
-    props.onChangeComplete(toPickerColor(hex));
-  };
+  useEffect(() => {
+    const next = toHsva(props.color);
+    setHsva(next);
+    setHexInput(hsvaToHex(next));
+  }, [props.color]);
+
+  const emitHsva = useCallback(
+    (nextHsva: HSVAColor): void => {
+      const normalized: HSVAColor = {
+        h: ((nextHsva.h % 360) + 360) % 360,
+        s: clamp(nextHsva.s, 0, 1),
+        v: clamp(nextHsva.v, 0, 1),
+        a: clamp(nextHsva.a, 0, 1),
+      };
+      setHsva(normalized);
+      setHexInput(hsvaToHex(normalized));
+      props.onChangeComplete(hsvaToPickerColor(normalized));
+    },
+    [props],
+  );
+
+  const currentRgb = useMemo(() => hsvaToRgb(hsva), [hsva]);
+  const currentHex = useMemo(() => hsvaToHex(hsva), [hsva]);
+  const currentRgbaColor = useMemo(() => hsvaToRgbaString(hsva), [hsva]);
+  const hueBaseColor = useMemo(
+    () => tinycolor({ h: hsva.h, s: 1, v: 1 }).toHexString(),
+    [hsva.h],
+  );
 
   const openEyedropper = (): void => {
-    activateEditorEyedropper(props.onChange);
+    activateEditorEyedropper(props.onChange ?? props.onChangeComplete);
+  };
+
+  const applySaturationFromPointer = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>): void => {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const ratioX = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+      const ratioY = clamp((event.clientY - rect.top) / rect.height, 0, 1);
+      emitHsva({
+        ...hsva,
+        s: ratioX,
+        v: 1 - ratioY,
+      });
+    },
+    [emitHsva, hsva],
+  );
+
+  const startSaturationDrag = (event: React.PointerEvent<HTMLDivElement>): void => {
+    applySaturationFromPointer(event);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleHexCommit = (): void => {
+    const parsed = tinycolor(hexInput);
+    if (!parsed.isValid()) {
+      setHexInput(currentHex);
+      return;
+    }
+
+    props.onChangeComplete(parseHexToPickerColor(parsed.toHexString()));
   };
 
   const renderHeader = (): JSX.Element => (
@@ -124,7 +175,7 @@ const ModernColorPicker: React.FC<ModernColorPickerProps> = (props) => {
             className="flex flex-col overflow-hidden rounded-[2px]"
           >
             {column.map((hex, rowIndex) => {
-              const selected = tinycolor(hex).toHexString() === normalizedCurrentHex;
+              const selected = tinycolor(hex).toHexString() === currentHex;
               return (
                 <button
                   key={`modern-swatch-${columnIndex}-${rowIndex}`}
@@ -137,7 +188,9 @@ const ModernColorPicker: React.FC<ModernColorPickerProps> = (props) => {
                   }}
                   aria-label={`Set color ${hex}`}
                   data-color-hex={hex}
-                  onClick={() => emitColor(hex)}
+                  onClick={() => {
+                    props.onChangeComplete(parseHexToPickerColor(hex));
+                  }}
                 />
               );
             })}
@@ -151,7 +204,7 @@ const ModernColorPicker: React.FC<ModernColorPickerProps> = (props) => {
     <div className="mt-[6px] flex flex-row flex-wrap border-t border-black/10 pt-[6px]">
       {colors.map((hex, index) => {
         const parsed = tinycolor(hex).toHexString();
-        const selected = parsed === normalizedCurrentHex;
+        const selected = parsed === currentHex;
         return (
           <button
             key={`${keyPrefix}-${index}`}
@@ -164,58 +217,176 @@ const ModernColorPicker: React.FC<ModernColorPickerProps> = (props) => {
             }}
             aria-label={`Set color ${hex}`}
             data-color-hex={hex}
-            onClick={() => emitColor(hex)}
+            onClick={() => {
+              props.onChangeComplete(parseHexToPickerColor(hex));
+            }}
           />
         );
       })}
     </div>
   );
 
-  const renderSpectrum = (): JSX.Element => (
-    <div
-      className="modern-color-picker h-[300px] w-[220px] rounded-[4px] bg-editor-primary px-[10px] pb-0 pt-[10px]"
-      data-color-picker-component="modern"
-      data-color-picker-mode="spectrum"
-    >
-      {renderHeader()}
-      <div className="relative mt-[5px] h-[115px] w-full overflow-hidden rounded-[2px]">
-        <Saturation {...props} />
-      </div>
-      <div className="mt-[5px] flex w-full flex-row">
-        <div className="mr-[5px] h-[25px] w-[25px]">
-          <ActionButton
-            icon="eyedropper"
-            id="color-picker-eyedropper"
-            tooltip="Eyedropper"
-            color="tool"
-            action={openEyedropper}
-          />
-        </div>
-        <div>
-          <div className="relative mb-[2.5%] h-[11px] w-[140px] bg-white">
-            <Hue {...props} height={11} />
-          </div>
-          {!props.disableAlpha && (
-            <div className="relative mb-[2.5%] h-[11px] w-[140px] bg-white">
-              <Alpha {...props} />
-            </div>
-          )}
-        </div>
-        <div className="relative ml-[5px] h-[25px] w-[25px] rounded-[2px] bg-white">
-          <div style={{ ...CHECKERBOARD_STYLE, position: "absolute", inset: 0 }} />
-          <div style={{ position: "absolute", inset: 0, backgroundColor: currentColor }} />
-        </div>
-      </div>
-      <SketchFields {...props} aria-label="color options" />
-      {renderSpectrumSwatches(SPECTRUM_SWATCHES, "primary-swatch")}
-      {renderSpectrumSwatches(lastColors, "recent-swatch")}
+  const renderChannelFields = (): JSX.Element => (
+    <div className="mt-[6px] grid grid-cols-5 gap-[4px]">
+      <input
+        aria-label="hex color"
+        value={hexInput}
+        className="col-span-2 h-[24px] rounded-[3px] border border-black/30 bg-[#4f4f4f] px-[6px] text-[11px] text-white"
+        onChange={(event) => setHexInput(event.target.value)}
+        onBlur={handleHexCommit}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            handleHexCommit();
+          }
+        }}
+      />
+      <input
+        aria-label="red channel"
+        type="number"
+        min={0}
+        max={255}
+        value={currentRgb.r}
+        className="h-[24px] rounded-[3px] border border-black/30 bg-[#4f4f4f] px-[4px] text-[11px] text-white"
+        onChange={(event) =>
+          emitHsva(
+            toHsva(
+              `rgba(${clamp(Number(event.target.value), 0, 255)},${currentRgb.g},${currentRgb.b},${currentRgb.a})`,
+            ),
+          )
+        }
+      />
+      <input
+        aria-label="green channel"
+        type="number"
+        min={0}
+        max={255}
+        value={currentRgb.g}
+        className="h-[24px] rounded-[3px] border border-black/30 bg-[#4f4f4f] px-[4px] text-[11px] text-white"
+        onChange={(event) =>
+          emitHsva(
+            toHsva(
+              `rgba(${currentRgb.r},${clamp(Number(event.target.value), 0, 255)},${currentRgb.b},${currentRgb.a})`,
+            ),
+          )
+        }
+      />
+      <input
+        aria-label="blue channel"
+        type="number"
+        min={0}
+        max={255}
+        value={currentRgb.b}
+        className="h-[24px] rounded-[3px] border border-black/30 bg-[#4f4f4f] px-[4px] text-[11px] text-white"
+        onChange={(event) =>
+          emitHsva(
+            toHsva(
+              `rgba(${currentRgb.r},${currentRgb.g},${clamp(Number(event.target.value), 0, 255)},${currentRgb.a})`,
+            ),
+          )
+        }
+      />
     </div>
   );
+
+  const renderSpectrum = (): JSX.Element => {
+    const saturationCursorX = hsva.s * 100;
+    const saturationCursorY = (1 - hsva.v) * 100;
+
+    return (
+      <div
+        className="modern-color-picker h-[300px] w-[220px] rounded-[4px] bg-editor-primary px-[10px] pb-0 pt-[10px]"
+        data-color-picker-component="modern"
+        data-color-picker-mode="spectrum"
+      >
+        {renderHeader()}
+        <div
+          className="relative mt-[5px] h-[115px] w-full cursor-crosshair overflow-hidden rounded-[2px]"
+          style={{ backgroundColor: hueBaseColor }}
+          onPointerDown={startSaturationDrag}
+          onPointerMove={(event) => {
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+              applySaturationFromPointer(event);
+            }
+          }}
+        >
+          <div
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(to right, #ffffff, rgba(255,255,255,0))" }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(to top, #000000, rgba(0,0,0,0))" }}
+          />
+          <div
+            className="pointer-events-none absolute h-[10px] w-[10px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white shadow-[0_0_0_1px_rgba(0,0,0,0.6)]"
+            style={{
+              left: `${saturationCursorX}%`,
+              top: `${saturationCursorY}%`,
+            }}
+          />
+        </div>
+        <div className="mt-[5px] flex w-full flex-row">
+          <div className="mr-[5px] h-[25px] w-[25px]">
+            <ActionButton
+              icon="eyedropper"
+              id="color-picker-eyedropper"
+              tooltip="Eyedropper"
+              color="tool"
+              action={openEyedropper}
+            />
+          </div>
+          <div className="w-[140px]">
+            <div className="relative mb-[5px] h-[11px] w-full overflow-hidden rounded-[2px]">
+              <div className="absolute inset-0" style={{ background: buildHueGradient() }} />
+              <input
+                aria-label="hue slider"
+                type="range"
+                min={0}
+                max={360}
+                value={hsva.h}
+                className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-[13px] [&::-webkit-slider-thumb]:w-[4px] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-[1px] [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-[0_0_0_1px_rgba(0,0,0,0.7)] [&::-moz-range-thumb]:h-[13px] [&::-moz-range-thumb]:w-[4px] [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:rounded-[1px] [&::-moz-range-thumb]:bg-white"
+                onChange={(event) => emitHsva({ ...hsva, h: Number(event.target.value) })}
+              />
+            </div>
+            {!props.disableAlpha && (
+              <div className="relative h-[11px] w-full overflow-hidden rounded-[2px]" style={CHECKERBOARD_STYLE}>
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: `linear-gradient(to right, rgba(${currentRgb.r},${currentRgb.g},${currentRgb.b},0), rgba(${currentRgb.r},${currentRgb.g},${currentRgb.b},1))`,
+                  }}
+                />
+                <input
+                  aria-label="alpha slider"
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={Math.round(hsva.a * 100)}
+                  className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-[13px] [&::-webkit-slider-thumb]:w-[4px] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-[1px] [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-[0_0_0_1px_rgba(0,0,0,0.7)] [&::-moz-range-thumb]:h-[13px] [&::-moz-range-thumb]:w-[4px] [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:rounded-[1px] [&::-moz-range-thumb]:bg-white"
+                  onChange={(event) =>
+                    emitHsva({ ...hsva, a: clamp(Number(event.target.value) / 100, 0, 1) })
+                  }
+                />
+              </div>
+            )}
+          </div>
+          <div className="relative ml-[5px] h-[25px] w-[25px] overflow-hidden rounded-[2px] bg-white">
+            <div style={{ ...CHECKERBOARD_STYLE, position: "absolute", inset: 0 }} />
+            <div style={{ position: "absolute", inset: 0, backgroundColor: currentRgbaColor }} />
+          </div>
+        </div>
+        {renderChannelFields()}
+        {renderSpectrumSwatches(SPECTRUM_SWATCHES, "primary-swatch")}
+        {renderSpectrumSwatches(props.lastColorsUsed ?? Array.from({ length: 8 }, () => "#000000"), "recent-swatch")}
+      </div>
+    );
+  };
 
   if (props.colorPickerType === "spectrum") {
     return renderSpectrum();
   }
+
   return renderSwatches();
 };
 
-export default CustomPicker(ModernColorPicker);
+export default ModernColorPicker;

@@ -1,5 +1,4 @@
 import AudioExport from "./AudioExport";
-import b64toBuff from "base64-arraybuffer";
 import type {
   WickProject,
   WickRenderedImage,
@@ -37,6 +36,20 @@ interface VideoWorkerMessage {
   type?: WorkerEventType;
   data?: unknown;
 }
+
+const decodeBase64ToUint8Array = (base64: string): Uint8Array => {
+  if (!base64) {
+    return new Uint8Array();
+  }
+
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return bytes;
+};
 
 class VideoExport {
   /**
@@ -134,10 +147,10 @@ class VideoExport {
                 : image.src;
             const cleanBase64 = frameSource.split(",")[1];
             const safeBase64 = cleanBase64 ?? "";
-            const buffer = b64toBuff.decode(safeBase64);
+            const buffer = decodeBase64ToUint8Array(safeBase64);
 
             // Store name and buffer in memfs appropriate object.
-            imageData.push({ name: name, data: new Uint8Array(buffer) });
+            imageData.push({ name: name, data: buffer });
 
             // Increase frame number.
             frameNumber += 1;

@@ -19,7 +19,6 @@
 
 import React from 'react';
 import WickModal from 'Editor/Modals/WickModal/WickModal';
-import { Progress } from 'reactstrap';
 
 interface WickProject {
   name: string;
@@ -77,12 +76,25 @@ const ExportMedia: React.FC<ExportMediaProps> = ({
         >
           Creating "{renderName}"
         </div>
-        <Progress
-          striped
-          animated={!renderDone}
-          color={renderDone ? 'success' : 'warning'}
-          value={renderProgress}
-        />
+        <div
+          className="relative h-[14px] w-full overflow-hidden rounded-[4px] border border-black/35 bg-[#2E2E2E]"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.max(0, Math.min(100, renderProgress))}
+        >
+          <div
+            className="h-full transition-[width] duration-200"
+            style={{
+              width: `${Math.max(0, Math.min(100, renderProgress))}%`,
+              backgroundColor: renderDone ? "#1EE29A" : "#FFC835",
+              backgroundImage: renderDone
+                ? "none"
+                : "repeating-linear-gradient(45deg, rgba(255,255,255,0.16) 0px, rgba(255,255,255,0.16) 8px, rgba(255,255,255,0.05) 8px, rgba(255,255,255,0.05) 16px)",
+              animation: renderDone ? "none" : "export-progress-stripes 900ms linear infinite",
+            }}
+          />
+        </div>
         <div
           id="media-export-modal-status-message"
           className="text-[14px] text-editor-modal-text"
@@ -90,6 +102,12 @@ const ExportMedia: React.FC<ExportMediaProps> = ({
           {renderStatusMessage}
         </div>
       </div>
+      <style>{`
+        @keyframes export-progress-stripes {
+          from { background-position: 0 0; }
+          to { background-position: 32px 0; }
+        }
+      `}</style>
     </WickModal>
   );
 };

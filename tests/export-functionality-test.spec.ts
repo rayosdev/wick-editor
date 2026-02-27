@@ -212,7 +212,9 @@ test.describe('Export Functionality Test', () => {
     await expect(page.locator('#canvas-container-wrapper')).toBeVisible();
     
     // Test drawing functionality
-    const brushButton = page.locator('#action-button-tooltip-tool-button-brush button');
+    const brushButton = page.locator(
+      '#action-button-tooltip-tool-button-brush-anchor button, #action-button-tooltip-tool-button-brush button'
+    );
     await expect(brushButton).toBeVisible();
     await brushButton.click();
     
@@ -226,7 +228,9 @@ test.describe('Export Functionality Test', () => {
     await page.waitForTimeout(1000);
     
     // Test selection functionality
-    const cursorButton = page.locator('#action-button-tooltip-tool-button-cursor button');
+    const cursorButton = page.locator(
+      '#action-button-tooltip-tool-button-cursor-anchor button, #action-button-tooltip-tool-button-cursor button'
+    );
     await expect(cursorButton).toBeVisible();
     await cursorButton.click();
     

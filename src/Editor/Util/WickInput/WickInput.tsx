@@ -27,7 +27,6 @@ import React, {
 import "./wickinput.legacy.css";
 
 import Select from "react-select";
-import "react-dropdown/style.css";
 
 import ColorPicker from "Editor/Util/ColorPicker/ColorPicker";
 import type {
@@ -37,7 +36,6 @@ import type {
 import ReactTooltip from "react-tooltip";
 import WickButton from "./WickButton/WickButton";
 
-import { Input } from "reactstrap";
 import WickTextInput from "./WickTextInput/WickTextInput";
 import { isMobile } from "react-device-detect";
 
@@ -604,9 +602,9 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
     } = props;
 
     return (
-      <Input
+      <input
         type="radio"
-        {...(radioProps as React.ComponentProps<typeof Input>)}
+        {...(radioProps as React.InputHTMLAttributes<HTMLInputElement>)}
         onChange={
           onChange
             ? (event: React.ChangeEvent<HTMLInputElement>) => {

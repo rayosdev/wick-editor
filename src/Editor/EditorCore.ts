@@ -19,7 +19,6 @@
 
 import { Component } from "react";
 import type { EditorCoreUIState } from "./types/EditorCore.types";
-import queryString from "query-string";
 import { localforageAdapter as localforage, ProjectStorage } from "../storage";
 import { CurrentProjectRecordSchema } from "../storage/schemas";
 import VideoExport from "./export/VideoExport";
@@ -27,6 +26,7 @@ import GIFExport from "./export/GIFExport";
 import GIFImport from "./import/GIFImport";
 import AudioExport from "./export/AudioExport";
 import { getWickRuntime } from "./Util/wickRuntime";
+import { getFirstSearchParam } from "./Util/urlParams";
 import type {
   WickClip,
   WickFrame,
@@ -323,7 +323,6 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
       // We must manually close the brush modes popup here, because otherwise the page
       // will crash because the popup can no longer find the brush modes toggle button
       // on the page.
-      // See: https://github.com/reactstrap/reactstrap/issues/894
       this.toggleBrushModes(false);
 
       this.projectDidChange({ actionName: "Set Active Tool: " + newTool });
@@ -1938,11 +1937,9 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    *
    * If the projects are not served over https, or do not exist, an error will be thrown.
    *
-   * the example parameter takes precedence.
-   */
+  * the example parameter takes precedence.
+  */
   tryToParseProjectURL = (): boolean => {
-    const urlParams = queryString.parse(window.location.search);
-
     const loadProjectFromURL = (url: string | URL) => {
       const wickFile = this.getWickNamespace()?.WickFile;
       if (!wickFile) {
@@ -1971,17 +1968,15 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
         });
     };
 
-    if (urlParams.example) {
-      let url = window.location.origin + "/examples/" + urlParams.example;
+    const exampleParam = getFirstSearchParam(window.location.search, "example");
+    if (exampleParam) {
+      const url = window.location.origin + "/examples/" + exampleParam;
       console.log("attempting to load project", url);
       loadProjectFromURL(url);
       return true;
     }
 
-    const projectParam = urlParams.project;
-    let projectLink = Array.isArray(projectParam)
-      ? (projectParam[0] ?? "")
-      : (projectParam ?? "");
+    let projectLink = getFirstSearchParam(window.location.search, "project");
 
     // No URL param, skip the download
     if (!projectLink) {

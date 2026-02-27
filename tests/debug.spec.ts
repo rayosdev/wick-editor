@@ -9,9 +9,8 @@ test("Check for console errors", async ({ page }) => {
   const logs: string[] = [];
   // Console error messages that are known, benign warnings we can ignore for E2E
   const ignoredErrorPatterns = [
-    /Support for defaultProps will be removed/, // reactstrap warning about defaultProps
-    /findDOMNode is deprecated/, // react-sizeme / legacy refs warning
-    /Failed %s type: %s%s prop/, // prop-type formatted warning from reactstrap
+    /findDOMNode is deprecated/, // legacy refs warning
+    /Failed %s type: %s%s prop/, // generic prop-type formatted warning
   ];
 
   // Patterns to treat as errors even if they appear as warnings or request failures

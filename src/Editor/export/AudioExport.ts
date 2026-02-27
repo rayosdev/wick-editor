@@ -1,4 +1,4 @@
-import toWav from "audiobuffer-to-wav";
+import { encodeAudioBufferToWav } from "./wavEncoder";
 import type {
   WickAudioProgressCallback,
   WickProject,
@@ -7,11 +7,11 @@ import type {
 
 declare global {
   interface Window {
-    toWavFunc: typeof toWav;
+    toWavFunc: (audioBuffer: AudioBuffer) => ArrayBuffer;
   }
 }
 
-window.toWavFunc = toWav;
+window.toWavFunc = encodeAudioBufferToWav;
 
 interface AudioExportArgs {
   project: WickProject;
@@ -37,7 +37,7 @@ class AudioExport {
           if (!audioBuffer) {
             resolve(undefined);
           } else {
-            const wavBuffer = toWav(audioBuffer);
+            const wavBuffer = encodeAudioBufferToWav(audioBuffer);
             resolve(new Uint8Array(wavBuffer));
           }
         }

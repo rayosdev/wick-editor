@@ -30,11 +30,10 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { DndProvider } from "react-dnd";
 import "react-reflex/styles.css";
 import { ReflexContainer, ReflexSplitter, ReflexElement } from "react-reflex";
-import { throttle } from "underscore";
+import { throttle } from "./Util/throttle";
 import { localforageAdapter as localForage, ProjectStorage } from "../storage";
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
-import { SizeMe } from "react-sizeme";
 
 import HotKeyInterface from "./hotKeyMap";
 import ActionMapInterface from "./actionMap";
@@ -1507,35 +1506,29 @@ class Editor extends EditorCore {
                           {/*Canvas*/}
                           <ReflexElement {...this.resizeProps}>
                             <DockedPanel>
-                              <SizeMe>
-                                {({ size }) => {
-                                  this.project.view.render();
-                                  return (
-                                    <Canvas
-                                      editor={this}
-                                      project={this.project}
-                                      projectDidChange={this.projectDidChange}
-                                      projectData={this.state.project}
-                                      paper={this.paper}
-                                      previewPlaying={this.state.previewPlaying}
-                                      createImageFromAsset={
-                                        this.createImageFromAsset
-                                      }
-                                      toast={this.toast}
-                                      onEyedropperPickedColor={
-                                        this.onEyedropperPickedColor
-                                      }
-                                      createAssets={this.createAssets}
-                                      importProjectAsWickFile={
-                                        this.importProjectAsWickFile
-                                      }
-                                      onRef={(ref) =>
-                                        (this.canvasComponent = ref)
-                                      }
-                                    />
-                                  );
-                                }}
-                              </SizeMe>
+                              {this.project?.view?.render?.()}
+                              <Canvas
+                                editor={this}
+                                project={this.project}
+                                projectDidChange={this.projectDidChange}
+                                projectData={this.state.project}
+                                paper={this.paper}
+                                previewPlaying={this.state.previewPlaying}
+                                createImageFromAsset={
+                                  this.createImageFromAsset
+                                }
+                                toast={this.toast}
+                                onEyedropperPickedColor={
+                                  this.onEyedropperPickedColor
+                                }
+                                createAssets={this.createAssets}
+                                importProjectAsWickFile={
+                                  this.importProjectAsWickFile
+                                }
+                                onRef={(ref) =>
+                                  (this.canvasComponent = ref)
+                                }
+                              />
 
                               <CanvasTransforms
                                 onionSkinEnabled={this.project.onionSkinEnabled}

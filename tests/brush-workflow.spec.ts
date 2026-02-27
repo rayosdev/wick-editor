@@ -23,8 +23,16 @@ type BrushWorkflowWindow = Window & {
   editorProject?: BrushProjectLike;
 };
 
+const isPhoneProject = (projectName: string): boolean =>
+  projectName === 'mobile-chrome' || projectName === 'mobile-safari';
+
 test.describe('Brush Tool Complete Workflow', () => {
-  test('select brush, change size, and draw stroke', async ({ page }) => {
+  test('select brush, change size, and draw stroke', async ({ page }, testInfo) => {
+    test.skip(
+      isPhoneProject(testInfo.project.name),
+      'Phone layouts do not expose the brush size input used by this workflow.'
+    );
+
     // Track errors
     const errors: string[] = [];
     page.on('console', msg => {
@@ -60,7 +68,9 @@ test.describe('Brush Tool Complete Workflow', () => {
     
     // Step 2: Select the brush tool
     console.log('\nStep 2: Selecting brush tool...');
-    const brushButton = page.locator('#action-button-tooltip-tool-button-brush button');
+    const brushButton = page.locator(
+      '#action-button-tooltip-tool-button-brush-anchor button, #action-button-tooltip-tool-button-brush button'
+    );
     await expect(brushButton, 'Brush button should be visible').toBeVisible();
     await brushButton.click();
     await page.waitForTimeout(500);
@@ -182,7 +192,12 @@ test.describe('Brush Tool Complete Workflow', () => {
     console.log('='.repeat(50));
   });
   
-  test('draw 3 strokes with different sizes and verify they increase', async ({ page }) => {
+  test('draw 3 strokes with different sizes and verify they increase', async ({ page }, testInfo) => {
+    test.skip(
+      isPhoneProject(testInfo.project.name),
+      'Phone layouts do not expose the brush size input used by this workflow.'
+    );
+
     await page.addInitScript(() => {
       window.localStorage.setItem('skipWelcomeMessage', 'true');
     });
@@ -196,7 +211,9 @@ test.describe('Brush Tool Complete Workflow', () => {
     
     // Select brush tool
     console.log('\n1. Selecting brush tool...');
-    const brushButton = page.locator('#action-button-tooltip-tool-button-brush button');
+    const brushButton = page.locator(
+      '#action-button-tooltip-tool-button-brush-anchor button, #action-button-tooltip-tool-button-brush button'
+    );
     await brushButton.click();
     await page.waitForTimeout(500);
     console.log('   ✓ Brush selected');

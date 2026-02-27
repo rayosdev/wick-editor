@@ -122,9 +122,7 @@ try {
     if (isDev && typeof console !== "undefined" && console.error) {
         const origError = console.error.bind(console);
         const ignorePatterns = [
-            /Support for defaultProps will be removed/, // reactstrap defaultProps warning
-            /findDOMNode is deprecated/, // react-sizeme and similar
-            /transition\.timeout/, // reactstrap PopperContent2 propType warning
+            /findDOMNode is deprecated/, // legacy dependency warnings
             /Failed %s type: %s%s prop/, // generic prop-type format message
         ];
 

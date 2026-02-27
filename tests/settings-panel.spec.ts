@@ -76,7 +76,9 @@ test.describe('Settings Panel', () => {
   
   test('test settings panel with brush tool selected', async ({ page }) => {
     // Select brush tool first
-    const brushButton = page.locator('#action-button-tooltip-tool-button-brush button');
+    const brushButton = page.locator(
+      '#action-button-tooltip-tool-button-brush-anchor button, #action-button-tooltip-tool-button-brush button'
+    );
     await expect(brushButton).toBeVisible();
     await brushButton.click();
     await page.waitForTimeout(500);
@@ -111,4 +113,3 @@ test.describe('Settings Panel', () => {
     }
   });
 });
-

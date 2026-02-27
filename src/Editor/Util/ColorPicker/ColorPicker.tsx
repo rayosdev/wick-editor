@@ -144,7 +144,7 @@ export default function ColorPicker (props: ColorPickerProps): JSX.Element {
                 changeColorPickerType={handlePickerTypeChange}
                 disableAlpha={props.disableAlpha}
                 color={color}
-                onChangeComplete={props.onChangeComplete}
+                onChangeComplete={props.onChangeComplete ?? (() => undefined)}
                 lastColorsUsed={props.lastColorsUsed}
               />
             </div>

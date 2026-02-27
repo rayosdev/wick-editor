@@ -30,7 +30,6 @@
  * load them prior to the editor being loaded.
  */
 
-import { saveAs } from "file-saver";
 import timeStamp from "../Editor/Util/DataFunctions/timestamp";
 import type { LocalFileEntry } from "../Editor/types";
 
@@ -53,6 +52,21 @@ interface FileInputArgs {
 }
 
 type ExportType = "Animation" | "Interactive" | "Audio" | "Images";
+
+export const saveBlobAsFile = (blob: Blob, filename: string): void => {
+  const objectUrl = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = objectUrl;
+  anchor.download = filename;
+  anchor.rel = "noopener";
+  anchor.style.display = "none";
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  window.setTimeout(() => {
+    window.URL.revokeObjectURL(objectUrl);
+  }, 0);
+};
 
 declare global {
   interface Window {
@@ -95,7 +109,7 @@ export default function initializeDefaultFileHandlers(): void {
       failureCallback?: () => void
     ) => {
       const filename = name + timeStamp() + extension;
-      saveAs(file, filename);
+      saveBlobAsFile(file, filename);
       void failureCallback;
       successCallback && successCallback(); // Unfortunately, we can't check for success or failure from browser...
     };

@@ -129,6 +129,50 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.project]);
 
+    useEffect(() => {
+        const targetElement = canvasContainer.current;
+        if (!targetElement) {
+            return;
+        }
+
+        let animationFrame: number | null = null;
+        const requestResize = () => {
+            if (animationFrame !== null) {
+                window.cancelAnimationFrame(animationFrame);
+            }
+
+            animationFrame = window.requestAnimationFrame(() => {
+                props.project?.view?.resize?.();
+                animationFrame = null;
+            });
+        };
+
+        if (typeof ResizeObserver === "function") {
+            const observer = new ResizeObserver(() => {
+                requestResize();
+            });
+            observer.observe(targetElement);
+            requestResize();
+
+            return () => {
+                observer.disconnect();
+                if (animationFrame !== null) {
+                    window.cancelAnimationFrame(animationFrame);
+                }
+            };
+        }
+
+        window.addEventListener("resize", requestResize);
+        requestResize();
+
+        return () => {
+            window.removeEventListener("resize", requestResize);
+            if (animationFrame !== null) {
+                window.cancelAnimationFrame(animationFrame);
+            }
+        };
+    }, [props.project]);
+
     const renderNode = (
         <div
             id="canvas-container-wrapper"
