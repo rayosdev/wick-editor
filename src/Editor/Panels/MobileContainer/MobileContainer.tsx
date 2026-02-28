@@ -25,10 +25,6 @@ import MobileInspector from "./MobileInspector/MobileInspector";
 import MobileAssetLibrary from "./MobileAssetLibrary/MobileAssetLibrary";
 import InspectorScriptWindow from "../Inspector/InspectorScriptWindow/InspectorScriptWindow";
 import type {
-    WickProject,
-    WickClip,
-    TimelineObject,
-    OnionSkinOptions,
     ProjectDidChangeOptions,
     ToastType,
     ToastOptions,
@@ -53,11 +49,9 @@ type AssetObject = MobileAssetLibraryProps["assets"][number];
 interface MobileContainerProps {
     project: TimelineProps["project"];
     projectDidChange: (options: ProjectDidChangeOptions) => void;
-    projectData: WickProject;
-    getSelectedTimelineObjects: () => TimelineObject[];
-    setOnionSkinOptions: (options: OnionSkinOptions) => void;
-    getOnionSkinOptions: () => OnionSkinOptions;
-    setFocusObject: (object: WickClip | WickProject) => void;
+    projectData: TimelineProps["projectData"];
+    getSelectedTimelineObjects: TimelineProps["getSelectedTimelineObjects"];
+    setFocusObject: TimelineProps["setFocusObject"];
     addTweenKeyframe: () => void;
     createTween: () => void;
     cutFrame: () => void;
@@ -120,8 +114,6 @@ const MobileContainer: React.FC<MobileContainerProps> = (props) => {
                     projectDidChange={props.projectDidChange}
                     projectData={props.projectData}
                     getSelectedTimelineObjects={props.getSelectedTimelineObjects}
-                    setOnionSkinOptions={props.setOnionSkinOptions}
-                    getOnionSkinOptions={props.getOnionSkinOptions}
                     setFocusObject={props.setFocusObject}
                     addTweenKeyframe={props.addTweenKeyframe}
                     createTween={props.createTween}
@@ -196,7 +188,7 @@ const MobileContainer: React.FC<MobileContainerProps> = (props) => {
         return (
             <Fragment>
                 <MobileAssetLibrary
-                    projectData={props.projectData}
+                    projectData={props.projectData ?? undefined}
                     assets={props.assets}
                     openModal={props.openModal}
                     openImportAssetFileDialog={props.openImportAssetFileDialog}

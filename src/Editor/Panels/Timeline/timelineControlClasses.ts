@@ -112,6 +112,47 @@ export const TIMELINE_UNIFIED_LAYER_CONTROLS_CLASSES =
 export const TIMELINE_UNIFIED_TRACK_CLASSES =
   "timeline-unified-track relative flex-1 bg-transparent";
 
+export const TIMELINE_DOM_LAYERS_HEADER_CLASSES =
+  "timeline-dom-layers-header sticky top-0 z-[3] flex h-[34px] items-center border-b border-[#191919] bg-[#303030] px-[10px] font-nunito text-[11px] font-extrabold uppercase tracking-[0.06em] text-[#BDBDBD]";
+
+export const TIMELINE_DOM_LAYERS_SUBHEADER_CLASSES =
+  "timeline-dom-layers-subheader z-[3] flex h-[34px] shrink-0 items-center justify-end border-b border-b-[rgba(255,255,255,0.08)] bg-[#303030] px-2";
+
+export const getTimelineDomLayerRowClasses = (
+  active: boolean,
+  selected: boolean
+): string =>
+  [
+    "timeline-dom-layer-row grid grid-cols-[1fr_30px_30px_30px] items-center gap-1 border-b border-b-[rgba(255,255,255,0.06)] px-[6px] py-1",
+    active ? "active bg-[rgba(255,255,255,0.08)]" : "",
+    selected
+      ? "selected outline outline-1 -outline-offset-1 outline-[rgba(255,255,255,0.24)]"
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+export const TIMELINE_DOM_LAYER_MAIN_CLASSES =
+  "timeline-dom-layer-main inline-flex h-[calc(var(--timeline-cell-height)-10px)] min-w-0 items-center rounded-[4px] border border-transparent bg-transparent px-2 text-left text-white";
+
+export const TIMELINE_DOM_LAYER_NAME_CLASSES =
+  "timeline-dom-layer-name overflow-hidden text-ellipsis whitespace-nowrap font-nunito text-xs font-bold";
+
+export const TIMELINE_DOM_LAYER_NAME_INPUT_CLASSES =
+  "timeline-dom-layer-name-input h-7 w-full rounded-[4px] border border-[#191919] bg-[#383434] px-2 font-nunito text-xs text-white";
+
+export const TIMELINE_DOM_LAYER_ICON_BUTTON_CLASSES =
+  "timeline-dom-layer-icon-button inline-flex h-7 w-7 items-center justify-center rounded-[4px] border border-[rgba(255,255,255,0.1)] bg-[#383434] p-0";
+
+export const TIMELINE_DOM_LAYER_DELETE_BUTTON_CLASSES =
+  "timeline-dom-layer-delete-button inline-flex h-7 w-7 items-center justify-center rounded-[4px] border border-[rgba(255,255,255,0.1)] bg-[#383434] p-0";
+
+export const TIMELINE_DOM_LAYER_BUTTON_ICON_CLASSES =
+  "h-[14px] w-[14px]";
+
+export const TIMELINE_DOM_LAYER_ADD_CLASSES =
+  "timeline-dom-layer-add min-h-[calc(var(--timeline-cell-height)-4px)] w-full border-0 border-t border-t-[#191919] bg-[rgba(255,255,255,0.03)] font-nunito text-xs font-extrabold uppercase tracking-[0.03em] text-white";
+
 export const TIMELINE_FOOTER_GROUP_CLASSES =
   "timeline-flash-footer-group inline-flex items-center gap-[6px] border-r border-r-[rgba(255,255,255,0.08)] px-1 py-[2px] last:border-r-0";
 

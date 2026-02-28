@@ -1354,11 +1354,17 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    */
   createAssets = (
     acceptedFiles: File[],
-    rejectedFiles: File[],
-    options?: { create?: boolean; location?: { x?: number; y?: number } },
+    rejectedEntries: unknown[],
+    options?: {
+      create?: boolean;
+      location?: { x?: number; y?: number } | null;
+    },
   ) => {
     const resolvedOptions = options ?? {};
     const location = resolvedOptions.location ?? {};
+    const rejectedFiles = rejectedEntries.filter(
+      (entry): entry is File => entry instanceof File,
+    );
 
     let toastID = this.toast("Importing files...", "info");
 

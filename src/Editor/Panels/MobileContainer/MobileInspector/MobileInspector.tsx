@@ -63,7 +63,7 @@ import rotateIcon from "resources/mobile-inspector-icons/rotate-icon.svg";
 import strokeIcon from "resources/mobile-inspector-icons/strokewidth-icon.svg";
 import opacityIcon from "resources/mobile-inspector-icons/opacity-icon.svg";
 
-import type { WickAsset } from "Editor/types";
+import type { WickAsset as WickAssetEngine } from "Editor/types/engine.types";
 
 type SelectionAttributes = Record<string, unknown>; // Dynamic selection attributes - inherently flexible
 
@@ -93,7 +93,7 @@ type InspectorAction = ComponentProps<typeof InspectorActionButton>["action"];
 
 interface MobileInspectorProps {
     getAllSelectionAttributes: () => SelectionAttributes;
-    setSelectionAttribute: (attribute: string, value: unknown) => void; // Truly polymorphic
+    setSelectionAttribute: (attribute: string, value: unknown) => void;
     colorPickerType: string;
     changeColorPickerType: (type: string) => void;
     updateLastColors: (color: string) => void;
@@ -101,16 +101,19 @@ interface MobileInspectorProps {
     fontInfoInterface: FontInfoInterface;
     importFileAsAsset: (file: File, callback: () => void) => void;
     getSelectionType: () => string;
-    getAllSoundAssets: () => WickAsset[];
+    getAllSoundAssets: () => WickAssetEngine[];
     getClipAnimationTypes: () => ClipAnimationOption[];
     editorActions: Record<string, NonNullable<InspectorAction>>; // Action functions
     getToolSetting?: (name: string) => string | number | boolean;
     setToolSetting?: (name: string, value: string | number | boolean) => void;
     selectionIsScriptable?: () => boolean;
     project?: unknown; // Wick Engine project instance (not used in MobileInspector)
-    script?: Script;
+    script?: Script | null;
     scriptInfoInterface?: ScriptWindowScriptInfoInterface;
-    deleteScript?: (script: Script, name: string) => void;
+    deleteScript?: (
+        script: Script | { removeScript: (name: string) => void },
+        name: string
+    ) => void;
     editScript?: (name: string) => void;
 }
 
@@ -608,7 +611,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
             },
         ];
 
-        const mapAsset = (asset: WickAsset | undefined) => {
+        const mapAsset = (asset: WickAssetEngine | undefined) => {
             if (!asset) {
                 return {
                     value: "novalue",

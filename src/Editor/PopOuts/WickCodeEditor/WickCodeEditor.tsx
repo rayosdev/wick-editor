@@ -92,15 +92,20 @@ interface ScriptInfoReferenceItem {
     snippet: string;
 }
 
-interface ScriptInfoData extends ScriptInfoReferenceItem {
+interface ScriptInfoData {
+    name: string;
     type: string;
+    description: string;
 }
 
 interface ScriptInfoInterface {
-    sortScripts: (a: ScriptOption, b: ScriptOption) => number;
+    sortScripts: (
+        a: { name: string; type: string; description: string },
+        b: { name: string; type: string; description: string }
+    ) => number;
     scriptData: ScriptInfoData[];
     referenceItems: Record<string, ScriptInfoReferenceItem[]>;
-    getScriptType: (scriptName: string) => string;
+    getScriptType: (scriptName: string) => string | null;
 }
 
 interface CodeEditorWindowProperties {
@@ -134,6 +139,7 @@ export interface WickCodeEditorProps {
     clearCodeEditorError: () => void;
     requestAutosave: () => void;
     onScriptUpdate: (source: string) => void;
+    selectionIsScriptable?: () => boolean;
     setConsoleLogs: (logs: ConsoleEntry[]) => void;
     consoleLogs?: ConsoleEntry[] | null;
     error?: CodeError | null;
@@ -268,7 +274,19 @@ const WickCodeEditor = ({
     };
 
     if (script) {
-        script.scripts.sort(scriptInfoInterface.sortScripts);
+        script.scripts.sort((a, b) => {
+            const scriptA = {
+                name: a.name,
+                type: scriptInfoInterface.getScriptType(a.name) ?? "",
+                description: "",
+            };
+            const scriptB = {
+                name: b.name,
+                type: scriptInfoInterface.getScriptType(b.name) ?? "",
+                description: "",
+            };
+            return scriptInfoInterface.sortScripts(scriptA, scriptB);
+        });
     }
 
     const addCodeToTab = (code: string): void => {

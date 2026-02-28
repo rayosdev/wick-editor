@@ -43,15 +43,13 @@ import {
   TOOLTIP_LONG_PRESS_MS,
 } from "Editor/Util/WickInput/tooltipBehavior";
 
-const Tooltip = (
-  (
-    ReactTooltipModule as unknown as {
-      Tooltip?: React.ElementType;
-      default?: React.ElementType;
-    }
-  ).Tooltip ??
-  (ReactTooltipModule as unknown as { default?: React.ElementType }).default
-) as React.ElementType;
+type ReactTooltipModuleShape = {
+  Tooltip?: React.ElementType;
+  default?: React.ElementType;
+};
+
+const reactTooltip = ReactTooltipModule as ReactTooltipModuleShape;
+const Tooltip = (reactTooltip.Tooltip ?? reactTooltip.default) as React.ElementType;
 
 export interface SelectOption {
   label: string;

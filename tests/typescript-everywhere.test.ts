@@ -14,9 +14,7 @@ const tsHygieneRoots = ["src", "tests", "types"] as const;
 const tsAppHygieneRoots = ["src"] as const;
 const tsTestsHygieneRoots = ["tests"] as const;
 const tsHygieneSelfFile = path.normalize("tests/typescript-everywhere.test.ts");
-const tsSuppressionAllowlist = new Set([
-  path.normalize("src/Editor/Editor.tsx"),
-]);
+const tsSuppressionAllowlist = new Set<string>([]);
 const doubleUnknownCastAllowlist = new Set<string>([]);
 const tsExpectErrorAllowlist = new Set<string>([]);
 const jsonParseReturnTypeAllowlist = new Set([

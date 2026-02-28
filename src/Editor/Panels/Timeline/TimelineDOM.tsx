@@ -28,6 +28,15 @@ import {
   TIMELINE_ACTION_BUTTON_CLASSES,
   TIMELINE_BACK_BUTTON_CLASSES,
   TIMELINE_BREADCRUMB_CLASSES,
+  TIMELINE_DOM_LAYER_ADD_CLASSES,
+  TIMELINE_DOM_LAYER_BUTTON_ICON_CLASSES,
+  TIMELINE_DOM_LAYER_DELETE_BUTTON_CLASSES,
+  TIMELINE_DOM_LAYER_ICON_BUTTON_CLASSES,
+  TIMELINE_DOM_LAYER_MAIN_CLASSES,
+  TIMELINE_DOM_LAYER_NAME_CLASSES,
+  TIMELINE_DOM_LAYER_NAME_INPUT_CLASSES,
+  TIMELINE_DOM_LAYERS_HEADER_CLASSES,
+  TIMELINE_DOM_LAYERS_SUBHEADER_CLASSES,
   TIMELINE_FOOTER_CLASSES,
   TIMELINE_FOOTER_BUTTON_CLASSES,
   TIMELINE_FOOTER_CHOICE_ICON_CLASSES,
@@ -65,7 +74,13 @@ import {
   TIMELINE_UNIFIED_RULER_CLASSES,
   TIMELINE_UNIFIED_TRACK_CLASSES,
   TIMELINE_UNIFIED_WORKSPACE_CLASSES,
+  getTimelineDomLayerRowClasses,
 } from "./timelineControlClasses";
+import {
+  resolveDoubleClickMenuMode,
+  shouldAutoRunDoubleClickInsert,
+  type DoubleClickMenuMode,
+} from "./doubleClickMenuMode";
 
 import "./timeline-legacy.css";
 
@@ -138,8 +153,6 @@ type SelectionBox = {
   endCol: number;
   endRow: number;
 };
-
-type DoubleClickMenuMode = "frame-strip" | "tween-strip";
 
 type SoundHoverDetail = {
   x: number;
@@ -1945,18 +1958,19 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     const closestLeftFrame = leftFrames
       .sort((a, b) => Number(b.start) - Number(a.start))
       [0];
+    const menuMode = resolveDoubleClickMenuMode(closestLeftFrame);
 
-    const hasLeftTween = Boolean(
-      closestLeftFrame &&
-      Array.isArray(closestLeftFrame.tweens) &&
-      closestLeftFrame.tweens.length > 0,
-    );
+    if (shouldAutoRunDoubleClickInsert(menuMode)) {
+      closeContextMenu();
+      insertBlankKeyframeAt(layer, location.playheadPosition);
+      return;
+    }
 
     setDoubleClickMenuContext({
       layer,
       playheadPosition: location.playheadPosition,
       label: `Keyframe at ${location.playheadPosition}`,
-      mode: hasLeftTween ? "tween-strip" : "frame-strip",
+      mode: menuMode,
     });
     setContextMenuPosition(clampContextMenuPosition(clientX, clientY));
   };
@@ -2931,28 +2945,41 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 },
               },
             ]
-          : [
-              {
-                id: "insert-key-double-click",
-                label: "Insert Keyframe (Duplicate Left)",
-                icon: "split",
-                action: () => {
-                  closeContextMenu();
-                  const { layer, playheadPosition } = doubleClickMenuContext;
-                  insertKeyframeAt(layer, playheadPosition, { fallbackToBlank: true });
+          : doubleClickMenuContext.mode === "blank-strip"
+            ? [
+                {
+                  id: "insert-blank-double-click",
+                  label: "Insert Blank Keyframe",
+                  icon: "create",
+                  action: () => {
+                    closeContextMenu();
+                    const { layer, playheadPosition } = doubleClickMenuContext;
+                    insertBlankKeyframeAt(layer, playheadPosition);
+                  },
                 },
-              },
-              {
-                id: "insert-blank-double-click",
-                label: "Insert Blank Keyframe",
-                icon: "create",
-                action: () => {
-                  closeContextMenu();
-                  const { layer, playheadPosition } = doubleClickMenuContext;
-                  insertBlankKeyframeAt(layer, playheadPosition);
+              ]
+            : [
+                {
+                  id: "insert-key-double-click",
+                  label: "Insert Keyframe (Duplicate Left)",
+                  icon: "split",
+                  action: () => {
+                    closeContextMenu();
+                    const { layer, playheadPosition } = doubleClickMenuContext;
+                    insertKeyframeAt(layer, playheadPosition, { fallbackToBlank: true });
+                  },
                 },
-              },
-            ]
+                {
+                  id: "insert-blank-double-click",
+                  label: "Insert Blank Keyframe",
+                  icon: "create",
+                  action: () => {
+                    closeContextMenu();
+                    const { layer, playheadPosition } = doubleClickMenuContext;
+                    insertBlankKeyframeAt(layer, playheadPosition);
+                  },
+                },
+              ]
       )
     : timelineContextMenuItems;
 
@@ -3234,8 +3261,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         >
           <div className={TIMELINE_UNIFIED_HEADER_CLASSES}>
             <div className={TIMELINE_UNIFIED_CORNER_CLASSES}>
-              <div className="timeline-dom-layers-header">Layers</div>
-              <div className="timeline-dom-layers-subheader">
+              <div className={TIMELINE_DOM_LAYERS_HEADER_CLASSES}>Layers</div>
+              <div className={TIMELINE_DOM_LAYERS_SUBHEADER_CLASSES}>
                 <div className={TIMELINE_HEADER_ACTIONS_CLASSES} role="toolbar" aria-label="Timeline Actions">
                   <ActionButton
                     id="timeline-step-backward"
@@ -3479,12 +3506,11 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 >
                   <div className={TIMELINE_UNIFIED_LAYER_CONTROLS_CLASSES}>
                     <div
-                      className={`timeline-dom-layer-row ${isActive ? "active" : ""} ${isLayerSelected ? "selected" : ""
-                        }`}
+                      className={getTimelineDomLayerRowClasses(isActive, isLayerSelected)}
                       style={{ height: `${cellHeight}px`, width: '100%' }}
                     >
                       <div
-                        className="timeline-dom-layer-main"
+                        className={TIMELINE_DOM_LAYER_MAIN_CLASSES}
                         onPointerDown={(event) => handleLayerPointerDown(event, layer, layerIndex)}
                         onDoubleClick={() =>
                           setLayerRename({ layer, value: String(layer.name ?? `Layer ${layerIndex + 1}`) })
@@ -3495,7 +3521,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                       >
                         {layerRename?.layer === layer ? (
                           <input
-                            className="timeline-dom-layer-name-input"
+                            className={TIMELINE_DOM_LAYER_NAME_INPUT_CLASSES}
                             autoFocus
                             value={layerRename.value}
                             aria-label="Rename Layer"
@@ -3522,14 +3548,14 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                             }}
                           />
                         ) : (
-                          <span className="timeline-dom-layer-name">
+                          <span className={TIMELINE_DOM_LAYER_NAME_CLASSES}>
                             {String(layer.name ?? `Layer ${layerIndex + 1}`)}
                           </span>
                         )}
                       </div>
                       <button
                         type="button"
-                        className="timeline-dom-layer-icon-button"
+                        className={TIMELINE_DOM_LAYER_ICON_BUTTON_CLASSES}
                         onClick={() => {
                           layer.hidden = !layer.hidden;
                           layer.activate?.();
@@ -3538,11 +3564,11 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                         aria-label={layer.hidden ? "Show Layer" : "Hide Layer"}
                         title={layer.hidden ? "Show Layer" : "Hide Layer"}
                       >
-                        <img src={layer.hidden ? iconHidden : iconShown} alt="" />
+                        <img className={TIMELINE_DOM_LAYER_BUTTON_ICON_CLASSES} src={layer.hidden ? iconHidden : iconShown} alt="" />
                       </button>
                       <button
                         type="button"
-                        className="timeline-dom-layer-icon-button"
+                        className={TIMELINE_DOM_LAYER_ICON_BUTTON_CLASSES}
                         onClick={() => {
                           layer.locked = !layer.locked;
                           layer.activate?.();
@@ -3551,16 +3577,16 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                         aria-label={layer.locked ? "Unlock Layer" : "Lock Layer"}
                         title={layer.locked ? "Unlock Layer" : "Lock Layer"}
                       >
-                        <img src={layer.locked ? iconLock : iconUnlock} alt="" />
+                        <img className={TIMELINE_DOM_LAYER_BUTTON_ICON_CLASSES} src={layer.locked ? iconLock : iconUnlock} alt="" />
                       </button>
                       <button
                         type="button"
-                        className="timeline-dom-layer-delete-button"
+                        className={TIMELINE_DOM_LAYER_DELETE_BUTTON_CLASSES}
                         onClick={() => handleLayerDelete(layer)}
                         aria-label="Delete Layer"
                         title="Delete Layer"
                       >
-                        <img src={iconDelete} alt="" />
+                        <img className={TIMELINE_DOM_LAYER_BUTTON_ICON_CLASSES} src={iconDelete} alt="" />
                       </button>
                     </div>
                   </div>
@@ -3757,7 +3783,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               <div className={TIMELINE_UNIFIED_LAYER_CONTROLS_CLASSES}>
                 <button
                   type="button"
-                  className="timeline-dom-layer-add"
+                  className={TIMELINE_DOM_LAYER_ADD_CLASSES}
                   style={{ height: `${cellHeight}px` }}
                   onClick={handleAddLayer}
                 >

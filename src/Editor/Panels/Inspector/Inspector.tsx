@@ -38,11 +38,11 @@ import InspectorScriptWindow from "./InspectorScriptWindow/InspectorScriptWindow
 import InspectorCheckbox from "./InspectorRow/InspectorRowTypes/InspectorCheckbox";
 import { createWickColor, getWickTweenEasingTypes } from "Editor/Util/wickRuntime";
 
-import type { WickAsset } from "Editor/types";
+import type { WickAsset as WickAssetEngine } from "Editor/types/engine.types";
 
 type SelectionAttributes = Record<string, unknown>; // Dynamic selection attributes - inherently flexible
 type InspectorSelectorOption = {
-    value: string | number | boolean | null | WickAsset; // Selector values can be primitives, null, or assets
+    value: string | number | boolean | null | WickAssetEngine; // Selector values can be primitives, null, or assets
     label: string;
     className?: string;
 };
@@ -70,12 +70,15 @@ interface InspectorProps {
     lastColorsUsed?: string[];
     fontInfoInterface: FontInfoInterface;
     importFileAsAsset: (file: File, onComplete: () => void) => void;
-    getAllSoundAssets: () => WickAsset[];
+    getAllSoundAssets: () => WickAssetEngine[];
     getClipAnimationTypes: () => Array<{ label: string; value: string }>;
     editorActions: Record<string, NonNullable<InspectorAction>>; // Action functions
     selectionIsScriptable: () => boolean;
-    script?: ScriptType;
-    deleteScript?: (script: ScriptType, name: string) => void;
+    script?: ScriptType | null;
+    deleteScript?: (
+        script: ScriptType | { removeScript: (name: string) => void },
+        name: string
+    ) => void;
     editScript?: (name: string) => void;
     scriptInfoInterface?: ScriptWindowScriptInfoInterface;
 }
@@ -496,7 +499,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
             },
         ];
 
-        const mapAsset = (asset: WickAsset | null | undefined) => {
+        const mapAsset = (asset: WickAssetEngine | null | undefined) => {
             if (!asset) {
                 return {
                     value: "novalue",
@@ -505,7 +508,7 @@ const Inspector: React.FC<InspectorProps> = (props) => {
             }
             return {
                 value: asset,
-                label: asset.name,
+                label: asset.name ?? asset.filename,
             };
         };
 

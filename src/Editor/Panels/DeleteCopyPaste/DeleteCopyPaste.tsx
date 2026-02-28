@@ -8,19 +8,21 @@ interface EditorAction {
   action: (e?: React.MouseEvent) => void;
 }
 
-interface EditorActions {
-  delete: EditorAction;
-  copy: EditorAction;
-  paste: EditorAction;
-}
-
 interface DeleteCopyPasteProps {
   previewPlaying: boolean;
   selectionEmpty: boolean;
-  editorActions: EditorActions;
+  editorActions: Record<string, EditorAction>;
 }
 
 export default function DeleteCopyPaste(props: DeleteCopyPasteProps): JSX.Element {
+  const deleteAction = props.editorActions.delete;
+  const copyAction = props.editorActions.copy;
+  const pasteAction = props.editorActions.paste;
+
+  if (!deleteAction || !copyAction || !pasteAction) {
+    return <div className="delete-copy-paste-widget absolute left-0 top-0 mr-[15px] mt-[15px] flex h-[40px] items-center rounded-[4px] bg-[#191919]" />;
+  }
+
   return (
     <div className="delete-copy-paste-widget absolute left-0 top-0 mr-[15px] mt-[15px] flex h-[40px] items-center rounded-[4px] bg-[#191919]">
       {!props.previewPlaying && (
@@ -28,7 +30,7 @@ export default function DeleteCopyPaste(props: DeleteCopyPasteProps): JSX.Elemen
           <ActionButton
             disabled={props.selectionEmpty}
             color="tool"
-            action={props.editorActions.delete.action}
+            action={deleteAction.action}
             icon="delete"
             className={classNames(
               "canvas-transform-button",
@@ -45,7 +47,7 @@ export default function DeleteCopyPaste(props: DeleteCopyPasteProps): JSX.Elemen
           <ActionButton
             disabled={props.selectionEmpty}
             color="tool"
-            action={props.editorActions.copy.action}
+            action={copyAction.action}
             icon="copy"
             className={classNames(
               "canvas-transform-button",
@@ -61,7 +63,7 @@ export default function DeleteCopyPaste(props: DeleteCopyPasteProps): JSX.Elemen
           />
           <ActionButton
             color="tool"
-            action={props.editorActions.paste.action}
+            action={pasteAction.action}
             icon="paste"
             className={classNames(
               "canvas-transform-button",

@@ -17,12 +17,12 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// @ts-nocheck - TODO: full Editor shell typing migration
 
 import "./editor-legacy.css";
 import "./styles/tokens.css";
 import "./styles/default_theme.css";
 import "./styles/default_styles.css";
+import type { ComponentProps } from "react";
 
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { DndProvider } from "react-dnd";
@@ -70,9 +70,14 @@ import type {
   ToastOptions,
   ConsoleLogEntry,
 } from "./types/editor.types";
-import type { ProjectDidChangeOptions } from "./types";
+import type { ProjectDidChangeOptions, SelectableObject } from "./types";
 import type {
+  WickAsset as WickAssetEngine,
   WickBase as WickBaseEngine,
+  WickClip as WickClipEngine,
+  WickFrame as WickFrameEngine,
+  WickLayer as WickLayerEngine,
+  WickProject as WickProjectEngine,
   WickToolName,
 } from "./types/engine.types";
 
@@ -158,6 +163,85 @@ const isCustomHotKeys = (value: unknown): value is CustomHotKeys => {
 
   return Object.values(value as Record<string, unknown>).every(
     (entry) => Array.isArray(entry),
+  );
+};
+
+type CodeEditorScriptLike = NonNullable<ComponentProps<typeof WickCodeEditor>["script"]>;
+
+const isCodeEditorScriptLike = (value: unknown): value is CodeEditorScriptLike => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const maybeScript = value as Partial<CodeEditorScriptLike>;
+  return (
+    Array.isArray(maybeScript.scripts) &&
+    typeof maybeScript.addScript === "function" &&
+    typeof maybeScript.updateScript === "function" &&
+    typeof maybeScript.getAvailableScripts === "function"
+  );
+};
+
+const isCodeErrorLike = (
+  value: unknown
+): value is NonNullable<ComponentProps<typeof WickCodeEditor>["error"]> => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const maybeError = value as { lineNumber?: unknown; message?: unknown };
+  return (
+    typeof maybeError.lineNumber === "number" &&
+    Number.isFinite(maybeError.lineNumber) &&
+    typeof maybeError.message === "string"
+  );
+};
+
+const isWickFocusObject = (
+  value: unknown
+): value is WickClipEngine | WickProjectEngine => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const classname = (value as { classname?: unknown }).classname;
+  return classname === "Clip" || classname === "Project";
+};
+
+const isWickFrameOrLayer = (
+  value: unknown
+): value is WickFrameEngine | WickLayerEngine => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const classname = (value as { classname?: unknown }).classname;
+  return classname === "Frame" || classname === "Layer";
+};
+
+const isSelectableObjectLike = (value: unknown): value is SelectableObject => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return "classname" in value || "uuid" in value;
+};
+
+const isWickAssetLike = (value: unknown): value is WickAssetEngine => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const maybeAsset = value as {
+    uuid?: unknown;
+    classname?: unknown;
+    filename?: unknown;
+  };
+
+  return (
+    typeof maybeAsset.uuid === "string" &&
+    typeof maybeAsset.classname === "string" &&
+    typeof maybeAsset.filename === "string"
   );
 };
 
@@ -1139,13 +1223,15 @@ class Editor extends EditorCore {
     });
 
     if (errors.length > 0 && errors[0]?.uuid) {
-      const obj = this.getWickObjectByUUID(errors[0].uuid as string) as
-        | { parentClip?: unknown }
-        | null;
-      if (obj?.parentClip) {
-        this.setFocusObject(obj.parentClip);
+      const obj = this.getWickObjectByUUID(errors[0].uuid as string);
+      const parentClip = obj
+        ? (obj as { parentClip?: unknown }).parentClip
+        : undefined;
+
+      if (isWickFocusObject(parentClip)) {
+        this.setFocusObject(parentClip);
       }
-      if (obj) {
+      if (obj && isSelectableObjectLike(obj)) {
         this.selectObject(obj);
       }
       this.projectDidChange({ actionName: "Show Code Errors" });
@@ -1495,6 +1581,221 @@ class Editor extends EditorCore {
     setEditorRuntime(this);
 
     const renderSize = this.getRenderSize();
+    const normalizedAssetsForLibrary = this.project
+      .getAssets()
+      .map((asset) => ({
+        ...asset,
+        name: asset.name ?? asset.filename ?? "",
+      }));
+    const setToolSettingForToolbox: ComponentProps<typeof Toolbox>["setToolSetting"] = (
+      name,
+      value
+    ) => {
+      if (
+        value &&
+        typeof value === "object" &&
+        "rgba" in value &&
+        typeof (value as { rgba?: unknown }).rgba === "string"
+      ) {
+        this.setToolSetting(name, (value as { rgba: string }).rgba);
+        return;
+      }
+
+      if (
+        typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean"
+      ) {
+        this.setToolSetting(name, value);
+      }
+    };
+    const createAssetsForCanvas: ComponentProps<typeof Canvas>["createAssets"] = (
+      acceptedFiles,
+      rejectedEntries,
+      options
+    ) => {
+      const rejectedFiles = rejectedEntries.filter(
+        (entry): entry is File => entry instanceof File
+      );
+
+      this.createAssets(acceptedFiles, rejectedFiles, {
+        create: options?.create,
+        location: options?.location
+          ? { x: options.location.x, y: options.location.y }
+          : undefined,
+      });
+    };
+    const createAssetsForAssetLibrary: ComponentProps<typeof AssetLibrary>["createAssets"] = (
+      acceptedFiles,
+      rejectedEntries,
+      options
+    ) => {
+      const rejectedFiles = rejectedEntries.filter(
+        (entry): entry is File => entry instanceof File
+      );
+
+      this.createAssets(acceptedFiles, rejectedFiles, {
+        create: options?.create,
+        location: options?.location ?? undefined,
+      });
+    };
+    const createAssetsForMobileAssetLibrary: ComponentProps<typeof MobileContainer>["createAssets"] = (
+      acceptedFiles,
+      rejectedFiles,
+      options
+    ) => {
+      this.createAssets(acceptedFiles, rejectedFiles, {
+        create: options?.create,
+        location: options?.location ?? undefined,
+      });
+    };
+    const outlinerSelectObjects: ComponentProps<typeof Outliner>["selectObjects"] = (
+      objects
+    ) => {
+      const selectableObjects: SelectableObject[] = [];
+      objects.forEach((object) => {
+        if (isSelectableObjectLike(object)) {
+          selectableObjects.push(object);
+        }
+      });
+      if (selectableObjects.length === 0) {
+        return;
+      }
+      this.selectObjects(selectableObjects);
+    };
+    const outlinerDeselectObjects: ComponentProps<typeof Outliner>["deselectObjects"] = (
+      objects
+    ) => {
+      const selectableObjects: SelectableObject[] = [];
+      objects.forEach((object) => {
+        if (isSelectableObjectLike(object)) {
+          selectableObjects.push(object);
+        }
+      });
+      if (selectableObjects.length === 0) {
+        return;
+      }
+      this.deselectObjects(selectableObjects);
+    };
+    const outlinerSetFocusObject: ComponentProps<typeof Outliner>["setFocusObject"] = (
+      object
+    ) => {
+      if (isWickFocusObject(object)) {
+        this.setFocusObject(object);
+      }
+    };
+    const outlinerMoveSelection: ComponentProps<typeof Outliner>["moveSelection"] = (
+      parent,
+      index
+    ) => {
+      if (isWickFrameOrLayer(parent)) {
+        this.moveSelection(parent, index);
+      }
+    };
+    const outlinerToggleHidden: ComponentProps<typeof Outliner>["toggleHidden"] = (
+      layer
+    ) => {
+      this.toggleHidden(layer as { hidden: boolean });
+    };
+    const outlinerToggleLocked: ComponentProps<typeof Outliner>["toggleLocked"] = (
+      layer
+    ) => {
+      this.toggleLocked(layer as { locked: boolean });
+    };
+    const setSelectionAttributeForInspector: ComponentProps<typeof Inspector>["setSelectionAttribute"] = (
+      attribute,
+      value
+    ) => {
+      if (
+        typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean"
+      ) {
+        this.setSelectionAttribute(attribute, value);
+      }
+    };
+    const getAllSoundAssetsForInspector: ComponentProps<typeof Inspector>["getAllSoundAssets"] = () => {
+      return this.getAllSoundAssets();
+    };
+    const deleteScriptForPanels: NonNullable<ComponentProps<typeof Inspector>["deleteScript"]> = (
+      scriptOwner,
+      scriptName
+    ) => {
+      if (
+        scriptOwner &&
+        typeof scriptOwner === "object" &&
+        "removeScript" in scriptOwner &&
+        typeof (scriptOwner as { removeScript?: unknown }).removeScript === "function"
+      ) {
+        this.deleteScript(
+          scriptOwner as { removeScript: (name: string) => void },
+          scriptName
+        );
+      }
+    };
+    const selectAssetsForLibrary: ComponentProps<typeof AssetLibrary>["selectObjects"] = (
+      objects
+    ) => {
+      const selectableObjects: SelectableObject[] = [];
+      objects.forEach((object) => {
+        if (isSelectableObjectLike(object)) {
+          selectableObjects.push(object);
+        }
+      });
+      this.selectObjects(selectableObjects);
+    };
+    const isAssetSelectedInLibrary: ComponentProps<typeof AssetLibrary>["isObjectSelected"] = (
+      asset
+    ) => {
+      return isSelectableObjectLike(asset) ? this.isObjectSelected(asset) : false;
+    };
+    const addSoundToActiveFrameFromLibrary: ComponentProps<typeof AssetLibrary>["addSoundToActiveFrame"] = (
+      asset
+    ) => {
+      if (isWickAssetLike(asset)) {
+        this.addSoundToActiveFrame(asset);
+      }
+    };
+    const outlinerProject = {
+      activeTimeline: this.project.activeTimeline,
+    } as never as ComponentProps<typeof Outliner>["project"];
+    const timelineProject =
+      this.project as never as ComponentProps<typeof Timeline>["project"];
+    const timelineProjectData =
+      this.state.project as ComponentProps<typeof Timeline>["projectData"];
+    const setFocusObjectFromTimeline: ComponentProps<typeof Timeline>["setFocusObject"] = (
+      object
+    ) => {
+      if (isWickFocusObject(object)) {
+        this.setFocusObject(object);
+      }
+    };
+    const scriptCandidate = this.getSelectedObjectScript();
+    const scriptForPanels = isCodeEditorScriptLike(scriptCandidate)
+      ? scriptCandidate
+      : null;
+    const codeEditorWindowProperties: CodeEditorWindowProperties =
+      this.state.codeEditorWindowProperties ?? {
+        width: 700,
+        height: 500,
+        x: 120,
+        y: 80,
+        minWidth: 400,
+        minHeight: 250,
+        consoleHeight: 150,
+        consoleOpen: true,
+        fontSize: 14,
+        theme: "monokai",
+      };
+    const codeEditorError = isCodeErrorLike(this.state.codeError)
+      ? this.state.codeError
+      : null;
+    const scriptInfoForPanels = this.scriptInfoInterface;
+    const setConsoleLogsForCodeEditor: ComponentProps<typeof WickCodeEditor>["setConsoleLogs"] = (
+      logs
+    ) => {
+      this.setConsoleLogs(logs as ConsoleLogEntry[]);
+    };
 
     return (
       <DndProvider backend={HTML5Backend}>
@@ -1585,12 +1886,11 @@ class Editor extends EditorCore {
                   >
                     <DockedPanel showOverlay={this.state.previewPlaying}>
                       <Toolbox
-                        project={this.state.project}
                         getActiveToolName={() => this.getActiveTool() || "cursor"}
                         activeToolName={this.getActiveTool() || "cursor"}
                         setActiveTool={this.setActiveTool}
                         getToolSetting={this.getToolSetting}
-                        setToolSetting={this.setToolSetting}
+                        setToolSetting={setToolSettingForToolbox}
                         previewPlaying={this.state.previewPlaying}
                         editorActions={this.actionMapInterface.editorActions}
                         getToolSettingRestrictions={
@@ -1635,7 +1935,6 @@ class Editor extends EditorCore {
                           {/*Canvas*/}
                           <ReflexElement {...this.resizeProps}>
                             <DockedPanel>
-                              {this.project?.view?.render?.()}
                               <Canvas
                                 editor={this}
                                 project={this.project}
@@ -1650,7 +1949,7 @@ class Editor extends EditorCore {
                                 onEyedropperPickedColor={
                                   this.onEyedropperPickedColor
                                 }
-                                createAssets={this.createAssets}
+                                createAssets={createAssetsForCanvas}
                                 importProjectAsWickFile={
                                   this.importProjectAsWickFile
                                 }
@@ -1711,16 +2010,16 @@ class Editor extends EditorCore {
                               >
                                 <Outliner
                                   className="popout-outliner"
-                                  project={this.project}
-                                  selectObjects={this.selectObjects}
-                                  deselectObjects={this.deselectObjects}
+                                  project={outlinerProject}
+                                  selectObjects={outlinerSelectObjects}
+                                  deselectObjects={outlinerDeselectObjects}
                                   clearSelection={this.clearSelection}
                                   editScript={this.editScript}
-                                  setFocusObject={this.setFocusObject}
+                                  setFocusObject={outlinerSetFocusObject}
                                   setActiveLayerIndex={this.setActiveLayerIndex}
-                                  moveSelection={this.moveSelection}
-                                  toggleHidden={this.toggleHidden}
-                                  toggleLocked={this.toggleLocked}
+                                  moveSelection={outlinerMoveSelection}
+                                  toggleHidden={outlinerToggleHidden}
+                                  toggleLocked={outlinerToggleLocked}
                                 />
                               </ReflexElement>
                             )}
@@ -1747,15 +2046,13 @@ class Editor extends EditorCore {
                         <DockedPanel showOverlay={this.state.previewPlaying}>
                           {renderSize === "small" && (
                             <MobileContainer
-                              project={this.project}
+                              project={timelineProject}
                               projectDidChange={this.projectDidChange}
-                              projectData={this.state.project}
+                              projectData={timelineProjectData}
                               getSelectedTimelineObjects={
                                 this.getSelectedTimelineObjects
                               }
-                              setOnionSkinOptions={this.setOnionSkinOptions}
-                              getOnionSkinOptions={this.getOnionSkinOptions}
-                              setFocusObject={this.setFocusObject}
+                              setFocusObject={setFocusObjectFromTimeline}
                               addTweenKeyframe={this.addTweenKeyframe}
                               createTween={this.createTween}
                               cutFrame={this.cutFrame}
@@ -1781,20 +2078,20 @@ class Editor extends EditorCore {
                               onTimelineDensityModeChange={this.setTimelineDensityMode}
                               timelineSoftRenderTick={this.state.timelineSoftRenderTick}
                               getToolSetting={this.getToolSetting}
-                              setToolSetting={this.setToolSetting}
+                              setToolSetting={setToolSettingForToolbox}
                               getSelectionType={this.getSelectionType}
-                              getAllSoundAssets={this.getAllSoundAssets}
+                              getAllSoundAssets={getAllSoundAssetsForInspector}
                               getAllSelectionAttributes={
                                 this.getAllSelectionAttributes
                               }
-                              setSelectionAttribute={this.setSelectionAttribute}
+                              setSelectionAttribute={setSelectionAttributeForInspector}
                               editorActions={
                                 this.actionMapInterface.editorActions
                               }
                               selectionIsScriptable={this.selectionIsScriptable}
-                              script={this.getSelectedObjectScript()}
-                              scriptInfoInterface={this.scriptInfoInterface}
-                              deleteScript={this.deleteScript}
+                              script={scriptForPanels}
+                              scriptInfoInterface={scriptInfoForPanels}
+                              deleteScript={deleteScriptForPanels}
                               editScript={this.editScript}
                               fontInfoInterface={this.fontInfoInterface}
                               importFileAsAsset={this.importFileAsAsset}
@@ -1803,35 +2100,33 @@ class Editor extends EditorCore {
                               updateLastColors={this.updateLastColors}
                               lastColorsUsed={this.state.lastColorsUsed}
                               getClipAnimationTypes={this.getClipAnimationTypes}
-                              assets={this.project.getAssets()}
+                              assets={normalizedAssetsForLibrary}
                               openModal={this.openModal}
                               openImportAssetFileDialog={
                                 this.openImportAssetFileDialog
                               }
-                              selectObjects={this.selectObjects}
+                              selectObjects={selectAssetsForLibrary}
                               clearSelection={this.clearSelection}
-                              isObjectSelected={this.isObjectSelected}
-                              createAssets={this.createAssets}
+                              isObjectSelected={isAssetSelectedInLibrary}
+                              createAssets={createAssetsForMobileAssetLibrary}
                               importProjectAsWickFile={
                                 this.importProjectAsWickFile
                               }
                               createImageFromAsset={this.createImageFromAsset}
                               toast={this.toast}
                               deleteSelectedObjects={this.deleteSelectedObjects}
-                              addSoundToActiveFrame={this.addSoundToActiveFrame}
+                              addSoundToActiveFrame={addSoundToActiveFrameFromLibrary}
                             />
                           )}
                           {renderSize !== "small" && (
                             <Timeline
-                              project={this.project}
+                              project={timelineProject}
                               projectDidChange={this.projectDidChange}
-                              projectData={this.state.project}
+                              projectData={timelineProjectData}
                               getSelectedTimelineObjects={
                                 this.getSelectedTimelineObjects
                               }
-                              setOnionSkinOptions={this.setOnionSkinOptions}
-                              getOnionSkinOptions={this.getOnionSkinOptions}
-                              setFocusObject={this.setFocusObject}
+                              setFocusObject={setFocusObjectFromTimeline}
                               addTweenKeyframe={this.addTweenKeyframe}
                               createTween={this.createTween}
                               cutFrame={this.cutFrame}
@@ -1886,24 +2181,21 @@ class Editor extends EditorCore {
                       <ReflexElement {...this.resizeProps}>
                         <DockedPanel showOverlay={this.state.previewPlaying}>
                           <Inspector
-                            getToolSetting={this.getToolSetting}
-                            setToolSetting={this.setToolSetting}
                             getSelectionType={this.getSelectionType}
-                            getAllSoundAssets={this.getAllSoundAssets}
+                            getAllSoundAssets={getAllSoundAssetsForInspector}
                             getAllSelectionAttributes={
                               this.getAllSelectionAttributes
                             }
-                            setSelectionAttribute={this.setSelectionAttribute}
+                            setSelectionAttribute={setSelectionAttributeForInspector}
                             editorActions={
                               this.actionMapInterface.editorActions
                             }
                             selectionIsScriptable={this.selectionIsScriptable}
-                            script={this.getSelectedObjectScript()}
-                            scriptInfoInterface={this.scriptInfoInterface}
-                            deleteScript={this.deleteScript}
+                            script={scriptForPanels}
+                            scriptInfoInterface={scriptInfoForPanels}
+                            deleteScript={deleteScriptForPanels}
                             editScript={this.editScript}
                             fontInfoInterface={this.fontInfoInterface}
-                            project={this.project}
                             importFileAsAsset={this.importFileAsAsset}
                             colorPickerType={this.state.colorPickerType}
                             changeColorPickerType={this.changeColorPickerType}
@@ -1922,16 +2214,16 @@ class Editor extends EditorCore {
                         <ReflexElement minSize={100}>
                           <DockedPanel showOverlay={this.state.previewPlaying}>
                             <Outliner
-                              project={this.project}
-                              selectObjects={this.selectObjects}
-                              deselectObjects={this.deselectObjects}
+                              project={outlinerProject}
+                              selectObjects={outlinerSelectObjects}
+                              deselectObjects={outlinerDeselectObjects}
                               clearSelection={this.clearSelection}
                               editScript={this.editScript}
-                              setFocusObject={this.setFocusObject}
+                              setFocusObject={outlinerSetFocusObject}
                               setActiveLayerIndex={this.setActiveLayerIndex}
-                              moveSelection={this.moveSelection}
-                              toggleHidden={this.toggleHidden}
-                              toggleLocked={this.toggleLocked}
+                              moveSelection={outlinerMoveSelection}
+                              toggleHidden={outlinerToggleHidden}
+                              toggleLocked={outlinerToggleLocked}
                             />
                           </DockedPanel>
                         </ReflexElement>
@@ -1952,23 +2244,23 @@ class Editor extends EditorCore {
                         >
                           <DockedPanel showOverlay={this.state.previewPlaying}>
                             <AssetLibrary
-                              projectData={this.state.project}
-                              assets={this.project.getAssets()}
+                              projectData={this.state.project ?? undefined}
+                              assets={normalizedAssetsForLibrary}
                               openModal={this.openModal}
                               openImportAssetFileDialog={
                                 this.openImportAssetFileDialog
                               }
-                              selectObjects={this.selectObjects}
+                              selectObjects={selectAssetsForLibrary}
                               clearSelection={this.clearSelection}
-                              isObjectSelected={this.isObjectSelected}
-                              createAssets={this.createAssets}
+                              isObjectSelected={isAssetSelectedInLibrary}
+                              createAssets={createAssetsForAssetLibrary}
                               importProjectAsWickFile={
                                 this.importProjectAsWickFile
                               }
                               createImageFromAsset={this.createImageFromAsset}
                               toast={this.toast}
                               deleteSelectedObjects={this.deleteSelectedObjects}
-                              addSoundToActiveFrame={this.addSoundToActiveFrame}
+                              addSoundToActiveFrame={addSoundToActiveFrameFromLibrary}
                             />
                           </DockedPanel>
                         </ReflexElement>
@@ -1982,23 +2274,23 @@ class Editor extends EditorCore {
               <WickCodeEditor
                 selectionType={this.getSelectionType()}
                 codeEditorWindowProperties={
-                  this.state.codeEditorWindowProperties
+                  codeEditorWindowProperties
                 }
                 updateCodeEditorWindowProperties={
                   this.updateCodeEditorWindowProperties
                 }
-                scriptInfoInterface={this.scriptInfoInterface}
+                scriptInfoInterface={scriptInfoForPanels}
                 selectionIsScriptable={this.selectionIsScriptable}
-                script={this.getSelectedObjectScript()}
+                script={scriptForPanels}
                 scriptToEdit={this.state.scriptToEdit}
-                error={this.state.codeError}
+                error={codeEditorError}
                 onScriptUpdate={this.onScriptUpdate}
                 editScript={this.editScript}
                 toggleCodeEditor={this.toggleCodeEditor}
                 requestAutosave={this.requestAutosave}
                 clearCodeEditorError={this.clearCodeEditorError}
                 consoleLogs={this.state.consoleLogs}
-                setConsoleLogs={this.setConsoleLogs}
+                setConsoleLogs={setConsoleLogsForCodeEditor}
                 renderSize={renderSize}
               />
             )}

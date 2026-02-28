@@ -283,36 +283,6 @@ button:focus, input:focus {
   flex-direction: column;
 }
 
-.timeline-dom-layers-header {
-  height: 34px;
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-  border-bottom: 1px solid #191919;
-  color: #BDBDBD;
-  font-family: "Nunito Sans", sans-serif;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  background-color: #303030;
-}
-
-.timeline-dom-layers-subheader {
-  height: 34px;
-  flex: 0 0 34px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* Matches numberline */
-  background-color: #303030;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 0 8px;
-}
-
 .timeline-dom-layers-scroll {
   flex: 1 1 auto;
   overflow: auto;
@@ -326,91 +296,6 @@ button:focus, input:focus {
   background-image: linear-gradient(to top, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
   background-size: 100% var(--timeline-cell-height, 42px);
   /* background-position: 0 -1px; Remove this, to top starts at bottom */
-}
-
-.timeline-dom-layer-row {
-  display: grid;
-  grid-template-columns: 1fr 30px 30px 30px;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.timeline-dom-layer-row.active {
-  background-color: rgba(255, 255, 255, 0.08);
-}
-
-.timeline-dom-layer-row.selected {
-  outline: 1px solid rgba(255, 255, 255, 0.24);
-  outline-offset: -1px;
-}
-
-.timeline-dom-layer-main {
-  height: calc(var(--timeline-cell-height) - 10px);
-  border: 1px solid transparent;
-  border-radius: 4px;
-  background: transparent;
-  color: white;
-  text-align: left;
-  padding: 0 8px;
-  display: inline-flex;
-  align-items: center;
-  min-width: 0;
-}
-
-.timeline-dom-layer-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: "Nunito Sans", sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.timeline-dom-layer-name-input {
-  width: 100%;
-  height: 28px;
-  border: 1px solid #191919;
-  border-radius: 4px;
-  background: #383434;
-  color: white;
-  font-family: "Nunito Sans", sans-serif;
-  font-size: 12px;
-  padding: 0 8px;
-}
-
-.timeline-dom-layer-icon-button,
-.timeline-dom-layer-delete-button {
-  width: 28px;
-  height: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  background: #383434;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-
-.timeline-dom-layer-icon-button img,
-.timeline-dom-layer-delete-button img {
-  width: 14px;
-  height: 14px;
-}
-
-.timeline-dom-layer-add {
-  width: 100%;
-  min-height: calc(var(--timeline-cell-height) - 4px);
-  border: none;
-  border-top: 1px solid #191919;
-  background: rgba(255, 255, 255, 0.03);
-  color: white;
-  font-family: "Nunito Sans", sans-serif;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
 }
 
 .timeline-dom-grid-panel {

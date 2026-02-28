@@ -29,7 +29,7 @@ import ToolSettings from "./ToolSettings/ToolSettings";
 import CanvasActions, {
     CanvasActionsProps,
     CanvasAction,
-    EditorActions as CanvasEditorActions,
+    EditorActions,
 } from "./CanvasActions/CanvasActions";
 import PopupMenu from "Editor/Util/PopupMenu/PopupMenu";
 import type { HotKeyMap } from "Editor/types/hotkeys";
@@ -110,14 +110,7 @@ const isToolName = (value: string): value is ToolName =>
 
 interface ToolboxAction extends CanvasAction { }
 
-interface ToolboxEditorActions extends CanvasEditorActions {
-    showMoreCanvasActions: ToolboxAction;
-    delete: ToolboxAction;
-    copy: ToolboxAction;
-    paste: ToolboxAction;
-    undo: ToolboxAction;
-    redo: ToolboxAction;
-}
+type ToolboxEditorActions = Record<string, ToolboxAction>;
 
 interface ToolboxProps
     extends Omit<CanvasActionsProps, "editorActions"> {
@@ -180,6 +173,19 @@ const TOOLBOX_ACTIONS_RIGHT_CONTAINER_CLASSES =
 const TOOLBOX_ACTIONS_RIGHT_CLASSES =
     "toolbox-actions-right flex flex-row items-center justify-center";
 const BUMP_UP_NO_DROPDOWN_ICON_CLASSES = "bump-up-no-dropdown mb-[2.5px]";
+const NOOP_TOOLBOX_ACTION: ToolboxAction = {
+    icon: "none",
+    tooltip: "",
+    action: () => { },
+};
+
+const getEditorAction = (
+    editorActions: ToolboxEditorActions,
+    actionName: string
+): ToolboxAction => {
+    const action = editorActions[actionName];
+    return action ?? NOOP_TOOLBOX_ACTION;
+};
 
 const getToolboxItemClassName = (isMobile: boolean): string =>
     classNames(TOOLBOX_ITEM_CLASSES, {
@@ -501,27 +507,37 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
     };
 
     const renderCanvasActions = (): JSX.Element => {
+        const canvasEditorActions: EditorActions = {
+            sendToBack: getEditorAction(props.editorActions, "sendToBack"),
+            sendBackward: getEditorAction(props.editorActions, "sendBackward"),
+            sendForward: getEditorAction(props.editorActions, "sendForward"),
+            sendToFront: getEditorAction(props.editorActions, "sendToFront"),
+            flipHorizontal: getEditorAction(props.editorActions, "flipHorizontal"),
+            flipVertical: getEditorAction(props.editorActions, "flipVertical"),
+            booleanUnite: getEditorAction(props.editorActions, "booleanUnite"),
+            booleanSubtract: getEditorAction(props.editorActions, "booleanSubtract"),
+            booleanIntersect: getEditorAction(props.editorActions, "booleanIntersect"),
+        };
+
         return (
             <div className={TOOLBOX_ACTIONS_RIGHT_CONTAINER_CLASSES}>
                 <div className={TOOLBOX_ACTIONS_RIGHT_CLASSES}>
                     <div id="more-canvas-actions-popover-button">
-                        {renderToolButtonFromAction(
-                            props.editorActions.showMoreCanvasActions
-                        )}
+                        {renderToolButtonFromAction(getEditorAction(props.editorActions, "showMoreCanvasActions"))}
                         <CanvasActions
                             renderSize={props.renderSize}
-                            editorActions={props.editorActions}
+                            editorActions={canvasEditorActions}
                             showCanvasActions={props.showCanvasActions}
                             toggleCanvasActions={props.toggleCanvasActions}
                             previewPlaying={props.previewPlaying}
                         />
                     </div>
 
-                    {renderToolButtonFromAction(props.editorActions.delete)}
-                    {renderToolButtonFromAction(props.editorActions.copy)}
-                    {renderToolButtonFromAction(props.editorActions.paste)}
-                    {renderToolButtonFromAction(props.editorActions.undo)}
-                    {renderToolButtonFromAction(props.editorActions.redo)}
+                    {renderToolButtonFromAction(getEditorAction(props.editorActions, "delete"))}
+                    {renderToolButtonFromAction(getEditorAction(props.editorActions, "copy"))}
+                    {renderToolButtonFromAction(getEditorAction(props.editorActions, "paste"))}
+                    {renderToolButtonFromAction(getEditorAction(props.editorActions, "undo"))}
+                    {renderToolButtonFromAction(getEditorAction(props.editorActions, "redo"))}
                 </div>
             </div>
         );
@@ -608,18 +624,28 @@ const Toolbox: React.FC<ToolboxProps> = (props) => {
     };
 
     const renderCanvasActionsMobile = (): JSX.Element => {
+        const canvasEditorActions: EditorActions = {
+            sendToBack: getEditorAction(props.editorActions, "sendToBack"),
+            sendBackward: getEditorAction(props.editorActions, "sendBackward"),
+            sendForward: getEditorAction(props.editorActions, "sendForward"),
+            sendToFront: getEditorAction(props.editorActions, "sendToFront"),
+            flipHorizontal: getEditorAction(props.editorActions, "flipHorizontal"),
+            flipVertical: getEditorAction(props.editorActions, "flipVertical"),
+            booleanUnite: getEditorAction(props.editorActions, "booleanUnite"),
+            booleanSubtract: getEditorAction(props.editorActions, "booleanSubtract"),
+            booleanIntersect: getEditorAction(props.editorActions, "booleanIntersect"),
+        };
+
         return (
             <div className={TOOLBOX_ACTIONS_RIGHT_CONTAINER_CLASSES}>
                 <div className={TOOLBOX_ACTIONS_RIGHT_CLASSES}>
-                    {renderToolButtonFromAction(props.editorActions.undo)}
-                    {renderToolButtonFromAction(props.editorActions.redo)}
+                    {renderToolButtonFromAction(getEditorAction(props.editorActions, "undo"))}
+                    {renderToolButtonFromAction(getEditorAction(props.editorActions, "redo"))}
                     <div id="more-canvas-actions-popover-button">
-                        {renderToolButtonFromAction(
-                            props.editorActions.showMoreCanvasActions
-                        )}
+                        {renderToolButtonFromAction(getEditorAction(props.editorActions, "showMoreCanvasActions"))}
                         <CanvasActions
                             renderSize={props.renderSize}
-                            editorActions={props.editorActions}
+                            editorActions={canvasEditorActions}
                             showCanvasActions={props.showCanvasActions}
                             toggleCanvasActions={props.toggleCanvasActions}
                             previewPlaying={props.previewPlaying}

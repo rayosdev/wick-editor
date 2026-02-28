@@ -1,6 +1,5 @@
 import type {
   WickProject,
-  WickClip,
   TimelineObject,
   OnionSkinOptions,
   ProjectDidChangeOptions,
@@ -133,11 +132,11 @@ export type TimelineProject = {
 export interface TimelineOwnProps {
   project: TimelineProject | null;
   projectDidChange: (options: ProjectDidChangeOptions) => void;
-  projectData: WickProject;
-  getSelectedTimelineObjects: () => TimelineObject[];
-  setOnionSkinOptions: (options: OnionSkinOptions) => void;
-  getOnionSkinOptions: () => OnionSkinOptions;
-  setFocusObject: (object: WickClip | WickProject) => void;
+  projectData: WickProject | null;
+  getSelectedTimelineObjects: () => TimelineObject[] | unknown[];
+  setOnionSkinOptions?: (options: OnionSkinOptions) => void;
+  getOnionSkinOptions?: () => OnionSkinOptions;
+  setFocusObject: (object: unknown) => void;
   addTweenKeyframe: () => void;
   createTween: () => void;
   cutFrame: () => void;

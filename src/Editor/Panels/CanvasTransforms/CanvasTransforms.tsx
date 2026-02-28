@@ -11,15 +11,13 @@ import {
 import classNames from "classnames";
 import type { HotKeyMap } from "Editor/types/hotkeys";
 
-const Tooltip = (
-  (
-    ReactTooltipModule as unknown as {
-      Tooltip?: React.ElementType;
-      default?: React.ElementType;
-    }
-  ).Tooltip ??
-  (ReactTooltipModule as unknown as { default?: React.ElementType }).default
-) as React.ElementType;
+type ReactTooltipModuleShape = {
+  Tooltip?: React.ElementType;
+  default?: React.ElementType;
+};
+
+const reactTooltip = ReactTooltipModule as ReactTooltipModuleShape;
+const Tooltip = (reactTooltip.Tooltip ?? reactTooltip.default) as React.ElementType;
 
 interface TransformButtonOptions {
   action: () => void;

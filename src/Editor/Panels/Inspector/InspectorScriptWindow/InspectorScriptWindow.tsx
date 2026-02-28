@@ -24,8 +24,11 @@ import type { Script, ScriptWindowScriptInfoInterface, ScriptObject } from 'Edit
 
 interface InspectorScriptWindowProps {
   scriptInfoInterface: ScriptWindowScriptInfoInterface;
-  script: Script;
-  deleteScript: (script: Script, name: string) => void;
+  script: Script | null;
+  deleteScript: (
+    script: Script | { removeScript: (name: string) => void },
+    name: string
+  ) => void;
   editScript: (name: string) => void;
 }
 
@@ -36,6 +39,10 @@ const InspectorScriptWindow: React.FC<InspectorScriptWindowProps> = ({
   editScript
 }) => {
   const renderScriptRow = (scriptobj: ScriptObject, i: number): JSX.Element => {
+    if (!script) {
+      return <React.Fragment key={i}></React.Fragment>;
+    }
+
     return (
       <ScriptWindowRow
         scriptInfoInterface={scriptInfoInterface}
@@ -52,7 +59,7 @@ const InspectorScriptWindow: React.FC<InspectorScriptWindowProps> = ({
         Scripts
       </div>
       <div className="inspector-script-window-body">
-        {script.scripts.map(renderScriptRow)}
+        {(script?.scripts ?? []).map(renderScriptRow)}
         <div className="inspector-script-window-row-container mt-[5px] flex h-[25px] flex-row justify-between rounded-[3px] mx-[5px]">
           <ActionButton
             color="inspector"

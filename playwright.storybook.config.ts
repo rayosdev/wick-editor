@@ -1,5 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const storybookHost = process.env.PW_STORYBOOK_HOST || "127.0.0.1";
+const storybookPort = Number(process.env.PW_STORYBOOK_PORT ?? "6006");
+const storybookBaseUrl =
+  process.env.PW_STORYBOOK_BASE_URL || `http://${storybookHost}:${storybookPort}`;
+const useStaticStorybook = process.env.PW_STORYBOOK_STATIC === "1";
+
 export default defineConfig({
   testDir: "./tests/storybook",
   testMatch: "**/*.spec.ts",
@@ -10,14 +16,16 @@ export default defineConfig({
   reporter: "list",
 
   webServer: {
-    command: "npm run storybook -- --port 6006 --no-open",
-    url: "http://localhost:6006",
+    command: useStaticStorybook
+      ? `npm run build-storybook && python3 -m http.server ${storybookPort} --bind ${storybookHost} --directory storybook-static`
+      : `npm run storybook -- --host ${storybookHost} --port ${storybookPort} --no-open`,
+    url: storybookBaseUrl,
     reuseExistingServer: true,
-    timeout: 120000,
+    timeout: useStaticStorybook ? 10 * 60 * 1000 : 120000,
   },
 
   use: {
-    baseURL: process.env.PW_STORYBOOK_BASE_URL || "http://localhost:6006",
+    baseURL: storybookBaseUrl,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
