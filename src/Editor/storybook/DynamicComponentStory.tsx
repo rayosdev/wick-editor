@@ -383,20 +383,57 @@ function shouldReplaceProvidedValue(prop: string, value: unknown): boolean {
 }
 
 function createSafeArgs(args: Record<string, unknown>): Record<string, unknown> {
-  return new Proxy(args, {
-    get(target, prop, receiver) {
-      if (typeof prop !== "string") {
-        return Reflect.get(target, prop, receiver);
-      }
+  const normalized: Record<string, unknown> = { ...args };
 
-      const value = Reflect.get(target, prop, receiver);
-      if (!shouldReplaceProvidedValue(prop, value)) {
-        return value;
-      }
-
-      return fallbackForProp(prop);
-    },
+  Object.entries(normalized).forEach(([key, value]) => {
+    if (shouldReplaceProvidedValue(key, value)) {
+      normalized[key] = fallbackForProp(key);
+    }
   });
+
+  const commonProps = [
+    "action",
+    "assets",
+    "checked",
+    "className",
+    "classname",
+    "description",
+    "editor",
+    "getRenderSize",
+    "getSelectionType",
+    "getToolSettingRestrictions",
+    "id",
+    "info",
+    "isAssetInLibrary",
+    "items",
+    "label",
+    "lastColorsUsed",
+    "name",
+    "onChange",
+    "onClick",
+    "onRef",
+    "openModal",
+    "options",
+    "project",
+    "rows",
+    "scripts",
+    "title",
+    "tooltip",
+    "tooltip1",
+    "tooltip2",
+    "type",
+    "val",
+    "value",
+    "warningModalInfo",
+  ];
+
+  commonProps.forEach((key) => {
+    if (normalized[key] === undefined) {
+      normalized[key] = fallbackForProp(key);
+    }
+  });
+
+  return normalized;
 }
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {

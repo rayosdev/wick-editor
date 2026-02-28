@@ -1,4 +1,3 @@
-import type { ConnectDropTarget } from "react-dnd";
 import type {
   WickProject,
   WickClip,
@@ -164,7 +163,6 @@ export interface TimelineOwnProps {
 }
 
 export interface TimelineInjectedProps {
-  connectDropTarget?: ConnectDropTarget;
   isOver?: boolean;
 }
 
@@ -176,6 +174,7 @@ export type TimelineRendererProps = TimelineOwnProps &
   };
 
 export type DraggedSoundItem = {
+  type: string | symbol;
   uuid: string;
 };
 

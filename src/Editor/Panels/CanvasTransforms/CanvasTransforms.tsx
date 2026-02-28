@@ -1,13 +1,11 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import PlayButton from "Editor/Util/PlayButton/PlayButton";
-import ReactTooltip from "react-tooltip";
+import { Tooltip } from "react-tooltip";
 import HotKeyInterface from "Editor/hotKeyMap";
-import { isMobile } from "react-device-detect";
 import {
   TOOLTIP_HOVER_DELAY_MS,
-  TOOLTIP_LONG_PRESS_MS,
 } from "Editor/Util/WickInput/tooltipBehavior";
 
 import classNames from "classnames";
@@ -50,49 +48,11 @@ const CanvasTransforms: React.FC<CanvasTransformsProps> = ({
   togglePreviewPlaying,
   renderSize
 }) => {
-  const hidePlayTooltipListenerRef = useRef<(() => void) | null>(null);
   const playButtonId = "play-button-object";
   const playTooltipId = "play-button-tooltip";
 
-  const clearPlayTooltipHideListener = (): void => {
-    if (hidePlayTooltipListenerRef.current) {
-      window.removeEventListener("touchend", hidePlayTooltipListenerRef.current, true);
-      window.removeEventListener("touchcancel", hidePlayTooltipListenerRef.current, true);
-      hidePlayTooltipListenerRef.current = null;
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      clearPlayTooltipHideListener();
-    };
-  }, []);
-
   const getHotkey = (action: string): string => {
     return HotKeyInterface.getHotKey(keyMap, action);
-  };
-
-  const showPlayButtonTooltip = (): void => {
-    if (!isMobile) {
-      return;
-    }
-
-    const anchorElement = document.getElementById(playButtonId);
-    if (!anchorElement) {
-      return;
-    }
-
-    clearPlayTooltipHideListener();
-    ReactTooltip.show(anchorElement);
-
-    const hideTooltip = () => {
-      ReactTooltip.hide(anchorElement);
-      clearPlayTooltipHideListener();
-    };
-
-    hidePlayTooltipListenerRef.current = hideTooltip;
-    window.addEventListener("touchend", hideTooltip, true);
-    window.addEventListener("touchcancel", hideTooltip, true);
   };
 
   const renderTransformButton = (options: TransformButtonOptions): JSX.Element => {
@@ -193,19 +153,15 @@ const CanvasTransforms: React.FC<CanvasTransformsProps> = ({
 
   const renderPlayButtonTooltip = (): JSX.Element => {
     return (
-      <ReactTooltip
+      <Tooltip
         delayShow={TOOLTIP_HOVER_DELAY_MS}
         id={playTooltipId}
-        type="info"
         place={"top"}
-        effect="solid"
         aria-haspopup="true"
         className="wick-tooltip"
       >
-        <span>{`Preview Play (${getHotkey(
-          "preview-play-toggle"
-        ).toUpperCase()})`}</span>
-      </ReactTooltip>
+        {`Preview Play (${getHotkey("preview-play-toggle").toUpperCase()})`}
+      </Tooltip>
     );
   };
 
@@ -225,9 +181,6 @@ const CanvasTransforms: React.FC<CanvasTransformsProps> = ({
           className="play-button canvas-transform-button !h-full !w-full !p-[3px]"
           playing={previewPlaying}
           action={togglePreviewPlaying}
-          onLongPress={isMobile ? showPlayButtonTooltip : undefined}
-          longPressMs={TOOLTIP_LONG_PRESS_MS}
-          consumeClickAfterLongPress={isMobile}
         />
       </div>
     </div>

@@ -241,8 +241,13 @@ export interface OnionSkinOptions {
 // Keyboard & Hotkeys
 // ============================================================================
 
+export type CustomHotKeySequence = {
+  sequence: string;
+  action?: string;
+};
+
 export interface CustomHotKeys {
-  [action: string]: string;
+  [action: string]: Array<string | CustomHotKeySequence>;
 }
 
 export interface HotKeyConfig {
@@ -398,29 +403,29 @@ export interface BasicWarningModalInfo {
  * Resize event handler properties
  */
 export interface ResizeProps {
-  onStopResize: (args: { domElement: HTMLElement; component: unknown }) => void;
+  onStopResize: (args: { domElement: Element | Text; component: unknown }) => void;
   onStopPopoutOutlinerResize: (args: {
-    domElement: HTMLElement;
+    domElement: Element | Text;
     component: unknown;
   }) => void;
   onStopInspectorResize: (args: {
-    domElement: HTMLElement;
+    domElement: Element | Text;
     component: unknown;
   }) => void;
   onStopAssetLibraryResize: (args: {
-    domElement: HTMLElement;
+    domElement: Element | Text;
     component: unknown;
   }) => void;
   onStopTimelineResize: (args: {
-    domElement: HTMLElement;
+    domElement: Element | Text;
     component: unknown;
   }) => void;
-  onStopCodeEditorResize: (args: {
-    domElement: HTMLElement;
+  onStopCodeEditorResize?: (args: {
+    domElement: Element | Text;
     component: unknown;
   }) => void;
-  onResize: () => void;
-  onWindowResize: () => void;
+  onResize: (...args: unknown[]) => void;
+  onWindowResize: (...args: unknown[]) => void;
 }
 
 /**

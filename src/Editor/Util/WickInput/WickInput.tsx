@@ -21,8 +21,6 @@ import React, {
   ReactNode,
   ChangeEvent,
   forwardRef,
-  useRef,
-  useEffect,
 } from "react";
 import "./wickinput.legacy.css";
 
@@ -33,7 +31,7 @@ import type {
   PickerColorChange,
   PickerColorValue,
 } from "Editor/Util/ColorPicker/ColorPicker";
-import ReactTooltip from "react-tooltip";
+import { Tooltip } from "react-tooltip";
 import WickButton from "./WickButton/WickButton";
 
 import WickTextInput from "./WickTextInput/WickTextInput";
@@ -174,67 +172,18 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
     const tooltipDelayMs = props.tooltipDelayMs ?? TOOLTIP_HOVER_DELAY_MS;
     const tooltipLongPressMs =
       props.tooltipLongPressMs ?? TOOLTIP_LONG_PRESS_MS;
-    const hideTooltipListenerRef = useRef<(() => void) | null>(null);
-
-    const clearHideTooltipListener = (): void => {
-      if (hideTooltipListenerRef.current) {
-        window.removeEventListener(
-          "touchend",
-          hideTooltipListenerRef.current,
-          true
-        );
-        window.removeEventListener(
-          "touchcancel",
-          hideTooltipListenerRef.current,
-          true
-        );
-        hideTooltipListenerRef.current = null;
-      }
-    };
-
-    useEffect(() => {
-      return () => {
-        clearHideTooltipListener();
-      };
-    }, []);
-
-    const showTooltipForAnchor = (): void => {
-      if (!isTooltipMobileEligible) {
-        return;
-      }
-
-      const anchorElement = document.getElementById(tooltipAnchorID);
-      if (!anchorElement) {
-        return;
-      }
-
-      clearHideTooltipListener();
-      ReactTooltip.show(anchorElement);
-
-      const hideTooltip = () => {
-        ReactTooltip.hide(anchorElement);
-        clearHideTooltipListener();
-      };
-
-      hideTooltipListenerRef.current = hideTooltip;
-      window.addEventListener("touchend", hideTooltip, true);
-      window.addEventListener("touchcancel", hideTooltip, true);
-    };
 
     const renderTooltip = (nextTooltipID: string): JSX.Element => {
       return (
-        <ReactTooltip
-          disable={isMobile && !isTooltipMobileEligible}
+        <Tooltip
           delayShow={tooltipDelayMs}
           id={nextTooltipID}
-          type="info"
           place={props.tooltipPlace === undefined ? "bottom" : props.tooltipPlace}
-          effect="solid"
           aria-haspopup="true"
           className="wick-tooltip"
         >
-          <span>{props.tooltip}</span>
-        </ReactTooltip>
+          {props.tooltip}
+        </Tooltip>
       );
     };
 
@@ -625,9 +574,9 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
     return (
       <WickButton
         onClick={props.onClick ? () => props.onClick?.() : undefined}
-        onLongPress={isTooltipMobileEligible ? showTooltipForAnchor : undefined}
+        onLongPress={undefined}
         longPressMs={tooltipLongPressMs}
-        consumeClickAfterLongPress={isTooltipMobileEligible}
+        consumeClickAfterLongPress={false}
         secondaryAction={props.secondaryAction}
         className={buttonClassName}
         buttonProps={props.buttonProps}
@@ -662,8 +611,8 @@ const WickInput = forwardRef<HTMLElement, WickInputPropsWithNative>(
     if (shouldRenderTooltipContainer) {
       return (
         <div
-          data-tip
-          data-for={tooltipID}
+          data-tooltip-id={tooltipID}
+          data-tooltip-content={props.tooltip}
           id={tooltipAnchorID}
           className={classNames(
             "wick-input-container flex h-full w-full",

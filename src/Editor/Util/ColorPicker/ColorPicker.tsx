@@ -153,10 +153,11 @@ export default function ColorPicker (props: ColorPickerProps): JSX.Element {
       <button
         ref={buttonRef}
         className={classNames(
-          "btn-color-picker !box-border flex !h-full !w-full !rounded-[16px] !border-4 !border-editor-text-secondary",
+          "btn-color-picker box-border inline-flex h-full w-full min-h-[24px] min-w-[24px] cursor-pointer rounded-[16px] border-4 border-editor-text-secondary p-0",
           props.className
         )}
         aria-label="color picker button"
+        type="button"
         id={itemID}
         onClick={toggle}
         style={props.stroke ? {borderColor: colorString} : {backgroundColor: colorString}}

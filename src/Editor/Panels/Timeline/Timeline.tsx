@@ -23,11 +23,9 @@ import React, {
   useMemo,
   useRef,
   useState,
-  type ComponentType,
 } from "react";
 import {
-  DropTarget,
-  type DropTargetConnector,
+  useDrop,
   type DropTargetMonitor,
 } from "react-dnd";
 
@@ -38,10 +36,8 @@ import TimelineDOM from "./TimelineDOM";
 import type {
   DraggedSoundItem,
   TimelineFrameLike,
-  TimelineInjectedProps,
   TimelineLayerLike,
   TimelineOwnProps,
-  TimelineProps,
   TimelineRendererProps,
 } from "./Timeline.types";
 
@@ -211,10 +207,52 @@ const handleSoundDragForMode = (
   }
 };
 
-const Timeline: React.FC<TimelineProps> = (props) => {
+const Timeline: React.FC<TimelineOwnProps> = (props) => {
   const [domRendererCrashed, setDomRendererCrashed] = useState(false);
   const [isPointerInsideTimeline, setIsPointerInsideTimeline] = useState(false);
   const dropTargetRootRef = useRef<HTMLDivElement | null>(null);
+  const [{ isOver }, dropRef] = useDrop<DraggedSoundItem, void, { isOver: boolean }>({
+      accept: DragDropTypes.TIMELINE,
+      drop: (item: DraggedSoundItem, monitor: DropTargetMonitor) => {
+        const dropLocation = monitor.getClientOffset();
+        if (!dropLocation) {
+          return;
+        }
+
+        if (!item?.uuid) {
+          return;
+        }
+
+        handleSoundDragForMode(
+          props,
+          item.uuid,
+          dropLocation.x,
+          dropLocation.y,
+          true,
+        );
+      },
+      hover: (item: DraggedSoundItem, monitor: DropTargetMonitor) => {
+        const dropLocation = monitor.getClientOffset();
+        if (!dropLocation) {
+          return;
+        }
+
+        if (!item?.uuid) {
+          return;
+        }
+
+        handleSoundDragForMode(
+          props,
+          item.uuid,
+          dropLocation.x,
+          dropLocation.y,
+          false,
+        );
+      },
+      collect: (monitor: DropTargetMonitor) => ({
+        isOver: monitor.isOver(),
+      }),
+    });
 
   const handleTimelineWheelCapture = useCallback(
     (event: React.WheelEvent<HTMLDivElement>): void => {
@@ -296,10 +334,10 @@ const Timeline: React.FC<TimelineProps> = (props) => {
   }, []);
 
   useEffect(() => {
-    if (props.timelineRendererMode === "dom" && !props.isOver) {
+    if (props.timelineRendererMode === "dom" && !isOver) {
       clearSoundHover();
     }
-  }, [props.timelineRendererMode, props.isOver]);
+  }, [props.timelineRendererMode, isOver]);
 
   const shouldRenderDom = useMemo(() => {
     return props.timelineRendererMode === "dom" && !domRendererCrashed;
@@ -307,7 +345,7 @@ const Timeline: React.FC<TimelineProps> = (props) => {
 
   const rendererProps: TimelineRendererProps = {
     ...props,
-    isOver: Boolean(props.isOver),
+    isOver: Boolean(isOver),
     onRendererError: notifyDomRendererFailure,
   };
 
@@ -325,7 +363,10 @@ const Timeline: React.FC<TimelineProps> = (props) => {
   const dropTargetRoot = (
     <div
       className="timeline-drop-target-root"
-      ref={dropTargetRootRef}
+      ref={(node) => {
+        dropTargetRootRef.current = node;
+        dropRef(node);
+      }}
       onPointerEnter={() => setIsPointerInsideTimeline(true)}
       onPointerLeave={() => setIsPointerInsideTimeline(false)}
       onWheelCapture={handleTimelineWheelCapture}
@@ -334,71 +375,9 @@ const Timeline: React.FC<TimelineProps> = (props) => {
     </div>
   );
 
-  if (props.connectDropTarget) {
-    const wrapped = props.connectDropTarget(dropTargetRoot);
-    return (wrapped ?? dropTargetRoot) as JSX.Element;
-  }
-
   return dropTargetRoot;
 };
 
-const timelineTarget = {
-  drop(props: TimelineProps, monitor: DropTargetMonitor): void {
-    const dropLocation = monitor.getClientOffset();
-    if (!dropLocation) {
-      return;
-    }
-
-    const draggedItem = monitor.getItem() as DraggedSoundItem | null;
-    if (!draggedItem?.uuid) {
-      return;
-    }
-
-    handleSoundDragForMode(
-      props,
-      draggedItem.uuid,
-      dropLocation.x,
-      dropLocation.y,
-      true,
-    );
-  },
-  hover(props: TimelineProps, monitor: DropTargetMonitor): void {
-    const dropLocation = monitor.getClientOffset();
-    if (!dropLocation) {
-      return;
-    }
-
-    const draggedItem = monitor.getItem() as DraggedSoundItem | null;
-    if (!draggedItem?.uuid) {
-      return;
-    }
-
-    handleSoundDragForMode(
-      props,
-      draggedItem.uuid,
-      dropLocation.x,
-      dropLocation.y,
-      false,
-    );
-  },
-};
-
-function collect(
-  connect: DropTargetConnector,
-  monitor: DropTargetMonitor,
-): TimelineInjectedProps {
-  return {
-    connectDropTarget: connect.dropTarget(),
-    isOver: monitor.isOver(),
-  };
-}
-
-const DroppableTimeline = DropTarget(
-  DragDropTypes.TIMELINE,
-  timelineTarget,
-  collect,
-)(Timeline);
-
 export type { TimelineOwnProps } from "./Timeline.types";
 
-export default DroppableTimeline as ComponentType<TimelineOwnProps>;
+export default Timeline;

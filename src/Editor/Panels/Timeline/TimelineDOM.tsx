@@ -54,6 +54,17 @@ import {
   TIMELINE_SHELL_CLASSES,
   TIMELINE_SHORTCUT_TOGGLE_CLASSES,
   TIMELINE_TEXT_ACTION_CLASSES,
+  TIMELINE_UNIFIED_BODY_CLASSES,
+  TIMELINE_UNIFIED_CORNER_CLASSES,
+  TIMELINE_UNIFIED_EMPTY_COVER_CLASSES,
+  TIMELINE_UNIFIED_GRID_CANVAS_CLASSES,
+  TIMELINE_UNIFIED_HEADER_CLASSES,
+  TIMELINE_UNIFIED_LAYER_CONTROLS_CLASSES,
+  TIMELINE_UNIFIED_OVERLAYS_CLASSES,
+  TIMELINE_UNIFIED_ROW_CLASSES,
+  TIMELINE_UNIFIED_RULER_CLASSES,
+  TIMELINE_UNIFIED_TRACK_CLASSES,
+  TIMELINE_UNIFIED_WORKSPACE_CLASSES,
 } from "./timelineControlClasses";
 
 import "./timeline-legacy.css";
@@ -3197,7 +3208,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
         <div
           ref={workspaceRef}
-          className="timeline-unified-workspace"
+          className={TIMELINE_UNIFIED_WORKSPACE_CLASSES}
           onScroll={() => {
             if (workspaceRef.current) {
               setGridViewportHeight(Math.max(0, Math.floor(workspaceRef.current.clientHeight)));
@@ -3221,8 +3232,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
           onPointerDown={handleGridPointerDown}
           onDoubleClick={handleGridDoubleClick}
         >
-          <div className="timeline-unified-header">
-            <div className="timeline-unified-corner">
+          <div className={TIMELINE_UNIFIED_HEADER_CLASSES}>
+            <div className={TIMELINE_UNIFIED_CORNER_CLASSES}>
               <div className="timeline-dom-layers-header">Layers</div>
               <div className="timeline-dom-layers-subheader">
                 <div className={TIMELINE_HEADER_ACTIONS_CLASSES} role="toolbar" aria-label="Timeline Actions">
@@ -3300,7 +3311,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 </div>
               </div>
             </div>
-            <div className="timeline-unified-ruler">
+            <div className={TIMELINE_UNIFIED_RULER_CLASSES}>
               <div className="timeline-dom-marker-row">
                 <div
                   className="timeline-dom-work-area-track"
@@ -3370,13 +3381,13 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             </div>
           </div>
 
-          <div className="timeline-unified-body" style={{ minWidth: `${unifiedBodyMinWidth}px` }}>
+          <div className={TIMELINE_UNIFIED_BODY_CLASSES} style={{ minWidth: `${unifiedBodyMinWidth}px` }}>
             <canvas
               ref={unifiedGridCanvasRef}
-              className="timeline-unified-grid-canvas"
+              className={TIMELINE_UNIFIED_GRID_CANVAS_CLASSES}
               aria-hidden
             />
-            <div className="timeline-unified-overlays" style={{ left: `${LAYER_PANEL_WIDTH_PX}px` }}>
+            <div className={TIMELINE_UNIFIED_OVERLAYS_CLASSES} style={{ left: `${LAYER_PANEL_WIDTH_PX}px` }}>
               <div
                 className="timeline-dom-playhead"
                 style={{ left: `${(playheadPosition - 1) * cellWidth + cellWidth / 2 - 1}px` }}
@@ -3463,10 +3474,10 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               return (
                 <div
                   key={`unified-row-${layer.uuid ?? layerIndex}`}
-                  className="timeline-unified-row"
+                  className={TIMELINE_UNIFIED_ROW_CLASSES}
                   style={{ height: `${cellHeight}px` }}
                 >
-                  <div className="timeline-unified-layer-controls">
+                  <div className={TIMELINE_UNIFIED_LAYER_CONTROLS_CLASSES}>
                     <div
                       className={`timeline-dom-layer-row ${isActive ? "active" : ""} ${isLayerSelected ? "selected" : ""
                         }`}
@@ -3554,7 +3565,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     </div>
                   </div>
 
-                  <div className="timeline-unified-track">
+                  <div className={TIMELINE_UNIFIED_TRACK_CLASSES}>
                     <div
                       className={`timeline-dom-grid-row ${isActive ? "active" : ""}`}
                       style={{
@@ -3732,18 +3743,18 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             )}
 
             {layerFillerHeight > 0 && (
-              <div
-                className="timeline-unified-empty-cover"
-                style={{
-                  top: `${currentLayersHeight}px`,
-                  height: `${layerFillerHeight}px`,
+                <div
+                  className={TIMELINE_UNIFIED_EMPTY_COVER_CLASSES}
+                  style={{
+                    top: `${currentLayersHeight}px`,
+                    height: `${layerFillerHeight}px`,
                 }}
                 aria-hidden
               />
             )}
 
-            <div className="timeline-unified-row">
-              <div className="timeline-unified-layer-controls">
+            <div className={TIMELINE_UNIFIED_ROW_CLASSES}>
+              <div className={TIMELINE_UNIFIED_LAYER_CONTROLS_CLASSES}>
                 <button
                   type="button"
                   className="timeline-dom-layer-add"
@@ -3760,7 +3771,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                   />
                 )}
               </div>
-              <div className="timeline-unified-track" />
+              <div className={TIMELINE_UNIFIED_TRACK_CLASSES} />
             </div>
 
             {dragCollisionMode && (

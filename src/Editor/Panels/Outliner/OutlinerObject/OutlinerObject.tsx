@@ -10,7 +10,6 @@ import {
     useDrag,
     useDrop,
     type DropTargetMonitor,
-    type DragObjectWithType,
 } from "react-dnd";
 
 import DragDropTypes from "Editor/DragDropTypes";
@@ -63,7 +62,7 @@ export type OutlinerToggleProperty = "select" | "dropdown" | "locked" | "hidden"
 
 type ToggleEvent = ReactMouseEvent<Element, MouseEvent> | ReactKeyboardEvent<Element>;
 
-type DragItem = DragObjectWithType & {
+type DragItem = {
     type: string;
     uuid?: string;
     files?: File[] | FileList;
@@ -115,8 +114,8 @@ export const OutlinerObject = ({
     const sourceType = String(DragDropTypes.GET_OUTLINER_SOURCE({ data }));
 
     const [, drag, preview] = useDrag<DragItem, unknown, unknown>({
-        item: { type: sourceType, uuid: data.uuid },
-        begin: () => {
+        type: sourceType,
+        item: () => {
             setDragging(true);
 
             if (!data.isSelected) {

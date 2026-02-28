@@ -1,8 +1,11 @@
+import type { ConsoleLogEntry, CustomHotKeys } from "./editor.types";
+
 export interface WarningModalInfo {
   description: string;
   title: string;
   acceptText: string;
-  cancelText: string;
+  cancelText?: string;
+  canceltText?: string;
   acceptAction: () => void;
   cancelAction: () => void;
   acceptIcon?: string;
@@ -44,9 +47,9 @@ export interface EditorCoreUIState extends EditorRenderStatus {
   timelineDensityMode: "compact" | "standard";
   timelineSoftRenderTick: number;
   assetLibrarySize: number;
-  consoleLogs: unknown[];
+  consoleLogs: ConsoleLogEntry[];
   warningModalInfo: WarningModalInfo;
-  customHotKeys: Record<string, string>;
+  customHotKeys: CustomHotKeys;
   colorPickerType: string;
   lastColorsUsed: string[];
   useCustomOnionSkinningColors: boolean;

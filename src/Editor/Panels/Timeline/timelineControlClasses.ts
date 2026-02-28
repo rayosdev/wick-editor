@@ -79,6 +79,39 @@ export const getTimelineHeaderRightAdvancedClasses = (
 export const TIMELINE_FOOTER_CLASSES =
   "timeline-flash-footer sticky bottom-0 left-0 z-40 mt-auto flex shrink-0 items-center gap-2 overflow-x-auto overflow-y-hidden border-t border-[#191919] bg-[#303030] px-2 py-[6px] shadow-[0_-6px_12px_rgba(0,0,0,0.22)] [scrollbar-width:thin]";
 
+export const TIMELINE_UNIFIED_WORKSPACE_CLASSES =
+  "timeline-unified-workspace relative flex h-full w-full flex-col overflow-auto bg-[#3B3B3B]";
+
+export const TIMELINE_UNIFIED_HEADER_CLASSES =
+  "timeline-unified-header sticky top-0 z-20 flex min-w-[fit-content] flex-row border-b border-[#191919] bg-[#3B3B3B]";
+
+export const TIMELINE_UNIFIED_CORNER_CLASSES =
+  "timeline-unified-corner sticky left-0 z-[25] flex w-[210px] shrink-0 flex-col border-r border-[#191919] bg-[#3B3B3B]";
+
+export const TIMELINE_UNIFIED_RULER_CLASSES =
+  "timeline-unified-ruler relative flex flex-1 flex-col";
+
+export const TIMELINE_UNIFIED_BODY_CLASSES =
+  "timeline-unified-body relative z-[1] flex min-h-0 min-w-[min-content] flex-1 flex-col";
+
+export const TIMELINE_UNIFIED_GRID_CANVAS_CLASSES =
+  "timeline-unified-grid-canvas pointer-events-none absolute inset-0 z-0";
+
+export const TIMELINE_UNIFIED_OVERLAYS_CLASSES =
+  "timeline-unified-overlays pointer-events-none absolute bottom-0 right-0 top-0 z-[5]";
+
+export const TIMELINE_UNIFIED_EMPTY_COVER_CLASSES =
+  "timeline-unified-empty-cover pointer-events-none absolute left-0 right-0 z-[7] border-t border-t-[rgba(255,255,255,0.08)] bg-[linear-gradient(to_bottom,rgba(0,0,0,0.2),rgba(0,0,0,0.24)),#3B3B3B]";
+
+export const TIMELINE_UNIFIED_ROW_CLASSES =
+  "timeline-unified-row relative z-[2] flex h-[32px] min-w-[fit-content] flex-row";
+
+export const TIMELINE_UNIFIED_LAYER_CONTROLS_CLASSES =
+  "timeline-unified-layer-controls sticky left-0 z-10 flex w-[210px] shrink-0 items-center border-r border-[#191919] bg-[#3B3B3B]";
+
+export const TIMELINE_UNIFIED_TRACK_CLASSES =
+  "timeline-unified-track relative flex-1 bg-transparent";
+
 export const TIMELINE_FOOTER_GROUP_CLASSES =
   "timeline-flash-footer-group inline-flex items-center gap-[6px] border-r border-r-[rgba(255,255,255,0.08)] px-1 py-[2px] last:border-r-0";
 

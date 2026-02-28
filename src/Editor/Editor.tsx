@@ -19,8 +19,6 @@
 
 // @ts-nocheck - TODO: full Editor shell typing migration
 
-import React from "react";
-
 import "./editor-legacy.css";
 import "./styles/tokens.css";
 import "./styles/default_theme.css";
@@ -65,10 +63,15 @@ import pkg from "../../package.json";
 import type {
   EditorState,
   ResizeProps,
+  ColorPickerType,
+  CodeEditorWindowProperties,
+  CustomHotKeys,
+  ToastType,
+  ToastOptions,
+  ConsoleLogEntry,
 } from "./types/editor.types";
 import type { ProjectDidChangeOptions } from "./types";
 import type {
-  WickProject as WickProjectEngine,
   WickBase as WickBaseEngine,
   WickToolName,
 } from "./types/engine.types";
@@ -86,6 +89,36 @@ type BuiltinPreviewEntry = {
   src?: string;
 };
 
+type WickFileInputEvent = {
+  target: {
+    files: FileList | File[] | null;
+  };
+};
+
+type ScriptRuntimeError = {
+  uuid?: string;
+  message?: string;
+  lineNumber?: number;
+  name?: string;
+};
+
+type ResizeStopArgs = {
+  domElement: Element | Text;
+  component: unknown;
+};
+
+type WarningModalArgs = {
+  description?: string;
+  title?: string;
+  acceptText?: string;
+  cancelText?: string;
+  acceptIcon?: string;
+  cancelIcon?: string;
+  acceptAction?: () => void;
+  cancelAction?: () => void;
+  finalAction?: () => void;
+};
+
 type StorageBridge = {
   db: unknown;
   ProjectCache: unknown;
@@ -93,17 +126,43 @@ type StorageBridge = {
   localforage: typeof localForage;
 };
 
+type ToastRuntimeOptions = ToastOptions & {
+  className?: string;
+  bodyClassName?: string;
+  progressClassName?: string;
+  render?: string;
+  text?: string;
+  type?: ToastType;
+};
+
 // Check if we're in development mode
 const isDevelopment =
   (import.meta as ViteImportMeta).env?.DEV ||
   (window.location && window.location.hostname === "localhost");
 
-const normalizeColorPickerType = (type) =>
+const normalizeColorPickerType = (type: unknown): ColorPickerType =>
   type === "spectrum" ? "spectrum" : "swatches";
+
+const isScriptRuntimeError = (value: unknown): value is ScriptRuntimeError => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return true;
+};
+
+const isCustomHotKeys = (value: unknown): value is CustomHotKeys => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return Object.values(value as Record<string, unknown>).every(
+    (entry) => Array.isArray(entry),
+  );
+};
 
 class Editor extends EditorCore {
   // Instance properties with types
-  declare project: WickProjectEngine | null;
   paper: unknown = null;
   editorVersion: string = version + "";
   error: Error | null = null;
@@ -141,7 +200,7 @@ class Editor extends EditorCore {
   timelineDensityModeKey: string = "wickEditorTimelineDensityMode";
 
   // TypeScript requires we define state type
-  state: EditorState;
+  state: EditorState & Record<string, unknown>;
 
   private getFileAssetAcceptExtensions = (): string => {
     const extensions = this.getWickNamespace()?.FileAsset?.getValidExtensions?.();
@@ -156,7 +215,7 @@ class Editor extends EditorCore {
     return this.getWickNamespace()?.History?.StateType?.ONLY_VISIBLE_OBJECTS ?? null;
   };
 
-  private getWickObjectByUUID = (uuid: string): WickBaseEngine | null => {
+  protected getWickObjectByUUID = (uuid: string): WickBaseEngine | null => {
     return this.getWickNamespace()?.ObjectCache?.getObjectByUUID?.(uuid) ?? null;
   };
 
@@ -169,7 +228,6 @@ class Editor extends EditorCore {
     }
 
     // "Live" editor states
-    this.project = null;
     this.paper = null;
     this.editorVersion = version + "";
 
@@ -295,14 +353,27 @@ class Editor extends EditorCore {
       };
     }
 
+    type FileInputOptions = {
+      accept?: string;
+      multiple?: boolean;
+      onChange?: (event: WickFileInputEvent) => void;
+    };
+
+    type CreateFileInput = (args: FileInputOptions) => () => void;
+
+    const createFileInput: CreateFileInput =
+      typeof window.createFileInput === "function"
+        ? (window.createFileInput as CreateFileInput)
+        : (_args: FileInputOptions) => () => undefined;
+
     // Wick Project File Input
-    this.openProjectFileFromClient = window.createFileInput({
+    this.openProjectFileFromClient = createFileInput({
       accept: ".zip, .wick",
       onChange: this.handleWickFileLoad,
     });
 
     // Wick file input
-    this.openAssetFileFromClient = window.createFileInput({
+    this.openAssetFileFromClient = createFileInput({
       accept: this.getFileAssetAcceptExtensions(),
       onChange: this.handleAssetFileImport,
       multiple: true,
@@ -310,37 +381,33 @@ class Editor extends EditorCore {
 
     // Set up color picker
     this.maxLastColors = 8;
-    this._onEyedropperPickedColor = (color) => { };
+    this._onEyedropperPickedColor = (_color) => { };
 
     // Resizable panels
     this.RESIZE_THROTTLE_AMOUNT_MS = 100;
     this.WINDOW_RESIZE_THROTTLE_AMOUNT_MS = 300;
     this.resizeProps = {
-      onStopResize: throttle(this.onStopResize, this.resizeThrottleAmount),
+      onStopResize: throttle(this.onStopResize, this.RESIZE_THROTTLE_AMOUNT_MS),
       onStopPopoutOutlinerResize: throttle(
         this.onStopPopoutOutlinerResize,
-        this.resizeThrottleAmount
+        this.RESIZE_THROTTLE_AMOUNT_MS
       ),
       onStopInspectorResize: throttle(
         this.onStopInspectorResize,
-        this.resizeThrottleAmount
+        this.RESIZE_THROTTLE_AMOUNT_MS
       ),
       onStopAssetLibraryResize: throttle(
         this.onStopAssetLibraryResize,
-        this.resizeThrottleAmount
+        this.RESIZE_THROTTLE_AMOUNT_MS
       ),
       onStopTimelineResize: throttle(
         this.onStopTimelineResize,
-        this.resizeThrottleAmount
+        this.RESIZE_THROTTLE_AMOUNT_MS
       ),
-      onStopCodeEditorResize: throttle(
-        this.onStopCodeEditorResize,
-        this.resizeThrottleAmount
-      ),
-      onResize: throttle(this.onResize, this.resizeThrottleAmount),
+      onResize: throttle(this.onResize, this.RESIZE_THROTTLE_AMOUNT_MS),
       onWindowResize: throttle(
         this.onWindowResize,
-        this.windowResizeThrottleAmount
+        this.WINDOW_RESIZE_THROTTLE_AMOUNT_MS
       ),
     };
     window.addEventListener("resize", this.resizeProps.onWindowResize);
@@ -357,7 +424,10 @@ class Editor extends EditorCore {
     document.title = `Wick Editor ${this.editorVersion}`;
     // Initialize "live" engine state
     const projectConstructor = this.getWickNamespace()?.Project;
-    this.project = projectConstructor ? new projectConstructor() : null;
+    if (!projectConstructor) {
+      throw new Error("Wick runtime Project constructor is unavailable.");
+    }
+    this.project = new projectConstructor();
     this.attachErrorHandlers();
     this.paper = getPaperRuntime();
 
@@ -396,11 +466,13 @@ class Editor extends EditorCore {
 
     // Set up custom hotkeys if they exist.
     localForage.getItem(this.customHotKeysKey).then((customHotKeys) => {
-      if (!customHotKeys) customHotKeys = {}; // Ensure we never send a null hotkey setting.
-      this.hotKeyInterface.setCustomHotKeys(customHotKeys);
+      const normalizedHotKeys: CustomHotKeys = isCustomHotKeys(customHotKeys)
+        ? customHotKeys
+        : {};
+      this.hotKeyInterface.setCustomHotKeys(normalizedHotKeys);
 
       this.setState({
-        customHotKeys: customHotKeys,
+        customHotKeys: normalizedHotKeys,
       });
     });
 
@@ -535,7 +607,10 @@ class Editor extends EditorCore {
       }
 
       const confirmationMessage = "Warning: All unsaved changes will be lost!";
-      (event || window.event).returnValue = confirmationMessage;
+      const unloadEvent = (event ?? window.event) as BeforeUnloadEvent | undefined;
+      if (unloadEvent) {
+        unloadEvent.returnValue = confirmationMessage;
+      }
       return confirmationMessage;
     };
   };
@@ -563,30 +638,40 @@ class Editor extends EditorCore {
     }
   };
 
-  componentDidUpdate = (prevProps, prevState) => {
-    if (this.state.previewPlaying && !prevState.previewPlaying) {
-      this.project.view.canvas.focus();
+  componentDidUpdate = (
+    _prevProps: Readonly<Record<string, never>>,
+    prevState: Readonly<{ previewPlaying?: boolean }>,
+    _snapshot?: unknown,
+  ): void => {
+    const wasPreviewPlaying = Boolean(prevState.previewPlaying);
+    if (this.state.previewPlaying && !wasPreviewPlaying) {
+      this.project.view.canvas?.focus?.();
       this.project.play({
-        onError: (error) => {
-          if (error) {
+        onError: (error: unknown) => {
+          const scriptError = isScriptRuntimeError(error) ? error : undefined;
+          if (scriptError) {
             // Filter out benign "undefined" errors from empty default scripts
-            if (error.message === undefined && error.lineNumber === undefined && error.name === 'default') {
+            if (
+              scriptError.message === undefined &&
+              scriptError.lineNumber === undefined &&
+              scriptError.name === "default"
+            ) {
               // Silently ignore this non-critical error
-              this.stopPreviewPlaying(null);
+              this.stopPreviewPlaying(undefined);
               return;
             }
 
             console.error(
               new Error(
-                `${error.message} on line ${error.lineNumber} in script "${error.name}".`
+                `${scriptError.message} on line ${scriptError.lineNumber} in script "${scriptError.name}".`
               )
             );
             this.setState({
-              codeError: error,
+              codeError: scriptError,
             });
           }
 
-          this.stopPreviewPlaying(error);
+          this.stopPreviewPlaying(scriptError);
         },
         onAfterTick: () => {
           //this.project.view.render();
@@ -599,7 +684,7 @@ class Editor extends EditorCore {
       });
     }
 
-    if (!this.state.previewPlaying && prevState.previewPlaying) {
+    if (!this.state.previewPlaying && wasPreviewPlaying) {
       if (this._timelinePreviewSoftRenderRaf !== undefined) {
         window.cancelAnimationFrame(this._timelinePreviewSoftRenderRaf);
         this._timelinePreviewSoftRenderRaf = undefined;
@@ -632,12 +717,12 @@ class Editor extends EditorCore {
 
   // Detects if the device has hover capability. Adds "hasHover" to the body to avoid 'Sticky-hover' on touch devices.
   // https://stackoverflow.com/questions/23885255/how-to-remove-ignore-hover-css-style-on-touch-devices
-  watchForHover = () => {
+  watchForHover = (): void => {
     // lastTouchTime is used for ignoring emulated mousemove events
     let lastTouchTime = 0;
 
     function enableHover() {
-      if (new Date() - lastTouchTime < 500) return;
+      if (Date.now() - lastTouchTime < 500) return;
       document.body.classList.add("hasHover");
     }
 
@@ -646,7 +731,7 @@ class Editor extends EditorCore {
     }
 
     function updateLastTouchTime() {
-      lastTouchTime = new Date();
+      lastTouchTime = Date.now();
     }
 
     document.addEventListener("touchstart", updateLastTouchTime, true);
@@ -685,7 +770,7 @@ class Editor extends EditorCore {
     }, 2000); // Wait two seconds to allow editor to set up... TODO: Should connect this to load events.
   };
 
-  showWaitOverlay = (message) => {
+  showWaitOverlay = (message?: string): void => {
     window.clearTimeout(this._showWaitOverlayTimeoutID);
     this._showWaitOverlayTimeoutID = window.setTimeout(() => {
       let waitOverlay = window.document.getElementById("wait-overlay");
@@ -717,7 +802,7 @@ class Editor extends EditorCore {
    * Updates the color picker type within the editor state.
    * @param {String} type String representing the picker mode ("swatches" or "spectrum").
    */
-  changeColorPickerType = (type) => {
+  changeColorPickerType = (type: string): void => {
     const normalizedType = normalizeColorPickerType(type);
     localForage.setItem(this.colorPickerTypeKey, normalizedType);
     this.setState({
@@ -725,7 +810,9 @@ class Editor extends EditorCore {
     });
   };
 
-  setTimelineRendererMode = (mode) => {
+  setTimelineRendererMode = (
+    mode: EditorState["timelineRendererMode"],
+  ): void => {
     const normalizedMode = mode === "classic" ? "classic" : "dom";
     localForage.setItem(this.timelineRendererModeKey, normalizedMode);
     this.setState({
@@ -733,7 +820,9 @@ class Editor extends EditorCore {
     });
   };
 
-  setTimelineShortcutPreset = (preset) => {
+  setTimelineShortcutPreset = (
+    preset: EditorState["timelineShortcutPreset"],
+  ): void => {
     const normalizedPreset = preset === "flash" ? "flash" : "wick";
     localForage.setItem(this.timelineShortcutPresetKey, normalizedPreset);
     this.hotKeyInterface.setTimelineShortcutPreset(normalizedPreset);
@@ -742,7 +831,9 @@ class Editor extends EditorCore {
     });
   };
 
-  setTimelinePlaybackFollowMode = (mode) => {
+  setTimelinePlaybackFollowMode = (
+    mode: EditorState["timelinePlaybackFollowMode"],
+  ): void => {
     const normalizedMode = mode === "off" ? "off" : "follow-playhead";
     localForage.setItem(this.timelinePlaybackFollowModeKey, normalizedMode);
     this.setState({
@@ -750,7 +841,7 @@ class Editor extends EditorCore {
     });
   };
 
-  setTimelineSnapMode = (mode) => {
+  setTimelineSnapMode = (mode: EditorState["timelineSnapMode"]): void => {
     const normalizedMode =
       mode === "none" || mode === "markers" ? mode : "frames";
     localForage.setItem(this.timelineSnapModeKey, normalizedMode);
@@ -759,7 +850,9 @@ class Editor extends EditorCore {
     });
   };
 
-  setTimelineDensityMode = (mode) => {
+  setTimelineDensityMode = (
+    mode: EditorState["timelineDensityMode"],
+  ): void => {
     const normalizedMode = mode === "standard" ? "standard" : "compact";
     localForage.setItem(this.timelineDensityModeKey, normalizedMode);
     this.setState({
@@ -787,7 +880,7 @@ class Editor extends EditorCore {
     this.recenterCanvas();
   };
 
-  getDefaultCodeEditorProperties = () => {
+  getDefaultCodeEditorProperties = (): CodeEditorWindowProperties => {
     var width = window.innerWidth / 2;
     var height = window.innerHeight / 2;
     return {
@@ -804,7 +897,7 @@ class Editor extends EditorCore {
     };
   };
 
-  updateLastColors = (color) => {
+  updateLastColors = (color: string): void => {
     let newArray = this.state.lastColorsUsed.concat([]); // make a deep copy.
 
     // Remove a color from the array. If the new color is in the array, remove it.
@@ -827,18 +920,26 @@ class Editor extends EditorCore {
     this.setState({ outlinerPoppedOut: !this.state.outlinerPoppedOut });
   };
 
-  onResize = (e) => {
-    this.project.view.resize();
+  onResize = (_e?: unknown): void => {
+    this.project.view.resize?.();
     this.project.guiElement.draw();
   };
 
-  onStopResize = ({ domElement, component }) => { };
+  onStopResize = (_args: ResizeStopArgs): void => { };
 
-  getSizeHorizontal = (domElement) => {
+  getSizeHorizontal = (domElement: Element | Text): number => {
+    if (!(domElement instanceof HTMLElement)) {
+      return 0;
+    }
+
     return domElement.offsetWidth;
   };
 
-  getSizeVertical = (domElement) => {
+  getSizeVertical = (domElement: Element | Text): number => {
+    if (!(domElement instanceof HTMLElement)) {
+      return 0;
+    }
+
     return domElement.offsetHeight;
   };
 
@@ -846,11 +947,14 @@ class Editor extends EditorCore {
    * Updates the code editor properties in the state.
    * @param  {object} newProperties object with new code editor properties. Can include width, height, x, y.
    */
-  updateCodeEditorWindowProperties = (newProperties) => {
-    let finalProperties = this.state.codeEditorWindowProperties;
-    Object.keys(newProperties).forEach((key) => {
-      finalProperties[key] = newProperties[key];
-    });
+  updateCodeEditorWindowProperties = (
+    newProperties: Partial<CodeEditorWindowProperties>,
+  ): void => {
+    const finalProperties = {
+      ...(this.state.codeEditorWindowProperties ??
+        this.getDefaultCodeEditorProperties()),
+      ...newProperties,
+    };
 
     this.setState({
       codeEditorWindowProperties: finalProperties,
@@ -871,7 +975,7 @@ class Editor extends EditorCore {
    * @param  {DomElement} domElement DOM element containing the outliner
    * @param  {React.Component} component  React component of the outliner.
    */
-  onStopPopoutOutlinerResize = ({ domElement, component }) => {
+  onStopPopoutOutlinerResize = ({ domElement }: ResizeStopArgs): void => {
     if (!domElement) return;
 
     this.setState({
@@ -884,7 +988,7 @@ class Editor extends EditorCore {
    * @param  {DomElement} domElement DOM element containing the inspector
    * @param  {React.Component} component  React component of the inspector.
    */
-  onStopInspectorResize = ({ domElement, component }) => {
+  onStopInspectorResize = ({ domElement }: ResizeStopArgs): void => {
     if (!domElement) return;
     this.setState({
       inspectorSize: this.getSizeHorizontal(domElement),
@@ -896,7 +1000,7 @@ class Editor extends EditorCore {
    * @param  {DomElement} domElement DOM element containing the asset library
    * @param  {React.Component} component  React component of the asset library
    */
-  onStopAssetLibraryResize = ({ domElement, component }) => {
+  onStopAssetLibraryResize = ({ domElement }: ResizeStopArgs): void => {
     if (!domElement) return;
     this.setState({
       assetLibrarySize: this.getSizeVertical(domElement),
@@ -908,7 +1012,7 @@ class Editor extends EditorCore {
    * @param  {DomElement} domElement DOM element containing the timeline
    * @param  {React.Component} component  React component of the timeline.
    */
-  onStopTimelineResize = ({ domElement, component }) => {
+  onStopTimelineResize = ({ domElement }: ResizeStopArgs): void => {
     if (!domElement) return;
     var size = this.getSizeVertical(domElement);
 
@@ -921,7 +1025,7 @@ class Editor extends EditorCore {
    * Opens the requested modal.
    * @param  {string} name name of the modal to open.
    */
-  openModal = (name) => {
+  openModal = (name: string | null): void => {
     this.setState({
       activeModalName: name,
     });
@@ -931,7 +1035,11 @@ class Editor extends EditorCore {
    * Queues a modal to be opened at the next opportunity.
    * @param  {string} name [description]
    */
-  queueModal = (name) => {
+  queueModal = (name: string | null): void => {
+    if (name === null) {
+      return;
+    }
+
     if (this.state.activeModalName !== name) {
       // If there is another modal up, queue the modal.
       if (
@@ -950,7 +1058,7 @@ class Editor extends EditorCore {
     }
   };
 
-  setSkipWelcomeMessage = (skip) => {
+  setSkipWelcomeMessage = (skip: boolean): void => {
     if (skip) {
       window.localStorage.setItem("skipWelcomeMessage", "true");
     } else {
@@ -963,12 +1071,12 @@ class Editor extends EditorCore {
    * if necessary.
    */
   closeActiveModal = () => {
-    let oldQueue = [].concat(this.state.activeModalQueue);
+    const oldQueue = [...this.state.activeModalQueue];
     if (oldQueue.length === 0) {
       this.openModal(null);
       return;
     }
-    var newModalName = oldQueue.shift();
+    const newModalName = oldQueue.shift() ?? null;
     this.setState(
       {
         activeModalQueue: oldQueue,
@@ -981,7 +1089,9 @@ class Editor extends EditorCore {
    * Opens and closes the code editor depending on the state of the codeEditor.
    * @param {boolean} state - Optional. True will open the code editor, false will close.
    */
-  toggleCodeEditor = (state) => {
+  toggleCodeEditor = (...args: unknown[]): void => {
+    let state = typeof args[0] === "boolean" ? args[0] : undefined;
+
     if (state === undefined || typeof state !== "boolean") {
       state = !this.state.codeEditorOpen;
     }
@@ -995,7 +1105,7 @@ class Editor extends EditorCore {
    * Opens and closes the canvas actions popover.
    * @param {boolean} state - Optional. True will open the canvas actions menu, false will close.
    */
-  toggleCanvasActions = (state) => {
+  toggleCanvasActions = (state?: boolean): void => {
     if (state === undefined || typeof state !== "boolean") {
       state = !this.state.showCanvasActions;
     }
@@ -1009,7 +1119,7 @@ class Editor extends EditorCore {
    * Opens and closes the brush modes popover.
    * @param {boolean} state - Optional. True will open the brush modes menu, false will close.
    */
-  toggleBrushModes = (state) => {
+  toggleBrushModes = (state?: boolean): void => {
     if (state === undefined || typeof state !== "boolean") {
       state = !this.state.showBrushModes;
     }
@@ -1046,7 +1156,9 @@ class Editor extends EditorCore {
    * Update the onion skinning colors in the editor.
    * @param {object} colors An object with colors to be used for onion skinning. colors.backward is used for previous frames. colors.forward is used for following frames.
    */
-  changeOnionSkinningColors = (colors) => {
+  changeOnionSkinningColors = (
+    colors?: Partial<EditorState["customOnionSkinningColors"]>,
+  ): void => {
     if (!colors) return; // ignore change if no colors are passed.
 
     this.setState({
@@ -1065,8 +1177,9 @@ class Editor extends EditorCore {
    * @param {string} actionName - Name of the action committed, to save to the history stack.
    * @param {boolean} skipReactRender - If set to true, will not force react to rerender. Use sparingly.
    */
-  projectDidChange = (options?: ProjectDidChangeOptions) => {
-    if (!options) options = {};
+  projectDidChange = (
+    options: ProjectDidChangeOptions = { actionName: "Unknown Action" },
+  ): void => {
     const actionName = options.actionName || "Unknown Action";
 
     // Request an autosave, so a save will happen sometime later.
@@ -1102,25 +1215,18 @@ class Editor extends EditorCore {
    * @param {string} type - the type of the toast. ("info", "success", "warning", or "error". See react-toastify docs for more info)
    * @param {object} options - the options for the toast notification. For all options, see the demo for react-toastify: https://fkhadra.github.io/react-toastify/
    */
-  toast = (message, type, options) => {
+  toast = (
+    message: string,
+    type: ToastType = "info",
+    options: ToastOptions = {},
+  ): number | string | void => {
     if (!message) {
       console.error("toast() requires a message.");
       return;
     }
 
-    // If no type is given, default to "info"
-    if (!type) type = "info";
-
-    if (["info", "success", "warning", "error"].indexOf(type) === -1) {
-      console.error("toast(): Invalid type: " + type);
-      return;
-    }
-
-    // If no options are given, set the options param to an empty object so only the default options are used.
-    if (!options) options = {};
-
     // Default options for the toast:
-    let defaultOptions = {
+    const defaultOptions: ToastRuntimeOptions = {
       position: "top-right",
       autoClose: 3000,
       hideProgressBar: true,
@@ -1133,9 +1239,19 @@ class Editor extends EditorCore {
     };
 
     // Mix default options and options param:
-    let mixOptions = Object.assign(defaultOptions, options);
+    const mixOptions = Object.assign(
+      {},
+      defaultOptions,
+      options as ToastRuntimeOptions,
+    );
 
-    return toast[type](message, mixOptions);
+    const toastByType: Record<ToastType, typeof toast.info> = {
+      info: toast.info,
+      success: toast.success,
+      warning: toast.warning,
+      error: toast.error,
+    };
+    return toastByType[type](message, mixOptions);
   };
 
   /**
@@ -1143,21 +1259,28 @@ class Editor extends EditorCore {
    * @param {string} id ID of the toast to update.
    * @param {object} options options to apply to the newly updated toast.
    */
-  updateToast = (id, options) => {
-    if (options.text) {
-      options.render = options.text;
+  updateToast = (
+    id: unknown,
+    options: ToastOptions & Record<string, unknown> = {},
+  ): void => {
+    const nextOptions: ToastRuntimeOptions = { ...(options as ToastRuntimeOptions) };
+
+    if (nextOptions.text) {
+      nextOptions.render = nextOptions.text;
     }
 
-    if (options.type) {
-      options.className = options.type + "-toast-background";
-      options.bodyClassName = options.type + "-toast-body";
+    if (nextOptions.type) {
+      nextOptions.className = nextOptions.type + "-toast-background";
+      nextOptions.bodyClassName = nextOptions.type + "-toast-body";
     }
 
-    if (!options.autoClose) {
-      options.autoClose = 5000;
+    if (!nextOptions.autoClose) {
+      nextOptions.autoClose = 5000;
     }
 
-    toast.update(id, options);
+    if (typeof id === "string" || typeof id === "number") {
+      toast.update(id, nextOptions);
+    }
   };
 
   /**
@@ -1165,7 +1288,7 @@ class Editor extends EditorCore {
    * @param {Object} args can contain description {string}, acceptAction {function}, cancelAction {function},
    * acceptText {string}, cancelText {string}, title {string}.
    */
-  openWarningModal = (args) => {
+  openWarningModal = (args: WarningModalArgs): void => {
     if (isDevelopment) {
       console.log("[DEV] Skipping confirmation dialog:", args.title || "Warning");
       if (args.acceptAction) {
@@ -1177,7 +1300,7 @@ class Editor extends EditorCore {
       return;
     }
 
-    let modalInfo = {
+    const modalInfo = {
       description: args.description || "No Description",
       title: args.title || "Title",
       acceptAction:
@@ -1215,18 +1338,23 @@ class Editor extends EditorCore {
    * @returns {Object} - Combined custom hotkey map.
    **/
 
-  combineHotKeys = (hotkeys1, hotkeys2) => {
+  combineHotKeys = (
+    hotkeys1: CustomHotKeys,
+    hotkeys2: CustomHotKeys,
+  ): CustomHotKeys => {
     // Try to combine all keys
 
-    let newHotKeys = { ...hotkeys1, ...hotkeys2 };
+    const newHotKeys: CustomHotKeys = { ...hotkeys1, ...hotkeys2 };
 
-    let keys1 = Object.keys(hotkeys1);
-    let keys2 = Object.keys(hotkeys2);
+    const keys1 = Object.keys(hotkeys1);
+    const keys2 = Object.keys(hotkeys2);
 
-    let similarKeys = keys2.filter((key) => keys1.indexOf(key) > -1);
+    const similarKeys = keys2.filter((key) => keys1.indexOf(key) > -1);
 
     similarKeys.forEach((key) => {
-      let combinedKey = { ...hotkeys1[key], ...hotkeys2[key] };
+      const left = hotkeys1[key] ?? [];
+      const right = hotkeys2[key] ?? [];
+      const combinedKey = [...left, ...right];
       newHotKeys[key] = combinedKey;
     });
 
@@ -1236,15 +1364,18 @@ class Editor extends EditorCore {
   /**
    * Converts an array of hotkeys to a custom hotkey object.
    */
-  convertHotkeyArray = (hotkeys) => {
-    let keyObj = {};
+  convertHotkeyArray = (
+    hotkeys: Array<{ actionName: string; index: number; sequence: string }>,
+  ): CustomHotKeys => {
+    const keyObj: CustomHotKeys = {};
 
     hotkeys.forEach((key) => {
       if (keyObj[key.actionName]) {
-        keyObj[key.actionName][key.index] = key.sequence;
+        keyObj[key.actionName]?.splice(key.index, 1, key.sequence);
       } else {
-        keyObj[key.actionName] = {};
-        keyObj[key.actionName][key.index] = key.sequence;
+        const sequences: string[] = [];
+        sequences[key.index] = key.sequence;
+        keyObj[key.actionName] = sequences;
       }
     });
 
@@ -1254,7 +1385,10 @@ class Editor extends EditorCore {
   /**
    * Creates a combined key map from a key map object and key array.
    */
-  createCombinedHotKeyMap = (hotKeyMap, hotKeyArray) => {
+  createCombinedHotKeyMap = (
+    hotKeyMap: CustomHotKeys,
+    hotKeyArray: Array<{ actionName: string; index: number; sequence: string }>,
+  ): CustomHotKeys => {
     return this.combineHotKeys(hotKeyMap, this.convertHotkeyArray(hotKeyArray));
   };
 
@@ -1262,8 +1396,10 @@ class Editor extends EditorCore {
    * Takes an array of hot key objects. Combines these with existing custom hot keys and syncs the editor
    * to these new hot keys.
    */
-  addCustomHotKeys = (newHotKeys) => {
-    let combined = this.createCombinedHotKeyMap(
+  addCustomHotKeys = (
+    newHotKeys: Array<{ actionName: string; index: number; sequence: string }>,
+  ): void => {
+    const combined = this.createCombinedHotKeyMap(
       this.state.customHotKeys,
       newHotKeys
     );
@@ -1274,7 +1410,7 @@ class Editor extends EditorCore {
   /**
    * Takes a hotkeys object and sets these as the custom hot keys.
    */
-  syncHotKeys = (hotkeys) => {
+  syncHotKeys = (hotkeys: CustomHotKeys): void => {
     this.hotKeyInterface.setCustomHotKeys(hotkeys);
     localForage.setItem(this.customHotKeysKey, hotkeys);
     this.setState({
@@ -1286,20 +1422,9 @@ class Editor extends EditorCore {
     this.syncHotKeys({});
   };
 
-  /**
-   * A flag to prevent "double state changes" where an action tries to happen while another is still processing.
-   * Set this to true before doing something asynchronous that will take a long time, and set it back to false when done.
-   */
-  get processingAction() {
-    return this._processingAction;
-  }
-
-  set processingAction(processingAction) {
-    this._processingAction = processingAction;
-  }
-
-  handleAssetFileImport = (e) => {
-    this.createAssets(e.target.files, []);
+  handleAssetFileImport = (e: WickFileInputEvent): void => {
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    this.createAssets(files, []);
   };
 
   openProjectFileDialog = () => {
@@ -1315,7 +1440,7 @@ class Editor extends EditorCore {
    * @param fullKeyMap {Bool} If true, returns the full keymap for the editor. Otherwise, the appropriate keymap is returned.
    * @returns {Object} Keymap listed as actionName : Object { 0 : sequence, 1 : sequence }
    */
-  getKeyMap = (fullKeyMap) => {
+  getKeyMap = (fullKeyMap?: boolean) => {
     if (this.state.previewPlaying && !fullKeyMap) {
       return this.hotKeyInterface.getEssentialKeyMap(this.state.customHotKeys);
     } else {
@@ -1327,7 +1452,7 @@ class Editor extends EditorCore {
    * Returns the appropriate key handlers based on the state of the editor.
    * @param fullKeyHandlers {Bool} If true, returns all key handlers for the editor. Otherwise, the appropriate keyhandlers returned.
    */
-  getKeyHandlers = (fullKeyHandlers) => {
+  getKeyHandlers = (fullKeyHandlers?: boolean) => {
     if (this.state.previewPlaying && !fullKeyHandlers) {
       return this.hotKeyInterface.getEssentialKeyHandlers(
         this.state.customHotKeys
@@ -1341,7 +1466,7 @@ class Editor extends EditorCore {
    * Returns a string representing the render size elements should use in the editor.
    * @returns {String} "large", "medium" or "small" depending on the width of the window.
    */
-  getRenderSize = () => {
+  getRenderSize = (): "large" | "medium" | "small" => {
     if (window.innerWidth > 1200) {
       return "large";
     } else if (window.innerWidth > 800) {
@@ -1351,7 +1476,11 @@ class Editor extends EditorCore {
     }
   };
 
-  setConsoleLogs = (logsOrUpdater) => {
+  setConsoleLogs = (
+    logsOrUpdater:
+      | ConsoleLogEntry[]
+      | ((logs: ConsoleLogEntry[]) => ConsoleLogEntry[]),
+  ): void => {
     this.setState((prevState) => ({
       consoleLogs:
         typeof logsOrUpdater === "function"
@@ -1365,7 +1494,7 @@ class Editor extends EditorCore {
     setProjectRuntime(this.project);
     setEditorRuntime(this);
 
-    let renderSize = this.getRenderSize();
+    const renderSize = this.getRenderSize();
 
     return (
       <DndProvider backend={HTML5Backend}>
@@ -1420,7 +1549,7 @@ class Editor extends EditorCore {
                 openProjectFileDialog={this.openProjectFileDialog}
                 openNewProjectConfirmation={this.openNewProjectConfirmation}
                 exportProjectAsWickFile={this.exportProjectAsWickFile}
-                importProjectAsWickFile={this.importProjectAsWickFile}
+                importProjectAsWickFile={this.openProjectFileDialog}
                 exporting={this.state.exporting}
                 toast={this.toast}
                 openExportMedia={() => {

@@ -311,7 +311,27 @@ test("capture all Storybook stories with screenshots and markdown reports", asyn
   await fs.mkdir(STORY_REPORT_DIR, { recursive: true });
   await fs.mkdir(SCREENSHOT_DIR, { recursive: true });
 
-  const { source, stories } = await fetchStoryEntries(request);
+  const { source, stories: allStories } = await fetchStoryEntries(request);
+  const filterPattern = process.env.STORYBOOK_REPORT_FILTER?.trim();
+  const limit = Number(process.env.STORYBOOK_REPORT_LIMIT ?? "0");
+  let filterRegex: RegExp | null = null;
+  if (filterPattern && filterPattern.length > 0) {
+    filterRegex = new RegExp(filterPattern, "i");
+  }
+  const filteredStories =
+    filterRegex
+      ? allStories.filter((story) => {
+          return (
+            filterRegex!.test(story.id) ||
+            filterRegex!.test(story.title) ||
+            filterRegex!.test(story.name)
+          );
+        })
+      : allStories;
+  const stories =
+    Number.isFinite(limit) && limit > 0
+      ? filteredStories.slice(0, limit)
+      : filteredStories;
   const summaryRows: string[] = [];
   const failures: Array<{
     id: string;

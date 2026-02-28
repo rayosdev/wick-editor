@@ -166,7 +166,7 @@ export interface WickHistory {
   project: WickProject | null;
   states: unknown[];
   currentStateIndex: number;
-  pushState(stateType: string): void;
+  pushState(stateType: string, actionName?: string): void;
   undo(): void;
   redo(): void;
   canUndo(): boolean;
@@ -209,6 +209,8 @@ export interface WickBase {
   children: WickBase[];
   view: {
     render(): void;
+    resize?(): void;
+    canvas?: { focus: () => void } | null;
     applyChanges?: () => void;
     paper?: {
       Point: new (x?: number, y?: number) => { x: number; y: number };
@@ -381,6 +383,7 @@ export interface WickProject extends WickBase {
   activeFrame: WickFrame;
   activeFrames: WickFrame[];
   soundsPlayed: WickSoundInfo[];
+  numUndoStates: number;
   error: unknown;
   _internalErrorMessages?: string[];
   canCreateTween?: boolean;

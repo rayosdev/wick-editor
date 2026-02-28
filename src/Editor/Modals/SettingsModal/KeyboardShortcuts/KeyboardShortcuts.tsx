@@ -18,7 +18,6 @@
  */
 
 import React, { useState } from "react";
-import { recordKeyCombination } from "react-hotkeys";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import HotKeyInterface from "Editor/hotKeyMap";
 
@@ -66,6 +65,108 @@ interface KeyboardShortcutsProps {
   toast?: (message: string, type?: string) => void;
   toggle?: () => void;
 }
+
+const MODIFIER_KEYS = new Set(["meta", "control", "ctrl", "alt", "shift"]);
+
+const normalizeShortcutKey = (key: string): string | null => {
+  const normalized = key.toLowerCase();
+
+  if (MODIFIER_KEYS.has(normalized)) {
+    return null;
+  }
+
+  if (normalized === " ") {
+    return "space";
+  }
+
+  if (normalized === "+") {
+    return "plus";
+  }
+
+  if (normalized === "arrowup") {
+    return "up";
+  }
+  if (normalized === "arrowdown") {
+    return "down";
+  }
+  if (normalized === "arrowleft") {
+    return "left";
+  }
+  if (normalized === "arrowright") {
+    return "right";
+  }
+  if (normalized === "delete") {
+    return "del";
+  }
+  if (normalized === "escape") {
+    return "esc";
+  }
+  if (normalized === "unidentified") {
+    return null;
+  }
+
+  return normalized;
+};
+
+const actionChangesToCustomHotKeys = (
+  actionChanges: ActionChange[]
+): CustomHotKeys => {
+  const result: CustomHotKeys = {};
+
+  actionChanges.forEach((actionChange) => {
+    const existing = result[actionChange.actionName] ?? [];
+    const next = [...existing];
+    next[actionChange.index] = actionChange.sequence;
+    result[actionChange.actionName] = next;
+  });
+
+  return result;
+};
+
+const recordKeyCombination = (
+  callback: (value: RecordedKeyCombination) => void
+): (() => void) => {
+  const handleKeyDown = (event: KeyboardEvent): void => {
+    const key = normalizeShortcutKey(event.key);
+    if (!key) {
+      return;
+    }
+
+    const sequenceParts: string[] = [];
+    if (event.metaKey || event.ctrlKey) {
+      sequenceParts.push("meta");
+    }
+    if (event.altKey) {
+      sequenceParts.push("alt");
+    }
+    if (event.shiftKey) {
+      sequenceParts.push("shift");
+    }
+    sequenceParts.push(key);
+
+    const dedupedParts = Array.from(new Set(sequenceParts));
+    const combination: RecordedKeyCombination = {
+      id: dedupedParts.join("+"),
+      keys: dedupedParts.reduce<Record<string, boolean>>((acc, part) => {
+        acc[part] = true;
+        return acc;
+      }, {}),
+    };
+
+    event.preventDefault();
+    event.stopPropagation();
+    stopRecording();
+    callback(combination);
+  };
+
+  const stopRecording = (): void => {
+    window.removeEventListener("keydown", handleKeyDown, true);
+  };
+
+  window.addEventListener("keydown", handleKeyDown, true);
+
+  return stopRecording;
+};
 
 const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
   const [editingAction, setEditingAction] = useState<EditingAction>({
@@ -384,14 +485,7 @@ const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = (props) => {
 
   // Apply all new hotkeys to the editor.
   const applyNewKeys = () => {
-    // Convert ActionChange[] to CustomHotKeys format (Record<string, string>)
-    const customKeys: CustomHotKeys = {};
-    newActions.forEach(action => {
-      const key = `${action.actionName}-${action.index}`;
-      customKeys[key] = action.sequence;
-    });
-
-    props.addCustomHotKeys(customKeys);
+    props.addCustomHotKeys(actionChangesToCustomHotKeys(newActions));
     resetNewActions();
     stopEditingKey();
 

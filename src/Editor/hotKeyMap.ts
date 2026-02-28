@@ -686,23 +686,23 @@ class HotKeyInterface extends Object {
   };
 
   // Returns the application keymap, with modifications for custom hotkeys.
-  getKeyMap = (): KeyMap => {
+  getKeyMap = (_customHotKeys?: CustomHotKeys): KeyMap => {
     return this.modifyKeyMap(this.keyMap, this.customHotKeys);
   };
 
   // Returns the application key handlers, with modifications for custom hotkeys.
-  getHandlers = (): Handlers => {
+  getHandlers = (_customHotKeys?: CustomHotKeys): Handlers => {
     return this.handlers;
   };
 
   // Returns essential keymap of the application, with modifications for custom hotkeys.
-  getEssentialKeyMap = (): KeyMap => {
+  getEssentialKeyMap = (_customHotKeys?: CustomHotKeys): KeyMap => {
     const essentialMap = this.filterObject(this.essentialKeys, this.getKeyMap());
     return this.modifyKeyMap(essentialMap, this.customHotKeys);
   };
 
   // Returns essential keyhandlers for the application, with modifications for custom hotkeys.
-  getEssentialKeyHandlers = (): Handlers => {
+  getEssentialKeyHandlers = (_customHotKeys?: CustomHotKeys): Handlers => {
     return this.filterObject(this.essentialKeys, this.getHandlers());
   };
 

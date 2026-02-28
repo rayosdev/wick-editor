@@ -19,9 +19,7 @@
 
 import { useRef, useEffect, useImperativeHandle, forwardRef } from "react";
 import {
-    DropTarget,
-    type ConnectDropTarget,
-    type DropTargetConnector,
+    useDrop,
     type DropTargetMonitor,
 } from "react-dnd";
 import type { XYCoord } from "react-dnd";
@@ -62,11 +60,15 @@ interface CanvasExternalProps {
 }
 
 interface CanvasCollectedProps {
-    connectDropTarget?: ConnectDropTarget;
     isOver?: boolean;
 }
 
 type CanvasProps = CanvasExternalProps & CanvasCollectedProps;
+type CanvasDropItem = {
+    type: string | symbol;
+    files?: File[] | FileList;
+    uuid?: string;
+};
 
 export interface CanvasHandle {
     // Empty for now - methods can be exposed here if needed
@@ -84,6 +86,39 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
     const canvasContainer = useRef<HTMLDivElement>(null);
     const currentAttachedProject = useRef<WickProjectLike>();
     const exposedHandle = useRef<CanvasHandle>({});
+    const [{ isOver }, dropRef] = useDrop<CanvasDropItem, void, { isOver: boolean }>({
+        accept: DragDropTypes.CANVAS,
+        drop: (draggedItem: CanvasDropItem, monitor: DropTargetMonitor) => {
+            const dropLocation = monitor.getClientOffset();
+            if (!dropLocation) {
+                return;
+            }
+
+            const files = draggedItem.files;
+            if (files && "length" in files && files.length > 0) {
+                const fileList = Array.from(files as FileList | File[]);
+                const [firstFile] = fileList;
+
+                if (firstFile && firstFile.name.endsWith(".wick")) {
+                    props.importProjectAsWickFile(firstFile);
+                } else {
+                    props.createAssets(fileList, [], {
+                        create: true,
+                        location: dropLocation,
+                    });
+                }
+            } else if (draggedItem.uuid) {
+                props.createImageFromAsset(
+                    draggedItem.uuid,
+                    dropLocation.x,
+                    dropLocation.y,
+                );
+            }
+        },
+        collect: (monitor: DropTargetMonitor) => ({
+            isOver: monitor.isOver(),
+        }),
+    });
 
     useImperativeHandle(ref, () => exposedHandle.current, []);
 
@@ -178,8 +213,9 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
             id="canvas-container-wrapper"
             className={CANVAS_WRAPPER_CLASSES}
             aria-label="Canvas"
+            ref={dropRef}
         >
-            {props.isOver && <div className={CANVAS_DRAG_DROP_OVERLAY_CLASSES} />}
+            {isOver && <div className={CANVAS_DRAG_DROP_OVERLAY_CLASSES} />}
             <div
                 id="wick-canvas-container"
                 className={CANVAS_CONTAINER_CLASSES}
@@ -187,60 +223,6 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
             ></div>
         </div>
     );
-
-    if (props.connectDropTarget) {
-        const connected = props.connectDropTarget(renderNode);
-        if (connected) {
-            return connected;
-        }
-    }
-
     return renderNode;
 });
-
-const canvasTarget = {
-    drop(props: CanvasProps, monitor: DropTargetMonitor) {
-        const dropLocation = monitor.getClientOffset();
-        if (!dropLocation) {
-            return;
-        }
-
-        const draggedItem = monitor.getItem() as {
-            files?: File[] | FileList;
-            uuid?: string;
-        };
-
-        const files = draggedItem?.files;
-        if (files && "length" in files && files.length > 0) {
-            const fileList = Array.from(files as FileList | File[]);
-            const [firstFile] = fileList;
-
-            if (firstFile && firstFile.name.endsWith(".wick")) {
-                props.importProjectAsWickFile(firstFile);
-            } else {
-                props.createAssets(fileList, [], {
-                    create: true,
-                    location: dropLocation,
-                });
-            }
-        } else if (draggedItem?.uuid) {
-            props.createImageFromAsset(
-                draggedItem.uuid,
-                dropLocation.x,
-                dropLocation.y
-            );
-        }
-    },
-};
-
-function collect(
-    connect: DropTargetConnector,
-    monitor: DropTargetMonitor
-): CanvasCollectedProps {
-    return {
-        connectDropTarget: connect.dropTarget(),
-        isOver: monitor.isOver(),
-    };
-}
-
-export default DropTarget(DragDropTypes.CANVAS, canvasTarget, collect)(Canvas);
+export default Canvas;

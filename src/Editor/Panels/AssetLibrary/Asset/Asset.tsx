@@ -18,11 +18,7 @@
  */
 
 import React from "react";
-import {
-  DragSource,
-  ConnectDragSource,
-  DragSourceConnector,
-} from "react-dnd";
+import { useDrag } from "react-dnd";
 import DragDropTypes from "Editor/DragDropTypes";
 import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
@@ -47,30 +43,19 @@ interface AssetProps {
   clearSelection: () => void;
   selectObjects: (objects: AssetData[]) => void;
   deleteSelectedObjects: () => void;
-  connectDragSource?: ConnectDragSource;
-}
-
-const assetSource = {
-  beginDrag(props: AssetProps) {
-    // Return the data describing the dragged item
-    const info = {
-      uuid: props.asset.uuid,
-    };
-
-    return info;
-  },
-};
-
-/**
- * Specifies which props to inject into your component.
- */
-function collect(connect: DragSourceConnector) {
-  return {
-    connectDragSource: connect.dragSource(),
-  };
 }
 
 const Asset: React.FC<AssetProps> = (props) => {
+  const assetType = DragDropTypes.GET_ASSET_TYPE(props);
+
+  const [, dragRef] = useDrag({
+    type: assetType,
+    item: {
+      type: assetType,
+      uuid: props.asset.uuid,
+    },
+  });
+
   const getIcon = (classname: string): string => {
     if (classname === "ImageAsset") {
       return "image";
@@ -133,15 +118,11 @@ const Asset: React.FC<AssetProps> = (props) => {
     }
   };
 
-  // These props are injected by React DnD, as defined by the `collect` function above:
-  const { connectDragSource } = props;
-
   const icon = getIcon(props.asset.classname);
 
-  if (!connectDragSource) return null;
-
-  return connectDragSource(
+  return (
     <div
+      ref={dragRef}
       className={classNames(
         "asset-item mt-1 ml-1 mr-1 w-[calc(100%-8px)] overflow-hidden rounded-[2px] border-0 bg-editor-secondary px-1 text-left align-middle leading-7 text-white transition-[background-color,color,margin,border] duration-200 has-hover:cursor-grab has-hover:bg-editor-primary has-hover:text-white",
         {
@@ -182,8 +163,4 @@ const Asset: React.FC<AssetProps> = (props) => {
   );
 };
 
-export default DragSource(
-  DragDropTypes.GET_ASSET_TYPE,
-  assetSource,
-  collect
-)(Asset);
+export default Asset;

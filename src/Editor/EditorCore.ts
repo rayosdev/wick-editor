@@ -38,6 +38,8 @@ import type {
   SelectableObject,
   LocalFileEntry,
   ProjectDidChangeOptions,
+  ToastOptions,
+  ToastType,
 } from "./types";
 import type {
   WickProject as WickProjectEngine,
@@ -205,12 +207,12 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   declare projectDidChange: (options?: ProjectDidChangeOptions) => void;
   declare toast: (
     message: string,
-    type?: string,
-    options?: Record<string, unknown>,
+    type?: ToastType,
+    options?: ToastOptions,
   ) => number | string | void;
   declare updateToast: (
     id: unknown,
-    options?: Record<string, unknown>,
+    options?: ToastOptions & Record<string, unknown>,
   ) => void;
   declare openWarningModal: (args: Record<string, unknown>) => void;
   declare toggleCodeEditor: (state?: boolean) => void;
@@ -842,6 +844,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     this.projectDidChange({ actionName: "Create Clip From Selection" });
   };
 
+  // Backward-compatible alias used by modal wiring.
+  createAnimationFromSelection = (name: string): void => {
+    this.createClipFromSelection(name, false);
+  };
+
   /**
    * Creates a new button from the selected paths and clips and adds it to the project.
    * @param {string} name The name of the button after creation.
@@ -1156,6 +1163,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
   focusTimelineOfParentClip = (): void => {
     this.project.focusTimelineOfParentClip();
     this.projectDidChange({ actionName: "Focus Timeline of Parent Clip" });
+  };
+
+  // Backward-compatible alias used by hotkey wiring.
+  focusTimelineOfParentObject = (): void => {
+    this.focusTimelineOfParentClip();
   };
 
   /**

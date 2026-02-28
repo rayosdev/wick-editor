@@ -1,7 +1,7 @@
-import { ReactNode, useEffect, useRef } from "react";
+import { ReactNode, useEffect, useMemo, useRef } from "react";
 import ErrorBoundary from "./Util/ErrorBoundary";
 import { Slide, ToastContainer } from "react-toastify";
-import { GlobalHotKeys, KeyMap, GlobalHotKeysProps } from "react-hotkeys";
+import { useHotkeys } from "react-hotkeys-hook";
 import ErrorPage from "./Util/ErrorPage";
 import ModalHandler from "./Modals/ModalHandler/ModalHandler";
 import { attachConsoleListener } from "./Util/consoleListener";
@@ -35,6 +35,14 @@ type ConsoleClearEntry = { type: "clear" };
 type ConsoleListenerEntry = ConsoleLogEntry | ConsoleClearEntry;
 type ModalRenderType = "video" | "gif" | "image sequence";
 type ToolSettingValue = string | number | boolean | { rgba: string };
+type HotkeyHandler = (event: KeyboardEvent) => void;
+type HotkeyHandlers = Record<string, HotkeyHandler | undefined>;
+type HotkeyBinding = {
+    id: string;
+    sequence: string;
+    onKeyUp: boolean;
+    handler: HotkeyHandler;
+};
 
 type EditorLikeState = {
     activeModalName: ModalName;
@@ -60,9 +68,7 @@ type EditorLike = {
     autoSaveProject: (callback: () => void) => void;
     toast: (message: string, type?: ToastType, options?: ToastOptions) => void;
     getKeyMap: (fullKeyMap?: boolean) => HotKeyMap;
-    getKeyHandlers: (
-        fullKeyHandlers?: boolean
-    ) => GlobalHotKeysProps["handlers"];
+    getKeyHandlers: (fullKeyHandlers?: boolean) => HotkeyHandlers;
     getRenderSize: () => string;
     openModal: (name: ModalName, options?: Record<string, unknown>) => void;
     closeActiveModal: () => void;
@@ -113,6 +119,86 @@ type EditorWrapperProps = {
 };
 
 const MAX_CONSOLE_LOGS = 500;
+
+const normalizeHotkeySequence = (sequence: string): string => {
+    return sequence
+        .trim()
+        .replace(/\bcmd\b/gi, "meta")
+        .replace(/\bdel\b/gi, "delete");
+};
+
+const buildHotkeyBindings = (
+    keyMap: HotKeyMap,
+    handlers: HotkeyHandlers
+): HotkeyBinding[] => {
+    const bindings: HotkeyBinding[] = [];
+
+    Object.entries(keyMap).forEach(([actionName, entry]) => {
+        const handler = handlers[actionName];
+        if (!handler) {
+            return;
+        }
+
+        entry.sequences.forEach((sequence, index) => {
+            const rawSequence =
+                typeof sequence === "string" ? sequence : sequence.sequence;
+            const normalizedSequence = normalizeHotkeySequence(rawSequence);
+
+            if (!normalizedSequence) {
+                return;
+            }
+
+            bindings.push({
+                id: `${actionName}-${index}-${normalizedSequence}`,
+                sequence: normalizedSequence,
+                onKeyUp:
+                    typeof sequence === "object" && sequence.action === "keyup",
+                handler,
+            });
+        });
+    });
+
+    return bindings;
+};
+
+const BoundHotkey = ({ binding }: { binding: HotkeyBinding }): null => {
+    useHotkeys(
+        binding.sequence,
+        (event: KeyboardEvent) => {
+            binding.handler(event);
+        },
+        {
+            enabled: true,
+            keydown: !binding.onKeyUp,
+            keyup: binding.onKeyUp,
+            enableOnFormTags: true,
+        },
+        [binding]
+    );
+
+    return null;
+};
+
+const GlobalHotkeyBindings = ({
+    keyMap,
+    handlers,
+}: {
+    keyMap: HotKeyMap;
+    handlers: HotkeyHandlers;
+}): JSX.Element => {
+    const bindings = useMemo(
+        () => buildHotkeyBindings(keyMap, handlers),
+        [keyMap, handlers]
+    );
+
+    return (
+        <>
+            {bindings.map((binding) => (
+                <BoundHotkey key={binding.id} binding={binding} />
+            ))}
+        </>
+    );
+};
 
 function EditorWrapper({ editor, children }: EditorWrapperProps) {
     const pendingEntriesRef = useRef<ConsoleLogEntry[]>([]);
@@ -190,6 +276,8 @@ function EditorWrapper({ editor, children }: EditorWrapperProps) {
         }
         editor.setToolSetting(setting, value);
     };
+    const currentKeyMap = editor.getKeyMap() as HotKeyMap;
+    const currentKeyHandlers = editor.getKeyHandlers();
 
     return (
         <ErrorBoundary
@@ -212,10 +300,9 @@ function EditorWrapper({ editor, children }: EditorWrapperProps) {
                 draggable
                 pauseOnHover
             />
-            <GlobalHotKeys
-                allowChanges={true}
-                keyMap={editor.getKeyMap() as KeyMap}
-                handlers={editor.getKeyHandlers()}
+            <GlobalHotkeyBindings
+                keyMap={currentKeyMap}
+                handlers={currentKeyHandlers}
             />
             <div id="editor" className="theme-default">
                 <ModalHandler

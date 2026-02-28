@@ -69,7 +69,7 @@ const InspectorColorNumericInput: React.FC<InspectorColorNumericInputProps> = ({
       </label>
 
       {/* Input1 */}
-      <div className="inspector-small-input-container flex h-[90%] w-[20%] min-w-[30px] flex-col items-center pl-[1.5%] last:pr-0">
+      <div className="inspector-small-input-container flex h-[30px] w-[20%] min-w-[30px] flex-col items-center pl-[1.5%] last:pr-0">
         <InspectorInput
           inputProps={{ id: `${idLabel1}-input` }}
           input={{
@@ -98,7 +98,7 @@ const InspectorColorNumericInput: React.FC<InspectorColorNumericInputProps> = ({
           </label>
 
           {/* Input2 */}
-          <div className="inspector-small-input-container flex h-[90%] w-[20%] min-w-[30px] flex-col items-center pl-[1.5%] last:pr-0">
+          <div className="inspector-small-input-container flex h-[30px] w-[20%] min-w-[30px] flex-col items-center pl-[1.5%] last:pr-0">
             <InspectorInput
               inputProps={{ id: `${idLabel2}-${tooltip2}-input` }}
               input={{

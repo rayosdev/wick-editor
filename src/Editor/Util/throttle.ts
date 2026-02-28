@@ -1,4 +1,4 @@
-export type ThrottledFunction<T extends (...args: unknown[]) => unknown> = ((
+export type ThrottledFunction<T extends (...args: never[]) => unknown> = ((
   ...args: Parameters<T>
 ) => void) & {
   cancel: () => void;
@@ -7,7 +7,7 @@ export type ThrottledFunction<T extends (...args: unknown[]) => unknown> = ((
 
 const now = (): number => Date.now();
 
-export const throttle = <T extends (...args: unknown[]) => unknown>(
+export const throttle = <T extends (...args: never[]) => unknown>(
   func: T,
   waitMs: number,
 ): ThrottledFunction<T> => {

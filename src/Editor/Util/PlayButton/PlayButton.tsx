@@ -123,9 +123,8 @@ const PlayButton: React.FC<PlayButtonProps> = ({
 
   return (
     <input
-      data-tip
+      data-tooltip-id={tooltipID ?? id}
       id={id}
-      data-for={tooltipID ?? id}
       type="image"
       className={`play-icon h-full w-full cursor-pointer ${className || ""}`}
       alt="playing button"
