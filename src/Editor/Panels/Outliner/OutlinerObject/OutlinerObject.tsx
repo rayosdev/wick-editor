@@ -113,23 +113,26 @@ export const OutlinerObject = ({
 
     const sourceType = String(DragDropTypes.GET_OUTLINER_SOURCE({ data }));
 
+    const selectDraggedObject = (): void => {
+        if (!data.isSelected) {
+            clearSelection();
+            selectObjects([data]);
+            if (data.classname === "Layer" && typeof data.index === "number") {
+                setActiveLayerIndex(data.index);
+            } else if (data.parentLayer && typeof data.parentLayer.index === "number") {
+                setActiveLayerIndex(data.parentLayer.index);
+            }
+        }
+    };
+
+    const prepareDragStart = (): void => {
+        setDragging(true);
+        selectDraggedObject();
+    };
+
     const [, drag, preview] = useDrag<DragItem, unknown, unknown>({
         type: sourceType,
-        item: () => {
-            setDragging(true);
-
-            if (!data.isSelected) {
-                clearSelection();
-                selectObjects([data]);
-                if (data.classname === "Layer" && typeof data.index === "number") {
-                    setActiveLayerIndex(data.index);
-                } else if (data.parentLayer && typeof data.parentLayer.index === "number") {
-                    setActiveLayerIndex(data.parentLayer.index);
-                }
-            }
-
-            return { type: sourceType, uuid: data.uuid };
-        },
+        item: { type: sourceType, uuid: data.uuid },
         end: () => {
             setDragging(false);
         },
@@ -245,11 +248,11 @@ export const OutlinerObject = ({
                     "relative mt-[2px] w-full first:mt-0",
                     hoverLocation !== "hover-middle" && isOverCurrent && hoverLocation,
                     hoverLocation === "hover-top" &&
-                        isOverCurrent &&
-                        "border-t-2 border-solid border-[#00ADEF]",
+                    isOverCurrent &&
+                    "border-t-2 border-solid border-[#00ADEF]",
                     hoverLocation === "hover-bottom" &&
-                        isOverCurrent &&
-                        "border-b-2 border-solid border-[#00ADEF]"
+                    isOverCurrent &&
+                    "border-b-2 border-solid border-[#00ADEF]"
                 )}
             >
                 <div
@@ -264,8 +267,8 @@ export const OutlinerObject = ({
                         { "bg-editor-tertiary": highlighted === data },
                         hoverLocation === "hover-middle" && isOverCurrent && hoverLocation,
                         hoverLocation === "hover-middle" &&
-                            isOverCurrent &&
-                            "bg-[#00ADEF]"
+                        isOverCurrent &&
+                        "bg-[#00ADEF]"
                     )}
                 >
                     <button
@@ -273,7 +276,16 @@ export const OutlinerObject = ({
                         ref={drag}
                         className="outliner-object-selector absolute left-0 top-0 h-[24px] w-full border-none bg-transparent"
                         onClick={(event: ReactMouseEvent<Element>) => {
+                            setDragging(false);
                             toggle(event, [], "select");
+                        }}
+                        onMouseDown={(event: ReactMouseEvent<Element>) => {
+                            if (event.button === 0) {
+                                prepareDragStart();
+                            }
+                        }}
+                        onTouchStart={() => {
+                            prepareDragStart();
                         }}
                         onFocus={() => setFocused(true)}
                         onBlur={() => setFocused(false)}

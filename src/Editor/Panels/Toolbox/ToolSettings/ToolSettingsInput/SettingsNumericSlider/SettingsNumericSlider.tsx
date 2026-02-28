@@ -47,25 +47,27 @@ export default function SettingsNumericSlider(props: SettingsNumericSliderProps)
           setSliderOn(false);
         }}
       >
-        <WickInputV2LegacyAdapter
-          type="numeric"
-          className={classNames("settings-numeric-input", {
-            mobile: props.isMobile,
-          })}
-          disableBasePadding
-          onChange={props.onChange}
-          onFocus={() => {
-            setSliderOn(true);
-          }}
-          onBlur={() => {
-            setSliderOn(false);
-          }}
-          onClick={() => {
-            setSliderOn(true);
-          }}
-          value={props.value}
-          {...props.inputRestrictions}
-        />
+        <div className="flex h-full w-full">
+          <WickInputV2LegacyAdapter
+            type="numeric"
+            className={classNames("settings-numeric-input", {
+              mobile: props.isMobile,
+            })}
+            disableBasePadding
+            onChange={props.onChange}
+            onFocus={() => {
+              setSliderOn(true);
+            }}
+            onBlur={() => {
+              setSliderOn(false);
+            }}
+            onClick={() => {
+              setSliderOn(true);
+            }}
+            value={props.value}
+            {...props.inputRestrictions}
+          />
+        </div>
       </Popover>
     </div>
   );

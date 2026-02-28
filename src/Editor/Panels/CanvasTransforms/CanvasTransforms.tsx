@@ -2,7 +2,7 @@ import React from "react";
 
 import ActionButton from "Editor/Util/ActionButton/ActionButton";
 import PlayButton from "Editor/Util/PlayButton/PlayButton";
-import { Tooltip } from "react-tooltip";
+import * as ReactTooltipModule from "react-tooltip";
 import HotKeyInterface from "Editor/hotKeyMap";
 import {
   TOOLTIP_HOVER_DELAY_MS,
@@ -10,6 +10,16 @@ import {
 
 import classNames from "classnames";
 import type { HotKeyMap } from "Editor/types/hotkeys";
+
+const Tooltip = (
+  (
+    ReactTooltipModule as unknown as {
+      Tooltip?: React.ElementType;
+      default?: React.ElementType;
+    }
+  ).Tooltip ??
+  (ReactTooltipModule as unknown as { default?: React.ElementType }).default
+) as React.ElementType;
 
 interface TransformButtonOptions {
   action: () => void;

@@ -31,7 +31,7 @@ import type {
   PickerColorChange,
   PickerColorValue,
 } from "Editor/Util/ColorPicker/ColorPicker";
-import { Tooltip } from "react-tooltip";
+import * as ReactTooltipModule from "react-tooltip";
 import WickButton from "./WickButton/WickButton";
 
 import WickTextInput from "./WickTextInput/WickTextInput";
@@ -42,6 +42,16 @@ import {
   TOOLTIP_HOVER_DELAY_MS,
   TOOLTIP_LONG_PRESS_MS,
 } from "Editor/Util/WickInput/tooltipBehavior";
+
+const Tooltip = (
+  (
+    ReactTooltipModule as unknown as {
+      Tooltip?: React.ElementType;
+      default?: React.ElementType;
+    }
+  ).Tooltip ??
+  (ReactTooltipModule as unknown as { default?: React.ElementType }).default
+) as React.ElementType;
 
 export interface SelectOption {
   label: string;
