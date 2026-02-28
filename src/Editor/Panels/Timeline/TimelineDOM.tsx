@@ -12,12 +12,10 @@ import ToolIcon from "Editor/Util/ToolIcon/ToolIcon";
 import { getWickRuntime } from "Editor/Util/wickRuntime";
 import {
   TIMELINE_CONTEXT_MENU_CLASSES,
-  TIMELINE_CONTEXT_MENU_HINT_CLASSES,
   TIMELINE_CONTEXT_MENU_ICON_CLASSES,
   TIMELINE_CONTEXT_MENU_ITEM_CLASSES,
   TIMELINE_CONTEXT_MENU_GLYPH_CLASSES,
   TIMELINE_CONTEXT_MENU_LABEL_CLASSES,
-  TIMELINE_CONTEXT_MENU_TARGET_CLASSES,
 } from "./timelineContextMenuClasses";
 import {
   getTimelineHeaderRightAdvancedClasses,
@@ -30,13 +28,32 @@ import {
   TIMELINE_BREADCRUMB_CLASSES,
   TIMELINE_DOM_LAYER_ADD_CLASSES,
   TIMELINE_DOM_LAYER_BUTTON_ICON_CLASSES,
+  TIMELINE_DOM_LAYER_FILLER_CLASSES,
   TIMELINE_DOM_LAYER_DELETE_BUTTON_CLASSES,
   TIMELINE_DOM_LAYER_ICON_BUTTON_CLASSES,
+  TIMELINE_DOM_LAYER_REORDER_LINE_CLASSES,
   TIMELINE_DOM_LAYER_MAIN_CLASSES,
   TIMELINE_DOM_LAYER_NAME_CLASSES,
   TIMELINE_DOM_LAYER_NAME_INPUT_CLASSES,
   TIMELINE_DOM_LAYERS_HEADER_CLASSES,
   TIMELINE_DOM_LAYERS_SUBHEADER_CLASSES,
+  TIMELINE_DOM_KEYPRESS_INDICATOR_CLASSES,
+  TIMELINE_DOM_MARKER_CLASSES,
+  TIMELINE_DOM_MARKER_LABEL_CLASSES,
+  TIMELINE_DOM_MARKER_ROW_CLASSES,
+  TIMELINE_DOM_NUMBERLINE_CLASSES,
+  TIMELINE_DOM_PLAYHEAD_CLASSES,
+  TIMELINE_DOM_PLAYHEAD_CAP_CLASSES,
+  TIMELINE_DOM_PLAYHEAD_SELECTED_CELL_CLASSES,
+  TIMELINE_DOM_PRESS_FEEDBACK_BADGE_CLASSES,
+  TIMELINE_DOM_PRESS_FEEDBACK_CLASSES,
+  TIMELINE_DOM_PRESS_FEEDBACK_RING_CLASSES,
+  TIMELINE_DOM_SELECTION_BOX_CLASSES,
+  TIMELINE_DOM_SOUND_HOVER_CLASSES,
+  TIMELINE_DOM_WORK_AREA_OVERLAY_CLASSES,
+  TIMELINE_DOM_WORK_AREA_HANDLE_CLASSES,
+  TIMELINE_DOM_WORK_AREA_SPAN_CLASSES,
+  TIMELINE_DOM_WORK_AREA_TRACK_CLASSES,
   TIMELINE_FOOTER_CLASSES,
   TIMELINE_FOOTER_BUTTON_CLASSES,
   TIMELINE_FOOTER_CHOICE_ICON_CLASSES,
@@ -69,11 +86,14 @@ import {
   TIMELINE_UNIFIED_GRID_CANVAS_CLASSES,
   TIMELINE_UNIFIED_HEADER_CLASSES,
   TIMELINE_UNIFIED_LAYER_CONTROLS_CLASSES,
+  TIMELINE_UNIFIED_NUMBERLINE_CANVAS_CLASSES,
   TIMELINE_UNIFIED_OVERLAYS_CLASSES,
   TIMELINE_UNIFIED_ROW_CLASSES,
   TIMELINE_UNIFIED_RULER_CLASSES,
   TIMELINE_UNIFIED_TRACK_CLASSES,
   TIMELINE_UNIFIED_WORKSPACE_CLASSES,
+  getTimelineDomDropModeClasses,
+  getTimelineDomGridRowStateClasses,
   getTimelineDomLayerRowClasses,
 } from "./timelineControlClasses";
 import {
@@ -81,6 +101,10 @@ import {
   shouldAutoRunDoubleClickInsert,
   type DoubleClickMenuMode,
 } from "./doubleClickMenuMode";
+import {
+  duplicateClosestLeftFrameAt,
+  getClosestLeftFrame,
+} from "./keyframeInsertion";
 
 import "./timeline-legacy.css";
 
@@ -432,6 +456,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     label: string;
     mode: DoubleClickMenuMode;
   } | null>(null);
+  const [insertMenuTargetCell, setInsertMenuTargetCell] =
+    useState<{ layerIndex: number; playheadPosition: number } | null>(null);
   const [dragPreview, setDragPreview] = useState<{ moveCols: number; moveRows: number } | null>(
     null,
   );
@@ -784,6 +810,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
   const closeContextMenu = (): void => {
     setDoubleClickMenuContext(null);
+    setInsertMenuTargetCell(null);
     setContextMenuPosition(null);
     setContextMenuTarget(null);
   };
@@ -1890,6 +1917,21 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     requestRender();
   };
 
+  const duplicateLeftKeyframeAt = (
+    layer: TimelineLayerLike,
+    targetPlayheadPosition: number,
+  ): boolean => {
+    const duplicatedFrame = duplicateClosestLeftFrameAt(layer, targetPlayheadPosition);
+    if (!duplicatedFrame) {
+      return false;
+    }
+    project?.selection?.clear?.();
+    project?.selection?.select?.(duplicatedFrame);
+    commitProjectChange("Insert Keyframe");
+    requestRender();
+    return true;
+  };
+
   const insertKeyframeAt = (
     layer: TimelineLayerLike,
     targetPlayheadPosition: number,
@@ -1905,6 +1947,10 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       frameAtTarget.parentLayer?.activate?.();
       props.cutFrame();
       requestRender();
+      return;
+    }
+
+    if (duplicateLeftKeyframeAt(layer, targetPlayheadPosition)) {
       return;
     }
 
@@ -1952,12 +1998,11 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     layer.activate?.();
     setPlayhead(location.playheadPosition, { respectSnap: false });
 
-    const leftFrames = layer.frames.filter(
-      (candidateFrame) => Number(candidateFrame.start) < location.playheadPosition,
-    );
-    const closestLeftFrame = leftFrames
-      .sort((a, b) => Number(b.start) - Number(a.start))
-      [0];
+    setInsertMenuTargetCell({
+      layerIndex: resolvedLayerIndex,
+      playheadPosition: location.playheadPosition,
+    });
+    const closestLeftFrame = getClosestLeftFrame(layer, location.playheadPosition);
     const menuMode = resolveDoubleClickMenuMode(closestLeftFrame);
 
     if (shouldAutoRunDoubleClickInsert(menuMode)) {
@@ -3339,16 +3384,16 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               </div>
             </div>
             <div className={TIMELINE_UNIFIED_RULER_CLASSES}>
-              <div className="timeline-dom-marker-row">
+              <div className={TIMELINE_DOM_MARKER_ROW_CLASSES}>
                 <div
-                  className="timeline-dom-work-area-track"
+                  className={TIMELINE_DOM_WORK_AREA_TRACK_CLASSES}
                   style={{
                     width: `${timelineLength * cellWidth}px`,
                     minWidth: `${timelineLength * cellWidth}px`,
                   }}
                 >
                   <div
-                    className="timeline-dom-work-area-span"
+                    className={TIMELINE_DOM_WORK_AREA_SPAN_CLASSES}
                     style={{
                       left: `${(workArea.start - 1) * cellWidth}px`,
                       width: `${Math.max(cellWidth, (workArea.end - workArea.start + 1) * cellWidth)}px`,
@@ -3356,7 +3401,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                   />
                   <button
                     type="button"
-                    className="timeline-dom-work-area-handle timeline-dom-work-area-handle-start"
+                    className={`${TIMELINE_DOM_WORK_AREA_HANDLE_CLASSES} timeline-dom-work-area-handle-start`}
                     style={{ left: `${(workArea.start - 1) * cellWidth}px` }}
                     aria-label="Adjust work area start"
                     title="Adjust work area start"
@@ -3364,7 +3409,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                   />
                   <button
                     type="button"
-                    className="timeline-dom-work-area-handle timeline-dom-work-area-handle-end"
+                    className={`${TIMELINE_DOM_WORK_AREA_HANDLE_CLASSES} timeline-dom-work-area-handle-end`}
                     style={{ left: `${workArea.end * cellWidth}px` }}
                     aria-label="Adjust work area end"
                     title="Adjust work area end"
@@ -3374,7 +3419,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     <button
                       key={marker.id}
                       type="button"
-                      className="timeline-dom-marker"
+                      className={TIMELINE_DOM_MARKER_CLASSES}
                       style={{
                         left: `${(marker.frame - 1) * cellWidth + Math.floor(cellWidth / 2)}px`,
                         borderColor: marker.color,
@@ -3387,20 +3432,20 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                         handleEditMarker(marker.id);
                       }}
                     >
-                      <span className="timeline-dom-marker-label">{marker.label}</span>
+                      <span className={TIMELINE_DOM_MARKER_LABEL_CLASSES}>{marker.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
-              <div className="timeline-dom-numberline" onPointerDown={handleNumberLinePointerDown}>
+              <div className={TIMELINE_DOM_NUMBERLINE_CLASSES} onPointerDown={handleNumberLinePointerDown}>
                 <canvas
                   ref={unifiedNumberLineCanvasRef}
-                  className="timeline-unified-numberline-canvas"
+                  className={TIMELINE_UNIFIED_NUMBERLINE_CANVAS_CLASSES}
                   aria-hidden
                   style={{ width: `${timelineLength * cellWidth}px`, height: '100%' }}
                 />
                 <div
-                  className="timeline-dom-playhead-cap"
+                  className={TIMELINE_DOM_PLAYHEAD_CAP_CLASSES}
                   style={{ left: `${(playheadPosition - 1) * cellWidth + Math.floor(cellWidth / 2)}px` }}
                   aria-hidden
                 />
@@ -3416,13 +3461,13 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             />
             <div className={TIMELINE_UNIFIED_OVERLAYS_CLASSES} style={{ left: `${LAYER_PANEL_WIDTH_PX}px` }}>
               <div
-                className="timeline-dom-playhead"
+                className={TIMELINE_DOM_PLAYHEAD_CLASSES}
                 style={{ left: `${(playheadPosition - 1) * cellWidth + cellWidth / 2 - 1}px` }}
               />
 
               {showSelectedFrameCellIndicator && (
                 <div
-                  className="timeline-dom-playhead-frame-cell-selected"
+                  className={TIMELINE_DOM_PLAYHEAD_SELECTED_CELL_CLASSES}
                   style={{
                     left: `${(playheadPosition - 1) * cellWidth}px`,
                     top: `${activeLayerIndex * cellHeight}px`,
@@ -3435,7 +3480,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
               {selectionBox && (
                 <div
-                  className="timeline-dom-selection-box"
+                  className={TIMELINE_DOM_SELECTION_BOX_CLASSES}
                   style={{
                     left: `${Math.min(selectionBox.startCol, selectionBox.endCol) * cellWidth}px`,
                     top: `${Math.min(selectionBox.startRow, selectionBox.endRow) * cellHeight}px`,
@@ -3449,13 +3494,13 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
               {layerReorderPreview !== null && (
                 <div
-                  className="timeline-dom-layer-reorder-line"
+                  className={TIMELINE_DOM_LAYER_REORDER_LINE_CLASSES}
                   style={{ top: `${layerReorderPreview * cellHeight}px` }}
                 />
               )}
 
               <div
-                className="timeline-dom-work-area-overlay"
+                className={TIMELINE_DOM_WORK_AREA_OVERLAY_CLASSES}
                 style={{
                   left: `${(workArea.start - 1) * cellWidth}px`,
                   width: `${Math.max(cellWidth, (workArea.end - workArea.start + 1) * cellWidth)}px`,
@@ -3593,7 +3638,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
                   <div className={TIMELINE_UNIFIED_TRACK_CLASSES}>
                     <div
-                      className={`timeline-dom-grid-row ${isActive ? "active" : ""}`}
+                      className={getTimelineDomGridRowStateClasses(isActive)}
                       style={{
                         height: `${cellHeight}px`,
                         position: 'relative', // Ensure relative for frames
@@ -3613,6 +3658,20 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                           }}
                         />
                       )}
+                      {doubleClickMenuContext &&
+                        insertMenuTargetCell &&
+                        insertMenuTargetCell.layerIndex === layerIndex && (
+                          <div
+                            className="timeline-dom-insert-target-outline"
+                            style={{
+                              left: `${(insertMenuTargetCell.playheadPosition - 1) * cellWidth}px`,
+                              top: "0px",
+                              width: `${cellWidth}px`,
+                              height: `${cellHeight - 2}px`,
+                            }}
+                            aria-hidden
+                          />
+                        )}
 
                       {renderedFrames.map((frame) => {
                         const frameStart = Number(frame.start ?? 1);
@@ -3751,7 +3810,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                       {soundHoverCell &&
                         soundHoverCell.layerIndex === layerIndex && (
                           <div
-                            className="timeline-dom-sound-hover"
+                            className={TIMELINE_DOM_SOUND_HOVER_CLASSES}
                             style={{
                               left: `${(soundHoverCell.playheadPosition - 1) * cellWidth}px`,
                               width: `${cellWidth}px`,
@@ -3791,7 +3850,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 </button>
                 {layerFillerHeight > 0 && (
                   <div
-                    className="timeline-dom-layer-filler"
+                    className={TIMELINE_DOM_LAYER_FILLER_CLASSES}
                     style={{ height: `${layerFillerHeight}px` }}
                     aria-hidden
                   />
@@ -3801,7 +3860,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             </div>
 
             {dragCollisionMode && (
-              <div className={`timeline-dom-drop-mode ${dragCollisionMode}`}
+              <div className={getTimelineDomDropModeClasses(dragCollisionMode)}
                 style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 100 }}
               >
                 {dragCollisionMode === "push" ? "Push on drop" : "Overwrite on drop"}
@@ -4091,22 +4150,22 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         </div>
 
         {keyPressIndicator && (
-          <div className="timeline-dom-keypress-indicator" aria-live="polite">
+          <div className={TIMELINE_DOM_KEYPRESS_INDICATOR_CLASSES} aria-live="polite">
             {keyPressIndicator}
           </div>
         )}
 
         {pressFeedback && (
           <div
-            className="timeline-dom-press-feedback"
+            className={TIMELINE_DOM_PRESS_FEEDBACK_CLASSES}
             style={{
               left: `${pressFeedback.x}px`,
               top: `${pressFeedback.y}px`,
             }}
             aria-hidden
           >
-            <span className="timeline-dom-press-feedback-ring" />
-            <span className="timeline-dom-press-feedback-badge">Hold for menu</span>
+            <span className={TIMELINE_DOM_PRESS_FEEDBACK_RING_CLASSES} />
+            <span className={TIMELINE_DOM_PRESS_FEEDBACK_BADGE_CLASSES}>Hold for menu</span>
           </div>
         )}
 
@@ -4121,9 +4180,6 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               top: `${contextMenuPosition.y}px`,
             }}
           >
-            <div className={TIMELINE_CONTEXT_MENU_TARGET_CLASSES}>
-              {doubleClickMenuContext ? doubleClickMenuContext.label : (contextMenuTarget?.label ?? "Current Selection")}
-            </div>
             {contextMenuItems.map((item) => (
               <button
                 key={item.id}
@@ -4141,9 +4197,6 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 <span className={TIMELINE_CONTEXT_MENU_LABEL_CLASSES}>{item.label}</span>
               </button>
             ))}
-            <div className={TIMELINE_CONTEXT_MENU_HINT_CLASSES}>
-              Context actions for selected timeline location
-            </div>
           </div>
         )}
       </div>

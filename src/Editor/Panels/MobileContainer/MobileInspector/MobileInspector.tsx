@@ -41,6 +41,10 @@ import MobileInspectorColor from "./MobileInspectorRow/MobileInspectorRowTypes/M
 
 import MobileInspectorTabbedInterface from "./MobileInpsectorTabbedInterface/MobileInspectorTabbedInterface";
 import { getWickTweenEasingTypes } from "Editor/Util/wickRuntime";
+import {
+    selectionColorToCss,
+    type SelectionColorValue,
+} from "Editor/Util/ColorPicker/selectionColor";
 
 import transformIcon from "resources/mobile-inspector-icons/transform-icon.svg";
 import transformIconActive from "resources/mobile-inspector-icons/transform-icon-active.svg";
@@ -269,15 +273,15 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
     };
 
     const renderSelectionColor = (): JSX.Element => {
-        const strokeColor = getSelectionAttribute<{ toCSS?: () => string } | undefined>("strokeColor");
-        const fillColor = getSelectionAttribute<{ toCSS?: () => string } | undefined>("fillColor");
+        const strokeColor = getSelectionAttribute<SelectionColorValue>("strokeColor");
+        const fillColor = getSelectionAttribute<SelectionColorValue>("fillColor");
 
         return (
             <div className={MOBILE_INSPECTOR_STYLE_ITEM_CLASSES}>
                 <div className={MOBILE_INSPECTOR_COL_LEFT_CLASSES}>
                     <MobileInspectorColor
                         tooltip="Stroke"
-                        val={strokeColor?.toCSS?.() ?? "#000000"}
+                        val={selectionColorToCss(strokeColor)}
                         onChange={(col) => setSelectionAttribute("strokeColor", col)}
                         id="mobile-inspector-selection-stroke-color"
                         stroke={true}
@@ -289,7 +293,7 @@ const MobileInspector: React.FC<MobileInspectorProps> = (props) => {
 
                     <MobileInspectorColor
                         tooltip="Fill"
-                        val={fillColor?.toCSS?.() ?? "#000000"}
+                        val={selectionColorToCss(fillColor)}
                         onChange={(col) => setSelectionAttribute("fillColor", col)}
                         id="mobile-inspector-selection-fill-color"
                         colorPickerType={props.colorPickerType}

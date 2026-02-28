@@ -1756,11 +1756,10 @@ class Editor extends EditorCore {
         this.addSoundToActiveFrame(asset);
       }
     };
-    const outlinerProject = {
+    const outlinerProject: ComponentProps<typeof Outliner>["project"] = {
       activeTimeline: this.project.activeTimeline,
-    } as never as ComponentProps<typeof Outliner>["project"];
-    const timelineProject =
-      this.project as never as ComponentProps<typeof Timeline>["project"];
+    };
+    const timelineProject: ComponentProps<typeof Timeline>["project"] = this.project;
     const timelineProjectData =
       this.state.project as ComponentProps<typeof Timeline>["projectData"];
     const setFocusObjectFromTimeline: ComponentProps<typeof Timeline>["setFocusObject"] = (

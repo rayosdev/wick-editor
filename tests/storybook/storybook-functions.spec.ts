@@ -230,8 +230,9 @@ test.describe("Storybook functional checks", () => {
     await expect(primaryCount).toHaveText("Primary: 1");
     await expect(secondaryCount).toHaveText("Secondary: 0");
 
-    await page.waitForTimeout(600);
-    await button.dblclick();
+    await page.waitForTimeout(700);
+    await button.click();
+    await button.click();
     await expect(primaryCount).toHaveText("Primary: 2");
     await expect(secondaryCount).toHaveText("Secondary: 1");
   });

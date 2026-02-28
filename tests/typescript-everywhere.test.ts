@@ -10,12 +10,13 @@ const authoredAllowlist = new Set([
   path.normalize("engine/src/export/zip/wickengine.js"),
 ]);
 
-const tsHygieneRoots = ["src", "tests", "types"] as const;
+const tsHygieneRoots = ["src", "tests", "types", "scripts"] as const;
 const tsAppHygieneRoots = ["src"] as const;
 const tsTestsHygieneRoots = ["tests"] as const;
 const tsHygieneSelfFile = path.normalize("tests/typescript-everywhere.test.ts");
 const tsSuppressionAllowlist = new Set<string>([]);
 const doubleUnknownCastAllowlist = new Set<string>([]);
+const doubleNeverCastAllowlist = new Set<string>([]);
 const tsExpectErrorAllowlist = new Set<string>([]);
 const jsonParseReturnTypeAllowlist = new Set([
   path.normalize("types/globals.d.ts"),
@@ -27,6 +28,7 @@ const tsIgnorePattern = /@ts-ignore\b/;
 const tsNocheckPattern = /@ts-nocheck\b/;
 const tsExpectErrorPattern = /@ts-expect-error\b/;
 const doubleUnknownCastPattern = /\bas unknown as\b/;
+const doubleNeverCastPattern = /\bas never as\b/;
 const singleUnknownCastPattern = /\bas unknown\b/;
 const jsonParseReturnTypePattern = /\bReturnType<typeof JSON\.parse>\b/;
 const directWindowEditorAccessPattern = /\bwindow\.editor\.[A-Za-z_$]/;
@@ -210,6 +212,26 @@ describe("TypeScript everywhere guards", () => {
           .map((line: string, index: number) => ({ line, index: index + 1 }))
           .filter(
             ({ line }: { line: string }) => doubleUnknownCastPattern.test(line),
+          )
+          .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
+      },
+    );
+
+    expect(offending).toEqual([]);
+  }, FILE_SCAN_TEST_TIMEOUT_MS);
+
+  it("does not use double never casts outside allowlist", () => {
+    const offending = tsHygieneFiles.flatMap(
+      (repoRelative) => {
+        if (doubleNeverCastAllowlist.has(repoRelative)) {
+          return [];
+        }
+
+        const lines = getFileLines(repoRelative);
+        return lines
+          .map((line: string, index: number) => ({ line, index: index + 1 }))
+          .filter(
+            ({ line }: { line: string }) => doubleNeverCastPattern.test(line),
           )
           .map(({ index }: { index: number }) => `${repoRelative}:${index}`);
       },

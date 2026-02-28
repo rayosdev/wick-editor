@@ -153,6 +153,84 @@ export const TIMELINE_DOM_LAYER_BUTTON_ICON_CLASSES =
 export const TIMELINE_DOM_LAYER_ADD_CLASSES =
   "timeline-dom-layer-add min-h-[calc(var(--timeline-cell-height)-4px)] w-full border-0 border-t border-t-[#191919] bg-[rgba(255,255,255,0.03)] font-nunito text-xs font-extrabold uppercase tracking-[0.03em] text-white";
 
+export const TIMELINE_DOM_MARKER_ROW_CLASSES =
+  "timeline-dom-marker-row flex h-[34px] items-stretch overflow-hidden border-b border-[#191919] bg-[linear-gradient(to_bottom,rgba(255,255,255,0.06),rgba(255,255,255,0.02))]";
+
+export const TIMELINE_DOM_WORK_AREA_TRACK_CLASSES =
+  "timeline-dom-work-area-track relative min-w-0 flex-1";
+
+export const TIMELINE_DOM_WORK_AREA_SPAN_CLASSES =
+  "timeline-dom-work-area-span pointer-events-none absolute bottom-2 top-2 rounded-[4px] border border-[rgba(255,243,192,0.55)] bg-[rgba(255,243,192,0.12)]";
+
+export const TIMELINE_DOM_WORK_AREA_HANDLE_CLASSES =
+  "timeline-dom-work-area-handle absolute top-[6px] z-[4] h-[22px] w-[10px] -translate-x-1/2 rounded-full border border-[rgba(255,243,192,0.65)] bg-[rgba(255,243,192,0.65)] p-0 before:absolute before:inset-[-10px] before:content-['']";
+
+export const TIMELINE_DOM_MARKER_CLASSES =
+  "timeline-dom-marker absolute top-2 z-[6] inline-flex h-[18px] min-w-4 -translate-x-1/2 touch-none items-center justify-center rounded-full border border-current bg-[rgba(20,27,37,0.92)] px-[5px]";
+
+export const TIMELINE_DOM_MARKER_LABEL_CLASSES =
+  "timeline-dom-marker-label pointer-events-none font-nunito text-[10px] font-extrabold leading-none";
+
+export const TIMELINE_DOM_NUMBERLINE_CLASSES =
+  "timeline-dom-numberline sticky top-0 z-[2] flex h-[34px] items-stretch overflow-hidden border-b border-[#191919] bg-[#303030]";
+
+export const TIMELINE_UNIFIED_NUMBERLINE_CANVAS_CLASSES =
+  "timeline-unified-numberline-canvas block touch-none";
+
+export const TIMELINE_DOM_PLAYHEAD_CAP_CLASSES =
+  "timeline-dom-playhead-cap pointer-events-none absolute top-0 z-[5] h-2 w-3 -translate-x-1/2 rounded-b-[6px] bg-[#ee5850]";
+
+export const TIMELINE_DOM_LAYER_FILLER_CLASSES =
+  "timeline-dom-layer-filler pointer-events-none w-full bg-[linear-gradient(to_top,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:100%_var(--timeline-cell-height,42px)]";
+
+export const TIMELINE_DOM_GRID_ROW_CLASSES =
+  "timeline-dom-grid-row absolute inset-x-0";
+
+export const getTimelineDomGridRowStateClasses = (active: boolean): string =>
+  withActiveClass(TIMELINE_DOM_GRID_ROW_CLASSES, active, "active");
+
+export const TIMELINE_DOM_PLAYHEAD_CLASSES =
+  "timeline-dom-playhead pointer-events-none absolute bottom-0 top-0 z-[6] w-[2px] bg-[#ee5850]";
+
+export const TIMELINE_DOM_SELECTION_BOX_CLASSES =
+  "timeline-dom-selection-box pointer-events-none absolute z-[7] border border-dashed border-[rgba(255,255,255,0.8)] bg-[rgba(255,255,255,0.12)]";
+
+export const TIMELINE_DOM_PLAYHEAD_SELECTED_CELL_CLASSES =
+  "timeline-dom-playhead-frame-cell-selected pointer-events-none absolute z-[5] box-border border border-dashed border-[rgba(236,246,255,0.9)] bg-[rgba(255,255,255,0.04)]";
+
+export const TIMELINE_DOM_LAYER_REORDER_LINE_CLASSES =
+  "timeline-dom-layer-reorder-line pointer-events-none absolute inset-x-0 z-[8] h-[2px] bg-[#66b6ff]";
+
+export const TIMELINE_DOM_WORK_AREA_OVERLAY_CLASSES =
+  "timeline-dom-work-area-overlay pointer-events-none absolute bottom-0 top-0 z-[1] border-x border-x-[rgba(255,243,192,0.36)] bg-[rgba(255,243,192,0.06)]";
+
+export const TIMELINE_DOM_SOUND_HOVER_CLASSES =
+  "timeline-dom-sound-hover pointer-events-none absolute bottom-0 top-0 z-[4] border border-dashed border-[rgba(255,230,128,0.9)] bg-[rgba(255,230,128,0.2)]";
+
+export const getTimelineDomDropModeClasses = (
+  mode: "overwrite" | "push"
+): string =>
+  [
+    "timeline-dom-drop-mode pointer-events-none absolute right-3 top-[10px] z-[11] inline-flex h-[22px] items-center rounded-full border border-transparent px-2 font-nunito text-[10px] font-extrabold uppercase tracking-[0.03em]",
+    mode === "overwrite"
+      ? "overwrite bg-[rgba(167,42,42,0.75)] text-[#ffe4e4] border-[rgba(255,196,196,0.45)]"
+      : "push bg-[rgba(37,92,132,0.75)] text-[#e5f6ff] border-[rgba(184,228,255,0.45)]",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+export const TIMELINE_DOM_KEYPRESS_INDICATOR_CLASSES =
+  "timeline-dom-keypress-indicator pointer-events-none absolute bottom-[58px] right-3 z-[45] min-h-6 rounded-full border border-[rgba(174,216,248,0.42)] bg-[rgba(14,20,30,0.9)] px-[10px] py-1 font-nunito text-[11px] font-extrabold tracking-[0.03em] text-[rgba(232,245,255,0.96)] shadow-[0_4px_10px_rgba(0,0,0,0.35)]";
+
+export const TIMELINE_DOM_PRESS_FEEDBACK_CLASSES =
+  "timeline-dom-press-feedback pointer-events-none fixed z-[2200] -translate-x-1/2 -translate-y-1/2";
+
+export const TIMELINE_DOM_PRESS_FEEDBACK_RING_CLASSES =
+  "timeline-dom-press-feedback-ring block h-[34px] w-[34px] rounded-full border-2 border-[rgba(200,235,255,0.95)] bg-[rgba(118,189,255,0.2)]";
+
+export const TIMELINE_DOM_PRESS_FEEDBACK_BADGE_CLASSES =
+  "timeline-dom-press-feedback-badge mt-[6px] inline-flex items-center justify-center whitespace-nowrap rounded-full border border-[rgba(200,235,255,0.45)] bg-[rgba(17,22,29,0.92)] px-2 py-[2px] font-nunito text-[10px] font-bold text-[#dff4ff]";
+
 export const TIMELINE_FOOTER_GROUP_CLASSES =
   "timeline-flash-footer-group inline-flex items-center gap-[6px] border-r border-r-[rgba(255,255,255,0.08)] px-1 py-[2px] last:border-r-0";
 

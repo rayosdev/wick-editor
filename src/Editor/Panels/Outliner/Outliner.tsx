@@ -18,7 +18,7 @@ type WickScriptEntry = {
 interface WickNode {
     uuid: string;
     classname: string;
-    name?: string;
+    name?: string | null;
     identifier?: string | null;
     parent?: WickNode | WickTimeline | null;
     parentLayer?: {

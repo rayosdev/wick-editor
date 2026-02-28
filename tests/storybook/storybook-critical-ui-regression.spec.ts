@@ -32,6 +32,7 @@ async function gotoStory(page: Page, storyId: string) {
       if (rootChildCount === 0) {
         throw new Error("Storybook root rendered no children");
       }
+      await dismissWelcomeModalIfPresent(page);
       await expect(page.locator("body")).not.toContainText(/failed to (render|import)\./i);
       return;
     } catch (error) {
@@ -41,6 +42,25 @@ async function gotoStory(page: Page, storyId: string) {
       await page.waitForTimeout(500 * attempt);
     }
   }
+}
+
+async function dismissWelcomeModalIfPresent(page: Page): Promise<void> {
+  const acceptButton = page
+    .locator(
+      "#welcome-modal-accept button, #welcome-modal-mobile-accept button, button:has-text('Try it')"
+    )
+    .first();
+  if ((await acceptButton.count()) === 0) {
+    return;
+  }
+
+  const visible = await acceptButton.isVisible().catch(() => false);
+  if (!visible) {
+    return;
+  }
+
+  await acceptButton.click({ force: true });
+  await page.waitForTimeout(150);
 }
 
 async function clickIfVisible(locator: ReturnType<Page["locator"]>): Promise<boolean> {
@@ -214,6 +234,154 @@ test.describe("Critical Storybook UI regressions", () => {
     await expect(
       page.locator(".tool-box #tool-box-stroke-color:visible").first()
     ).toBeVisible();
+
+    await runtime.assertNone();
+  });
+
+  test("Editor inspector fill swatch updates selection color without black fallback", async ({
+    page,
+  }) => {
+    const runtime = trackRuntimeErrors(page);
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await gotoStory(page, "editor-editor--default");
+
+    await page.waitForFunction(
+      () => Boolean((window as Window & { editor?: unknown }).editor)
+    );
+
+    const rectangleTool = page
+      .locator("#action-button-tooltip-tool-button-rectangle button")
+      .or(page.getByRole("button", { name: /rectangle icon/i }))
+      .first();
+    const cursorTool = page
+      .locator("#action-button-tooltip-tool-button-cursor button")
+      .or(page.getByRole("button", { name: /cursor icon/i }))
+      .first();
+    await expect(rectangleTool).toBeVisible();
+    await expect(cursorTool).toBeVisible();
+
+    const canvasWrapper = page.locator("#canvas-container-wrapper");
+    await expect(canvasWrapper).toBeVisible();
+    const canvasBox = await canvasWrapper.boundingBox();
+    expect(canvasBox).not.toBeNull();
+
+    const fillColorButton = page
+      .locator(
+        "#inspector-selection-fill-color, #mobile-inspector-selection-fill-color"
+      )
+      .first();
+
+    let fillButtonVisible = false;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await rectangleTool.click();
+
+      if (canvasBox) {
+        const startX = canvasBox.x + canvasBox.width * (0.32 + attempt * 0.05);
+        const startY = canvasBox.y + canvasBox.height * (0.32 + attempt * 0.05);
+        const endX = canvasBox.x + canvasBox.width * (0.52 + attempt * 0.04);
+        const endY = canvasBox.y + canvasBox.height * (0.52 + attempt * 0.04);
+
+        await page.mouse.move(startX, startY);
+        await page.mouse.down();
+        await page.mouse.move(endX, endY, { steps: 12 });
+        await page.mouse.up();
+      }
+      await page.waitForTimeout(220);
+
+      await cursorTool.click();
+      await page.evaluate(() => {
+        const editor = (window as Window & { editor?: { selectAll?: () => void } })
+          .editor;
+        editor?.selectAll?.();
+      });
+
+      fillButtonVisible = await fillColorButton.isVisible().catch(() => false);
+      if (fillButtonVisible) {
+        break;
+      }
+
+      await page.waitForTimeout(180);
+    }
+
+    expect(fillButtonVisible).toBeTruthy();
+    await fillColorButton.click({ force: true });
+
+    const redSwatch = page.locator('[data-color-hex="#ff0000"]').first();
+    await expect(redSwatch).toBeVisible();
+    await redSwatch.evaluate((node) => (node as HTMLButtonElement).click());
+    await page.waitForTimeout(150);
+
+    const pickedColor = await page.evaluate(() => {
+      const editor = (
+        window as Window & {
+          editor?: { getSelectionAttribute?: (name: string) => unknown };
+        }
+      ).editor;
+
+      const normalize = (value: unknown, fallback = "#000000"): string => {
+        if (typeof value === "string" && value.trim().length > 0) {
+          return value;
+        }
+
+        if (value && typeof value === "object") {
+          const maybeColor = value as {
+            toCSS?: (() => string | null | undefined) | undefined;
+            rgba?: string | null | undefined;
+            hex?: string | null | undefined;
+          };
+
+          if (typeof maybeColor.toCSS === "function") {
+            const css = maybeColor.toCSS();
+            if (typeof css === "string" && css.trim().length > 0) {
+              return css;
+            }
+          }
+
+          if (typeof maybeColor.rgba === "string" && maybeColor.rgba.trim().length > 0) {
+            return maybeColor.rgba;
+          }
+
+          if (typeof maybeColor.hex === "string" && maybeColor.hex.trim().length > 0) {
+            return maybeColor.hex;
+          }
+        }
+
+        return fallback;
+      };
+
+      const toRgbChannels = (cssColor: string) => {
+        const probe = document.createElement("div");
+        probe.style.color = cssColor;
+        document.body.appendChild(probe);
+        const computed = getComputedStyle(probe).color;
+        probe.remove();
+
+        const match = computed.match(
+          /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*[\d.]+)?\)/
+        );
+
+        return {
+          computed,
+          r: Number(match?.[1] ?? 0),
+          g: Number(match?.[2] ?? 0),
+          b: Number(match?.[3] ?? 0),
+        };
+      };
+
+      const selectionFill = editor?.getSelectionAttribute?.("fillColor");
+      const normalized = normalize(selectionFill);
+      return {
+        normalized,
+        ...toRgbChannels(normalized),
+      };
+    });
+
+    expect(pickedColor.r).toBeGreaterThan(140);
+    expect(pickedColor.r).toBeGreaterThan(pickedColor.g);
+    expect(pickedColor.r).toBeGreaterThan(pickedColor.b);
+    expect(pickedColor.g).toBeLessThan(140);
+    expect(pickedColor.b).toBeLessThan(140);
+    expect(pickedColor.computed).not.toBe("rgb(0, 0, 0)");
 
     await runtime.assertNone();
   });

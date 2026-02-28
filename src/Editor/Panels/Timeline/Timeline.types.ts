@@ -6,6 +6,7 @@ import type {
   ToastType,
   ToastOptions,
 } from "Editor/types";
+import type { WickSelectableObject } from "Editor/types/engine.types";
 
 export type TimelineRendererMode = "dom" | "classic";
 export type TimelineShortcutPreset = "wick" | "flash";
@@ -72,7 +73,7 @@ export type TimelineLayerLike = {
   hidden?: boolean;
   locked?: boolean;
   activate?: () => void;
-  addFrame?: (frame: TimelineFrameLike) => void;
+  addFrame?(frame: TimelineFrameLike, index?: number): void;
   insertBlankFrame?: (playheadPosition: number) => TimelineFrameLike | null;
   remove?: () => void;
   getFrameAtPlayheadPosition?: (playheadPosition: number) => TimelineFrameLike | null;
@@ -84,18 +85,18 @@ export type TimelineActiveLike = {
   playheadPosition: number;
   fillGapsMethod?: TimelineFillGapsMode;
   activeFrames?: TimelineFrameLike[];
-  addLayer?: (layer: TimelineLayerLike, index?: number) => void;
-  moveLayer?: (layer: TimelineLayerLike, index: number) => void;
+  addLayer?(layer: TimelineLayerLike, index?: number): void;
+  moveLayer?(layer: TimelineLayerLike, index: number): void;
   deferFrameGapResolve?: () => void;
-  resolveFrameGaps?: (frames?: TimelineFrameLike[]) => void;
+  resolveFrameGaps?(frames?: TimelineFrameLike[]): void;
 };
 
 export type TimelineSelectionLike = {
   clear: () => void;
-  select: (object: unknown) => void;
-  deselect?: (object: unknown) => void;
-  isObjectSelected?: (object: unknown) => boolean;
-  getSelectedObjects?: (type?: string) => unknown[];
+  select(object: WickSelectableObject): void;
+  deselect?(object: WickSelectableObject): void;
+  isObjectSelected?(object: WickSelectableObject): boolean;
+  getSelectedObjects?(type?: string): WickSelectableObject[];
   getLeftmostFrames?: () => TimelineFrameLike[];
   getRightmostFrames?: () => TimelineFrameLike[];
 };

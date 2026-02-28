@@ -248,6 +248,7 @@ export interface WickBase {
   remove(): void;
   addChild(child: WickBase): void;
   removeChild(child: WickBase): void;
+  getChildren(): WickBase[];
 }
 
 export interface WickTimeline extends WickBase {

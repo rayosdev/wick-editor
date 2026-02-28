@@ -36,7 +36,11 @@ import InspectorImagePreview from "./InspectorPreview/InspectorPreviewTypes/Insp
 import InspectorSoundPreview from "./InspectorPreview/InspectorPreviewTypes/InspectorSoundPreview";
 import InspectorScriptWindow from "./InspectorScriptWindow/InspectorScriptWindow";
 import InspectorCheckbox from "./InspectorRow/InspectorRowTypes/InspectorCheckbox";
-import { createWickColor, getWickTweenEasingTypes } from "Editor/Util/wickRuntime";
+import { getWickTweenEasingTypes } from "Editor/Util/wickRuntime";
+import {
+    selectionColorToCss,
+    type SelectionColorValue,
+} from "Editor/Util/ColorPicker/selectionColor";
 
 import type { WickAsset as WickAssetEngine } from "Editor/types/engine.types";
 
@@ -89,8 +93,6 @@ const INSPECTOR_BODY_CLASSES =
     "inspector-body h-[calc(100%_-_36px)] w-full overflow-hidden has-hover:overflow-y-auto";
 const INSPECTOR_ITEM_CLASSES =
     "inspector-item flex flex-col items-center border-b-2 [border-bottom-style:solid] border-b-[#191919] px-[10px] py-[5px]";
-
-const toWickColor = (color: string): unknown => createWickColor(color);
 
 const Inspector: React.FC<InspectorProps> = (props) => {
     const getSelectionAttribute = <T = unknown>(attribute: string): T => {
@@ -165,17 +167,15 @@ const Inspector: React.FC<InspectorProps> = (props) => {
     };
 
     const renderSelectionColor = (): JSX.Element => {
-        const fillColor = getSelectionAttribute<
-            { toCSS?: () => string; a?: number } | undefined
-        >("fillColor");
-        const strokeColor = getSelectionAttribute<{ toCSS?: () => string } | undefined>("strokeColor");
+        const fillColor = getSelectionAttribute<SelectionColorValue>("fillColor");
+        const strokeColor = getSelectionAttribute<SelectionColorValue>("strokeColor");
 
         return (
             <div className={INSPECTOR_ITEM_CLASSES}>
                 <InspectorColorNumericInput
                     tooltip1="Fill"
-                    val1={typeof fillColor === "string" ? fillColor : fillColor?.toCSS?.() ?? "#000000"}
-                    onChange1={(col) => setSelectionAttribute("fillColor", toWickColor(col))}
+                    val1={selectionColorToCss(fillColor)}
+                    onChange1={(col) => setSelectionAttribute("fillColor", col)}
                     id={"inspector-selection-fill-color"}
                     divider={false}
                     colorPickerType={props.colorPickerType}
@@ -186,8 +186,8 @@ const Inspector: React.FC<InspectorProps> = (props) => {
                 <InspectorColorNumericInput
                     tooltip1="Stroke"
                     tooltip2="Weight"
-                    val1={typeof strokeColor === "string" ? strokeColor : strokeColor?.toCSS?.() ?? "#000000"}
-                    onChange1={(col) => setSelectionAttribute("strokeColor", toWickColor(col))}
+                    val1={selectionColorToCss(strokeColor)}
+                    onChange1={(col) => setSelectionAttribute("strokeColor", col)}
                     id={"inspector-selection-stroke-color"}
                     stroke={true}
                     val2={getSelectionAttribute("strokeWidth")}

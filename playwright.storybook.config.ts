@@ -20,7 +20,9 @@ export default defineConfig({
       ? `npm run build-storybook && python3 -m http.server ${storybookPort} --bind ${storybookHost} --directory storybook-static`
       : `npm run storybook -- --host ${storybookHost} --port ${storybookPort} --no-open`,
     url: storybookBaseUrl,
-    reuseExistingServer: true,
+    // Static-mode runs are long and can attach to a server owned by a previous
+    // Playwright process if reuse is enabled, then lose it mid-run.
+    reuseExistingServer: useStaticStorybook ? false : true,
     timeout: useStaticStorybook ? 10 * 60 * 1000 : 120000,
   },
 
