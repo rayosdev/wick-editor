@@ -51,7 +51,6 @@ const Asset: React.FC<AssetProps> = (props) => {
   const [, dragRef] = useDrag({
     type: assetType,
     item: {
-      type: assetType,
       uuid: props.asset.uuid,
     },
   });

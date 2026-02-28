@@ -132,7 +132,10 @@ export const OutlinerObject = ({
 
     const [, drag, preview] = useDrag<DragItem, unknown, unknown>({
         type: sourceType,
-        item: { type: sourceType, uuid: data.uuid },
+        item: () => {
+            prepareDragStart();
+            return { type: sourceType, uuid: data.uuid };
+        },
         end: () => {
             setDragging(false);
         },
