@@ -27,8 +27,7 @@ export const duplicateClosestLeftFrameAt = (
   targetPlayheadPosition: number,
 ): TimelineFrameLike | null => {
   const sourceFrame = getClosestLeftFrame(layer, targetPlayheadPosition) as DuplicateCapableFrame | null;
-  const addFrame = layer.addFrame as ((frame: unknown) => void) | undefined;
-  if (!sourceFrame || typeof sourceFrame.copy !== "function" || !addFrame) {
+  if (!sourceFrame || typeof sourceFrame.copy !== "function" || typeof layer.addFrame !== "function") {
     return null;
   }
 
@@ -38,7 +37,7 @@ export const duplicateClosestLeftFrameAt = (
   duplicatedFrame.end = targetPlayheadPosition;
   duplicatedFrame.removeSound?.();
   duplicatedFrame.removeAllTweens?.();
-  addFrame(duplicatedFrame);
+  layer.addFrame(duplicatedFrame);
 
   return duplicatedFrame;
 };

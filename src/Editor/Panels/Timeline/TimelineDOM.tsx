@@ -1299,6 +1299,18 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       }
     }
 
+    if (interaction.mode === "tween-move") {
+      moveRows = 0;
+      // Clamp so no tween goes below playhead position 1
+      const minPlayhead = interaction.tweens.reduce((min, tw) => {
+        const pos = Number(tw.playheadPosition ?? 1);
+        return Math.min(min, pos);
+      }, Infinity);
+      if (Number.isFinite(minPlayhead)) {
+        moveCols = Math.max(moveCols, 1 - minPlayhead);
+      }
+    }
+
     if (interaction.mode === "frame-resize-right" || interaction.mode === "frame-resize-left") {
       moveRows = 0;
       const minMove = interaction.frames.reduce((min, frame) => {
@@ -3762,26 +3774,54 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                                 const localOffset = absolutePos - frameStart;
                                 const isAtStart = localOffset === 0;
 
+                                // Check if this tween is actively being dragged
+                                const isTweenDragged =
+                                  interactionRef.current?.mode === "tween-move" &&
+                                  dragPreview &&
+                                  interactionRef.current.tweens.includes(tween);
+                                const tweenDragCols = isTweenDragged ? dragPreview.moveCols : 0;
+
                                 // Calculate the span for the tween arrow
                                 const nextTween = frame.tweens[index + 1];
                                 const nextAbsolutePos = nextTween ? Number(nextTween.playheadPosition ?? 1) : frameStart + frameLength;
                                 const nextLocalOffset = nextAbsolutePos - frameStart;
 
+                                // Use dragged offset for arrow calculation when this tween is dragged
+                                const effectiveLocalOffset = localOffset + tweenDragCols;
+
                                 // The arrow should start slightly past the diamond
-                                const arrowStart = localOffset * cellWidth + cellWidth / 2 + 6;
+                                const arrowStart = effectiveLocalOffset * cellWidth + cellWidth / 2 + 6;
+
+                                // Check if next tween is also dragged (for accurate arrow end)
+                                const isNextDragged =
+                                  nextTween &&
+                                  interactionRef.current?.mode === "tween-move" &&
+                                  dragPreview &&
+                                  interactionRef.current.tweens.includes(nextTween);
+                                const nextDragCols = isNextDragged ? dragPreview.moveCols : 0;
+                                const effectiveNextOffset = nextLocalOffset + nextDragCols;
 
                                 // The arrow stops just before the next diamond or near the end of the frame
                                 const arrowEnd = nextTween
-                                  ? (nextLocalOffset * cellWidth + cellWidth / 2 - 8)
+                                  ? (effectiveNextOffset * cellWidth + cellWidth / 2 - 8)
                                   : (frameLength * cellWidth - 5);
 
                                 const arrowWidth = arrowEnd - arrowStart;
 
+                                const tweenLeftPx = effectiveLocalOffset * cellWidth + cellWidth / 2 - 5;
+
                                 return (
                                   <Fragment key={tween.uuid ?? `${frame.uuid}-tween-${absolutePos}`}>
+                                    {isTweenDragged && tweenDragCols !== 0 && (
+                                      <div
+                                        className="timeline-dom-tween tween-origin-ghost"
+                                        aria-hidden
+                                        style={{ left: `${localOffset * cellWidth + cellWidth / 2 - 5}px` }}
+                                      />
+                                    )}
                                     {arrowWidth > 15 && (
                                       <div
-                                        className="timeline-dom-tween-arrow"
+                                        className={`timeline-dom-tween-arrow ${isTweenDragged ? "tween-dragging" : ""}`}
                                         style={{
                                           left: `${arrowStart}px`,
                                           width: `${arrowWidth}px`
@@ -3793,11 +3833,11 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                                     )}
                                     <button
                                       type="button"
-                                      className={`timeline-dom-tween ${isAtStart ? "overlaps-keyframe" : ""}`}
+                                      className={`timeline-dom-tween ${isAtStart && !isTweenDragged ? "overlaps-keyframe" : ""} ${isTweenDragged ? "tween-dragging" : ""}`}
                                       data-tween-state="tween-span"
-                                      aria-label="Tween"
-                                      title="Tween"
-                                      style={{ left: `${localOffset * cellWidth + cellWidth / 2 - 5}px` }}
+                                      aria-label={isTweenDragged ? `Tween (moving ${tweenDragCols > 0 ? "+" : ""}${tweenDragCols})` : "Tween"}
+                                      title={isTweenDragged ? `Move ${tweenDragCols > 0 ? "+" : ""}${tweenDragCols}` : "Tween"}
+                                      style={{ left: `${tweenLeftPx}px` }}
                                       onPointerDown={(event) => handleTweenPointerDown(event, tween)}
                                     />
                                   </Fragment>
