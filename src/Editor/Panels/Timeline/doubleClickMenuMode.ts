@@ -12,8 +12,9 @@ export const resolveDoubleClickMenuMode = (
   const leftFrameTweens = Array.isArray(closestLeftFrame.tweens)
     ? closestLeftFrame.tweens
     : [];
+  const isContentful = Boolean(closestLeftFrame.contentful);
 
-  return leftFrameTweens.length > 0 ? "tween-strip" : "frame-strip";
+  return leftFrameTweens.length > 0 && isContentful ? "tween-strip" : "frame-strip";
 };
 
 export const shouldAutoRunDoubleClickInsert = (mode: DoubleClickMenuMode): boolean => {

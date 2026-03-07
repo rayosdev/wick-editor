@@ -38,6 +38,11 @@ import {
   TIMELINE_DOM_LAYERS_HEADER_CLASSES,
   TIMELINE_DOM_LAYERS_SUBHEADER_CLASSES,
   TIMELINE_DOM_KEYPRESS_INDICATOR_CLASSES,
+  TIMELINE_DOM_FRAME_LABEL_CLASSES,
+  TIMELINE_DOM_FRAME_RESIZE_LEFT_CLASSES,
+  TIMELINE_DOM_FRAME_RESIZE_RIGHT_CLASSES,
+  TIMELINE_DOM_IMPLICIT_TAIL_FRAME_CLASSES,
+  TIMELINE_DOM_INSERT_TARGET_OUTLINE_CLASSES,
   TIMELINE_DOM_MARKER_CLASSES,
   TIMELINE_DOM_MARKER_LABEL_CLASSES,
   TIMELINE_DOM_MARKER_ROW_CLASSES,
@@ -50,6 +55,7 @@ import {
   TIMELINE_DOM_PRESS_FEEDBACK_RING_CLASSES,
   TIMELINE_DOM_SELECTION_BOX_CLASSES,
   TIMELINE_DOM_SOUND_HOVER_CLASSES,
+  TIMELINE_DOM_TWEEN_ORIGIN_GHOST_CLASSES,
   TIMELINE_DOM_WORK_AREA_OVERLAY_CLASSES,
   TIMELINE_DOM_WORK_AREA_HANDLE_CLASSES,
   TIMELINE_DOM_WORK_AREA_SPAN_CLASSES,
@@ -93,8 +99,13 @@ import {
   TIMELINE_UNIFIED_TRACK_CLASSES,
   TIMELINE_UNIFIED_WORKSPACE_CLASSES,
   getTimelineDomDropModeClasses,
+  getTimelineDomFrameClasses,
   getTimelineDomGridRowStateClasses,
   getTimelineDomLayerRowClasses,
+  getTimelineDomTweenArrowClasses,
+  getTimelineDomTweenArrowHeadClasses,
+  getTimelineDomTweenArrowLineClasses,
+  getTimelineDomTweenClasses,
 } from "./timelineControlClasses";
 import {
   resolveDoubleClickMenuMode,
@@ -1448,9 +1459,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
   };
 
   const pointerHandlersRef = useRef({
-    handlePointerMove: (_event: PointerEvent) => {},
-    handlePointerUp: (_event: PointerEvent) => {},
-    handlePointerCancel: (_event: PointerEvent) => {},
+    handlePointerMove: (_event: PointerEvent) => { },
+    handlePointerUp: (_event: PointerEvent) => { },
+    handlePointerCancel: (_event: PointerEvent) => { },
   });
 
   pointerHandlersRef.current.handlePointerMove = (event: PointerEvent) => {
@@ -1971,6 +1982,31 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     }
   };
 
+  const focusTweenStripLocation = (
+    layer: TimelineLayerLike,
+    targetPlayheadPosition: number,
+  ): void => {
+    layer.activate?.();
+    setPlayhead(targetPlayheadPosition, { respectSnap: false });
+  };
+
+  const selectClosestLeftFrameForTweenStrip = (
+    layer: TimelineLayerLike,
+    targetPlayheadPosition: number,
+  ): TimelineFrameLike | null => {
+    focusTweenStripLocation(layer, targetPlayheadPosition);
+    const sourceFrame = getClosestLeftFrame(layer, targetPlayheadPosition);
+    if (!sourceFrame) {
+      return null;
+    }
+
+    project?.selection?.clear?.();
+    project?.selection?.select?.(sourceFrame);
+    sourceFrame.parentLayer?.activate?.();
+    requestRender();
+    return sourceFrame;
+  };
+
   const handleInsertMenuActivation = (
     location: { layerIndex: number; playheadPosition: number },
     clientX: number,
@@ -2423,6 +2459,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       if (!location) {
         return;
       }
+
       handleInsertMenuActivation(location, event.clientX, event.clientY);
     } catch (error) {
       reportRendererError(error);
@@ -2977,67 +3014,133 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
   const contextMenuItems: TimelineContextMenuItem[] = doubleClickMenuContext
     ? (
-        doubleClickMenuContext.mode === "tween-strip"
+      doubleClickMenuContext.mode === "tween-strip"
+        ? [
+          {
+            id: "set-playhead-double-click",
+            label: "Set Playhead Here",
+            icon: "timeline",
+            action: () => {
+              closeContextMenu();
+              const { layer, playheadPosition } = doubleClickMenuContext;
+              focusTweenStripLocation(layer, playheadPosition);
+            },
+          },
+          {
+            id: "previous-frame-double-click",
+            label: "Previous Frame",
+            glyph: "<",
+            action: () => {
+              closeContextMenu();
+              props.movePlayheadBackwards();
+            },
+          },
+          {
+            id: "next-frame-double-click",
+            label: "Next Frame",
+            glyph: ">",
+            action: () => {
+              closeContextMenu();
+              props.movePlayheadForwards();
+            },
+          },
+          {
+            id: "insert-key-double-click",
+            label: "Insert Keyframe",
+            icon: "split",
+            action: () => {
+              closeContextMenu();
+              const { layer, playheadPosition } = doubleClickMenuContext;
+              insertKeyframeAt(layer, playheadPosition, { fallbackToBlank: true });
+            },
+          },
+          {
+            id: "insert-blank-double-click",
+            label: "Insert Blank Keyframe",
+            icon: "create",
+            action: () => {
+              closeContextMenu();
+              const { layer, playheadPosition } = doubleClickMenuContext;
+              insertBlankKeyframeAt(layer, playheadPosition);
+            },
+          },
+          {
+            id: "insert-tween-double-click",
+            label: "Add Tween Keyframe",
+            icon: "layerTween",
+            action: () => {
+              closeContextMenu();
+              const { layer, playheadPosition } = doubleClickMenuContext;
+              // Tween keyframes should duplicate left content first, not create an empty key.
+              insertKeyframeAt(layer, playheadPosition, { fallbackToBlank: true });
+              props.addTweenKeyframe();
+              requestRender();
+            },
+          },
+          {
+            id: "create-tween-double-click",
+            label: "Create Tween",
+            icon: "tween",
+            action: () => {
+              closeContextMenu();
+              const { layer, playheadPosition } = doubleClickMenuContext;
+              insertKeyframeAt(layer, playheadPosition, { fallbackToBlank: true });
+              props.createTween();
+              requestRender();
+            },
+          },
+          {
+            id: "delete-selection-double-click",
+            label: "Delete Selected",
+            icon: "delete",
+            action: () => {
+              closeContextMenu();
+              const { layer, playheadPosition } = doubleClickMenuContext;
+              const sourceFrame = selectClosestLeftFrameForTweenStrip(layer, playheadPosition);
+              if (!sourceFrame) {
+                return;
+              }
+              props.deleteSelectedObjects();
+              requestRender();
+            },
+          },
+        ]
+        : doubleClickMenuContext.mode === "blank-strip"
           ? [
-              {
-                id: "insert-blank-double-click",
-                label: "Insert Blank Keyframe",
-                icon: "create",
-                action: () => {
-                  closeContextMenu();
-                  const { layer, playheadPosition } = doubleClickMenuContext;
-                  insertBlankKeyframeAt(layer, playheadPosition);
-                },
+            {
+              id: "insert-blank-double-click",
+              label: "Insert Blank Keyframe",
+              icon: "create",
+              action: () => {
+                closeContextMenu();
+                const { layer, playheadPosition } = doubleClickMenuContext;
+                insertBlankKeyframeAt(layer, playheadPosition);
               },
-              {
-                id: "insert-tween-double-click",
-                label: "Insert Tween Keyframe",
-                icon: "layerTween",
-                action: () => {
-                  closeContextMenu();
-                  const { layer, playheadPosition } = doubleClickMenuContext;
-                  insertBlankKeyframeAt(layer, playheadPosition);
-                  props.addTweenKeyframe();
-                  requestRender();
-                },
+            },
+          ]
+          : [
+            {
+              id: "insert-key-double-click",
+              label: "Insert Keyframe (Duplicate Left)",
+              icon: "split",
+              action: () => {
+                closeContextMenu();
+                const { layer, playheadPosition } = doubleClickMenuContext;
+                insertKeyframeAt(layer, playheadPosition, { fallbackToBlank: true });
               },
-            ]
-          : doubleClickMenuContext.mode === "blank-strip"
-            ? [
-                {
-                  id: "insert-blank-double-click",
-                  label: "Insert Blank Keyframe",
-                  icon: "create",
-                  action: () => {
-                    closeContextMenu();
-                    const { layer, playheadPosition } = doubleClickMenuContext;
-                    insertBlankKeyframeAt(layer, playheadPosition);
-                  },
-                },
-              ]
-            : [
-                {
-                  id: "insert-key-double-click",
-                  label: "Insert Keyframe (Duplicate Left)",
-                  icon: "split",
-                  action: () => {
-                    closeContextMenu();
-                    const { layer, playheadPosition } = doubleClickMenuContext;
-                    insertKeyframeAt(layer, playheadPosition, { fallbackToBlank: true });
-                  },
-                },
-                {
-                  id: "insert-blank-double-click",
-                  label: "Insert Blank Keyframe",
-                  icon: "create",
-                  action: () => {
-                    closeContextMenu();
-                    const { layer, playheadPosition } = doubleClickMenuContext;
-                    insertBlankKeyframeAt(layer, playheadPosition);
-                  },
-                },
-              ]
-      )
+            },
+            {
+              id: "insert-blank-double-click",
+              label: "Insert Blank Keyframe",
+              icon: "create",
+              action: () => {
+                closeContextMenu();
+                const { layer, playheadPosition } = doubleClickMenuContext;
+                insertBlankKeyframeAt(layer, playheadPosition);
+              },
+            },
+          ]
+    )
     : timelineContextMenuItems;
 
   return (
@@ -3045,11 +3148,13 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
       ref={timelineRootRef}
       id="animation-timeline-container"
       aria-label="Timeline"
+      tabIndex={0}
       data-timeline-renderer-mode="dom"
       data-timeline-density-mode={props.timelineDensityMode}
       data-timeline-snap-mode={props.timelineSnapMode}
       data-timeline-follow-mode={props.timelinePlaybackFollowMode}
       data-timeline-grid-contrast={gridContrastMode}
+      data-timeline-options-open={showHeaderOptions ? "true" : "false"}
       onKeyDownCapture={handleMarkerNavigationHotkeys}
     >
       {props.isOver && <div className="drag-drop-overlay" />}
@@ -3134,6 +3239,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
               <button
                 type="button"
                 className={getTimelineHeaderOptionsButtonClasses(showHeaderOptions)}
+                data-testid="timeline-options-toggle"
                 aria-expanded={showHeaderOptions}
                 aria-controls="timeline-header-options-panel"
                 onClick={() => setShowHeaderOptions((current) => !current)}
@@ -3144,12 +3250,14 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             <div
               id="timeline-header-options-panel"
               className={getTimelineHeaderRightAdvancedClasses(showHeaderOptions)}
+              data-testid="timeline-options-panel"
               hidden={!showHeaderOptions}
             >
               <div
                 className={TIMELINE_SHORTCUT_TOGGLE_CLASSES}
                 role="group"
                 aria-label="Playhead follow mode"
+                data-testid="timeline-follow-mode-group"
               >
                 <button
                   type="button"
@@ -3212,6 +3320,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                 className={TIMELINE_SHORTCUT_TOGGLE_CLASSES}
                 role="group"
                 aria-label="Timeline density mode"
+                data-testid="timeline-density-mode-group"
               >
                 <button
                   type="button"
@@ -3293,6 +3402,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         <div
           ref={workspaceRef}
           className={TIMELINE_UNIFIED_WORKSPACE_CLASSES}
+          data-testid="timeline-grid-workspace"
           onScroll={() => {
             if (workspaceRef.current) {
               setGridViewportHeight(Math.max(0, Math.floor(workspaceRef.current.clientHeight)));
@@ -3313,8 +3423,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             }
           }}
           onContextMenu={handleGridContextMenu}
-          onPointerDown={handleGridPointerDown}
           onDoubleClick={handleGridDoubleClick}
+          onPointerDown={handleGridPointerDown}
         >
           <div className={TIMELINE_UNIFIED_HEADER_CLASSES}>
             <div className={TIMELINE_UNIFIED_CORNER_CLASSES}>
@@ -3659,7 +3769,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                     >
                       {showTrailingSpan && trailingSpanWidth > 0 && (
                         <div
-                          className="timeline-dom-frame timeline-dom-frame-implicit-tail"
+                          className={TIMELINE_DOM_IMPLICIT_TAIL_FRAME_CLASSES}
                           data-frame-state="span-blank"
                           aria-hidden
                           style={{
@@ -3674,7 +3784,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                         insertMenuTargetCell &&
                         insertMenuTargetCell.layerIndex === layerIndex && (
                           <div
-                            className="timeline-dom-insert-target-outline"
+                            className={TIMELINE_DOM_INSERT_TARGET_OUTLINE_CLASSES}
                             style={{
                               left: `${(insertMenuTargetCell.playheadPosition - 1) * cellWidth}px`,
                               top: "0px",
@@ -3729,11 +3839,14 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                         return (
                           <div
                             key={frame.uuid ?? `${layerIndex}-${frameStart}-${frameLength}`}
-                            className={`timeline-dom-frame ${selected ? "selected" : ""} ${frame.contentful ? "contentful" : "blank"
-                              } ${hasStartTween ? "has-start-tween" : ""} ${isDraggedFrame ? "dragging" : ""} ${isDraggedFrame && dragCollisionMode
-                                ? `drag-collision-${dragCollisionMode}`
-                                : ""
-                              }`}
+                            className={getTimelineDomFrameClasses({
+                              selected,
+                              contentful: Boolean(frame.contentful),
+                              frameState: frameVisualState,
+                              hasStartTween,
+                              dragging: isDraggedFrame,
+                              dragCollisionMode: isDraggedFrame ? dragCollisionMode : null,
+                            })}
                             data-frame-state={frameVisualState}
                             data-role="gridcell"
                             tabIndex={0}
@@ -3765,9 +3878,9 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                               });
                             }}
                           >
-                            <span className="timeline-dom-frame-label">{frame.identifier ?? ""}</span>
-                            <div className="timeline-dom-frame-resize-left" aria-hidden />
-                            <div className="timeline-dom-frame-resize-right" aria-hidden />
+                            <span className={TIMELINE_DOM_FRAME_LABEL_CLASSES}>{frame.identifier ?? ""}</span>
+                            <div className={TIMELINE_DOM_FRAME_RESIZE_LEFT_CLASSES} aria-hidden />
+                            <div className={TIMELINE_DOM_FRAME_RESIZE_RIGHT_CLASSES} aria-hidden />
                             {Array.isArray(frame.tweens) &&
                               frame.tweens.map((tween, index) => {
                                 const absolutePos = Number(tween.playheadPosition ?? 1);
@@ -3775,11 +3888,12 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                                 const isAtStart = localOffset === 0;
 
                                 // Check if this tween is actively being dragged
-                                const isTweenDragged =
+                                const isTweenDragged = Boolean(
                                   interactionRef.current?.mode === "tween-move" &&
                                   dragPreview &&
-                                  interactionRef.current.tweens.includes(tween);
-                                const tweenDragCols = isTweenDragged ? dragPreview.moveCols : 0;
+                                  interactionRef.current.tweens.includes(tween),
+                                );
+                                const tweenDragCols = isTweenDragged ? (dragPreview?.moveCols ?? 0) : 0;
 
                                 // Calculate the span for the tween arrow
                                 const nextTween = frame.tweens[index + 1];
@@ -3793,12 +3907,13 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                                 const arrowStart = effectiveLocalOffset * cellWidth + cellWidth / 2 + 6;
 
                                 // Check if next tween is also dragged (for accurate arrow end)
-                                const isNextDragged =
+                                const isNextDragged = Boolean(
                                   nextTween &&
                                   interactionRef.current?.mode === "tween-move" &&
                                   dragPreview &&
-                                  interactionRef.current.tweens.includes(nextTween);
-                                const nextDragCols = isNextDragged ? dragPreview.moveCols : 0;
+                                  interactionRef.current.tweens.includes(nextTween),
+                                );
+                                const nextDragCols = isNextDragged ? (dragPreview?.moveCols ?? 0) : 0;
                                 const effectiveNextOffset = nextLocalOffset + nextDragCols;
 
                                 // The arrow stops just before the next diamond or near the end of the frame
@@ -3814,26 +3929,29 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
                                   <Fragment key={tween.uuid ?? `${frame.uuid}-tween-${absolutePos}`}>
                                     {isTweenDragged && tweenDragCols !== 0 && (
                                       <div
-                                        className="timeline-dom-tween tween-origin-ghost"
+                                        className={TIMELINE_DOM_TWEEN_ORIGIN_GHOST_CLASSES}
                                         aria-hidden
                                         style={{ left: `${localOffset * cellWidth + cellWidth / 2 - 5}px` }}
                                       />
                                     )}
                                     {arrowWidth > 15 && (
                                       <div
-                                        className={`timeline-dom-tween-arrow ${isTweenDragged ? "tween-dragging" : ""}`}
+                                        className={getTimelineDomTweenArrowClasses(isTweenDragged)}
                                         style={{
                                           left: `${arrowStart}px`,
                                           width: `${arrowWidth}px`
                                         }}
                                       >
-                                        <div className="line" />
-                                        <div className="head" />
+                                        <div className={getTimelineDomTweenArrowLineClasses(isTweenDragged)} />
+                                        <div className={getTimelineDomTweenArrowHeadClasses(isTweenDragged)} />
                                       </div>
                                     )}
                                     <button
                                       type="button"
-                                      className={`timeline-dom-tween ${isAtStart && !isTweenDragged ? "overlaps-keyframe" : ""} ${isTweenDragged ? "tween-dragging" : ""}`}
+                                      className={getTimelineDomTweenClasses({
+                                        overlapsKeyframe: isAtStart && !isTweenDragged,
+                                        dragging: Boolean(isTweenDragged),
+                                      })}
                                       data-tween-state="tween-span"
                                       aria-label={isTweenDragged ? `Tween (moving ${tweenDragCols > 0 ? "+" : ""}${tweenDragCols})` : "Tween"}
                                       title={isTweenDragged ? `Move ${tweenDragCols > 0 ? "+" : ""}${tweenDragCols}` : "Tween"}
@@ -3868,11 +3986,11 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             )}
 
             {layerFillerHeight > 0 && (
-                <div
-                  className={TIMELINE_UNIFIED_EMPTY_COVER_CLASSES}
-                  style={{
-                    top: `${currentLayersHeight}px`,
-                    height: `${layerFillerHeight}px`,
+              <div
+                className={TIMELINE_UNIFIED_EMPTY_COVER_CLASSES}
+                style={{
+                  top: `${currentLayersHeight}px`,
+                  height: `${layerFillerHeight}px`,
                 }}
                 aria-hidden
               />
@@ -4140,7 +4258,7 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
             </button>
           </div>
 
-          <div className={TIMELINE_FOOTER_GROUP_CLASSES}>
+          <div className={TIMELINE_FOOTER_GROUP_CLASSES} data-testid="timeline-marker-actions">
             <span className={TIMELINE_FOOTER_LABEL_CLASSES}>Markers</span>
             <button
               type="button"

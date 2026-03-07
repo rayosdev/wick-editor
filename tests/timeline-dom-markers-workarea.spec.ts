@@ -1,45 +1,25 @@
-import { test, expect, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-type EditorBridge = Window & {
-  editor?: {
-    project?: {
-      activeTimeline?: {
-        playheadPosition?: number;
-      };
-    };
-  };
-};
-
-const bootEditor = async (page: Page): Promise<void> => {
-  await page.addInitScript(() => {
-    try {
-      window.localStorage.setItem("skipWelcomeMessage", "true");
-    } catch {}
-  });
-
-  await page.goto("/");
-  await page.waitForLoadState("networkidle");
-  await page.locator("#animation-timeline-container").waitFor({
-    state: "visible",
-    timeout: 30000,
-  });
-};
-
-const readPlayhead = async (page: Page): Promise<number> => {
-  return page.evaluate(() => {
-    const bridge = window as EditorBridge;
-    return Number(bridge.editor?.project?.activeTimeline?.playheadPosition ?? 0);
-  });
-};
+import {
+  assertNoCriticalTimelineErrors,
+  assertNoTimelineFallback,
+  bootTimelineEditor,
+  ensureFooterControlVisible,
+  getTimelineCellPoint,
+  prepareTimelineFixture,
+  readMarkerTitles,
+  readPlayhead,
+  readWorkAreaReadout,
+} from "./qa/helpers/timeline.helpers";
 
 test.describe("Timeline DOM markers and work area", () => {
-  test("marker CRUD, marker jumps, and work-area handles operate", async ({ page }) => {
-    await bootEditor(page);
-    await expect(page.locator('[data-timeline-renderer-mode="dom"]')).toBeVisible();
+  test("marker CRUD and jump controls stay reachable in the footer", async ({ page }) => {
+    await bootTimelineEditor(page);
+    await prepareTimelineFixture(page, "markers-workarea");
 
-    const addMarkerButton = page.locator(".timeline-dom-marker-actions button", {
-      hasText: "+ Marker",
-    });
+    const markerActions = page.getByTestId("timeline-marker-actions");
+    const addMarkerButton = markerActions.getByRole("button", { name: "Add marker at playhead" });
+    await ensureFooterControlVisible(addMarkerButton);
     await addMarkerButton.click();
     await expect(page.locator(".timeline-dom-marker")).toHaveCount(1);
 
@@ -47,41 +27,51 @@ test.describe("Timeline DOM markers and work area", () => {
     await page.locator(".timeline-dom-marker").first().dblclick();
     await expect(page.locator(".timeline-dom-marker").first()).toHaveAttribute("title", /Intro/);
 
-    const numberCell12 = page.locator(".timeline-dom-numberline-cell").nth(11);
-    await numberCell12.click();
+    const targetPoint = await getTimelineCellPoint(page, { layerIndex: 0, frame: 12 });
+    await page.mouse.click(targetPoint.x, targetPoint.y);
     await addMarkerButton.click();
     await expect(page.locator(".timeline-dom-marker")).toHaveCount(2);
 
-    const playheadBeforeJump = await readPlayhead(page);
-    await page
-      .locator(".timeline-dom-marker-actions button", { hasText: "Next Marker" })
-      .click();
-    const playheadAfterNextJump = await readPlayhead(page);
-    expect(playheadAfterNextJump).not.toBe(playheadBeforeJump);
+    const playheadBeforeNext = await readPlayhead(page);
+    const nextMarkerButton = markerActions.getByRole("button", { name: "Jump to next marker" });
+    await ensureFooterControlVisible(nextMarkerButton);
+    await nextMarkerButton.click();
+    const playheadAfterNext = await readPlayhead(page);
+    expect(playheadAfterNext).not.toBe(playheadBeforeNext);
 
-    await page
-      .locator(".timeline-dom-marker-actions button", { hasText: "Prev Marker" })
-      .click();
-    const playheadAfterPrevJump = await readPlayhead(page);
-    expect(playheadAfterPrevJump).not.toBe(playheadAfterNextJump);
+    const prevMarkerButton = markerActions.getByRole("button", { name: "Jump to previous marker" });
+    await ensureFooterControlVisible(prevMarkerButton);
+    await prevMarkerButton.click();
+    const playheadAfterPrev = await readPlayhead(page);
+    expect(playheadAfterPrev).not.toBe(playheadAfterNext);
 
     await page.locator("#animation-timeline-container").click();
     const playheadBeforeKeyboardJump = await readPlayhead(page);
     await page.keyboard.press("]");
-    const playheadAfterKeyboardNextJump = await readPlayhead(page);
-    expect(playheadAfterKeyboardNextJump).not.toBe(playheadBeforeKeyboardJump);
+    const playheadAfterKeyboardNext = await readPlayhead(page);
+    expect(playheadAfterKeyboardNext).not.toBe(playheadBeforeKeyboardJump);
 
     await page.keyboard.press("[");
-    const playheadAfterKeyboardPrevJump = await readPlayhead(page);
-    expect(playheadAfterKeyboardPrevJump).not.toBe(playheadAfterKeyboardNextJump);
+    const playheadAfterKeyboardPrev = await readPlayhead(page);
+    expect(playheadAfterKeyboardPrev).not.toBe(playheadAfterKeyboardNext);
 
     await page.keyboard.down("Control");
     await page.locator(".timeline-dom-marker").first().click();
     await page.keyboard.up("Control");
-    await expect(page.locator(".timeline-dom-marker")).toHaveCount(1);
 
-    const workAreaReadout = page.locator(".timeline-flash-footer-readout");
-    const readoutBefore = (await workAreaReadout.textContent())?.trim() ?? "";
+    await expect(page.locator(".timeline-dom-marker")).toHaveCount(1);
+    const markerTitles = await readMarkerTitles(page);
+    expect(markerTitles.some((title) => title.includes("Intro"))).toBe(false);
+    expect(markerTitles.some((title) => title.includes("M2"))).toBe(true);
+    await assertNoTimelineFallback(page);
+    await assertNoCriticalTimelineErrors(page);
+  });
+
+  test("work-area handles and loop toggle update the footer state", async ({ page }) => {
+    await bootTimelineEditor(page);
+    await prepareTimelineFixture(page, "markers-workarea");
+
+    const readoutBefore = await readWorkAreaReadout(page);
     const startHandle = page.locator(".timeline-dom-work-area-handle-start");
     const handleBox = await startHandle.boundingBox();
     expect(handleBox).not.toBeNull();
@@ -94,11 +84,14 @@ test.describe("Timeline DOM markers and work area", () => {
     await page.mouse.move(handleBox.x + 80, handleBox.y + handleBox.height / 2, { steps: 8 });
     await page.mouse.up();
 
-    const readoutAfter = (await workAreaReadout.textContent())?.trim() ?? "";
+    const readoutAfter = await readWorkAreaReadout(page);
     expect(readoutAfter).not.toBe(readoutBefore);
 
-    const loopToggle = page.locator(".timeline-dom-marker-actions .timeline-flash-footer-choice");
+    const loopToggle = page.getByTestId("timeline-marker-actions").getByRole("button", { name: "Loop" });
+    await ensureFooterControlVisible(loopToggle);
     await loopToggle.click();
     await expect(loopToggle).toHaveAttribute("aria-pressed", "true");
+    await assertNoTimelineFallback(page);
+    await assertNoCriticalTimelineErrors(page);
   });
 });

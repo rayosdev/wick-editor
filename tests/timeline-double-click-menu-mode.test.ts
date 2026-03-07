@@ -16,7 +16,11 @@ describe("resolveDoubleClickMenuMode", () => {
   });
 
   it("uses tween-strip when left keyframe has tween data", () => {
-    expect(resolveDoubleClickMenuMode({ tweens: [{}] })).toBe("tween-strip");
+    expect(resolveDoubleClickMenuMode({ tweens: [{}], contentful: true })).toBe("tween-strip");
+  });
+
+  it("does not use tween-strip when left keyframe is not contentful", () => {
+    expect(resolveDoubleClickMenuMode({ tweens: [{}], contentful: false })).toBe("frame-strip");
   });
 });
 

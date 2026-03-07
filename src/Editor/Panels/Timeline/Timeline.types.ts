@@ -1,12 +1,17 @@
 import type {
-  WickProject,
+  WickProject as WickProjectData,
   TimelineObject,
   OnionSkinOptions,
   ProjectDidChangeOptions,
   ToastType,
   ToastOptions,
 } from "Editor/types";
-import type { WickSelectableObject } from "Editor/types/engine.types";
+import type {
+  WickAsset as WickAssetEngine,
+  WickClip as WickClipEngine,
+  WickProject as WickProjectEngine,
+  WickSelectableObject,
+} from "Editor/types/engine.types";
 
 export type TimelineRendererMode = "dom" | "classic";
 export type TimelineShortcutPreset = "wick" | "flash";
@@ -54,7 +59,7 @@ export type TimelineFrameLike = {
   end?: number;
   length?: number;
   contentful?: boolean;
-  sound?: unknown;
+  sound?: WickAssetEngine | null;
   parentLayer?: TimelineLayerLike;
   tweens: TimelineTweenLike[];
   inPosition?: (playheadPosition: number) => boolean;
@@ -62,6 +67,8 @@ export type TimelineFrameLike = {
   remove?: () => void;
   addTween?: (tween: TimelineTweenLike) => void;
   removeSound?: () => void;
+  removeAllTweens?: () => void;
+  copy?: () => TimelineFrameLike;
 };
 
 export type TimelineLayerLike = {
@@ -127,17 +134,17 @@ export type TimelineProject = {
   guiElement?: TimelineGuiLike;
   activeTimeline?: TimelineActiveLike;
   selection?: TimelineSelectionLike;
-  getAssetByUUID?: (uuid: string) => unknown;
+  getAssetByUUID?: (uuid: string) => WickAssetEngine | null;
 };
 
 export interface TimelineOwnProps {
   project: TimelineProject | null;
   projectDidChange: (options: ProjectDidChangeOptions) => void;
-  projectData: WickProject | null;
-  getSelectedTimelineObjects: () => TimelineObject[] | unknown[];
+  projectData: WickProjectData | null;
+  getSelectedTimelineObjects: () => TimelineObject[];
   setOnionSkinOptions?: (options: OnionSkinOptions) => void;
   getOnionSkinOptions?: () => OnionSkinOptions;
-  setFocusObject: (object: unknown) => void;
+  setFocusObject: (object: WickClipEngine | WickProjectEngine) => void;
   addTweenKeyframe: () => void;
   createTween: () => void;
   cutFrame: () => void;

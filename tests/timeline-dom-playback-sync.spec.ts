@@ -1,127 +1,40 @@
-import { test, expect, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-type EditorBridge = Window & {
-  editor?: {
-    project?: {
-      activeTimeline?: TimelineModel;
-      selection?: {
-        clear?: () => void;
-      };
-      view?: {
-        render?: () => void;
-      };
-      guiElement?: {
-        draw?: () => void;
-      };
-    };
-    state?: {
-      previewPlaying?: boolean;
-    };
-    notifyTimelineSoftRender?: () => void;
-    togglePreviewPlaying?: () => void;
-  };
-  Wick?: {
-    Layer: new (args?: { name?: string }) => TimelineLayerModel;
-    Frame: new (args?: { start?: number; end?: number; identifier?: string }) => TimelineFrameModel;
-  };
-};
-
-type TimelineFrameModel = {
-  uuid?: string;
-  start?: number;
-  end?: number;
-  remove?: () => void;
-};
-
-type TimelineLayerModel = {
-  frames: TimelineFrameModel[];
-  addFrame?: (frame: TimelineFrameModel) => void;
-};
-
-type TimelineModel = {
-  layers: TimelineLayerModel[];
-  playheadPosition: number;
-  activeLayerIndex: number;
-  addLayer?: (layer: TimelineLayerModel) => void;
-};
-
-const bootEditor = async (page: Page): Promise<void> => {
-  await page.addInitScript(() => {
-    try {
-      window.localStorage.setItem("skipWelcomeMessage", "true");
-    } catch {}
-  });
-
-  await page.goto("/");
-  await page.waitForLoadState("networkidle");
-  await page.locator("#animation-timeline-container").waitFor({
-    state: "visible",
-    timeout: 30000,
-  });
-};
-
-const readPlayhead = async (page: Page): Promise<number> => {
-  return page.evaluate(() => {
-    const bridge = window as EditorBridge;
-    return Number(bridge.editor?.project?.activeTimeline?.playheadPosition ?? 0);
-  });
-};
-
-const preparePreviewTimeline = async (page: Page): Promise<void> => {
-  await page.evaluate(() => {
-    const bridge = window as EditorBridge;
-    const editor = bridge.editor;
-    const project = editor?.project;
-    const Wick = bridge.Wick;
-
-    if (!editor || !project || !Wick || !project.activeTimeline) {
-      return;
-    }
-
-    const timeline = project.activeTimeline;
-    while ((timeline.layers ?? []).length < 1) {
-      timeline.addLayer?.(new Wick.Layer());
-    }
-
-    const layer = timeline.layers[0];
-    if (!layer) {
-      return;
-    }
-
-    layer.frames.slice().forEach((frame: TimelineFrameModel) => frame.remove?.());
-    layer.addFrame?.(new Wick.Frame({ start: 1, end: 32, identifier: "Preview Span" }));
-
-    timeline.playheadPosition = 1;
-    timeline.activeLayerIndex = 0;
-    project.selection?.clear?.();
-    project.view?.render?.();
-    project.guiElement?.draw?.();
-    editor.notifyTimelineSoftRender?.();
-  });
-};
+import {
+  assertNoCriticalTimelineErrors,
+  assertNoTimelineFallback,
+  bootTimelineEditor,
+  ensureTimelineOptionsOpen,
+  prepareTimelineFixture,
+  readPlayhead,
+  togglePreviewPlayback,
+} from "./qa/helpers/timeline.helpers";
 
 test.describe("Timeline DOM playback sync", () => {
-  test("playback updates playhead, first scrub does not fallback, and follow toggle works", async ({
+  test("playback advances the playhead and the first scrub does not fallback to Classic", async ({
     page,
   }) => {
-    await bootEditor(page);
-    await expect(page.locator('[data-timeline-renderer-mode="dom"]')).toBeVisible();
-    await preparePreviewTimeline(page);
+    await bootTimelineEditor(page);
+    await prepareTimelineFixture(page, "playback-follow");
 
     const playheadBefore = await readPlayhead(page);
-    await page.evaluate(() => {
-      const bridge = window as EditorBridge;
-      if (!bridge.editor?.togglePreviewPlaying) {
-        return;
-      }
-      if (!bridge.editor.state?.previewPlaying) {
-        bridge.editor.togglePreviewPlaying();
-      }
-    });
+    await togglePreviewPlayback(page);
 
     await page.waitForFunction(
       (initialPlayhead) => {
-        const bridge = window as EditorBridge;
+        const bridge = window as Window & {
+          editor?: {
+            project?: {
+              activeTimeline?: {
+                playheadPosition?: number;
+              };
+            };
+            state?: {
+              previewPlaying?: boolean;
+            };
+          };
+        };
+
         const current = Number(bridge.editor?.project?.activeTimeline?.playheadPosition ?? 0);
         return current !== Number(initialPlayhead);
       },
@@ -130,22 +43,19 @@ test.describe("Timeline DOM playback sync", () => {
     );
 
     const playheadAfterTick = await readPlayhead(page);
-
     expect(playheadAfterTick).not.toBe(playheadBefore);
     await expect(page.locator(".timeline-dom-playhead")).toBeVisible();
 
-    await page.evaluate(() => {
-      const bridge = window as EditorBridge;
-      if (!bridge.editor?.togglePreviewPlaying) {
-        return;
-      }
-      if (bridge.editor.state?.previewPlaying) {
-        bridge.editor.togglePreviewPlaying();
-      }
-    });
-
+    await togglePreviewPlayback(page);
     await page.waitForFunction(() => {
-      const bridge = window as EditorBridge;
+      const bridge = window as Window & {
+        editor?: {
+          state?: {
+            previewPlaying?: boolean;
+          };
+        };
+      };
+
       return !bridge.editor?.state?.previewPlaying;
     });
 
@@ -163,26 +73,32 @@ test.describe("Timeline DOM playback sync", () => {
     });
     await page.mouse.up();
 
-    await expect(page.locator('[data-timeline-renderer-mode="dom"]')).toBeVisible();
-    await expect(
-      page.locator("text=DOM timeline had an error and was switched to Classic."),
-    ).toHaveCount(0);
+    await assertNoTimelineFallback(page);
+    await assertNoCriticalTimelineErrors(page);
+  });
 
-    const followOn = page.locator(".timeline-shortcut-toggle-button", { hasText: "Follow" }).first();
-    const followOff = page.locator(".timeline-shortcut-toggle-button", { hasText: "Free" }).first();
+  test("follow/free controls stay reachable through the options panel and update state", async ({
+    page,
+  }) => {
+    await bootTimelineEditor(page);
+    await prepareTimelineFixture(page, "playback-follow");
+    const root = page.locator("#animation-timeline-container");
+
+    await ensureTimelineOptionsOpen(page);
+    await expect(root).toHaveAttribute("data-timeline-options-open", "true");
+
+    const followGroup = page.getByTestId("timeline-follow-mode-group");
+    const followOff = followGroup.getByRole("button", { name: "Free" });
+    const followOn = followGroup.getByRole("button", { name: "Follow" });
 
     await followOff.click();
     await expect(followOff).toHaveAttribute("aria-pressed", "true");
-    await expect(page.locator("#animation-timeline-container")).toHaveAttribute(
-      "data-timeline-follow-mode",
-      "off",
-    );
+    await expect(root).toHaveAttribute("data-timeline-follow-mode", "off");
 
     await followOn.click();
     await expect(followOn).toHaveAttribute("aria-pressed", "true");
-    await expect(page.locator("#animation-timeline-container")).toHaveAttribute(
-      "data-timeline-follow-mode",
-      "follow-playhead",
-    );
+    await expect(root).toHaveAttribute("data-timeline-follow-mode", "follow-playhead");
+    await assertNoTimelineFallback(page);
+    await assertNoCriticalTimelineErrors(page);
   });
 });

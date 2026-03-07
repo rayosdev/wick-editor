@@ -347,13 +347,24 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
     this.projectDidChange({ actionName: "Activate Last Tool" });
   };
 
+  private syncLastUsedToolAfterHistoryAction = (
+    activeToolBeforeHistoryAction: WickToolName,
+  ): void => {
+    const activeToolAfterHistoryAction = this.getActiveTool();
+    if (activeToolAfterHistoryAction !== activeToolBeforeHistoryAction) {
+      this.lastUsedTool = activeToolBeforeHistoryAction;
+    }
+  };
+
   /**
    * Undo the last action that was done.
    */
   undoAction = (): void => {
+    const activeToolBeforeUndo = this.getActiveTool();
     if (!this.project.undo()) {
       this.toast("Nothing to undo.", "warning");
     } else {
+      this.syncLastUsedToolAfterHistoryAction(activeToolBeforeUndo);
       this.projectDidChange({ skipHistory: true, actionName: "Undo" });
     }
   };
@@ -362,9 +373,11 @@ class EditorCore extends Component<EditorCoreProps, EditorCoreState> {
    * Recover the state of the project from before the last action was done.
    */
   redoAction = (): void => {
+    const activeToolBeforeRedo = this.getActiveTool();
     if (!this.project.redo()) {
       this.toast("Nothing to redo.", "warning");
     } else {
+      this.syncLastUsedToolAfterHistoryAction(activeToolBeforeRedo);
       this.projectDidChange({ skipHistory: true, actionName: "Redo" });
     }
   };

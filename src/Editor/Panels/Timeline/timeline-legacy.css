@@ -35,19 +35,19 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 a:link {
-  color: #1EE29A;
+  color: #1ee29a;
 }
 
 a:hover {
-  color: #19C284;
+  color: #19c284;
 }
 
 a {
-  color: #1EE29A;
+  color: #1ee29a;
 }
 
 a:hover {
-  color: #19C284;
+  color: #19c284;
 }
 
 .ReactModal__Overlay {
@@ -91,7 +91,7 @@ a:hover {
 }
 
 .wick-brand-arrow {
-  border: solid #1EE29A;
+  border: solid #1ee29a;
   border-width: 0 3px 3px 0;
   border-radius: 2px;
   display: inline-block;
@@ -121,8 +121,8 @@ a:hover {
 
 /*button-variant($background, $border, $hover-background: darken($background, 7.5%), $hover-border: darken($border, 10%), $active-background: darken($background, 10%), $active-border: darken($border, 12.5%))*/
 .btn-wick-warning {
-  background: #E6460E;
-  border: #E6460E;
+  background: #e6460e;
+  border: #e6460e;
   color: #000;
 }
 
@@ -137,8 +137,8 @@ a:hover {
 }
 
 .btn-wick-accept {
-  background: #01C094;
-  border: #01C094;
+  background: #01c094;
+  border: #01c094;
   color: #000;
 }
 
@@ -153,11 +153,12 @@ a:hover {
 }
 
 :export {
-  editorCanvasBorder: #6A6A6A;
+  editorCanvasBorder: #6a6a6a;
 }
 
-button:focus, input:focus {
-  outline: 2px solid #FF7867;
+button:focus,
+input:focus {
+  outline: 2px solid #ff7867;
 }
 
 .popover.mobile .arrow {
@@ -171,7 +172,7 @@ button:focus, input:focus {
 }
 
 .timeline {
-  background-color: #E6460E;
+  background-color: #e6460e;
 }
 
 .timeline-drop-target-root {
@@ -186,7 +187,7 @@ button:focus, input:focus {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #3B3B3B;
+  background-color: #3b3b3b;
   /* overflow: hidden; Removed to fix potential clipping issues (e.g. popovers) */
   min-height: 0;
   position: relative;
@@ -317,273 +318,10 @@ button:focus, input:focus {
 .timeline-dom-grid-canvas {
   position: relative;
   min-height: 100%;
-  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
   background-size: var(--timeline-cell-width) var(--timeline-cell-height);
-}
-
-.timeline-dom-frame {
-  position: absolute;
-  box-sizing: border-box;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 0 8px;
-  overflow: visible;
-  text-align: left;
-  transition: background-color 0.12s ease, border-color 0.12s ease;
-}
-
-.timeline-dom-frame::before {
-  content: "";
-  position: absolute;
-  box-sizing: border-box;
-  left: calc(var(--timeline-cell-width) / 2 - 1px);
-  top: 50%;
-  width: var(--timeline-keyframe-glyph-size);
-  height: var(--timeline-keyframe-glyph-size);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  opacity: var(--timeline-keyframe-glyph-contrast);
-  pointer-events: none;
-}
-
-.timeline-dom-frame.contentful {
-  background: rgba(118, 189, 255, 0.22);
-  border-color: rgba(118, 189, 255, 0.48);
-}
-
-.timeline-dom-frame.blank {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.timeline-dom-frame[data-frame-state=keyframe-content] {
-  background: rgba(118, 189, 255, 0.24);
-  border-color: rgba(118, 189, 255, 0.55);
-}
-
-.timeline-dom-frame[data-frame-state=keyframe-content]::before {
-  background: rgba(211, 235, 255, 0.95);
-  border: 1px solid rgba(211, 235, 255, 0.95);
-}
-
-.timeline-dom-frame[data-frame-state=keyframe-blank] {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.28);
-}
-
-.timeline-dom-frame[data-frame-state=keyframe-blank]::before {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.82);
-}
-
-.timeline-dom-frame.has-start-tween::before {
-  display: none !important;
-}
-
-.timeline-dom-frame[data-frame-state=span-content] {
-  border-style: solid;
-  border-color: rgba(118, 189, 255, 0.4);
-  background: linear-gradient(to right, rgba(118, 189, 255, 0.34) 0 calc(var(--timeline-cell-width) - 1px), rgba(118, 189, 255, 0.14) calc(var(--timeline-cell-width) - 1px) 100%);
-}
-
-.timeline-dom-frame[data-frame-state=span-content]::before {
-  background: rgba(211, 235, 255, 0.95);
-  border: 1px solid rgba(211, 235, 255, 0.95);
-}
-
-.timeline-dom-frame[data-frame-state=span-blank] {
-  border-style: dashed;
-  border-color: rgba(255, 255, 255, 0.28);
-  background: linear-gradient(to right, rgba(255, 255, 255, 0.14) 0 calc(var(--timeline-cell-width) - 1px), rgba(255, 255, 255, 0.05) calc(var(--timeline-cell-width) - 1px) 100%);
-}
-
-.timeline-dom-frame[data-frame-state=span-blank]::before {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.82);
-}
-
-.timeline-dom-frame-implicit-tail {
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.58;
-}
-
-.timeline-dom-frame-implicit-tail::before {
-  display: none;
-}
-
-.timeline-dom-insert-target-outline {
-  position: absolute;
-  box-sizing: border-box;
-  border: 2px solid rgba(164, 214, 255, 0.9);
-  border-radius: 3px;
-  box-shadow: 0 0 0 1px rgba(23, 30, 40, 0.75);
-  pointer-events: none;
-  z-index: 6;
-}
-
-.timeline-dom-frame.selected {
-  outline: 1px solid rgba(228, 244, 255, 0.62);
-  outline-offset: -1px;
-  box-shadow: inset 0 0 0 1px rgba(232, 246, 255, 0.58), 0 0 0 1px rgba(200, 231, 255, 0.2);
-}
-
-.timeline-dom-frame.selected::after {
-  content: "";
-  position: absolute;
-  inset: 2px;
-  border: 1px solid rgba(214, 238, 255, 0.32);
-  border-radius: 3px;
-  pointer-events: none;
-}
-
-.timeline-dom-frame.dragging {
-  opacity: 0.72;
-}
-
-.timeline-dom-frame.drag-collision-overwrite {
-  background-image: repeating-linear-gradient(-55deg, rgba(255, 113, 113, 0.24), rgba(255, 113, 113, 0.24) 8px, transparent 8px, transparent 16px);
-}
-
-.timeline-dom-frame.drag-collision-push {
-  background-image: repeating-linear-gradient(-55deg, rgba(123, 201, 255, 0.24), rgba(123, 201, 255, 0.24) 8px, transparent 8px, transparent 16px);
-}
-
-.timeline-dom-frame-resize-left,
-.timeline-dom-frame-resize-right {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 14px;
-  cursor: ew-resize;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-.timeline-dom-frame-resize-left {
-  left: 0;
-  background: linear-gradient(to right, rgba(255, 255, 255, 0.1), transparent);
-}
-
-.timeline-dom-frame-resize-right {
-  right: 0;
-  background: linear-gradient(to left, rgba(255, 255, 255, 0.1), transparent);
-}
-
-.timeline-dom-frame-resize-left::after,
-.timeline-dom-frame-resize-right::after {
-  content: "";
-  height: 12px;
-  width: 2px;
-  border-left: 1px solid rgba(255, 255, 255, 0.7);
-  border-right: 1px solid rgba(255, 255, 255, 0.7);
-}
-
-.timeline-dom-frame:hover .timeline-dom-frame-resize-left,
-.timeline-dom-frame:hover .timeline-dom-frame-resize-right {
-  opacity: 1;
-}
-
-.timeline-dom-frame-label {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: "Nunito Sans", sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.timeline-dom-tween {
-  position: absolute;
-  box-sizing: border-box;
-  top: 50%;
-  width: 10px;
-  height: 10px;
-  border: 1.5px solid rgba(255, 255, 255, 0.85);
-  background: rgba(152, 214, 255, 0.6);
-  transform: translateY(-50%) rotate(45deg);
-  border-radius: 1.5px;
-  padding: 0;
-  transition: transform 0.1s ease, border-color 0.1s ease;
-  z-index: 2;
-}
-
-.timeline-dom-tween:hover {
-  transform: translateY(-50%) rotate(45deg) scale(1.15);
-  border-color: #ffffff;
-  background: rgba(152, 214, 255, 0.9);
-}
-
-.timeline-dom-tween::after {
-  content: "";
-  position: absolute;
-  inset: -9px;
-}
-
-.timeline-dom-tween[data-tween-state=tween-span] {
-  border-color: rgba(152, 214, 255, 0.76);
-  background: rgba(152, 214, 255, 0.26);
-}
-
-.timeline-dom-tween.tween-dragging {
-  background: rgba(100, 200, 255, 0.85);
-  border-color: #fff;
-  box-shadow: 0 0 6px rgba(100, 200, 255, 0.6);
-  z-index: 10;
-  cursor: grabbing;
-  transition: none;
-}
-
-.timeline-dom-tween-arrow.tween-dragging .line {
-  background-color: rgba(100, 200, 255, 0.6);
-}
-
-.timeline-dom-tween-arrow.tween-dragging .head {
-  border-left-color: rgba(100, 200, 255, 0.6);
-}
-
-.timeline-dom-tween.tween-origin-ghost {
-  opacity: 0.25;
-  border-style: dashed;
-  border-color: rgba(152, 214, 255, 0.5);
-  background: transparent;
-  pointer-events: none;
-  z-index: 1;
-  transition: none;
-}
-
-
-.timeline-dom-tween-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  pointer-events: none;
-  z-index: 1;
-}
-.timeline-dom-tween-arrow .line {
-  flex: 1;
-  height: 1px;
-  background-color: rgba(152, 214, 255, 0.35);
-}
-.timeline-dom-tween-arrow .head {
-  width: 0;
-  height: 0;
-  border-top: 3.5px solid transparent;
-  border-bottom: 3.5px solid transparent;
-  border-left: 5px solid rgba(152, 214, 255, 0.35);
-  margin-left: -1px;
-  border-radius: 1px;
 }
 
 .timeline-dom-grid-scroll .timeline-dom-frame,
@@ -741,17 +479,6 @@ button:focus, input:focus {
   }
   .timeline-unified-numberline-canvas {
     /* layout configuration */
-  }
-  .timeline-dom-frame {
-    min-height: 38px;
-    padding: 0 10px;
-  }
-  .timeline-dom-tween {
-    width: 18px;
-    height: 18px;
-  }
-  .timeline-dom-tween::after {
-    inset: -12px;
   }
   .timeline-dom-drop-mode {
     top: 6px;

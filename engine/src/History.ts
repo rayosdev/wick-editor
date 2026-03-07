@@ -22,14 +22,25 @@ interface HistoryState {
     objects: Set<string>;
     actionName: string;
     timeSinceLastPush: number;
+    projectViewState?: HistoryProjectViewState;
 }
+
+interface HistoryProjectViewState {
+    activeTool: string | null;
+    showClipBorders: boolean;
+    onionSkinEnabled: boolean;
+    onionSkinSeekBackwards: number;
+    onionSkinSeekForwards: number;
+}
+
+type HistoryStackEntry = HistoryState | any[];
 
 /**
  * History utility class for undo/redo functionality.
  */
 Wick.History = class {
-    private _undoStack: HistoryState[] = [];
-    private _redoStack: HistoryState[] = [];
+    private _undoStack: HistoryStackEntry[] = [];
+    private _redoStack: HistoryStackEntry[] = [];
     private _snapshots: { [name: string]: any[] } = {};
     private lastHistoryPush: number;
     public project: Wick.Project;
@@ -77,11 +88,19 @@ Wick.History = class {
     getObjectUUIDs (): Set<string> {
         let objects = new Set<string>();
 
-        for (let state of this._undoStack) {
+        for (let i = 0; i < this._undoStack.length; i++) {
+            const state = this._normalizeHistoryEntry(this._undoStack[i]);
+            if (!state) continue;
+
+            this._undoStack[i] = state;
             objects = new Set([...objects, ...state.objects]);
         }
 
-        for (let state of this._redoStack) {
+        for (let i = 0; i < this._redoStack.length; i++) {
+            const state = this._normalizeHistoryEntry(this._redoStack[i]);
+            if (!state) continue;
+
+            this._redoStack[i] = state;
             objects = new Set([...objects, ...state.objects]);
         }
 
@@ -96,14 +115,14 @@ Wick.History = class {
     pushState (filter: number, actionName?: string): void {
         this._redoStack = [];
         let now = Date.now();
-
         let state = this._generateState(filter);
-        let objects = new Set(state.map(obj => obj.uuid));
+        let objects = this._extractObjectUUIDs(state);
         let stateObject: HistoryState = {
-            state: this._generateState(filter), 
+            state,
             objects: objects,
             actionName: actionName || "Unknown Action",
             timeSinceLastPush: now - this.lastHistoryPush,
+            projectViewState: this._captureProjectViewState(),
         }
 
         this.lastHistoryPush = now;
@@ -121,19 +140,24 @@ Wick.History = class {
             return false;
         }
 
-        var lastState = this._undoStack.pop();
-        this._redoStack.push(lastState);
-
-        var currentStateObject = this._undoStack[this._undoStack.length - 1];
-
-        // 1.17.1 History update, pull actual state information out, aside from names.
-        var currentState = currentStateObject; 
-
-        if (currentStateObject.state) {
-            currentState = currentStateObject.state;
+        var lastState = this._normalizeHistoryEntry(this._undoStack.pop());
+        if (!lastState) {
+            return false;
         }
 
-        this._recoverState(currentState);
+        this._redoStack.push(lastState);
+
+        var currentStateObject = this._normalizeHistoryEntry(
+            this._undoStack[this._undoStack.length - 1]
+        );
+        if (!currentStateObject) {
+            this._redoStack.pop();
+            this._undoStack.push(lastState);
+            return false;
+        }
+
+        this._undoStack[this._undoStack.length - 1] = currentStateObject;
+        this._recoverState(currentStateObject);
 
         return true;
     }
@@ -147,7 +171,11 @@ Wick.History = class {
             return false;
         }
 
-        var recoveredState = this._redoStack.pop().state;
+        var recoveredState = this._normalizeHistoryEntry(this._redoStack.pop());
+        if (!recoveredState) {
+            return false;
+        }
+
         this._undoStack.push(recoveredState);
 
         this._recoverState(recoveredState);
@@ -219,11 +247,107 @@ Wick.History = class {
         });
     }
 
-    _recoverState (state: any[]): void {
-        state.forEach(objectData => {
+    _extractObjectUUIDs (state: any[]): Set<string> {
+        return new Set(
+            (Array.isArray(state) ? state : [])
+                .map(obj => obj && obj.uuid)
+                .filter(uuid => typeof uuid === 'string')
+        );
+    }
+
+    _getActiveToolName (): string | null {
+        const activeTool = this.project && this.project.activeTool;
+        if (typeof activeTool === 'string') {
+            return activeTool;
+        }
+
+        if (activeTool && typeof activeTool.name === 'string') {
+            return activeTool.name;
+        }
+
+        return null;
+    }
+
+    _captureProjectViewState (): HistoryProjectViewState {
+        return {
+            activeTool: this._getActiveToolName(),
+            showClipBorders: !!this.project.showClipBorders,
+            onionSkinEnabled: !!this.project.onionSkinEnabled,
+            onionSkinSeekBackwards: this.project.onionSkinSeekBackwards,
+            onionSkinSeekForwards: this.project.onionSkinSeekForwards,
+        };
+    }
+
+    _normalizeHistoryEntry (entry: HistoryStackEntry | undefined): HistoryState | null {
+        if (!entry) {
+            return null;
+        }
+
+        if (Array.isArray(entry)) {
+            return {
+                state: entry,
+                objects: this._extractObjectUUIDs(entry),
+                actionName: "Unknown Action",
+                timeSinceLastPush: 0,
+            };
+        }
+
+        const state = Array.isArray(entry.state) ? entry.state : [];
+        return {
+            state,
+            objects: entry.objects instanceof Set ? entry.objects : this._extractObjectUUIDs(state),
+            actionName: typeof entry.actionName === 'string' ? entry.actionName : "Unknown Action",
+            timeSinceLastPush:
+                typeof entry.timeSinceLastPush === 'number' ? entry.timeSinceLastPush : 0,
+            projectViewState: entry.projectViewState,
+        };
+    }
+
+    _applyProjectViewState (projectViewState?: HistoryProjectViewState): void {
+        if (!projectViewState) {
+            return;
+        }
+
+        const project = this.project as Wick.Project & {
+            _activeTool?: Wick.Tool;
+            tools?: { [key: string]: Wick.Tool };
+        };
+
+        project.showClipBorders = projectViewState.showClipBorders;
+        project.onionSkinSeekBackwards = projectViewState.onionSkinSeekBackwards;
+        project.onionSkinSeekForwards = projectViewState.onionSkinSeekForwards;
+        project.onionSkinEnabled = projectViewState.onionSkinEnabled;
+
+        if (
+            projectViewState.activeTool &&
+            project.tools &&
+            project.tools[projectViewState.activeTool]
+        ) {
+            project._activeTool = project.tools[projectViewState.activeTool];
+        }
+    }
+
+    _recoverState (entry: HistoryStackEntry | undefined): void {
+        const normalizedEntry = this._normalizeHistoryEntry(entry);
+        if (!normalizedEntry || !Array.isArray(normalizedEntry.state)) {
+            console.warn('Wick.History._recoverState: invalid history state.');
+            return;
+        }
+
+        normalizedEntry.state.forEach(objectData => {
+            if (!objectData || typeof objectData.uuid !== 'string') {
+                return;
+            }
+
             var object = Wick.ObjectCache.getObjectByUUID(objectData.uuid);
+            if (!object || typeof object.deserialize !== 'function') {
+                return;
+            }
+
             object.deserialize(objectData);
         });
+
+        this._applyProjectViewState(normalizedEntry.projectViewState);
     }
 
     _getAllObjects (): Wick.Base[] {

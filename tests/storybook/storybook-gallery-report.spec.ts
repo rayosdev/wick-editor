@@ -8,6 +8,7 @@ import {
 import fs from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
+import { spawn, type ChildProcess } from "node:child_process";
 
 type StoryEntry = {
   id: string;
@@ -31,6 +32,70 @@ const REPORT_ROOT = path.resolve(process.cwd(), "_report/storybook");
 const STORY_REPORT_DIR = path.join(REPORT_ROOT, "stories");
 const SCREENSHOT_DIR = path.join(REPORT_ROOT, "screenshots");
 const FAILURE_REPORT_PATH = path.join(REPORT_ROOT, "FAILURES.md");
+const storybookHost = process.env.PW_STORYBOOK_HOST || "127.0.0.1";
+const storybookPort = Number(process.env.PW_STORYBOOK_PORT ?? "6006");
+const staticModeEnabled = process.env.PW_STORYBOOK_STATIC === "1";
+
+let fallbackStaticServer: ChildProcess | null = null;
+
+async function isStorybookReachable(request: APIRequestContext): Promise<boolean> {
+  try {
+    const response = await request.get("/index.json", { timeout: 2500 });
+    return response.ok();
+  } catch {
+    return false;
+  }
+}
+
+async function waitForStorybookReachable(
+  request: APIRequestContext,
+  timeoutMs = 12000
+): Promise<boolean> {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    if (await isStorybookReachable(request)) {
+      return true;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
+  return false;
+}
+
+async function recoverStorybookServerIfNeeded(
+  request: APIRequestContext,
+  notes: string[]
+): Promise<void> {
+  if (await isStorybookReachable(request)) {
+    return;
+  }
+
+  if (!staticModeEnabled) {
+    notes.push("Storybook server is unreachable and static fallback is disabled.");
+    return;
+  }
+
+  if (!fallbackStaticServer || fallbackStaticServer.exitCode !== null) {
+    fallbackStaticServer = spawn(
+      "python3",
+      [
+        "-m",
+        "http.server",
+        `${storybookPort}`,
+        "--bind",
+        storybookHost,
+        "--directory",
+        "storybook-static",
+      ],
+      { stdio: "ignore" }
+    );
+    notes.push("Started fallback static Storybook server after connection drop.");
+  }
+
+  const reachable = await waitForStorybookReachable(request);
+  if (!reachable) {
+    throw new Error("Storybook server remained unreachable after fallback startup.");
+  }
+}
 
 function sanitizeFilePart(value: string): string {
   return value
@@ -78,6 +143,7 @@ function isTransientNavigationError(error: unknown): boolean {
 
 async function gotoStoryFrameWithRetry(
   page: Page,
+  request: APIRequestContext,
   storyUrlPath: string,
   notes: string[]
 ): Promise<void> {
@@ -85,6 +151,7 @@ async function gotoStoryFrameWithRetry(
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
+      await recoverStorybookServerIfNeeded(request, notes);
       await page.goto(storyUrlPath, { waitUntil: "domcontentloaded" });
       await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {
         notes.push("Timed out waiting for full network idle; captured current state.");
@@ -99,6 +166,20 @@ async function gotoStoryFrameWithRetry(
       notes.push(
         `Retrying story navigation after transient error (attempt ${attempt}/${maxAttempts}).`
       );
+      if (
+        (error instanceof Error && error.message.includes("net::ERR_CONNECTION_REFUSED")) ||
+        String(error).includes("net::ERR_CONNECTION_REFUSED")
+      ) {
+        await recoverStorybookServerIfNeeded(request, notes).catch(
+          (recoveryError: unknown) => {
+            const message =
+              recoveryError instanceof Error
+                ? recoveryError.message
+                : String(recoveryError);
+            notes.push(`Server recovery attempt failed: ${truncate(message, 180)}`);
+          }
+        );
+      }
       await page.waitForTimeout(400 * attempt);
     }
   }
@@ -300,6 +381,13 @@ async function fetchStoryEntries(
 
 test.describe.configure({ mode: "serial" });
 
+test.afterAll(async () => {
+  if (fallbackStaticServer && fallbackStaticServer.exitCode === null) {
+    fallbackStaticServer.kill("SIGTERM");
+  }
+  fallbackStaticServer = null;
+});
+
 test("capture all Storybook stories with screenshots and markdown reports", async ({
   page,
   request,
@@ -307,7 +395,13 @@ test("capture all Storybook stories with screenshots and markdown reports", asyn
 }) => {
   test.setTimeout(15 * 60 * 1000);
 
-  await fs.rm(REPORT_ROOT, { recursive: true, force: true });
+  await fs.mkdir(REPORT_ROOT, { recursive: true });
+  await Promise.all([
+    fs.rm(STORY_REPORT_DIR, { recursive: true, force: true }),
+    fs.rm(SCREENSHOT_DIR, { recursive: true, force: true }),
+    fs.rm(FAILURE_REPORT_PATH, { force: true }),
+    fs.rm(path.join(REPORT_ROOT, "README.md"), { force: true }),
+  ]);
   await fs.mkdir(STORY_REPORT_DIR, { recursive: true });
   await fs.mkdir(SCREENSHOT_DIR, { recursive: true });
 
@@ -381,7 +475,7 @@ test("capture all Storybook stories with screenshots and markdown reports", asyn
       page.on("console", onConsole);
       page.on("pageerror", onPageError);
 
-      await gotoStoryFrameWithRetry(page, storyUrlPath, notes);
+      await gotoStoryFrameWithRetry(page, request, storyUrlPath, notes);
 
       let renderErrorVisible = await page
         .getByText(/failed to (render|import)\./i)
@@ -401,7 +495,7 @@ test("capture all Storybook stories with screenshots and markdown reports", asyn
         notes.push("Retrying story once after transient dynamic-import error.");
         consoleMessages.length = 0;
         pageErrors.length = 0;
-        await gotoStoryFrameWithRetry(page, storyUrlPath, notes);
+        await gotoStoryFrameWithRetry(page, request, storyUrlPath, notes);
 
         renderErrorVisible = await page
           .getByText(/failed to (render|import)\./i)

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 test.describe.configure({ mode: "serial" });
 
@@ -84,6 +84,21 @@ async function clickIfVisible(locator: ReturnType<Page["locator"]>): Promise<boo
     throw error;
   }
   return true;
+}
+
+async function firstVisibleLocator(candidates: Locator[]): Promise<Locator | null> {
+  for (const candidate of candidates) {
+    const first = candidate.first();
+    if ((await first.count()) === 0) {
+      continue;
+    }
+    const visible = await first.isVisible().catch(() => false);
+    if (visible) {
+      return first;
+    }
+  }
+
+  return null;
 }
 
 function trackRuntimeErrors(page: Page) {
@@ -265,13 +280,15 @@ test.describe("Critical Storybook UI regressions", () => {
     const canvasBox = await canvasWrapper.boundingBox();
     expect(canvasBox).not.toBeNull();
 
-    const fillColorButton = page
-      .locator(
-        "#inspector-selection-fill-color, #mobile-inspector-selection-fill-color"
-      )
-      .first();
+    const fillColorCandidates = [
+      page.locator("#inspector-selection-fill-color"),
+      page.locator("#mobile-inspector-selection-fill-color"),
+      page
+        .getByLabel("Inspector Panel")
+        .getByRole("button", { name: /color picker button/i }),
+    ];
 
-    let fillButtonVisible = false;
+    let fillColorButton: Locator | null = null;
     for (let attempt = 0; attempt < 3; attempt += 1) {
       await rectangleTool.click();
 
@@ -295,16 +312,16 @@ test.describe("Critical Storybook UI regressions", () => {
         editor?.selectAll?.();
       });
 
-      fillButtonVisible = await fillColorButton.isVisible().catch(() => false);
-      if (fillButtonVisible) {
+      fillColorButton = await firstVisibleLocator(fillColorCandidates);
+      if (fillColorButton) {
         break;
       }
 
       await page.waitForTimeout(180);
     }
 
-    expect(fillButtonVisible).toBeTruthy();
-    await fillColorButton.click({ force: true });
+    expect(fillColorButton).not.toBeNull();
+    await fillColorButton?.click({ force: true });
 
     const redSwatch = page.locator('[data-color-hex="#ff0000"]').first();
     await expect(redSwatch).toBeVisible();
