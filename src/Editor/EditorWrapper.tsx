@@ -3,7 +3,10 @@ import ErrorBoundary from "./Util/ErrorBoundary";
 import { Slide, ToastContainer } from "react-toastify";
 import ErrorPage from "./Util/ErrorPage";
 import ModalHandler from "./Modals/ModalHandler/ModalHandler";
-import { attachConsoleListener } from "./Util/consoleListener";
+import {
+    attachConsoleListener,
+    type ConsoleListenerEntry,
+} from "./Util/consoleListener";
 import type { HotKeyMap } from "Editor/types/hotkeys";
 import type {
     WarningModalInfo,
@@ -18,13 +21,6 @@ import type { BasicWarningModalInfo } from "./types/editor.types";
 import type { ConsoleLogEntry as EditorConsoleLogEntry } from "./types/editor.types";
 
 type ConsoleLogEntry = EditorConsoleLogEntry;
-
-type ListenerConsoleLogEntry = {
-    id: string;
-    method: string;
-    data: unknown[];
-    timestamp: number;
-};
 type ModalRenderType = "video" | "gif" | "image sequence";
 type ToolSettingValue = string | number | boolean | { rgba: string };
 type HotkeyHandler = (event: KeyboardEvent) => void;
@@ -144,19 +140,6 @@ const isLocalFileEntry = (value: unknown): value is ModalLocalFileEntry => {
 
 const normalizeColorPickerType = (value: ColorPickerType | string): ColorPickerType => {
     return value === "spectrum" ? "spectrum" : "swatches";
-};
-
-const toConsoleMethod = (method: string): EditorConsoleLogEntry["method"] => {
-    switch (method) {
-        case "debug":
-        case "error":
-        case "info":
-        case "log":
-        case "warn":
-            return method;
-        default:
-            return "log";
-    }
 };
 
 const customHotKeysToArray = (
@@ -465,31 +448,16 @@ function EditorWrapper({ editor, children }: EditorWrapperProps) {
             });
         };
 
-        const detach = attachConsoleListener((entry: unknown) => {
-            if (
-                entry &&
-                typeof entry === "object" &&
-                "type" in entry &&
-                (entry as { type?: unknown }).type === "clear"
-            ) {
+        const detach = attachConsoleListener((entry: ConsoleListenerEntry) => {
+            if ("type" in entry && entry.type === "clear") {
                 clearQueuedRef.current = true;
                 pendingEntriesRef.current = [];
             } else {
-                const logCandidate = entry as Partial<ListenerConsoleLogEntry>;
-                if (
-                    typeof logCandidate.id !== "string" ||
-                    typeof logCandidate.method !== "string" ||
-                    !Array.isArray(logCandidate.data) ||
-                    typeof logCandidate.timestamp !== "number"
-                ) {
-                    return;
-                }
-
                 const logEntry: ConsoleLogEntry = {
-                    id: logCandidate.id,
-                    method: toConsoleMethod(logCandidate.method),
-                    data: logCandidate.data,
-                    timestamp: logCandidate.timestamp,
+                    id: entry.id,
+                    method: entry.method,
+                    data: entry.data,
+                    timestamp: entry.timestamp,
                 };
                 pendingEntriesRef.current.push(logEntry);
             }

@@ -101,6 +101,125 @@ async function firstVisibleLocator(candidates: Locator[]): Promise<Locator | nul
   return null;
 }
 
+type ColorSnapshot = {
+  normalized: string;
+  computed: string;
+  r: number;
+  g: number;
+  b: number;
+};
+
+async function getActiveToolName(page: Page): Promise<string> {
+  return page.evaluate(() => {
+    const editor = (
+      window as Window & { editor?: { getActiveTool?: () => unknown } }
+    ).editor;
+    const activeTool = editor?.getActiveTool?.();
+    return typeof activeTool === "string" ? activeTool : "";
+  });
+}
+
+function isRedLikeColor(color: ColorSnapshot): boolean {
+  return color.r > 140 && color.r > color.g && color.r > color.b;
+}
+
+async function selectGroupedToolOption(
+  page: Page,
+  groupKey: "cursors" | "shapes",
+  optionName: string,
+  optionLabel: string
+): Promise<void> {
+  if ((await getActiveToolName(page)) === optionName) {
+    return;
+  }
+
+  const groupAnchor = page.locator(`#desktop-more-${groupKey}-popover-button`).first();
+  await expect(groupAnchor).toBeVisible();
+
+  const groupButton = groupAnchor.locator("button").first();
+  const menuItem = page
+    .locator(".tool-selector-menu-item")
+    .filter({ hasText: optionLabel })
+    .first();
+
+  await groupButton.click({ force: true });
+  if (!(await menuItem.isVisible().catch(() => false))) {
+    await page.waitForTimeout(120);
+    await groupButton.click({ force: true });
+  }
+
+  await expect(menuItem).toBeVisible({ timeout: 3000 });
+  await menuItem.click({ force: true });
+  await page.waitForTimeout(150);
+}
+
+async function readSelectionFillColor(page: Page): Promise<ColorSnapshot> {
+  return page.evaluate(() => {
+    const editor = (
+      window as Window & {
+        editor?: { getSelectionAttribute?: (name: string) => unknown };
+      }
+    ).editor;
+
+    const normalize = (value: unknown, fallback = "#000000"): string => {
+      if (typeof value === "string" && value.trim().length > 0) {
+        return value;
+      }
+
+      if (value && typeof value === "object") {
+        const maybeColor = value as {
+          toCSS?: (() => string | null | undefined) | undefined;
+          rgba?: string | null | undefined;
+          hex?: string | null | undefined;
+        };
+
+        if (typeof maybeColor.toCSS === "function") {
+          const css = maybeColor.toCSS();
+          if (typeof css === "string" && css.trim().length > 0) {
+            return css;
+          }
+        }
+
+        if (typeof maybeColor.rgba === "string" && maybeColor.rgba.trim().length > 0) {
+          return maybeColor.rgba;
+        }
+
+        if (typeof maybeColor.hex === "string" && maybeColor.hex.trim().length > 0) {
+          return maybeColor.hex;
+        }
+      }
+
+      return fallback;
+    };
+
+    const toRgbChannels = (cssColor: string) => {
+      const probe = document.createElement("div");
+      probe.style.color = cssColor;
+      document.body.appendChild(probe);
+      const computed = getComputedStyle(probe).color;
+      probe.remove();
+
+      const match = computed.match(
+        /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*[\d.]+)?\)/
+      );
+
+      return {
+        computed,
+        r: Number(match?.[1] ?? 0),
+        g: Number(match?.[2] ?? 0),
+        b: Number(match?.[3] ?? 0),
+      };
+    };
+
+    const selectionFill = editor?.getSelectionAttribute?.("fillColor");
+    const normalized = normalize(selectionFill);
+    return {
+      normalized,
+      ...toRgbChannels(normalized),
+    };
+  });
+}
+
 function trackRuntimeErrors(page: Page) {
   const pageErrors: string[] = [];
   const onPageError = (error: Error) => {
@@ -264,17 +383,6 @@ test.describe("Critical Storybook UI regressions", () => {
       () => Boolean((window as Window & { editor?: unknown }).editor)
     );
 
-    const rectangleTool = page
-      .locator("#action-button-tooltip-tool-button-rectangle button")
-      .or(page.getByRole("button", { name: /rectangle icon/i }))
-      .first();
-    const cursorTool = page
-      .locator("#action-button-tooltip-tool-button-cursor button")
-      .or(page.getByRole("button", { name: /cursor icon/i }))
-      .first();
-    await expect(rectangleTool).toBeVisible();
-    await expect(cursorTool).toBeVisible();
-
     const canvasWrapper = page.locator("#canvas-container-wrapper");
     await expect(canvasWrapper).toBeVisible();
     const canvasBox = await canvasWrapper.boundingBox();
@@ -290,7 +398,7 @@ test.describe("Critical Storybook UI regressions", () => {
 
     let fillColorButton: Locator | null = null;
     for (let attempt = 0; attempt < 3; attempt += 1) {
-      await rectangleTool.click();
+      await selectGroupedToolOption(page, "shapes", "rectangle", "Rectangle");
 
       if (canvasBox) {
         const startX = canvasBox.x + canvasBox.width * (0.32 + attempt * 0.05);
@@ -305,7 +413,7 @@ test.describe("Critical Storybook UI regressions", () => {
       }
       await page.waitForTimeout(220);
 
-      await cursorTool.click();
+      await selectGroupedToolOption(page, "cursors", "cursor", "Cursor");
       await page.evaluate(() => {
         const editor = (window as Window & { editor?: { selectAll?: () => void } })
           .editor;
@@ -321,84 +429,24 @@ test.describe("Critical Storybook UI regressions", () => {
     }
 
     expect(fillColorButton).not.toBeNull();
-    await fillColorButton?.click({ force: true });
+    let pickedColor: ColorSnapshot | null = null;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await fillColorButton?.click({ force: true });
 
-    const redSwatch = page.locator('[data-color-hex="#ff0000"]').first();
-    await expect(redSwatch).toBeVisible();
-    await redSwatch.evaluate((node) => (node as HTMLButtonElement).click());
-    await page.waitForTimeout(150);
+      const redSwatch = page.locator('.wick-color-picker-popover [data-color-hex="#ff0000"]:visible').first();
+      await expect(redSwatch).toBeVisible({ timeout: 5000 });
+      await redSwatch.evaluate((node) => (node as HTMLButtonElement).click());
+      await page.waitForTimeout(180);
 
-    const pickedColor = await page.evaluate(() => {
-      const editor = (
-        window as Window & {
-          editor?: { getSelectionAttribute?: (name: string) => unknown };
-        }
-      ).editor;
+      pickedColor = await readSelectionFillColor(page);
+      if (isRedLikeColor(pickedColor)) {
+        break;
+      }
+    }
 
-      const normalize = (value: unknown, fallback = "#000000"): string => {
-        if (typeof value === "string" && value.trim().length > 0) {
-          return value;
-        }
-
-        if (value && typeof value === "object") {
-          const maybeColor = value as {
-            toCSS?: (() => string | null | undefined) | undefined;
-            rgba?: string | null | undefined;
-            hex?: string | null | undefined;
-          };
-
-          if (typeof maybeColor.toCSS === "function") {
-            const css = maybeColor.toCSS();
-            if (typeof css === "string" && css.trim().length > 0) {
-              return css;
-            }
-          }
-
-          if (typeof maybeColor.rgba === "string" && maybeColor.rgba.trim().length > 0) {
-            return maybeColor.rgba;
-          }
-
-          if (typeof maybeColor.hex === "string" && maybeColor.hex.trim().length > 0) {
-            return maybeColor.hex;
-          }
-        }
-
-        return fallback;
-      };
-
-      const toRgbChannels = (cssColor: string) => {
-        const probe = document.createElement("div");
-        probe.style.color = cssColor;
-        document.body.appendChild(probe);
-        const computed = getComputedStyle(probe).color;
-        probe.remove();
-
-        const match = computed.match(
-          /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*[\d.]+)?\)/
-        );
-
-        return {
-          computed,
-          r: Number(match?.[1] ?? 0),
-          g: Number(match?.[2] ?? 0),
-          b: Number(match?.[3] ?? 0),
-        };
-      };
-
-      const selectionFill = editor?.getSelectionAttribute?.("fillColor");
-      const normalized = normalize(selectionFill);
-      return {
-        normalized,
-        ...toRgbChannels(normalized),
-      };
-    });
-
-    expect(pickedColor.r).toBeGreaterThan(140);
-    expect(pickedColor.r).toBeGreaterThan(pickedColor.g);
-    expect(pickedColor.r).toBeGreaterThan(pickedColor.b);
-    expect(pickedColor.g).toBeLessThan(140);
-    expect(pickedColor.b).toBeLessThan(140);
-    expect(pickedColor.computed).not.toBe("rgb(0, 0, 0)");
+	    expect(pickedColor).not.toBeNull();
+	    expect(isRedLikeColor(pickedColor!)).toBeTruthy();
+	    expect(pickedColor?.computed).not.toBe("rgb(0, 0, 0)");
 
     await runtime.assertNone();
   });

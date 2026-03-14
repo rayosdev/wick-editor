@@ -270,8 +270,6 @@ class Editor extends EditorCore {
   WINDOW_RESIZE_THROTTLE_AMOUNT_MS: number = 300;
   resizeProps: ResizeProps;
 
-  canvasComponent: unknown = null;
-  timelineComponent: unknown = null;
   lastUsedTool: WickToolName = "cursor";
   builtinPreviews: Record<string, BuiltinPreviewEntry> = {};
 
@@ -495,10 +493,6 @@ class Editor extends EditorCore {
       ),
     };
     window.addEventListener("resize", this.resizeProps.onWindowResize);
-
-    this.canvasComponent = null;
-    this.timelineComponent = null;
-
     this.lastUsedTool = "cursor";
 
     this.builtinPreviews = {};
@@ -1935,25 +1929,17 @@ class Editor extends EditorCore {
                           <ReflexElement {...this.resizeProps}>
                             <DockedPanel>
                               <Canvas
-                                editor={this}
                                 project={this.project}
                                 projectDidChange={this.projectDidChange}
-                                projectData={this.state.project}
-                                paper={this.paper}
-                                previewPlaying={this.state.previewPlaying}
                                 createImageFromAsset={
                                   this.createImageFromAsset
                                 }
-                                toast={this.toast}
                                 onEyedropperPickedColor={
                                   this.onEyedropperPickedColor
                                 }
                                 createAssets={createAssetsForCanvas}
                                 importProjectAsWickFile={
                                   this.importProjectAsWickFile
-                                }
-                                onRef={(ref) =>
-                                  (this.canvasComponent = ref)
                                 }
                               />
 
@@ -2061,7 +2047,6 @@ class Editor extends EditorCore {
                               focusTimelineOfParentClip={
                                 this.focusTimelineOfParentClip
                               }
-                              onRef={(ref) => (this.timelineComponent = ref)}
                               dragSoundOntoTimeline={this.dragSoundOntoTimeline}
                               timelineRendererMode={this.state.timelineRendererMode}
                               onTimelineRendererModeChange={this.setTimelineRendererMode}
@@ -2136,7 +2121,6 @@ class Editor extends EditorCore {
                               focusTimelineOfParentClip={
                                 this.focusTimelineOfParentClip
                               }
-                              onRef={(ref) => (this.timelineComponent = ref)}
                               dragSoundOntoTimeline={this.dragSoundOntoTimeline}
                               timelineRendererMode={this.state.timelineRendererMode}
                               onTimelineRendererModeChange={this.setTimelineRendererMode}

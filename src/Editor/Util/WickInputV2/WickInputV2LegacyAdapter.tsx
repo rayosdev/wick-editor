@@ -72,7 +72,7 @@ type SelectAdapterProps = SharedAdapterProps & {
   type: "select";
   value?: LegacyValue;
   options?: WickInputV2LegacySelectOption[];
-  onChange?: (value: unknown) => void;
+  onChange?: (value: LegacyValue) => void;
 };
 
 type CheckboxAdapterProps = SharedAdapterProps & {

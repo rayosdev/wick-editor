@@ -1,3 +1,5 @@
+import type { ConsoleMethod } from "Editor/types";
+
 let logIdCounter = 0;
 
 const METHODS_TO_MONITOR = ["log", "info", "warn", "error", "debug"] as const;
@@ -11,13 +13,21 @@ const IGNORE_PATTERNS = [
   /Failed .* type:.*prop/,
 ];
 
-interface LogEntry {
+export interface ConsoleListenerLogEntry {
   id: string;
-  method: string;
+  method: ConsoleMethod;
   data: unknown[];
   timestamp: number;
-  type?: string;
+  type?: undefined;
 }
+
+export type ConsoleListenerClearEntry = {
+  type: "clear";
+};
+
+export type ConsoleListenerEntry =
+  | ConsoleListenerLogEntry
+  | ConsoleListenerClearEntry;
 
 type ConsoleMethodFn = (...args: unknown[]) => unknown;
 type ConsoleRef = Console & Record<string, ConsoleMethodFn>;
@@ -30,7 +40,10 @@ function shouldIgnoreLog(args: unknown[]): boolean {
   return IGNORE_PATTERNS.some(pattern => pattern.test(message));
 }
 
-function buildLogEntry(method: string, args: unknown[]): LogEntry {
+function buildLogEntry(
+  method: ConsoleMethod,
+  args: unknown[]
+): ConsoleListenerLogEntry {
   return {
     id: `${Date.now()}-${logIdCounter++}`,
     method,
@@ -49,7 +62,7 @@ function buildLogEntry(method: string, args: unknown[]): LogEntry {
  * @returns Cleanup function to restore original console methods
  */
 export function attachConsoleListener(
-  onEntry: (entry: LogEntry) => void, 
+  onEntry: (entry: ConsoleListenerEntry) => void,
   targetConsole: Console = console
 ): () => void {
   if (typeof onEntry !== "function") {
@@ -69,10 +82,10 @@ export function attachConsoleListener(
 
     consoleRef[method] = function patchedConsoleMethod(...args: unknown[]) {
       if (method === CLEAR_METHOD) {
-        onEntry({ type: "clear" } as LogEntry);
+        onEntry({ type: "clear" });
       } else if (!shouldIgnoreLog(args)) {
         // Only log entries that don't match ignore patterns
-        onEntry(buildLogEntry(method, args));
+        onEntry(buildLogEntry(method as ConsoleMethod, args));
       }
 
       return original.apply(this, args);

@@ -59,7 +59,6 @@ interface MobileContainerProps {
     movePlayheadForwards: () => void;
     movePlayheadBackwards: () => void;
     focusTimelineOfParentClip: () => void;
-    onRef: NonNullable<TimelineProps["onRef"]>;
     dragSoundOntoTimeline: (uuid: string, x: number, y: number, commit: boolean) => void;
     timelineRendererMode: TimelineProps["timelineRendererMode"];
     onTimelineRendererModeChange: TimelineProps["onTimelineRendererModeChange"];
@@ -123,7 +122,6 @@ const MobileContainer: React.FC<MobileContainerProps> = (props) => {
                     movePlayheadBackwards={props.movePlayheadBackwards}
                     focusTimelineOfParentClip={props.focusTimelineOfParentClip}
                     deleteSelectedObjects={props.deleteSelectedObjects}
-                    onRef={props.onRef}
                     dragSoundOntoTimeline={props.dragSoundOntoTimeline}
                     timelineRendererMode={props.timelineRendererMode}
                     onTimelineRendererModeChange={props.onTimelineRendererModeChange}

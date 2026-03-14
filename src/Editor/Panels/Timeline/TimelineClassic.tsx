@@ -48,6 +48,7 @@ import {
     TIMELINE_ACTION_BUTTON_CLASSES,
     TIMELINE_BACK_BUTTON_CLASSES,
     TIMELINE_BREADCRUMB_CLASSES,
+    TIMELINE_CLASSIC_GRID_CLASSES,
     TIMELINE_FOOTER_CLASSES,
     TIMELINE_FOOTER_BUTTON_CLASSES,
     TIMELINE_FOOTER_CHOICE_ICON_CLASSES,
@@ -64,6 +65,7 @@ import {
     TIMELINE_FOOTER_SHORTCUT_HINT_CLASSES,
     TIMELINE_META_CLASSES,
     TIMELINE_RENDERER_TOGGLE_CLASSES,
+    TIMELINE_ROOT_CONTAINER_CLASSES,
     TIMELINE_SCENE_LABEL_CLASSES,
     TIMELINE_SCENE_NAME_CLASSES,
     TIMELINE_SHELL_CLASSES,
@@ -812,7 +814,11 @@ const TimelineClassic: React.FC<TimelineRendererProps> = (props) => {
     }, [props.timelineSoftRenderTick]);
 
     const timeline = (
-        <div id="animation-timeline-container" aria-label="Timeline">
+        <div
+            id="animation-timeline-container"
+            className={TIMELINE_ROOT_CONTAINER_CLASSES}
+            aria-label="Timeline"
+        >
             {isOver && <div className="drag-drop-overlay" />}
             <div
                 className={TIMELINE_SHELL_CLASSES}
@@ -962,6 +968,7 @@ const TimelineClassic: React.FC<TimelineRendererProps> = (props) => {
 
                 <div
                     id="animation-timeline"
+                    className={TIMELINE_CLASSIC_GRID_CLASSES}
                     ref={canvasContainer}
                     onContextMenu={handleTimelineContextMenu}
                     onTouchStart={handleTimelineTouchStart}

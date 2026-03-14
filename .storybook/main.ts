@@ -9,7 +9,6 @@ const config: StorybookConfig = {
   stories: ["../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
   addons: ["@storybook/addon-a11y", "@storybook/addon-docs"],
   framework: "@storybook/react-vite",
-  staticDirs: ["../public"],
   async viteFinal(baseConfig) {
     return mergeConfig(baseConfig, {
       resolve: {
@@ -32,6 +31,10 @@ const config: StorybookConfig = {
           },
         },
       },
+      // Vite already serves and copies the repo publicDir. Adding Storybook
+      // staticDirs for the same tree causes duplicate writes into
+      // storybook-static during static builds.
+      publicDir: path.resolve(__dirname, "../public"),
     });
   },
 };

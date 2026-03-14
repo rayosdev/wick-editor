@@ -32,6 +32,11 @@ type RuntimePathSnapshot = {
   pathUUIDs: string[];
 };
 
+type RuntimePathLike = {
+  uuid?: string;
+  classname?: string;
+};
+
 type EditorAction =
   | "toggleClipBorders"
   | "toggleOnionSkin"
@@ -63,8 +68,8 @@ type RuntimeWindow = Window & {
         getObjectUUIDs?: () => Set<string>;
       };
       activeFrame?: {
-        children?: Array<{ uuid?: string; classname?: string }>;
-        paths?: Array<{ uuid?: string; classname?: string }>;
+        children?: RuntimePathLike[];
+        paths?: RuntimePathLike[];
       };
     };
   };
@@ -155,18 +160,18 @@ const readPathSnapshot = async (page: Page): Promise<RuntimePathSnapshot> => {
     const bridge = window as RuntimeWindow;
     const activeFrame = bridge.editor?.project?.activeFrame;
     const childPaths = Array.isArray(activeFrame?.children)
-      ? activeFrame.children.filter((child) => child?.classname === "Path")
+      ? activeFrame.children.filter((child: RuntimePathLike) => child.classname === "Path")
       : [];
     const legacyPaths = Array.isArray(activeFrame?.paths) ? activeFrame.paths : [];
     const pathUUIDs = new Set<string>();
 
-    childPaths.forEach((path) => {
-      if (typeof path?.uuid === "string") {
+    childPaths.forEach((path: RuntimePathLike) => {
+      if (typeof path.uuid === "string") {
         pathUUIDs.add(path.uuid);
       }
     });
-    legacyPaths.forEach((path) => {
-      if (typeof path?.uuid === "string") {
+    legacyPaths.forEach((path: RuntimePathLike) => {
+      if (typeof path.uuid === "string") {
         pathUUIDs.add(path.uuid);
       }
     });

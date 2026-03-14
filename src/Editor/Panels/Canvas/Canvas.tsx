@@ -17,22 +17,31 @@
  * along with Wick Editor.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useRef, useEffect, useImperativeHandle, forwardRef } from "react";
+import { useRef, useEffect } from "react";
 import {
     useDrop,
     type DropTargetMonitor,
 } from "react-dnd";
 import type { XYCoord } from "react-dnd";
 import DragDropTypes from "Editor/DragDropTypes";
-import type { ToastOptions, ToastType } from "Editor/types";
 
-type CanvasEventHandler = (...args: unknown[]) => void;
+type EyedropperPickedColorEvent = {
+    color: string;
+};
+
+type CanvasViewEventMap = {
+    canvasModified: (_event: unknown, actionName?: string) => void;
+    eyedropperPickedColor: (event: EyedropperPickedColorEvent) => void;
+};
 
 type CanvasViewLike = {
     canvasBGColor?: string;
     canvasContainer?: HTMLElement | null;
     resize?: () => void;
-    on?: (event: string, handler: CanvasEventHandler) => void;
+    on?: <K extends keyof CanvasViewEventMap>(
+        event: K,
+        handler: CanvasViewEventMap[K]
+    ) => void;
 };
 
 type WickProjectLike = {
@@ -43,7 +52,6 @@ type WickProjectLike = {
 
 interface CanvasExternalProps {
     project: WickProjectLike;
-    onRef: (instance: CanvasHandle | null) => void;
     projectDidChange: (options: { actionName: string }) => void;
     onEyedropperPickedColor: (event: { color: string }) => void;
     importProjectAsWickFile: (file: File) => void;
@@ -58,11 +66,6 @@ interface CanvasExternalProps {
         y: number,
         center?: boolean
     ) => void;
-    editor?: unknown;
-    projectData?: unknown;
-    paper?: unknown;
-    previewPlaying?: boolean;
-    toast?: (message: string, type?: ToastType, options?: ToastOptions) => void;
 }
 
 interface CanvasCollectedProps {
@@ -76,10 +79,6 @@ type CanvasDropItem = {
     uuid?: string;
 };
 
-export interface CanvasHandle {
-    // Empty for now - methods can be exposed here if needed
-}
-
 const CANVAS_WRAPPER_CLASSES =
     "h-full w-full border-l-[4px] [border-left-style:solid] border-l-[#191919]";
 const CANVAS_CONTAINER_CLASSES =
@@ -88,10 +87,9 @@ const CANVAS_DRAG_DROP_OVERLAY_CLASSES =
     "drag-drop-overlay absolute left-0 top-0 z-[1] h-full w-full bg-[#EAEAEA] opacity-20";
 const EDITOR_CANVAS_BORDER_COLOR = "#6A6A6A";
 
-const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
+const Canvas: React.FC<CanvasProps> = (props) => {
     const canvasContainer = useRef<HTMLDivElement>(null);
     const currentAttachedProject = useRef<WickProjectLike>();
-    const exposedHandle = useRef<CanvasHandle>({});
     const [{ isOver }, dropRef] = useDrop<CanvasDropItem, void, { isOver: boolean }>({
         accept: DragDropTypes.CANVAS,
         drop: (draggedItem: CanvasDropItem, monitor: DropTargetMonitor) => {
@@ -126,8 +124,6 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
         }),
     });
 
-    useImperativeHandle(ref, () => exposedHandle.current, []);
-
     const attachProjectToComponent = (project: WickProjectLike): void => {
         if (!project || project === currentAttachedProject.current) {
             return;
@@ -140,8 +136,8 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
         view.canvasContainer = canvasContainer.current;
         view.resize?.();
 
-        view.on?.("canvasModified", (_event: unknown, actionName?: unknown) => {
-            const label = typeof actionName === "string" ? actionName : "";
+        view.on?.("canvasModified", (_event, actionName) => {
+            const label = actionName ?? "";
             props.projectDidChange({
                 actionName: label
                     ? `Canvas Modified ${label}`
@@ -149,12 +145,8 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
             });
         });
 
-        view.on?.("eyedropperPickedColor", (event: unknown) => {
-            if (!event || typeof event !== "object" || !("color" in event)) {
-                return;
-            }
-            const eyedropperEvent = event as { color: string };
-            props.onEyedropperPickedColor(eyedropperEvent);
+        view.on?.("eyedropperPickedColor", (event) => {
+            props.onEyedropperPickedColor(event);
         });
     };
 
@@ -165,7 +157,6 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
     useEffect(() => {
         attachProjectToComponent(props.project);
         updateCanvas(props.project);
-        props.onRef(exposedHandle.current);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -234,5 +225,5 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>((props, ref) => {
         </div>
     );
     return renderNode;
-});
+};
 export default Canvas;

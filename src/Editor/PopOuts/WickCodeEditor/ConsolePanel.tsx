@@ -91,7 +91,7 @@ const renderValue = (value: unknown, index: number): JSX.Element => {
     return (
         <ObjectInspector
             key={`object-${index}`}
-            data={value as Record<string, unknown>}
+            data={value}
             expandLevel={MAX_EXPAND_LEVEL}
             theme="chromeDark"
             className="we-code-console-object"

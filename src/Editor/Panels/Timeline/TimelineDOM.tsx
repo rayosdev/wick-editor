@@ -41,6 +41,7 @@ import {
   TIMELINE_DOM_FRAME_LABEL_CLASSES,
   TIMELINE_DOM_FRAME_RESIZE_LEFT_CLASSES,
   TIMELINE_DOM_FRAME_RESIZE_RIGHT_CLASSES,
+  TIMELINE_DOM_GRID_SCROLL_CLASSES,
   TIMELINE_DOM_IMPLICIT_TAIL_FRAME_CLASSES,
   TIMELINE_DOM_INSERT_TARGET_OUTLINE_CLASSES,
   TIMELINE_DOM_MARKER_CLASSES,
@@ -81,6 +82,7 @@ import {
   TIMELINE_FOOTER_SHORTCUT_HINT_CLASSES,
   TIMELINE_META_CLASSES,
   TIMELINE_RENDERER_TOGGLE_CLASSES,
+  TIMELINE_ROOT_CONTAINER_CLASSES,
   TIMELINE_SCENE_LABEL_CLASSES,
   TIMELINE_SCENE_NAME_CLASSES,
   TIMELINE_SHELL_CLASSES,
@@ -3143,10 +3145,18 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
     )
     : timelineContextMenuItems;
 
+  const timelineGlyphDensity =
+    props.timelineDensityMode === "compact"
+      ? { size: "7px", contrast: "0.9" }
+      : props.timelineDensityMode === "standard"
+        ? { size: "9px", contrast: "0.98" }
+        : { size: "8px", contrast: "0.95" };
+
   return (
     <div
       ref={timelineRootRef}
       id="animation-timeline-container"
+      className={TIMELINE_ROOT_CONTAINER_CLASSES}
       aria-label="Timeline"
       tabIndex={0}
       data-timeline-renderer-mode="dom"
@@ -3163,6 +3173,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
         style={{
           ["--timeline-cell-width" as string]: `${cellWidth}px`,
           ["--timeline-cell-height" as string]: `${cellHeight}px`,
+          ["--timeline-keyframe-glyph-size" as string]: timelineGlyphDensity.size,
+          ["--timeline-keyframe-glyph-contrast" as string]: timelineGlyphDensity.contrast,
         }}
       >
         <div className={TIMELINE_HEADER_CLASSES}>
@@ -3401,7 +3413,8 @@ const TimelineDOM: React.FC<TimelineRendererProps> = (props) => {
 
         <div
           ref={workspaceRef}
-          className={TIMELINE_UNIFIED_WORKSPACE_CLASSES}
+          id="animation-timeline"
+          className={`${TIMELINE_UNIFIED_WORKSPACE_CLASSES} ${TIMELINE_DOM_GRID_SCROLL_CLASSES}`}
           data-testid="timeline-grid-workspace"
           onScroll={() => {
             if (workspaceRef.current) {

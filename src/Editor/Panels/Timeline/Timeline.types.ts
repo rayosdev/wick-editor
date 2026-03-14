@@ -153,7 +153,6 @@ export interface TimelineOwnProps {
   movePlayheadForwards: () => void;
   movePlayheadBackwards: () => void;
   focusTimelineOfParentClip: () => void;
-  onRef?: (instance: unknown) => void;
   dragSoundOntoTimeline: (uuid: string, x: number, y: number, commit: boolean) => void;
   timelineRendererMode: TimelineRendererMode;
   onTimelineRendererModeChange: (mode: TimelineRendererMode) => void;

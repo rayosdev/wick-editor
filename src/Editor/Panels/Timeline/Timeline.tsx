@@ -33,6 +33,7 @@ import DragDropTypes from "Editor/DragDropTypes";
 
 import TimelineClassic from "./TimelineClassic";
 import TimelineDOM from "./TimelineDOM";
+import { TIMELINE_DROP_TARGET_ROOT_CLASSES } from "./timelineControlClasses";
 import type {
   DraggedSoundItem,
   TimelineFrameLike,
@@ -112,9 +113,7 @@ const resolveDomFrameTarget = (
     return null;
   }
 
-  const gridElement = document.querySelector<HTMLDivElement>(
-    "#animation-timeline.timeline-dom-grid-scroll",
-  );
+  const gridElement = document.querySelector<HTMLDivElement>("#animation-timeline");
   if (!gridElement) {
     return null;
   }
@@ -362,7 +361,7 @@ const Timeline: React.FC<TimelineOwnProps> = (props) => {
 
   const dropTargetRoot = (
     <div
-      className="timeline-drop-target-root"
+      className={TIMELINE_DROP_TARGET_ROOT_CLASSES}
       ref={(node) => {
         dropTargetRootRef.current = node;
         dropRef(node);

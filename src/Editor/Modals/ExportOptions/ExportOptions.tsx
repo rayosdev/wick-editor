@@ -248,7 +248,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
                       id="export-width"
                       type="numeric"
                       value={exportWidth}
-                      onChange={(val: unknown) => {
+                      onChange={(val) => {
                         updateExportSize(toNumber(val, exportWidth), exportHeight);
                       }}
                     />
@@ -258,7 +258,7 @@ const ExportOptions: React.FC<ExportOptionsProps> = (props) => {
                       id="export-height"
                       type="numeric"
                       value={exportHeight}
-                      onChange={(val: unknown) => {
+                      onChange={(val) => {
                         updateExportSize(exportWidth, toNumber(val, exportHeight));
                       }}
                     />
